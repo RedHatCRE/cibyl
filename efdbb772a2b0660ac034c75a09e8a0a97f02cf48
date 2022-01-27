@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "787b93e9_bc80328e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1017875
+      },
+      "writtenOn": "2022-01-27T15:03:21Z",
+      "side": 1,
+      "message": "Please add .gitignore also with .pyc and __pycache__ excluded",
+      "revId": "efdbb772a2b0660ac034c75a09e8a0a97f02cf48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c978dc4e_db231429",
