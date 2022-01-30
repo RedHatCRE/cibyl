@@ -12,26 +12,26 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 from cibyl.value import ListValue
-from cibyl.models.ci.system import System
+from cibyl.models.ci.job import Job
+from cibyl.source import Source
 from cibyl.value import Value
 
 
-class Environment(object):
+class System(object):
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, type: str,
+                 jobs: list = [], sources: list = []):
 
-        self.name = Value(name='name', arg_name='--env-name', type=str,
-                          data=name)
-        self.systems = ListValue(name='systems', arg_name='--systems',
-                                 type=System, data=[])
-
-    def add_system(self, name, jobs=None, type=None, sources=[]):
-        self.systems.append(System(name=name, jobs=jobs,
-                                   type=type, sources=sources))
+        self.name = Value(name='name', arg_name='--system-name',
+                          type=str, data=name)
+        self.type = Value(name='type', arg_name='--system-type',
+                          type=str, data=type)
+        self.type = ListValue(name='sources', arg_name='--sources',
+                              type=Source, data=sources)
+        self.jobs = ListValue(name='jobs', arg_name='--jobs',
+                              type=Job, data=jobs)
 
     def __str__(self):
         output = ""
-        output += self.name.data.replace('_', ' ').replace('-', ' ') + "\n  "
-        for system in self.systems.data:
-            output += system.__str__()
+        output += self.name.data
         return output
