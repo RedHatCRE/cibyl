@@ -69,18 +69,19 @@ def setup_logging(debug) -> None:
 
 def generate_entities(config) -> list:
     entities = []
-    for env_name, systems in config['environments'].items():
-        env_instance = Environment(name=env_name)
-        for system_name, system_data in systems.items():
-            try:
-                env_instance.add_system(name=system_name, **system_data)
-            except TypeError as e:
-                non_supported_arg = re.findall(
-                    r'unexpected keyword argument \'(.*)\'', str(e))[0]
-                LOG.error("configuration doesn't support: {}".format(
-                    crayons.red(non_supported_arg)))
-                sys.exit(2)
-        entities.append(env_instance)
+    if 'environments' in config:
+        for env_name, systems in config['environments'].items():
+            env_instance = Environment(name=env_name)
+            for system_name, system_data in systems.items():
+                try:
+                    env_instance.add_system(name=system_name, **system_data)
+                except TypeError as e:
+                    non_supported_arg = re.findall(
+                        r'unexpected keyword argument \'(.*)\'', str(e))[0]
+                    LOG.error("configuration doesn't support: {}".format(
+                        crayons.red(non_supported_arg)))
+                    sys.exit(2)
+            entities.append(env_instance)
     return entities
 
 

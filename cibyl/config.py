@@ -26,15 +26,16 @@ class Config(object):
     DEFAULT_FILE_PATH = os.path.join(
         os.path.expanduser("~"), DEFAULT_RELATIVE_PATH)
 
-    def __init__(self, file_path=DEFAULT_FILE_PATH):
+    def __init__(self, file_path=DEFAULT_FILE_PATH, data={}):
         self.file_path = file_path
+        self.data = data
 
     def load(self):
         LOG.debug("{}: {}".format(
             crayons.yellow("loading conf"), self.file_path))
         try:
             with open(self.file_path, 'r') as stream:
-                self.data = yaml.safe_load(stream)
+                self.data = yaml.safe_load(stream) or {}
             return self.data
         except FileNotFoundError:
             LOG.error(
