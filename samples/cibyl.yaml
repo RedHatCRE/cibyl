@@ -1,0 +1,16 @@
+environments:
+  - osp_phase_1:                                     # This is a CI environment
+    - osp_jenkins:                                   # A CI system that is part of "osp_phase_1" environment
+      jobs: 'phase1-*'                               # Only 'phase1-*' jobs are part of 'osp_phase_1' environment
+      type: jenkins                                  # CI system is of Jenkins type
+      sources:                                       # Sources from which we can query information on this specific system, in this specific environment
+        osp_elk:                                     # Arbitrary source name
+          priroty: 0                                 # Source priority for queries (0 is the highest)
+          driver: elk                                # driver type (this has to match an actual driver name)
+          url: http://elk...                         # The URL of the source
+        osp_jenkins:                                 # Another source (name is arbitrary)
+          driver: jenkins                            # The driver for this source is jenkins
+          url: http://jenkins...                     # The URL of 'osp_jenkins' source
+  - rdo_component_pipline:                           # This is another environment, separate from the definition of 'osp_phase1' environment'
+    - component_pipline_jenkins:
+      type: jenkins
