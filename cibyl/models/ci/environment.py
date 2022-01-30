@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 from cibyl.value import ListValue
+from cibyl.source import Source
 from cibyl.models.ci.system import System
 from cibyl.value import Value
 
@@ -25,9 +26,12 @@ class Environment(object):
         self.systems = ListValue(name='systems', arg_name='--systems',
                                  type=System, data=[])
 
-    def add_system(self, name, jobs=None, type=None, sources=[]):
-        self.systems.append(System(name=name, jobs=jobs,
-                                   type=type, sources=sources))
+    def add_system(self, name, jobs=[], type=None, sources={}):
+        source_instances = []
+        for source_name, source_data in sources.items():
+            source_instances.append(Source(name=source_name))
+        self.systems.append(System(name=name, jobs=list(jobs),
+                                   type=type, sources=source_instances))
 
     def __str__(self):
         output = ""

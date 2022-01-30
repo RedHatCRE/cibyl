@@ -26,8 +26,8 @@ class System(object):
                           type=str, data=name)
         self.type = Value(name='type', arg_name='--system-type',
                           type=str, data=type)
-        self.type = ListValue(name='sources', arg_name='--sources',
-                              type=Source, data=sources)
+        self.sources = ListValue(name='sources', arg_name='--sources',
+                                 type=Source, data=sources)
         self.jobs = ListValue(name='jobs', arg_name='--jobs',
                               type=Job, data=jobs)
 

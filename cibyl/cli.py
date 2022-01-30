@@ -19,11 +19,13 @@ import sys
 
 from cibyl.config import Config
 from cibyl.models.ci.environment import Environment
+from cibyl.value import ValueInterface
+from cibyl.value import ListValue
 
 LOG = logging.getLogger(__name__)
 
 
-def create_parser() -> argparse.ArgumentParser:
+def create_parser(entities) -> argparse.ArgumentParser:
     """Creates argparse parser with all its sub-parsers.
 
     Returns:
@@ -37,18 +39,21 @@ def create_parser() -> argparse.ArgumentParser:
                         dest="debug", help='turn on debug')
     parser.add_argument('--config', dest="config_file_path",
                         default=Config.DEFAULT_FILE_PATH)
-    add_query_parser(subparsers)
+    query_parser = add_query_parser(subparsers)
+    populate_query_parser(query_parser, entities)
 
     return parser
 
 
 def add_query_parser(subparsers) -> None:
     """Creates the sub-parser 'query'."""
-    subparsers.add_parser("query")
-
-
-def populate_parser(parser, entities):
-    pass
+    query_parser = subparsers.add_parser("query")
+    query_parser.set_defaults(func=query)
+    query_parser.add_argument('--debug', '-d', action='store_true',
+                              dest="debug", help='turn on debug')
+    query_parser.add_argument('--config', dest="config_file_path",
+                              default=Config.DEFAULT_FILE_PATH)
+    return query_parser
 
 
 def setup_logging(debug) -> None:
@@ -79,24 +84,64 @@ def generate_entities(config) -> list:
     return entities
 
 
+def get_parser_group(parser, group_name):
+    group = None
+    for action_group in parser._action_groups:
+        if action_group.title == group_name:
+            group = action_group
+    if not group:
+        group = parser.add_argument_group(group_name)
+    return group
+
+
+def add_arguments(parser, attributes, group_name):
+    for attr_name, value in attributes.items():
+        group = get_parser_group(parser, group_name)
+        if isinstance(value, ValueInterface):
+            try:
+                group.add_argument(value.arg_name, type=value.type)
+            except argparse.ArgumentError:
+                LOG.debug("ignoring duplicate argument: {}".format(
+                    value.arg_name))
+            try:
+                if isinstance(value, ListValue):
+                    for item in value.data:
+                        add_arguments(parser, vars(item),
+                                      item.__class__.__name__)
+                else:
+                    add_arguments(parser, vars(value.data),
+                                  value.type.__class__.__name__)
+            except TypeError:
+                pass
+
+
 def populate_query_parser(query_parser, entities) -> None:
-    pass
+    for entity in entities:
+        add_arguments(query_parser, vars(entity),
+                      group_name=entity.__class__.__name__)
+
+
+def query(entities):
+    for entity in entities:
+        print(entity)
 
 
 def main():
-    parser = create_parser()
-    args = parser.parse_args()
+    config_file_path = Config.DEFAULT_FILE_PATH
+    for i, item in enumerate(sys.argv[1:]):
+        if item == "--config":
+            config_file_path = sys.argv[i+2]
 
-    config = Config(file_path=args.config_file_path)
+    config = Config(file_path=config_file_path)
     config.load()
     entities = generate_entities(config.data)
-
-    populate_query_parser(parser, entities)
+    parser = create_parser(entities)
     args = parser.parse_args()
     setup_logging(args.debug)
-
-    for entity in entities:
-        print(entity)
+    if hasattr(args, 'func'):
+        args.func(entities)
+    else:
+        LOG.info("usage: {}".format(crayons.yellow("cibyl query")))
 
 
 if __name__ == '__main__':
