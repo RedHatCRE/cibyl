@@ -19,11 +19,12 @@ LOG = logging.getLogger(__name__)
 class ValueInterface(object):
 
     def __init__(self, name, arg_name=None, type=None,
-                 description=None):
+                 description=None, populate=False):
         self.name = name
         self.arg_name = arg_name
         self.type = type
         self.description = description
+        self.populate = populate
 
 
 class Value(ValueInterface):
@@ -47,3 +48,6 @@ class ListValue(ValueInterface):
 
     def append(self, item):
         self.data.append(item)
+
+    def __getitem__(self, val):
+        return self.data[val]

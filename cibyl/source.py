@@ -15,6 +15,7 @@
 
 class Source(object):
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, priority: int = -1):
 
         self.name = name
+        self.priority = priority

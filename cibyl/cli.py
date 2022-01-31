@@ -123,8 +123,27 @@ def populate_query_parser(query_parser, entities) -> None:
 
 
 def query(entities):
+    output(entities)
+
+
+def output(entities):
     for entity in entities:
         print(entity)
+
+
+def mark_attributes_to_populate(args, attributes):
+    for attr_name, value in attributes.items():
+        if attr_name in args and args[attr_name]:
+            value.populate = True
+        if isinstance(value, ValueInterface):
+            try:
+                if isinstance(value, ListValue):
+                    for item in value.data:
+                        mark_attributes_to_populate(args, vars(item))
+                else:
+                    mark_attributes_to_populate(args, vars(value.data))
+            except TypeError:
+                pass
 
 
 def main():
@@ -139,6 +158,10 @@ def main():
     parser = create_parser(entities)
     args = parser.parse_args()
     setup_logging(args.debug)
+
+    for entity in entities:
+        mark_attributes_to_populate(vars(args), vars(entity))
+
     if hasattr(args, 'func'):
         args.func(entities)
     else:

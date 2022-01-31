@@ -20,7 +20,8 @@ from cibyl.value import Value
 class System(object):
 
     def __init__(self, name: str, type: str,
-                 jobs: list = [], sources: list = []):
+                 jobs: list = [], sources: list = [],
+                 jobs_scope: str = None):
 
         self.name = Value(name='name', arg_name='--system-name',
                           type=str, data=name)
@@ -30,6 +31,7 @@ class System(object):
                                  type=Source, data=sources)
         self.jobs = ListValue(name='jobs', arg_name='--jobs',
                               type=Job, data=jobs)
+        self.jobs_scope = ListValue(name='jobs_scope', type=str)
 
     def __str__(self):
         output = ""
