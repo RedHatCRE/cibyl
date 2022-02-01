@@ -29,11 +29,10 @@ class Source(object):
         return getattr(importlib.import_module(
             "cibyl.drivers.{}".format(self.driver)), module_name)
 
-    def populate(self, environment):
+    def populate(self, environment, args):
         try:
             Driver = self.get_driver_module(self.driver.capitalize())
         except AttributeError:
             Driver = self.get_driver_module(self.driver.upper())
         driver_instance = Driver(**self.driver_dict)
-        environment = driver_instance.query(environment)
-        return environment
+        driver_instance.query(environment, args)

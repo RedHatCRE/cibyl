@@ -72,7 +72,7 @@ def setup_logging(debug) -> None:
     logging.basicConfig(level=level, format=format)
 
 
-def generate_entities(config) -> list:
+def generate_env_instances(config) -> list:
     entities = []
     if 'environments' in config:
         for env_name, systems in config['environments'].items():
@@ -105,7 +105,8 @@ def add_arguments(parser, attributes, group_name):
         group = get_parser_group(parser, group_name)
         if isinstance(value, ValueInterface):
             try:
-                group.add_argument(value.arg_name, type=value.type)
+                group.add_argument(value.arg_name, type=value.type,
+                                   help=value.description, nargs=value.nargs)
             except argparse.ArgumentError:
                 LOG.debug("ignoring duplicate argument: {}".format(
                     value.arg_name))
@@ -127,21 +128,20 @@ def populate_query_parser(query_parser, entities) -> None:
                       group_name=entity.__class__.__name__)
 
 
-def query(entities):
-    updated_entities = []
-    for env in entities:
-        updated_env = env
+def query(environments, args):
+    for env in environments:
+        sources = []
         for system in env.systems:
             sources = sorted(system.sources, key=lambda src: src.priority,
                              reverse=True)
             for source in sources:
-                updated_env = source.populate(updated_env)
-    output(updated_entities)
+                source.populate(env, args)
+    output(environments)
 
 
-def output(entities):
-    for entity in entities:
-        print(entity)
+def output(environments):
+    for env in environments:
+        print(env)
 
 
 def mark_attributes_to_populate(args, attributes):
@@ -165,28 +165,34 @@ def get_plugin_class(module_name):
         module_name.capitalize())
 
 
-def main():
+def get_config_file_path(arguments):
     config_file_path = Config.DEFAULT_FILE_PATH
-    for i, item in enumerate(sys.argv[1:]):
+    for i, item in enumerate(arguments[1:]):
         if item == "--config":
-            config_file_path = sys.argv[i+2]
+            config_file_path = arguments[i+2]
+    return config_file_path
 
+
+def main():
+    config_file_path = get_config_file_path(sys.argv)
     config = Config(file_path=config_file_path)
     config.load()
-    entities = generate_entities(config.data)
-    parser = create_parser(entities)
+
+    ci_environments = generate_env_instances(config.data)
+    parser = create_parser(ci_environments)
     args = parser.parse_args()
     setup_logging(args.debug)
 
-    for entity in entities:
-        mark_attributes_to_populate(vars(args), vars(entity))
+    for env in ci_environments:
+        mark_attributes_to_populate(vars(args), vars(env))
 
     Plugin = get_plugin_class(args.plugin)
     plugin = Plugin()
-    plugin.extend(entities)
+    plugin.extend(ci_environments)
 
     if hasattr(args, 'func'):
-        args.func(entities)
+        used_args = {k: v for k, v in vars(args).items() if v is None}
+        args.func(ci_environments, used_args)
     else:
         LOG.info("usage: {}".format(crayons.yellow("cibyl query")))
 

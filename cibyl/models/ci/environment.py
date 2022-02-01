@@ -16,17 +16,20 @@ from cibyl.source import Source
 from cibyl.models.ci.system import System
 from cibyl.value import Value
 
+import crayons
+
 
 class Environment(object):
 
     def __init__(self, name: str):
 
         self.name = Value(name='name', arg_name='--env-name', type=str,
-                          data=name)
+                          data=name, description="the name of the environment")
         self.systems = ListValue(name='systems', arg_name='--systems',
-                                 type=System, data=[])
+                                 type=System,
+                                 description="the environment systems")
 
-    def add_system(self, name, jobs_scope=[], type=None, sources={}):
+    def add_system(self, name, jobs_scope=None, type=None, sources={}):
         source_instances = []
 
         # Create source instances
@@ -41,7 +44,8 @@ class Environment(object):
 
     def __str__(self):
         output = ""
-        output += self.name.data.replace('_', ' ').replace('-', ' ') + "\n  "
+        output += crayons.green("environment: ") + self.name.data.replace(
+            '_', ' ').replace('-', ' ') + "\n  "
         for system in self.systems.data:
             output += system.__str__()
         return output
