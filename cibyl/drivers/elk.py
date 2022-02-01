@@ -22,6 +22,7 @@ class ELK(object):
     def __init__(self, url, **kwargs):
         self.url = url
 
-    def query(self, environment):
+    def query(self, environment, args):
 
         LOG.debug("querying ELK: {}".format(self.url))
+        return environment

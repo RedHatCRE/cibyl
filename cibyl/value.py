@@ -19,32 +19,36 @@ LOG = logging.getLogger(__name__)
 class ValueInterface(object):
 
     def __init__(self, name, arg_name=None, type=None,
-                 description=None, populate=False):
+                 description=None, populate=False,
+                 nargs=1):
         self.name = name
         self.arg_name = arg_name
         self.type = type
         self.description = description
         self.populate = populate
+        self.nargs = nargs
 
 
 class Value(ValueInterface):
 
-    def __init__(self, name, arg_name=None, type=None, data=None,
-                 description=None):
-        super(Value, self).__init__(name, arg_name, type, description)
+    def __init__(self, name, arg_name=None, type=None, data=[],
+                 description=None, nargs=1):
+        super(Value, self).__init__(name, arg_name, type, description,
+                                    nargs=nargs)
         self.data = data
 
 
 class ListValue(ValueInterface):
 
-    def __init__(self, name, arg_name=None, type=None, data=[],
-                 description=None):
-        super(ListValue, self).__init__(name, arg_name, type, description)
+    def __init__(self, name, arg_name=None, type=None, data=None,
+                 description=None, nargs=1):
+        super(ListValue, self).__init__(name, arg_name=arg_name, type=type,
+                                        description=description,
+                                        nargs=nargs)
         if isinstance(data, list):
             self.data = data
-        else:
-            LOG.error("Ignoring non-list data for {}: {}".format(
-                name, data))
+        if data is None:
+            self.data = []
 
     def append(self, item):
         self.data.append(item)

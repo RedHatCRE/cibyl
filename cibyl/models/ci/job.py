@@ -15,11 +15,20 @@ from cibyl.value import ListValue
 from cibyl.models.ci.test import Test
 from cibyl.value import Value
 
+import crayons
+
 
 class Job(object):
 
     def __init__(self, name: str):
 
-        self.name = Value(name='name', arg_name='--job-name', type=str)
+        self.name = Value(name='name', arg_name='--job-name',
+                          type=str, data=name)
         self.tests = ListValue(name='tests', arg_name='--tests',
-                               type=Test, data=[])
+                               type=Test)
+
+    def __str__(self):
+        output = ""
+        output += "    " + crayons.green("job: ") + "{}\n".format(
+            self.name.data)
+        return output

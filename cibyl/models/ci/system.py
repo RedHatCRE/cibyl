@@ -16,11 +16,13 @@ from cibyl.models.ci.job import Job
 from cibyl.source import Source
 from cibyl.value import Value
 
+import crayons
+
 
 class System(object):
 
     def __init__(self, name: str, type: str,
-                 jobs: list = [], sources: list = [],
+                 jobs=None, sources=None,
                  jobs_scope: str = None):
 
         self.name = Value(name='name', arg_name='--system-name',
@@ -30,10 +32,13 @@ class System(object):
         self.sources = ListValue(name='sources', arg_name='--sources',
                                  type=Source, data=sources)
         self.jobs = ListValue(name='jobs', arg_name='--jobs',
-                              type=Job, data=jobs)
+                              type=Job, data=jobs, nargs='*')
         self.jobs_scope = ListValue(name='jobs_scope', type=str)
 
     def __str__(self):
         output = ""
-        output += self.name.data
+        output += "  " + crayons.green("system: ") + "{}\n".format(
+            self.name.data)
+        for job in self.jobs:
+            output += job.__str__()
         return output
