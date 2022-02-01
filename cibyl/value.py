@@ -51,3 +51,6 @@ class ListValue(ValueInterface):
 
     def __getitem__(self, val):
         return self.data[val]
+
+    def __lt__(self, other):
+        return self < other

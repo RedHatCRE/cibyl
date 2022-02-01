@@ -13,6 +13,7 @@
 #    under the License.
 import argparse
 import crayons
+import importlib
 import logging
 import re
 import sys
@@ -39,6 +40,8 @@ def create_parser(entities) -> argparse.ArgumentParser:
                         dest="debug", help='turn on debug')
     parser.add_argument('--config', dest="config_file_path",
                         default=Config.DEFAULT_FILE_PATH)
+    parser.add_argument('--plugin', dest="plugin",
+                        default="openstack")
     query_parser = add_query_parser(subparsers)
     populate_query_parser(query_parser, entities)
 
@@ -53,6 +56,8 @@ def add_query_parser(subparsers) -> None:
                               dest="debug", help='turn on debug')
     query_parser.add_argument('--config', dest="config_file_path",
                               default=Config.DEFAULT_FILE_PATH)
+    query_parser.add_argument('--plugin', dest="plugin",
+                              default="openstack")
     return query_parser
 
 
@@ -123,7 +128,15 @@ def populate_query_parser(query_parser, entities) -> None:
 
 
 def query(entities):
-    output(entities)
+    updated_entities = []
+    for env in entities:
+        updated_env = env
+        for system in env.systems:
+            sources = sorted(system.sources, key=lambda src: src.priority,
+                             reverse=True)
+            for source in sources:
+                updated_env = source.populate(updated_env)
+    output(updated_entities)
 
 
 def output(entities):
@@ -146,6 +159,12 @@ def mark_attributes_to_populate(args, attributes):
                 pass
 
 
+def get_plugin_class(module_name):
+    return getattr(importlib.import_module(
+        "cibyl.plugins.{}".format(module_name)),
+        module_name.capitalize())
+
+
 def main():
     config_file_path = Config.DEFAULT_FILE_PATH
     for i, item in enumerate(sys.argv[1:]):
@@ -161,6 +180,10 @@ def main():
 
     for entity in entities:
         mark_attributes_to_populate(vars(args), vars(entity))
+
+    Plugin = get_plugin_class(args.plugin)
+    plugin = Plugin()
+    plugin.extend(entities)
 
     if hasattr(args, 'func'):
         args.func(entities)

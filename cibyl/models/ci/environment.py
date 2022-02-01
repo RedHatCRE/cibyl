@@ -28,10 +28,16 @@ class Environment(object):
 
     def add_system(self, name, jobs_scope=[], type=None, sources={}):
         source_instances = []
-        for source_name, source_data in sources.items():
-            source_instances.append(Source(name=source_name))
-        self.systems.append(System(name=name, jobs_scope=jobs_scope,
-                                   type=type, sources=source_instances))
+
+        # Create source instances
+        for source_name, source_dict in sources.items():
+            source_instances.append(
+                Source(name=source_name, **source_dict))
+
+        # Add System instance
+        self.systems.append(
+            System(name=name, jobs_scope=jobs_scope, type=type,
+                   sources=source_instances))
 
     def __str__(self):
         output = ""

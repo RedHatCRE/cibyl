@@ -16,9 +16,9 @@ To get information on your configured CI environments, run: `cibyl query`
 ## Configuration
 
 * The configuration file is YAML based and the hierarchy it supports is the following: Env -> System(s) -> Source(s)
-    * Env is the logical CI environment which can include one or more CI systems (e.g. Jenkins, GitHub Actions, ...)
-    * System is an actual CI system (currently support are: none :'()
-    * Source is where data on the CI system can be pulled from (e.g. the CI system itself, job definitions repository, ELK, etc.)
+    * Env: A logical CI environment which can include one or more CI systems (e.g. Jenkins, Zuul, ...)
+    * System is an actual CI system (currently the supported are: none :'(  )
+    * Source: where CI related info can be pulled from (e.g. The CI system itself, job definitions repo, ELK, etc.)
 
 * The configuration file path by default is `~/.cibyl/cibyl.yaml` but, it can be controlled with the `--config` argument
 
