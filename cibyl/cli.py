@@ -11,7 +11,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-import argparse
 import crayons
 import importlib
 import logging
@@ -20,45 +19,11 @@ import sys
 
 from cibyl.config import Config
 from cibyl.models.ci.environment import Environment
+from cibyl.parser import create_parser
 from cibyl.value import ValueInterface
 from cibyl.value import ListValue
 
 LOG = logging.getLogger(__name__)
-
-
-def create_parser(entities) -> argparse.ArgumentParser:
-    """Creates argparse parser with all its sub-parsers.
-
-    Returns:
-        argparse.ArgumentParser with its sub-parsers
-    """
-
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
-
-    parser.add_argument('--debug', '-d', action='store_true',
-                        dest="debug", help='turn on debug')
-    parser.add_argument('--config', dest="config_file_path",
-                        default=Config.DEFAULT_FILE_PATH)
-    parser.add_argument('--plugin', dest="plugin",
-                        default="openstack")
-    query_parser = add_query_parser(subparsers)
-    populate_query_parser(query_parser, entities)
-
-    return parser
-
-
-def add_query_parser(subparsers) -> None:
-    """Creates the sub-parser 'query'."""
-    query_parser = subparsers.add_parser("query")
-    query_parser.set_defaults(func=query)
-    query_parser.add_argument('--debug', '-d', action='store_true',
-                              dest="debug", help='turn on debug')
-    query_parser.add_argument('--config', dest="config_file_path",
-                              default=Config.DEFAULT_FILE_PATH)
-    query_parser.add_argument('--plugin', dest="plugin",
-                              default="openstack")
-    return query_parser
 
 
 def setup_logging(debug) -> None:
@@ -88,44 +53,6 @@ def generate_env_instances(config) -> list:
                     sys.exit(2)
             entities.append(env_instance)
     return entities
-
-
-def get_parser_group(parser, group_name):
-    group = None
-    for action_group in parser._action_groups:
-        if action_group.title == group_name:
-            group = action_group
-    if not group:
-        group = parser.add_argument_group(group_name)
-    return group
-
-
-def add_arguments(parser, attributes, group_name):
-    for attr_name, value in attributes.items():
-        group = get_parser_group(parser, group_name)
-        if isinstance(value, ValueInterface):
-            try:
-                group.add_argument(value.arg_name, type=value.type,
-                                   help=value.description, nargs=value.nargs)
-            except argparse.ArgumentError:
-                LOG.debug("ignoring duplicate argument: {}".format(
-                    value.arg_name))
-            try:
-                if isinstance(value, ListValue):
-                    for item in value.data:
-                        add_arguments(parser, vars(item),
-                                      item.__class__.__name__)
-                else:
-                    add_arguments(parser, vars(value.data),
-                                  value.type.__class__.__name__)
-            except TypeError:
-                pass
-
-
-def populate_query_parser(query_parser, entities) -> None:
-    for entity in entities:
-        add_arguments(query_parser, vars(entity),
-                      group_name=entity.__class__.__name__)
 
 
 def query(environments, args):
@@ -160,12 +87,28 @@ def mark_attributes_to_populate(args, attributes):
 
 
 def get_plugin_class(module_name):
+    """Returns the plugin class based on the pass module name
+
+    Args:
+        module name: A str that represents the module Name
+    Returns:
+        The plugin class whose file name matches module name
+    """
     return getattr(importlib.import_module(
         "cibyl.plugins.{}".format(module_name)),
         module_name.capitalize())
 
 
 def get_config_file_path(arguments):
+    """ Manually parse user arguments and check if config
+        argument was used. If yes, use the value provided.
+        If not, use default from Config class
+
+    Args:
+        arguments: list of arguments
+    Returns:
+        A string which is the config file path
+    """
     config_file_path = Config.DEFAULT_FILE_PATH
     for i, item in enumerate(arguments[1:]):
         if item == "--config":
@@ -174,24 +117,38 @@ def get_config_file_path(arguments):
 
 
 def main():
+    # Since parser is created only after loading the
+    # configuration, we first parse it manually from
+    # the arguments provided by the user
     config_file_path = get_config_file_path(sys.argv)
     config = Config(file_path=config_file_path)
     config.load()
 
+    # Generate CI environment entities based on loaded configuration
     ci_environments = generate_env_instances(config.data)
-    parser = create_parser(ci_environments)
+
+    # Populate parser based on the generated environment entities
+    parser = create_parser(ci_environments, query)
     args = parser.parse_args()
+
+    # Set up logging based on the chosen level by the user
     setup_logging(args.debug)
 
+    # Mark attributes that needs to be populated based on
+    # the arguments that user have used
     for env in ci_environments:
         mark_attributes_to_populate(vars(args), vars(env))
 
+    # Extend CI environment entities based on the chosen plugin
     Plugin = get_plugin_class(args.plugin)
-    plugin = Plugin()
-    plugin.extend(ci_environments)
+    if Plugin:
+        plugin = Plugin()
+        plugin.extend(ci_environments)
 
     if hasattr(args, 'func'):
+        # Filter out only the arguments the user has actually used
         used_args = {k: v for k, v in vars(args).items() if v is not None}
+        # Populate environments based on the arguments the user has passed
         args.func(ci_environments, used_args)
     else:
         LOG.info("usage: {}".format(crayons.yellow("cibyl query")))

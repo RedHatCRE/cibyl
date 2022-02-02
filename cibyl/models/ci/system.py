@@ -25,14 +25,21 @@ class System(object):
                  jobs=None, sources=None,
                  jobs_scope: str = None):
 
-        self.name = Value(name='name', arg_name='--system-name',
-                          type=str, data=name)
-        self.type = Value(name='type', arg_name='--system-type',
-                          type=str, data=type)
-        self.sources = ListValue(name='sources', arg_name='--sources',
-                                 type=Source, data=sources)
-        self.jobs = ListValue(name='jobs', arg_name='--jobs',
-                              type=Job, data=jobs, nargs='*')
+        self.name = Value(
+            name='name', arg_name='--system-name',
+            type=str, data=name, description="the name of the system")
+
+        self.type = Value(
+            name='type', arg_name='--system-type', type=str, data=type,
+            description="system type (e.g. jenkins, zuul")
+
+        self.sources = ListValue(
+            name='sources', arg_name='--sources', type=Source, data=sources,
+            nargs='*',
+            description="source(s) name as specified in the config")
+
+        self.jobs = ListValue(
+            name='jobs', arg_name='--jobs', type=Job, data=jobs, nargs='*')
         self.jobs_scope = ListValue(name='jobs_scope', type=str)
 
     def __str__(self):
