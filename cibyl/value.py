@@ -18,11 +18,11 @@ LOG = logging.getLogger(__name__)
 
 class ValueInterface(object):
 
-    def __init__(self, name, arg_name=None, type=None,
+    def __init__(self, name, args=None, type=None,
                  description=None, populate=False,
                  nargs=1):
         self.name = name
-        self.arg_name = arg_name
+        self.args = args
         self.type = type
         self.description = description
         self.populate = populate
@@ -31,18 +31,18 @@ class ValueInterface(object):
 
 class Value(ValueInterface):
 
-    def __init__(self, name, arg_name=None, type=None, data=[],
+    def __init__(self, name, args=None, type=None, data=[],
                  description=None, nargs=1):
-        super(Value, self).__init__(name, arg_name, type, description,
+        super(Value, self).__init__(name, args, type, description,
                                     nargs=nargs)
         self.data = data
 
 
 class ListValue(ValueInterface):
 
-    def __init__(self, name, arg_name=None, type=None, data=None,
+    def __init__(self, name, args=None, type=None, data=None,
                  description=None, nargs=1):
-        super(ListValue, self).__init__(name, arg_name=arg_name, type=type,
+        super(ListValue, self).__init__(name, args=args, type=type,
                                         description=description,
                                         nargs=nargs)
         if isinstance(data, list):

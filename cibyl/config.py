@@ -42,3 +42,20 @@ class Config(object):
                 "couldn't find configuration file :'(\n{}".format(
                     crayons.red(self.file_path)))
             sys.exit(2)
+
+    @staticmethod
+    def get_config_file_path(arguments):
+        """ Manually parse user arguments and check if config
+            argument was used. If yes, use the value provided.
+            If not, use default from Config class
+
+        Args:
+            arguments: list of arguments
+        Returns:
+            A string which is the config file path
+        """
+        config_file_path = Config.DEFAULT_FILE_PATH
+        for i, item in enumerate(arguments[1:]):
+            if item == "--config":
+                config_file_path = arguments[i+2]
+        return config_file_path

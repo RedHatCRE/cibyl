@@ -19,5 +19,5 @@ class Deployment(object):
 
     def __init__(self):
 
-        self.tests = ListValue(name='features', arg_name='--features',
-                               type=Feature, data=[])
+        self.features = ListValue(
+            name='features', args=['--features'], type=Feature, data=[])

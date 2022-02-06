@@ -11,24 +11,12 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from cibyl.value import ListValue
-from cibyl.models.ci.test import Test
-from cibyl.value import Value
-
-import crayons
-
-
-class Job(object):
-
-    def __init__(self, name: str):
-
-        self.name = Value(name='name', args=['--job-name'],
-                          type=str, data=name)
-        self.tests = ListValue(name='tests', args=['--tests'],
-                               type=Test)
-
-    def __str__(self, indent=0):
-        output = ""
-        output += " "*indent + crayons.green("job: ") + "{}".format(
-            self.name.data)
-        return output
+openstack_features = {
+    'overcloud_ipv6': {
+        'releases': ['wallaby', 17],
+        'drivers': {'jjb': {'ir_tripleo_overcloud_network_protocol': 'ipv6*'}},
+    },
+    'overcloud_ipv4': {
+        'releases': ['wallaby', 17]
+    }
+}

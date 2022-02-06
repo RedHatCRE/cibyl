@@ -67,11 +67,13 @@ def add_arguments(parser, attributes, group_name):
         group = get_parser_group(parser, group_name)
         if isinstance(value, ValueInterface):
             try:
-                group.add_argument(value.arg_name, type=value.type,
-                                   help=value.description, nargs=value.nargs)
+                for arg in value.args:
+                    group.add_argument(
+                        arg, type=value.type,
+                        help=value.description, nargs=value.nargs)
             except argparse.ArgumentError:
                 LOG.debug("ignoring duplicate argument: {}".format(
-                    value.arg_name))
+                    arg))
             try:
                 if isinstance(value, ListValue):
                     for item in value.data:

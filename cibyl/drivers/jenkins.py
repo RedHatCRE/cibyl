@@ -14,8 +14,10 @@
 from cibyl.models.ci.job import Job
 
 import logging
+import re
 from requests import adapters
 from requests import Session
+import sys
 import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -42,17 +44,38 @@ class Jenkins(object):
 
     def query(self, environment, args):
         LOG.debug("querying Jenkins: {}".format(self.url))
-        if 'jobs' in args:
+        if 'jobs' in args or 'jobs_regex' in args:
             result_json = self.make_api_call()
             for job_dict in result_json['jobs']:
                 for system in environment.systems:
                     if system.type.data == 'jenkins':
-                        if not args['jobs']:
+                        if not args.get('jobs') and not args.get('jobs_regex'):
                             system.jobs.append(Job(name=job_dict['name']))
                         else:
-                            for job_pattern in args['jobs']:
-                                if job_pattern.name.data in job_dict['name']:
-                                    system.jobs.append(Job(
-                                        name=job_dict['name']))
-                                    break
+                            if args.get('jobs') and args.get('jobs_regex'):
+                                LOG.error("Oh no you didn't!")
+                                sys.exit(2)
+                            elif args.get('jobs'):
+                                for job in args['jobs']:
+                                    if job.name.data in job_dict.get('name'):
+                                        if system.jobs_scope.data:
+                                            for scope in system.jobs_scope.data:
+                                                if re.search(scope, job_dict['name']):
+                                                    system.jobs.append(Job(
+                                                        name=job_dict['name']))
+                                        else:
+                                            system.jobs.append(Job(
+                                                name=job_dict['name']))
+                                        break
+                            elif args.get('jobs_regex'):
+                                for regex in args.get('jobs_regex'):
+                                    if re.search(regex.name.data, job_dict['name']):
+                                        if system.jobs_scope.data:
+                                            for scope in system.jobs_scope.data:
+                                                if re.search(scope, job_dict['name']):
+                                                    system.jobs.append(Job(name=job_dict['name']))
+                                        else:
+                                            system.jobs.append(Job(
+                                                name=job_dict['name']))
+                                        break
         return environment

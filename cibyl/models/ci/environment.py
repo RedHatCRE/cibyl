@@ -23,14 +23,17 @@ class Environment(object):
 
     def __init__(self, name: str):
 
-        self.name = Value(name='name', arg_name='--env-name', type=str,
+        self.name = Value(name='name', args=['--env-name'], type=str,
                           data=name, description="the name of the environment")
-        self.systems = ListValue(name='systems', arg_name='--systems',
+
+        self.systems = ListValue(name='systems', args=['--systems'],
                                  type=System,
                                  description="the environment systems")
 
     def add_system(self, name, jobs_scope=None, type=None, sources={}):
         source_instances = []
+        if isinstance(jobs_scope, str):
+            jobs_scope = jobs_scope.split(" ")
 
         # Create source instances
         for source_name, source_dict in sources.items():
@@ -42,10 +45,10 @@ class Environment(object):
             System(name=name, jobs_scope=jobs_scope, type=type,
                    sources=source_instances))
 
-    def __str__(self):
+    def __str__(self, indent=0):
         output = ""
         output += crayons.green("environment: ") + self.name.data.replace(
-            '_', ' ').replace('-', ' ') + "\n  "
+            '_', ' ').replace('-', ' ')
         for system in self.systems.data:
-            output += system.__str__()
-        return output
+            output += system.__str__(indent=indent+2)
+        return output + "\n"

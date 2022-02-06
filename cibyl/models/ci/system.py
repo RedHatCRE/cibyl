@@ -26,26 +26,29 @@ class System(object):
                  jobs_scope: str = None):
 
         self.name = Value(
-            name='name', arg_name='--system-name',
+            name='name', args=['--system-name'],
             type=str, data=name, description="the name of the system")
 
         self.type = Value(
-            name='type', arg_name='--system-type', type=str, data=type,
-            description="system type (e.g. jenkins, zuul")
+            name='type', args=['--system-type'], type=str, data=type,
+            description="system type (e.g. jenkins, zuul)")
 
         self.sources = ListValue(
-            name='sources', arg_name='--sources', type=Source, data=sources,
+            name='sources', args=['--sources'], type=Source, data=sources,
             nargs='*',
             description="source(s) name as specified in the config")
 
         self.jobs = ListValue(
-            name='jobs', arg_name='--jobs', type=Job, data=jobs, nargs='*')
-        self.jobs_scope = ListValue(name='jobs_scope', type=str)
+            name='jobs', args=['--jobs', '--jobs-regex'],
+            type=Job, data=jobs, nargs='*')
 
-    def __str__(self):
-        output = ""
-        output += "  " + crayons.green("system: ") + "{}\n".format(
+        self.jobs_scope = ListValue(name='jobs_scope', type=str,
+                                    data=jobs_scope)
+
+    def __str__(self, indent=0):
+        output = "\n"
+        output += " "*indent + crayons.green("system: ") + "{}".format(
             self.name.data)
         for job in self.jobs:
-            output += job.__str__()
+            output += "\n" + job.__str__(indent=indent+2)
         return output
