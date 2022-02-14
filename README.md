@@ -1,4 +1,3 @@
-===============
 What is Cibyl?
 ===============
 Cibyl is tool that models CI systems by creating an in-memory representation of CI system/s entities, facilitating a unified query  
@@ -11,11 +10,9 @@ and used for "hidden" info revelation. CI-byl is also a wordplay that reflects t
 
 How to contribute?
 ------------------
-
 To contribute please follow: http://cibyl.readthedocs.io/en/latest/contribute.html
 
 
 Official Documentation
 ----------------------
-
-For more information Please read our `Documentation <http://cibyl.readthedocs.org>`_
+For more information please read our `Documentation <http://cibyl.readthedocs.org>`_
