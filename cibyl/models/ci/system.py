@@ -1,4 +1,5 @@
-# Copyright 2022 Red Hat
+"""
+#    Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -11,20 +12,27 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from cibyl.value import ListValue
-from cibyl.models.ci.job import Job
-from cibyl.source import Source
-from cibyl.value import Value
-
+"""
 import crayons
 
+from cibyl.models.ci.job import Job
+from cibyl.source import Source
+from cibyl.value import ListValue, Value
 
-class System(object):
 
+class System:
+    """
+    """
     def __init__(self, name: str, type: str,
                  jobs=None, sources=None,
                  jobs_scope: str = None):
-
+        """
+        :param name:
+        :param type:
+        :param jobs:
+        :param sources:
+        :param jobs_scope:
+        """
         self.name = Value(
             name='name', args=['--system-name'],
             type=str, data=name, description="the name of the system")
@@ -46,9 +54,13 @@ class System(object):
                                     data=jobs_scope)
 
     def __str__(self, indent=0):
+        """
+        :param indent:
+        :return:
+        """
         output = "\n"
-        output += " "*indent + crayons.green("system: ") + "{}".format(
+        output += " " * indent + crayons.green("system: ") + "{}".format(
             self.name.data)
         for job in self.jobs:
-            output += "\n" + job.__str__(indent=indent+2)
+            output += "\n" + job.__str__(indent=indent + 2)
         return output

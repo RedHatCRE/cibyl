@@ -1,4 +1,5 @@
-# Copyright 2022 Red Hat
+"""
+#    Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -11,14 +12,22 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+"""
 import importlib
 
 
-class Source(object):
-
+class Source:
+    """
+    """
     def __init__(self, name: str, driver: str, priority: int = -1,
                  **kwargs):
-
+        """
+        Initialize source class.
+        :param name:
+        :param driver:
+        :param priority:
+        :param kwargs:
+        """
         self.name = name
         self.driver = driver
         self.priority = priority
@@ -26,13 +35,24 @@ class Source(object):
         self.driver_dict = kwargs
 
     def get_driver_module(self, module_name):
+        """
+        Get driver module
+        :param module_name:
+        :return:
+        """
         return getattr(importlib.import_module(
             "cibyl.drivers.{}".format(self.driver)), module_name)
 
     def populate(self, environment, args):
+        """
+        Populate source
+        :param environment:
+        :param args:
+        :return:
+        """
         try:
-            Driver = self.get_driver_module(self.driver.capitalize())
+            driver = self.get_driver_module(self.driver.capitalize())
         except AttributeError:
-            Driver = self.get_driver_module(self.driver.upper())
-        driver_instance = Driver(**self.driver_dict)
+            driver = self.get_driver_module(self.driver.upper())
+        driver_instance = driver(**self.driver_dict)
         driver_instance.query(environment, args)
