@@ -1,4 +1,5 @@
-# Copyright 2022 Red Hat
+"""
+#    Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -11,19 +12,19 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from cibyl.models.ci.job import Job
-
+"""
 import logging
 import re
-from requests import adapters
-from requests import Session
 import sys
+
 import urllib3
+from requests import Session, adapters
+
+from cibyl.models.ci.job import Job
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.getLogger("requests").setLevel(logging.ERROR)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
-
 
 LOG = logging.getLogger(__name__)
 
@@ -59,8 +60,9 @@ class Jenkins(object):
                                 for job in args['jobs']:
                                     if job.name.data in job_dict.get('name'):
                                         if system.jobs_scope.data:
-                                            for scope in system.jobs_scope.data:
-                                                if re.search(scope, job_dict['name']):
+                                            for scope in system.jobs_scope.data:  # noqa
+                                                if re.search(scope,
+                                                             job_dict['name']):
                                                     system.jobs.append(Job(
                                                         name=job_dict['name']))
                                         else:
@@ -69,11 +71,13 @@ class Jenkins(object):
                                         break
                             elif args.get('jobs_regex'):
                                 for regex in args.get('jobs_regex'):
-                                    if re.search(regex.name.data, job_dict['name']):
+                                    if re.search(regex.name.data,
+                                                 job_dict['name']):
                                         if system.jobs_scope.data:
-                                            for scope in system.jobs_scope.data:
-                                                if re.search(scope, job_dict['name']):
-                                                    system.jobs.append(Job(name=job_dict['name']))
+                                            for scope in system.jobs_scope.data:  # noqa
+                                                if re.search(scope,
+                                                             job_dict['name']):
+                                                    system.jobs.append(Job(name=job_dict['name']))  # noqa
                                         else:
                                             system.jobs.append(Job(
                                                 name=job_dict['name']))

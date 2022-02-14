@@ -1,4 +1,5 @@
-# Copyright 2022 Red Hat
+"""
+#    Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -11,23 +12,23 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+"""
 import argparse
 import logging
 
 from cibyl.config import Config
-from cibyl.value import ValueInterface
-from cibyl.value import ListValue
+from cibyl.value import ListValue, ValueInterface
 
 LOG = logging.getLogger(__name__)
 
 
 def create_parser(entities, query_func) -> argparse.ArgumentParser:
-    """Creates argparse parser with all its sub-parsers.
-
-    Returns:
-        argparse.ArgumentParser with its sub-parsers
     """
-
+    Creates argparse parser with all its sub-parsers.
+    :param entities:
+    :param query_func:
+    :return: argparse.ArgumentParser with its sub-parsers
+    """
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
@@ -57,12 +58,23 @@ def add_query_parser(subparsers, query_func) -> None:
 
 
 def populate_query_parser(query_parser, entities) -> None:
+    """
+    :param query_parser:
+    :param entities:
+    :return:
+    """
     for entity in entities:
         add_arguments(query_parser, vars(entity),
                       group_name=entity.__class__.__name__)
 
 
 def add_arguments(parser, attributes, group_name):
+    """
+    :param parser:
+    :param attributes:
+    :param group_name:
+    :return:
+    """
     for attr_name, value in attributes.items():
         group = get_parser_group(parser, group_name)
         if isinstance(value, ValueInterface):
@@ -87,6 +99,11 @@ def add_arguments(parser, attributes, group_name):
 
 
 def get_parser_group(parser, group_name):
+    """
+    :param parser:
+    :param group_name:
+    :return:
+    """
     group = None
     for action_group in parser._action_groups:
         if action_group.title == group_name:

@@ -1,4 +1,5 @@
-# Copyright 2022 Red Hat
+"""
+#    Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -11,31 +12,42 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-import crayons
+"""
 import importlib
 import logging
 import re
 import sys
 
+import crayons
+
 from cibyl.config import Config
 from cibyl.models.ci.environment import Environment
 from cibyl.parser import create_parser
-from cibyl.value import ValueInterface
-from cibyl.value import ListValue
-
+from cibyl.value import ListValue, ValueInterface
 
 LOG = logging.getLogger(__name__)
 
 
-class Orchestrator(object):
+class Orchestrator:
+    """
+    """
 
     def __init__(self, args=None):
+        """
+        :param args:
+        """
         self.args = args
 
     def prepare(self):
+        """
+        :return:
+        """
         self.load_configuration()
 
     def run(self):
+        """
+        :return:
+        """
         # Generate CI environment entities based on loaded configuration
         ci_environments = self.generate_env_instances(self.config.data)
         # Populate parser based on the generated environment entities
@@ -64,9 +76,15 @@ class Orchestrator(object):
             LOG.info("usage: {}".format(crayons.yellow("cibyl query")))
 
     def post(self):
+        """
+        :return:
+        """
         pass
 
     def load_configuration(self):
+        """
+        :return:
+        """
         # Since parser is created only after loading the
         # configuration, we first parse it manually from
         # the arguments provided by the user
@@ -75,6 +93,10 @@ class Orchestrator(object):
         self.config.load()
 
     def generate_env_instances(self, config) -> list:
+        """
+        :param config:
+        :return:
+        """
         entities = []
         if 'environments' in config:
             for env_name, systems in config['environments'].items():
@@ -93,16 +115,21 @@ class Orchestrator(object):
         return entities
 
     def setup_logging(self, debug) -> None:
-        """Sets up basic logging with format and level defined.
-
-        Args:
-            debug: boolean that determines with debug level should be used
+        """
+        Sets up basic logging with format and level defined.
+        :param debug:  boolean that determines with debug level should be used
+        :return:
         """
         format = '%(message)s'
         level = logging.DEBUG if debug else logging.INFO
         logging.basicConfig(level=level, format=format)
 
     def query(self, environments, args):
+        """
+        :param environments:
+        :param args:
+        :return:
+        """
         for env in environments:
             sources = []
             for system in env.systems:
@@ -113,10 +140,19 @@ class Orchestrator(object):
         self.output(environments)
 
     def output(self, environments):
+        """
+        :param environments:
+        :return:
+        """
         for env in environments:
             print(env)
 
     def mark_attributes_to_populate(self, args, attributes):
+        """
+        :param args:
+        :param attributes:
+        :return:
+        """
         for attr_name, value in attributes.items():
             if attr_name in args and args[attr_name]:
                 value.populate = True
@@ -132,12 +168,10 @@ class Orchestrator(object):
                     pass
 
     def get_plugin(self, module_name):
-        """Returns a plugin class instance based on the pass module name
-
-        Args:
-            module name: A str that represents the module Name
-        Returns:
-            The plugin class instance whose file name matches module name
+        """
+        Returns a plugin class instance based on the pass module name
+        :param module_name: A str that represents the module Name
+        :return:  The plugin class instance whose file name matches module name
         """
         Plugin = getattr(importlib.import_module(
             "cibyl.plugins.{}".format(module_name)),

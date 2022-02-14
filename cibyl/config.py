@@ -1,4 +1,5 @@
-# Copyright 2022 Red Hat
+"""
+#    Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -11,26 +12,39 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-import crayons
+"""
 import logging
 import os
 import sys
+
+import crayons
 import yaml
 
 LOG = logging.getLogger(__name__)
 
 
-class Config(object):
-
+class Config:
+    """
+    """
     DEFAULT_RELATIVE_PATH = '.cibyl/cibyl.yaml'
     DEFAULT_FILE_PATH = os.path.join(
         os.path.expanduser("~"), DEFAULT_RELATIVE_PATH)
 
-    def __init__(self, file_path=DEFAULT_FILE_PATH, data={}):
+    def __init__(self, file_path=DEFAULT_FILE_PATH, data=None):
+        """
+        :param file_path:
+        :param data:
+        """
+        if data is None:
+            data = {}
         self.file_path = file_path
         self.data = data
 
     def load(self):
+        """
+        :return:
+        """
+
         LOG.debug("{}: {}".format(
             crayons.yellow("loading conf"), self.file_path))
         try:
@@ -57,5 +71,5 @@ class Config(object):
         config_file_path = Config.DEFAULT_FILE_PATH
         for i, item in enumerate(arguments[1:]):
             if item == "--config":
-                config_file_path = arguments[i+2]
+                config_file_path = arguments[i + 2]
         return config_file_path
