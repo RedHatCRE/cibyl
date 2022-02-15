@@ -7,7 +7,7 @@ repos:
     rev: v3.1.0
     hooks:
       - id: end-of-file-fixer
-        exclude: '^ci-scripts/infra-setup/roles/rrcockpit/files/grafana/.*\.json$'   # noqa
+        exclude: '^.*\.json$'   # noqa
       - id: trailing-whitespace
       - id: mixed-line-ending
       - id: check-byte-order-marker
@@ -27,10 +27,10 @@ repos:
     rev: 3.8.3
     hooks:
       - id: flake8
-  - repo: https://github.com/pre-commit/mirrors-pylint
-    rev: v2.5.3
-    hooks:
-      - id: pylint
+#  - repo: https://github.com/pre-commit/mirrors-pylint
+#    rev: v2.5.3
+#    hooks:
+#      - id: pylint
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.24.2
     hooks:
@@ -48,7 +48,7 @@ repos:
         # results when called with individual files.
         # https://github.com/ansible/ansible-lint/issues/611
         verbose: true
-        entry: bash -c "ANSIBLE_LIBRARY=plugins/modules ansible-lint --force-color -p -v"   # noqa
+        entry: bash -c "ANSIBLE_LIBRARY=plugins/modules ansible-lint --force-color -p -v"   # yamllint disable-line
   - repo: https://github.com/openstack-dev/bashate.git
     rev: 2.0.0
     hooks:
