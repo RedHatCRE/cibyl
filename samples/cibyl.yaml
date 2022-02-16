@@ -1,4 +1,5 @@
 ---
+# yamllint disable
 environments:
   osp_phase_1:                                     # This is a CI environment
     osp_jenkins:                                   # A CI system that is part of "osp_phase_1" environment
