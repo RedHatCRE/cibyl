@@ -16,16 +16,20 @@ from cibyl.models.attribute import AttributeValue, AttributeListValue
 
 
 class System:
+    """
+        General model for a CI system. Holds basic information such as its
+        name, type and which pipelines and jobs it has.
+    """
 
-    def __init__(self, name: str, type: str):
+    def __init__(self, name: str, type_system: str):
         self.name = AttributeValue(name="name", type=str, value=name,
                                    arguments=['--system-name'])
-        self.type = AttributeValue(name="type", type=str, value=type,
+        self.type = AttributeValue(name="type", type=str, value=type_system,
                                    arguments=['--system-type'])
         self.pipelines = AttributeListValue(name="pipelines", type=Pipeline,
-                arguments=['--pipelines'])
+                                            arguments=['--pipelines'])
         self.jobs = AttributeListValue(name="jobs", type=Job,
-                arguments=['--jobs'])
+                                       arguments=['--jobs'])
 
     def __str__(self):
         return f"System {self.name.value} of type {self.type.value}"
@@ -38,7 +42,9 @@ class System:
 
 
 class ZuulModel(System):
-
+    """
+        Model a Zuul CI system.
+    """
     def __init__(self, name):
         super(ZuulModel, self).__init__(name, "zuul")
 
