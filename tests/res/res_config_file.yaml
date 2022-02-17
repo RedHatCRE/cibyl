@@ -1,0 +1,45 @@
+environments:
+  osp_phase_1:
+    osp_jenkins:
+      jobs_scope: 'phase1-*'
+      type: jenkins
+      sources:
+        osp_elk:
+          driver: elk
+          url: 'http://seal52.qa.lab.tlv.redhat.com:5601'
+        osp_jenkins:
+          priority: 1
+          driver: jenkins
+          url: 'https://rhos-ci-jenkins.lab.eng.tlv2.redhat.com'
+  osp_phase_2:
+    osp_jenkins:
+      jobs_scope: 'phase2-*'
+      type: jenkins
+      sources:
+        osp_elk:
+          driver: elk
+          url: 'http://seal52.qa.lab.tlv.redhat.com:5601'
+        osp_jenkins:
+          priority: 1
+          driver: jenkins
+          url: 'https://rhos-ci-jenkins.lab.eng.tlv2.redhat.com'
+  osp_phase_3:
+    osp_jenkins:
+      jobs_scope: 'DFG-*'
+      type: jenkins
+      sources:
+        osp_elk:
+          driver: elk
+          url: 'http://seal52.qa.lab.tlv.redhat.com:5601'
+        osp_jenkins:
+          priority: 1
+          driver: jenkins
+          url: 'https://rhos-ci-jenkins.lab.eng.tlv2.redhat.com'
+  rdo_component_pipline:
+    component_pipline_jenkins:
+      type: jenkins
+  osp_component_pipline:
+    osp_component_pipline_jenkins:
+      type: jenkins
+    osp_component_pipline_zuul:
+      type: jenkins
