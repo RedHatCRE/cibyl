@@ -14,62 +14,55 @@
 #    under the License.
 """
 import logging
-import os
 import sys
-
-import crayons
+import os
 import yaml
+
+from cibyl.files import get_first_available_file
+from collections import UserDict
 
 LOG = logging.getLogger(__name__)
 
 
-class Config:
+class Config(UserDict):
     """
     """
-    DEFAULT_RELATIVE_PATH = '.cibyl/cibyl.yaml'
-    DEFAULT_FILE_PATH = os.path.join(
-        os.path.expanduser("~"), DEFAULT_RELATIVE_PATH)
+    DEFAULT_FILE_PATHS = (
+        os.path.join(os.path.expanduser('~'), '.cibyl/cibyl.yaml'),
+        '/etc/cibyl/cibyl.yaml'
+    )
 
-    def __init__(self, file_path=DEFAULT_FILE_PATH, data=None):
-        """
-        :param file_path:
-        :param data:
-        """
-        if data is None:
-            data = {}
-        self.file_path = file_path
-        self.data = data
-
-    def load(self):
+    def load(self, path):
         """
         :return:
         """
-
-        LOG.debug("{}: {}".format(
-            crayons.yellow("loading conf"), self.file_path))
         try:
-            with open(self.file_path, 'r') as stream:
-                self.data = yaml.safe_load(stream) or {}
-            return self.data
-        except FileNotFoundError:
-            LOG.error(
-                "couldn't find configuration file :'(\n{}".format(
-                    crayons.red(self.file_path)))
+            with open(path, 'r') as file:
+                self.data = yaml.safe_load(file)
+
+        except OSError:
+            LOG.error('{}: {}'.format('unable to load file at', path))
             sys.exit(2)
 
     @staticmethod
-    def get_config_file_path(arguments):
-        """ Manually parse user arguments and check if config
-            argument was used. If yes, use the value provided.
-            If not, use default from Config class
+    def get_config_file_path(arguments, system_paths=DEFAULT_FILE_PATHS):
+        """
+        Manually parse user arguments and check if config
+        argument was used. If yes, use the value provided.
+        If not, search the host for places where the file
+        may be.
 
         Args:
-            arguments: list of arguments
+            arguments: List of arguments.
+            system_paths: List of locations on the host where the
+            configuration files may be located. The class defines a set of
+            common locations that it uses by default.
         Returns:
-            A string which is the config file path
+            A string which is the config file path. 'None' if the config file
+            could not be located.
         """
-        config_file_path = Config.DEFAULT_FILE_PATH
         for i, item in enumerate(arguments[1:]):
-            if item == "--config":
-                config_file_path = arguments[i + 2]
-        return config_file_path
+            if item == '--config':
+                return arguments[i + 2]
+
+        return get_first_available_file(system_paths)
