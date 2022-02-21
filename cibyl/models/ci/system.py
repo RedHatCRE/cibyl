@@ -13,6 +13,8 @@
 #    under the License.
 
 from cibyl.models.attribute import AttributeValue, AttributeListValue
+from cibyl.models.ci.job import Job
+from cibyl.models.ci.pipeline import Pipeline
 
 
 class System:
