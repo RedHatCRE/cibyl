@@ -52,9 +52,9 @@ class ZuulSystem(System):
     def __init__(self, name):
         super(ZuulSystem, self).__init__(name, "zuul")
         self.pipelines = AttributeListValue(name="pipelines", attr_type=Pipeline,
-                                            arguments=[Argument(name='--jobs',
+                                            arguments=[Argument(name='--pipelines',
                                                        arg_type=str,
-                                                       description="Jobs of the system")])
+                                                       description="Pipelines of the system")])
 
     def add_pipeline(self, pipeline):
         self.pipelines.append(pipeline)
