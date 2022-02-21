@@ -15,12 +15,42 @@
 """
 from dataclasses import dataclass
 
+from cibyl.cli.argument import Argument
+
 
 @dataclass
 class AttributeValue():
     """Represents the value used by the attributes of the different models"""
 
     name: str
-    type: object
+    attr_type: object
     value: object
-    arguments: list
+    arguments: list[Argument]
+
+
+class AttributeListValue(AttributeValue):
+    """Represents a list of AttributeValue objects"""
+
+    def __init__(self, name, arguments=None, attr_type=None, value=None):
+
+        super(AttributeListValue, self).__init__(
+            name=name, arguments=arguments, attr_type=attr_type, value=value)
+
+        if isinstance(value, list):
+            self.value = value
+        if value is None:
+            self.value = []
+
+    def append(self, item):
+        """
+        :param item:
+        :return:
+        """
+        self.value.append(item)
+
+    def __getitem__(self, index):
+        """
+        :param index:
+        :return:
+        """
+        return self.value[index]
