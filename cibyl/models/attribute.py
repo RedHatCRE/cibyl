@@ -15,7 +15,7 @@
 """
 from dataclasses import dataclass
 
-from cibyl.cli.argument import Argument
+from cibyl.cli.main import Config
 
 
 @dataclass
@@ -25,7 +25,7 @@ class AttributeValue():
     name: str
     attr_type: object
     value: object
-    arguments: list[Argument]
+    arguments: list[Config]
 
 
 class AttributeListValue(AttributeValue):

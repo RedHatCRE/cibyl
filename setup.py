@@ -21,4 +21,7 @@ setup(
     description='Cibyl is tool that models ci system by'
     'creating in-memory representation of CI system entities',
     version='0.0.1',
+    entry_points={
+        'console_scripts': ['cibyl=cibyl.cli.main:main']
+        }
 )
