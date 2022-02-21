@@ -23,10 +23,10 @@ class System:
         name, type and which pipelines and jobs it has.
     """
 
-    def __init__(self, name: str, type_system: str):
+    def __init__(self, name: str, system_type: str):
         self.name = AttributeValue(name="name", type=str, value=name,
                                    arguments=['--system-name'])
-        self.type = AttributeValue(name="type", type=str, value=type_system,
+        self.type = AttributeValue(name="type", type=str, value=system_type,
                                    arguments=['--system-type'])
         self.pipelines = AttributeListValue(name="pipelines", type=Pipeline,
                                             arguments=['--pipelines'])
@@ -43,15 +43,15 @@ class System:
         self.pipelines.append(pipeline)
 
 
-class ZuulModel(System):
+class ZuulSystem(System):
     """
         Model a Zuul CI system.
     """
     def __init__(self, name):
-        super(ZuulModel, self).__init__(name, "zuul")
+        super(ZuulSystem, self).__init__(name, "zuul")
 
 
-class JenkinsModel(System):
+class JenkinsSystem(System):
 
     def __init__(self, name):
-        super(JenkinsModel, self).__init__(name, "jenkins")
+        super(JenkinsSystem, self).__init__(name, "jenkins")
