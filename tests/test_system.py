@@ -14,7 +14,8 @@
 
 import unittest
 
-from cibyl.models.ci.system import System, ZuulModel, JenkinsModel
+from cibyl.models.ci.system import System, ZuulSystem, JenkinsSystem
+
 
 class TestSystem(unittest.TestCase):
 
@@ -45,7 +46,7 @@ class TestSystem(unittest.TestCase):
 class TestZuulSystem(unittest.TestCase):
 
     def test_new_system_name(self):
-        system = ZuulModel("test")
+        system = ZuulSystem("test")
         attribute_name = 'name'
         test_name_bool = hasattr(system, attribute_name)
         self.assertTrue(
@@ -71,7 +72,7 @@ class TestZuulSystem(unittest.TestCase):
 class TestJenkinsSystem(unittest.TestCase):
 
     def test_new_system_name(self):
-        system = JenkinsModel("test")
+        system = JenkinsSystem("test")
         attribute_name = 'name'
         test_name_bool = hasattr(system, attribute_name)
         self.assertTrue(
