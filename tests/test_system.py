@@ -18,20 +18,29 @@ from cibyl.models.ci.system import System, ZuulSystem, JenkinsSystem
 
 
 class TestSystem(unittest.TestCase):
+    """
+    Test the System class
+    """
 
     def test_new_system_name(self):
+        """
+        Test the name attribute of the System class
+        """
         system = System("test", "test_type")
         attribute_name = 'name'
         test_name_bool = hasattr(system, attribute_name)
         self.assertTrue(
             test_name_bool,
-            msg="System lacks an attribute: {}".format(attribute_name))
+            msg=f"System lacks an attribute: {attribute_name}")
         self.assertEqual(system.name.value, "test")
         system_name = system.name.value
         self.assertEqual(system_name, "test",
-                         msg=f"Name of system should be test, not {system_name}")
+                         msg=f"System should be test, not {system_name}")
 
     def test_new_system_type(self):
+        """
+        Test the type attribute of the System class
+        """
         system = System("test", "test_type")
         attribute_name = 'type'
         test_name_bool = hasattr(system, attribute_name)
@@ -39,25 +48,33 @@ class TestSystem(unittest.TestCase):
             test_name_bool,
             msg=f"System lacks an attribute: {attribute_name}")
         type_name = system.type.value
-        self.assertEqual(type_name, "test_type",
-                         msg=f"Type of system should be test_type, not {type_name}")
+        msg_str = f"System type should be test_type, not {type_name}"
+        self.assertEqual(type_name, "test_type", msg=msg_str)
 
 
 class TestZuulSystem(unittest.TestCase):
-
+    """
+    Test the ZuulSystem class
+    """
     def test_new_system_name(self):
+        """
+        Test the name attribute of the ZuulSystem class
+        """
         system = ZuulSystem("test")
         attribute_name = 'name'
         test_name_bool = hasattr(system, attribute_name)
         self.assertTrue(
             test_name_bool,
-            msg="Zuul system lacks an attribute: {}".format(attribute_name))
+            msg=f"Zuul system lacks an attribute: {attribute_name}")
         self.assertEqual(system.name.value, "test")
         system_name = system.name.value
         self.assertEqual(system_name, "test",
-                         msg=f"Name of system should be test, not {system_name}")
+                         msg=f"System Name should be test, not {system_name}")
 
     def test_new_system_type(self):
+        """
+        Test the type attribute of the ZuulSystem class
+        """
         system = System("test", "test_type")
         attribute_name = 'type'
         test_name_bool = hasattr(system, attribute_name)
@@ -65,25 +82,33 @@ class TestZuulSystem(unittest.TestCase):
             test_name_bool,
             msg=f"Zuul system lacks an attribute: {attribute_name}")
         type_name = system.type.value
-        self.assertEqual(type_name, "zuul",
-                         msg=f"Type of system should be zuul, not {type_name}")
+        msg_str = f"System type should be zuul, not {type_name}"
+        self.assertEqual(type_name, "zuul", msg=msg_str)
 
 
 class TestJenkinsSystem(unittest.TestCase):
-
+    """
+    Test the JenkinsSystem class
+    """
     def test_new_system_name(self):
+        """
+        Test the type attribute of the JenkinsSystem class
+        """
         system = JenkinsSystem("test")
         attribute_name = 'name'
         test_name_bool = hasattr(system, attribute_name)
         self.assertTrue(
             test_name_bool,
-            msg="Jenkins system lacks an attribute: {}".format(attribute_name))
+            msg=f"Jenkins system lacks an attribute: {attribute_name}")
         self.assertEqual(system.name.value, "test")
         system_name = system.name.value
         self.assertEqual(system_name, "test",
-                         msg=f"Name of system should be test, not {system_name}")
+                         msg=f"System name should be test, not {system_name}")
 
     def test_new_system_type(self):
+        """
+        Test the type attribute of the JenkinsSystem class
+        """
         system = System("test", "test_type")
         attribute_name = 'type'
         test_name_bool = hasattr(system, attribute_name)
@@ -91,5 +116,6 @@ class TestJenkinsSystem(unittest.TestCase):
             test_name_bool,
             msg=f"System lacks an attribute: {attribute_name}")
         type_name = system.type.value
+        msg_str = f"Type of system should be jenkins, not {type_name}"
         self.assertEqual(type_name, "jenkins",
-                         msg=f"Type of system should be jenkins, not {type_name}")
+                         msg=msg_str)

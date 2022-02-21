@@ -1,3 +1,6 @@
+"""
+Model different CI systems.
+"""
 #    Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -26,19 +29,30 @@ class System:
 
     def __init__(self, name: str, system_type: str):
         self.name = AttributeValue(name="name", attr_type=str, value=name,
-                                   arguments=[Argument(name='--system-name', arg_type=str,
-                                                       description="Name of the system")])
-        self.type = AttributeValue(name="type", attr_type=str, value=system_type,
-                                   arguments=[Argument(name='--system-type', arg_type=str,
-                                                       description="Type of the system")])
+                                   arguments=[
+                                       Argument(name='--system-name',
+                                                arg_type=str,
+                                                description="System name")])
+        self.type = AttributeValue(name="type", attr_type=str,
+                                   value=system_type,
+                                   arguments=[
+                                       Argument(name='--system-type',
+                                                arg_type=str,
+                                                description="System type")])
         self.jobs = AttributeListValue(name="jobs", attr_type=Job,
-                                       arguments=[Argument(name='--jobs', arg_type=str,
-                                                           description="Jobs of the system")])
+                                       arguments=[
+                                           Argument(name='--jobs', arg_type=str,
+                                                    description="System jobs")])
 
     def __str__(self):
         return f"System {self.name.value} of type {self.type.value}"
 
     def add_job(self, job):
+        """Add a job to the CI system
+
+        :param job: Job to add to the system
+        :type job: Job
+        """
         self.jobs.append(job)
 
 
@@ -48,15 +62,26 @@ class ZuulSystem(System):
     """
     def __init__(self, name):
         super(ZuulSystem, self).__init__(name, "zuul")
-        self.pipelines = AttributeListValue(name="pipelines", attr_type=Pipeline,
-                                            arguments=[Argument(name='--pipelines', arg_type=str,
-                                                                description="Pipelines of the system")])
+        self.pipelines = AttributeListValue(name="pipelines",
+                                            attr_type=Pipeline,
+                                            arguments=[
+                                                Argument(name='--pipelines',
+                                                         arg_type=str,
+                                                         description="System "
+                                                         "pipelines")])
 
     def add_pipeline(self, pipeline):
+        """Add a pipeline to the CI system
+
+        :param pipeline: Pipeline to add to the system
+        :type pipeline: Pipeline
+        """
         self.pipelines.append(pipeline)
 
 
 class JenkinsSystem(System):
-
+    """
+        Model a Jenkins CI system.
+    """
     def __init__(self, name):
         super(JenkinsSystem, self).__init__(name, "jenkins")
