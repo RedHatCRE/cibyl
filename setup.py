@@ -23,9 +23,6 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires='>3.5.0',
     include_package_data=True,
-    install_requires=[
-        'PyYAML'
-    ],
     entry_points={
         'console_scripts': ['cibyl = cibyl.cli:main',
                             'ci = cibyl.cli:main']}
