@@ -1,3 +1,6 @@
+"""
+    Tests for System CI model
+"""
 # Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may

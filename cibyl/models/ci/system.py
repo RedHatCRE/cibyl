@@ -28,21 +28,21 @@ class System:
     """
 
     def __init__(self, name: str, system_type: str):
+        name_argument = Argument(name='--system-name', arg_type=str,
+                                 description="System name")
         self.name = AttributeValue(name="name", attr_type=str, value=name,
-                                   arguments=[
-                                       Argument(name='--system-name',
-                                                arg_type=str,
-                                                description="System name")])
+                                   arguments=[name_argument])
+
+        type_argument = Argument(name='--system-type', arg_type=str,
+                                 description="System type")
         self.type = AttributeValue(name="type", attr_type=str,
                                    value=system_type,
-                                   arguments=[
-                                       Argument(name='--system-type',
-                                                arg_type=str,
-                                                description="System type")])
+                                   arguments=[type_argument])
+
+        jobs_argument = Argument(name='--jobs', arg_type=str,
+                                 description="System jobs")
         self.jobs = AttributeListValue(name="jobs", attr_type=Job,
-                                       arguments=[
-                                           Argument(name='--jobs', arg_type=str,
-                                                    description="System jobs")])
+                                       arguments=[jobs_argument])
 
     def __str__(self):
         return f"System {self.name.value} of type {self.type.value}"
@@ -62,13 +62,11 @@ class ZuulSystem(System):
     """
     def __init__(self, name):
         super(ZuulSystem, self).__init__(name, "zuul")
+        pipeline_argument = Argument(name='--pipelines', arg_type=str,
+                                     description="System pipelines")
         self.pipelines = AttributeListValue(name="pipelines",
                                             attr_type=Pipeline,
-                                            arguments=[
-                                                Argument(name='--pipelines',
-                                                         arg_type=str,
-                                                         description="System "
-                                                         "pipelines")])
+                                            arguments=[pipeline_argument])
 
     def add_pipeline(self, pipeline):
         """Add a pipeline to the CI system
