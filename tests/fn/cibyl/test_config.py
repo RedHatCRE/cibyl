@@ -13,11 +13,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import yamale
+
 from cibyl.config import Config
 
 
 def test_loads_from_file(resources):
-    config = Config()
-    config.load(resources.get_resource_path('res_config_file.yaml'))
+    config_file = resources.get_resource_path('res_config_file.yaml')
+    schema_file = resources.get_resource_path('res_config_schema.yaml')
 
-    assert True
+    schema = yamale.make_schema(schema_file)
+
+    config = Config()
+    config.load(config_file)
+
+    # Raises an exception if invalid
+    yamale.validate(schema, [(config, config_file)])

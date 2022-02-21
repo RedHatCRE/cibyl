@@ -14,12 +14,13 @@
 #    under the License.
 """
 import logging
-import sys
 import os
+import sys
+from collections import UserDict
+
 import yaml
 
 from cibyl.files import get_first_available_file
-from collections import UserDict
 
 LOG = logging.getLogger(__name__)
 

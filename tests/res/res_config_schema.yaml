@@ -1,0 +1,45 @@
+environments:
+  osp_phase_1:
+    osp_jenkins:
+      jobs_scope: str()
+      type: enum('jenkins')
+      sources:
+        osp_elk:
+          driver: enum('elk')
+          url: str()
+        osp_jenkins:
+          priority: int()
+          driver: enum('jenkins')
+          url: str()
+  osp_phase_2:
+    osp_jenkins:
+      jobs_scope: str()
+      type: enum('jenkins')
+      sources:
+        osp_elk:
+          driver: enum('elk')
+          url: str()
+        osp_jenkins:
+          priority: int()
+          driver: enum('jenkins')
+          url: str()
+  osp_phase_3:
+    osp_jenkins:
+      jobs_scope: str()
+      type: enum('jenkins')
+      sources:
+        osp_elk:
+          driver: enum('elk')
+          url: str()
+        osp_jenkins:
+          priority: int()
+          driver: enum('jenkins')
+          url: str()
+  rdo_component_pipline:
+    component_pipline_jenkins:
+      type: enum('jenkins')
+  osp_component_pipline:
+    osp_component_pipline_jenkins:
+      type: enum('jenkins')
+    osp_component_pipline_zuul:
+      type: enum('jenkins')
