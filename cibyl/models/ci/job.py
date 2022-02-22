@@ -32,9 +32,16 @@ class Job:
                                    arguments=[name_argument])
         status_argument = Argument(name='--job-status', arg_type=str,
                                    description="Job status")
-        self.name = AttributeValue(name="status", attr_type=str, value=status,
-                                   arguments=[status_argument])
+        self.status = AttributeValue(name="status", attr_type=str,
+                                     value=status,
+                                     arguments=[status_argument])
         url_argument = Argument(name='--job-url', arg_type=str,
                                 description="Job URL")
-        self.name = AttributeValue(name="url", attr_type=str, value=url,
-                                   arguments=[url_argument])
+        self.url = AttributeValue(name="url", attr_type=str, value=url,
+                                  arguments=[url_argument])
+
+    def __str__(self):
+        return f"Job {self.name.value} has status {self.status.value}"
+
+    def __eq__(self, other):
+        return self.name.value == other.name.value

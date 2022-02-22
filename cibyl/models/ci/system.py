@@ -83,3 +83,6 @@ class JenkinsSystem(System):
     """
     def __init__(self, name: str):
         super(JenkinsSystem, self).__init__(name, "jenkins")
+
+    def __eq__(self, other):
+        return self.name.value == other.name.value

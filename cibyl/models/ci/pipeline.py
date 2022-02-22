@@ -30,3 +30,9 @@ class Pipeline:
                                  description="Job name")
         self.name = AttributeValue(name="name", attr_type=str, value=name,
                                    arguments=[name_argument])
+
+    def __str__(self):
+        return f"Pipeline {self.name.value}"
+
+    def __eq__(self, other):
+        return self.name.value == other.name.value
