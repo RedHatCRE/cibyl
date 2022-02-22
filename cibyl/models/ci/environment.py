@@ -24,15 +24,17 @@ class Environment():
     def __init__(self, name, systems=None):
 
         self.name = AttributeValue(
-            name='name', attr_type=str,
-            arguments=[Argument(name='--env-name')], value=name)
+            name='name', attr_type=str, value=name,
+            arguments=[Argument(name='--env-name', arg_type=str,
+                                description="Name of the environment")])
         self.systems = AttributeListValue(
-            name='name', attr_type=System,
-            arguments=[Argument(name='--systems')], value=systems)
+            name='name', attr_type=System, value=systems,
+            arguments=[Argument(name='--systems', arg_type=str,
+                                description="Systems of the environment")])
 
-    def add_system(self, name: str):
+    def add_system(self, name: str, system_type: str):
         """Adds a CI system to the CI environment"""
-        self.systems.append(System(name=name))
+        self.systems.append(System(name=name, system_type=system_type))
 
     def __str__(self):
         string = ""
