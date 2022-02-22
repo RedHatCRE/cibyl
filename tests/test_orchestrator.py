@@ -13,16 +13,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from setuptools import setup
+from unittest import TestCase
 
-setup(
-    name='Cibyl',
-    author='RHOS Team',
-    description='Cibyl is tool that models ci system by'
-    'creating in-memory representation of CI system entities',
-    version='0.0.1',
-    entry_points={
-        'console_scripts': ['cibyl = cibyl.cli.main:main',
-                            'ci = cibyl.cli.main:main']
-    }
-)
+from cibyl.orchestrator import Orchestrator
+
+
+class TestOrchestrator(TestCase):
+    """Testing Orchestrator class"""
+
+    def setUp(self):
+        self.orchestrator = Orchestrator()
+
+    def test_orchestrator_config(self):
+        """Testing Orchestartor config attribute and method"""
+        self.assertTrue(hasattr(self.orchestrator, 'config'))
+        self.assertEqual(self.orchestrator.load_configuration(), None)
+
+    def test_orchestrator_query(self):
+        """Testing Orchestartor query method"""
+        self.assertEqual(self.orchestrator.run_query(), None)
