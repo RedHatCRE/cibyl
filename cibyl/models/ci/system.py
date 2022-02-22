@@ -15,10 +15,10 @@ Model different CI systems
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from cibyl.models.ci.job import Job
 from cibyl.cli.argument import Argument
+from cibyl.models.attribute import AttributeListValue, AttributeValue
+from cibyl.models.ci.job import Job
 from cibyl.models.ci.pipeline import Pipeline
-from cibyl.models.attribute import AttributeValue, AttributeListValue
 
 
 class System:

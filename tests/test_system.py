@@ -17,7 +17,7 @@
 
 import unittest
 
-from cibyl.models.ci.system import System, ZuulSystem, JenkinsSystem
+from cibyl.models.ci.system import JenkinsSystem, System, ZuulSystem
 
 
 class TestSystem(unittest.TestCase):
