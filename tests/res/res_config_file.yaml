@@ -6,11 +6,11 @@ environments:
       sources:
         osp_elk:
           driver: elk
-          url: 'http://seal52.qa.lab.tlv.redhat.com:5601'
+          url: 'www.elk-url.com'
         osp_jenkins:
           priority: 1
           driver: jenkins
-          url: 'https://rhos-ci-jenkins.lab.eng.tlv2.redhat.com'
+          url: 'www.jenkins-url.com'
   osp_phase_2:
     osp_jenkins:
       jobs_scope: 'phase2-*'
@@ -18,11 +18,11 @@ environments:
       sources:
         osp_elk:
           driver: elk
-          url: 'http://seal52.qa.lab.tlv.redhat.com:5601'
+          url: 'www.elk-url.com'
         osp_jenkins:
           priority: 1
           driver: jenkins
-          url: 'https://rhos-ci-jenkins.lab.eng.tlv2.redhat.com'
+          url: 'www.jenkins-url.com'
   osp_phase_3:
     osp_jenkins:
       jobs_scope: 'DFG-*'
@@ -30,11 +30,11 @@ environments:
       sources:
         osp_elk:
           driver: elk
-          url: 'http://seal52.qa.lab.tlv.redhat.com:5601'
+          url: 'www.elk-url.com'
         osp_jenkins:
           priority: 1
           driver: jenkins
-          url: 'https://rhos-ci-jenkins.lab.eng.tlv2.redhat.com'
+          url: 'www.jenkins-url.com'
   rdo_component_pipline:
     component_pipline_jenkins:
       type: jenkins
