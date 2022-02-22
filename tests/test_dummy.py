@@ -13,3 +13,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from unittest import TestCase
+
+
+class TestDummy(TestCase):
+    """
+    A dummy test class for the unit test executor to have something to report.
+    """
+
+    def test_upper(self):
+        """
+        Example of how assertions are done on this framework.
+        """
+        self.assertEqual('foo'.upper(), 'FOO')
