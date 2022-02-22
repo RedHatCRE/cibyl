@@ -16,6 +16,7 @@
 import logging
 import os
 from os import PathLike
+from typing import Iterable
 
 LOG = logging.getLogger(__name__)
 
@@ -32,7 +33,6 @@ def _is_file_available(filename):
     try:
         with open(filename, 'r'):
             return True
-
     except OSError:
         return False
 
@@ -43,7 +43,7 @@ def get_first_available_file(filenames, file_check=_is_file_available):
     host's drive.
 
     Args:
-        filenames(list[bytes | str | PathLike]): A list of paths pointing
+        filenames(Iterable[bytes | str | PathLike]): A list of paths pointing
             to different files.
         file_check: A function that determines if a file is present.
     Returns:
