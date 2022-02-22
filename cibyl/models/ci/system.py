@@ -1,5 +1,5 @@
 """
-Model different CI systems.
+Model different CI systems
 """
 #    Copyright 2022 Red Hat
 #
@@ -15,16 +15,16 @@ Model different CI systems.
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from cibyl.models.attribute import AttributeValue, AttributeListValue
 from cibyl.models.ci.job import Job
-from cibyl.models.ci.pipeline import Pipeline
 from cibyl.cli.argument import Argument
+from cibyl.models.ci.pipeline import Pipeline
+from cibyl.models.attribute import AttributeValue, AttributeListValue
 
 
 class System:
     """
         General model for a CI system. Holds basic information such as its
-        name, type and which pipelines and jobs it has.
+        name, type and which jobs it has.
     """
 
     def __init__(self, name: str, system_type: str):
@@ -47,7 +47,7 @@ class System:
     def __str__(self):
         return f"System {self.name.value} of type {self.type.value}"
 
-    def add_job(self, job):
+    def add_job(self, job: Job):
         """Add a job to the CI system
 
         :param job: Job to add to the system
@@ -60,7 +60,7 @@ class ZuulSystem(System):
     """
         Model a Zuul CI system.
     """
-    def __init__(self, name):
+    def __init__(self, name: str):
         super(ZuulSystem, self).__init__(name, "zuul")
         pipeline_argument = Argument(name='--pipelines', arg_type=str,
                                      description="System pipelines")
@@ -68,7 +68,7 @@ class ZuulSystem(System):
                                             attr_type=Pipeline,
                                             arguments=[pipeline_argument])
 
-    def add_pipeline(self, pipeline):
+    def add_pipeline(self, pipeline: Pipeline):
         """Add a pipeline to the CI system
 
         :param pipeline: Pipeline to add to the system
@@ -81,5 +81,5 @@ class JenkinsSystem(System):
     """
         Model a Jenkins CI system.
     """
-    def __init__(self, name):
+    def __init__(self, name: str):
         super(JenkinsSystem, self).__init__(name, "jenkins")

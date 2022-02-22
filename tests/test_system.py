@@ -78,7 +78,7 @@ class TestZuulSystem(unittest.TestCase):
         """
         Test the type attribute of the ZuulSystem class
         """
-        system = System("test", "test_type")
+        system = ZuulSystem("test")
         attribute_name = 'type'
         test_name_bool = hasattr(system, attribute_name)
         self.assertTrue(
@@ -112,7 +112,7 @@ class TestJenkinsSystem(unittest.TestCase):
         """
         Test the type attribute of the JenkinsSystem class
         """
-        system = System("test", "test_type")
+        system = JenkinsSystem("test")
         attribute_name = 'type'
         test_name_bool = hasattr(system, attribute_name)
         self.assertTrue(
