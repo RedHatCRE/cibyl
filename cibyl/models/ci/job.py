@@ -25,7 +25,7 @@ class Job:
         name, status and url.
 
     """
-    def __init__(self, name: str, status: str, url: str):
+    def __init__(self, name: str, status: str = None, url: str = None):
         name_argument = Argument(name='--job-name', arg_type=str,
                                  description="Job name")
         self.name = AttributeValue(name="name", attr_type=str, value=name,
@@ -41,7 +41,12 @@ class Job:
                                   arguments=[url_argument])
 
     def __str__(self):
-        return f"Job {self.name.value} has status {self.status.value}"
+        job_str = f"Job: {self.name.value}"
+        if self.status.value:
+            job_str += f"\n  Status: {self.status.value}"
+        if self.url.value:
+            job_str += f"\n  URL: {self.url.value}"
+        return job_str
 
     def __eq__(self, other):
         return self.name.value == other.name.value
