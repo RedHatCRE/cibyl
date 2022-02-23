@@ -15,6 +15,8 @@
 """
 import logging
 
+from cibyl.models.ci.system import System
+
 LOG = logging.getLogger(__name__)
 
 
@@ -25,7 +27,7 @@ class Source:
         self.name = name
         self.url = url
 
-    def query(self):
+    def query(self, system: System,  args):
         """Performs query on the source and populates environment instance"""
         LOG.info("performing query on %s", self.name)
 
