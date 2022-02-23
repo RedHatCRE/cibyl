@@ -16,8 +16,9 @@
 
 import argparse
 import logging
-from cibyl.sources.elastic.client import ElasticSearchClient
 from sys import exit
+
+from cibyl.sources.elasticsearch.client import ElasticSearchClient
 
 LOG = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class ElasticSearchOSPFilter:
             }
         }
         hits = self.__query_get_hits(query_data['index'], query_body)
-        print(hits)
+        return hits
 
     def get_jobs_by_regex(self: object, query_data: dict):
         """Get all the jobs that match the provided regex string
@@ -63,7 +64,7 @@ class ElasticSearchOSPFilter:
             }
         }
         hits = self.__query_get_hits(query_data['index'], query_body)
-        print(hits)
+        return hits
 
     def __query_get_hits(self: object, index: str, query: dict) -> list:
         """This method is used to perform the search query to ElasticSearch
@@ -80,7 +81,6 @@ class ElasticSearchOSPFilter:
                 index=index,
                 body=query
             )
-            LOG.info("Query performed, index: {index}, body: {query}")
         except Exception as e:
             LOG.error(f"Query error. Details: {e}")
             exit(1)

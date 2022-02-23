@@ -28,7 +28,7 @@ class ElasticSearchClient:
     def __init__(self: object,
                  host: str = "http://localhost",
                  port: int = 9200) -> None:
-        self.host = f"{host}:{port}"
+        self.address = f"{host}:{port}"
 
     def connect(self: object) -> Elasticsearch:
         """This is used for connecting to the ElasticSearch instance.
@@ -47,7 +47,7 @@ class ElasticSearchClient:
                  If exists an unhandled connection error
         """
         try:
-            es = Elasticsearch(self.host)
+            es = Elasticsearch(self.address)
             es.ping()
         except ConnectionTimeout as e:
             LOG.error(f"Timeout connection to ElasticSearch. Details: {e}")
@@ -61,12 +61,3 @@ class ElasticSearchClient:
             exit(1)
         LOG.info("Connection to ElasticSearch successful")
         return es
-
-
-def main():
-    es = ElasticSearchClient().connect()
-    print(es.cat.health())
-
-
-if __name__ == "__main__":
-    main()
