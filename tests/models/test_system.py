@@ -23,9 +23,7 @@ from cibyl.models.ci.system import JenkinsSystem, System, ZuulSystem
 
 
 class TestSystem(unittest.TestCase):
-    """
-    Testing the System class
-    """
+    """Testing the System class"""
     def setUp(self):
         self.name = "test"
         self.type = "test_type"
@@ -33,9 +31,7 @@ class TestSystem(unittest.TestCase):
         self.other_system = System(self.name, self.type)
 
     def test_new_system_name(self):
-        """
-        Testing the name attribute of the System class.
-        """
+        """Testing the name attribute of the System class"""
         system = System("test", "test_type")
         attribute_name = 'name'
         test_name_bool = hasattr(system, attribute_name)
@@ -48,9 +44,7 @@ class TestSystem(unittest.TestCase):
                          msg=f"System should be test, not {system_name}")
 
     def test_new_system_type(self):
-        """
-        Testing the type attribute of the System class
-        """
+        """Testing the type attribute of the System class"""
         system = System("test", "test_type")
         attribute_name = 'type'
         test_name_bool = hasattr(system, attribute_name)
@@ -62,9 +56,7 @@ class TestSystem(unittest.TestCase):
         self.assertEqual(type_name, "test_type", msg=msg_str)
 
     def test_add_job(self):
-        """
-        Testing adding a new job to a system
-        """
+        """Testing adding a new job to a system"""
         job = Job("test_job")
         self.system.add_job(job)
         self.assertEqual(len(self.system.jobs.value), 1)
@@ -72,18 +64,14 @@ class TestSystem(unittest.TestCase):
 
 
 class TestZuulSystem(unittest.TestCase):
-    """
-    Testing the ZuulSystem class
-    """
+    """Testing the ZuulSystem class"""
     def setUp(self):
         self.name = "test"
         self.system = ZuulSystem(self.name)
         self.other_system = ZuulSystem(self.name)
 
     def test_new_system_name(self):
-        """
-        Testing the type attribute of the ZuulSystem class.
-        """
+        """Testing the type attribute of the ZuulSystem class"""
         self.assertTrue(
             hasattr(self.system, 'name'), msg="System lacks name attribute")
         system_name = self.system.name.value
@@ -92,9 +80,7 @@ class TestZuulSystem(unittest.TestCase):
                          msg=error_msg)
 
     def test_new_system_type(self):
-        """
-        Testing the type attribute of the ZuulSystem class.
-        """
+        """Testing the type attribute of the ZuulSystem class"""
         self.assertTrue(
             hasattr(self.system, 'type'), msg="System lacks type attribute")
         system_type = self.system.type.value
@@ -103,7 +89,7 @@ class TestZuulSystem(unittest.TestCase):
                          msg=error_msg)
 
     def test_system_comparison(self):
-        """Testing new ZuulSystem instances comparison."""
+        """Testing new ZuulSystem instances comparison"""
         self.assertEqual(
             self.system, self.other_system,
             msg="Jobs {} and {} are not equal".format(
@@ -118,16 +104,14 @@ class TestZuulSystem(unittest.TestCase):
                          f"System {self.name} of type zuul")
 
     def test_add_pipeline(self):
-        """Testing ZuulSystem add pipeline method. """
+        """Testing ZuulSystem add pipeline method"""
         pipeline = Pipeline("check")
         self.system.add_pipeline(pipeline)
         self.assertEqual(len(self.system.pipelines.value), 1)
         self.assertEqual(pipeline, self.system.pipelines[0])
 
     def test_add_job(self):
-        """
-        Testing adding a new job to a system
-        """
+        """Testing adding a new job to a system"""
         job = Job("test_job")
         self.system.add_job(job)
         self.assertEqual(len(self.system.jobs.value), 1)
@@ -135,18 +119,14 @@ class TestZuulSystem(unittest.TestCase):
 
 
 class TestJenkinsSystem(unittest.TestCase):
-    """
-    Testing the JenkinsSystem class
-    """
+    """Testing the JenkinsSystem class"""
     def setUp(self):
         self.name = "test"
         self.system = JenkinsSystem(self.name)
         self.other_system = JenkinsSystem(self.name)
 
     def test_new_system_name(self):
-        """
-        Testing the type attribute of the JenkinsSystem class
-        """
+        """Testing the type attribute of the JenkinsSystem class"""
         self.assertTrue(
             hasattr(self.system, 'name'), msg="System lacks name attribute")
         system_name = self.system.name.value
@@ -155,9 +135,7 @@ class TestJenkinsSystem(unittest.TestCase):
                          msg=error_msg)
 
     def test_new_system_type(self):
-        """
-        Testing the type attribute of the JenkinsSystem class
-        """
+        """Testing the type attribute of the JenkinsSystem class"""
         self.assertTrue(
             hasattr(self.system, 'type'), msg="System lacks type attribute")
         system_type = self.system.type.value
@@ -166,7 +144,7 @@ class TestJenkinsSystem(unittest.TestCase):
                          msg=error_msg)
 
     def test_system_comparison(self):
-        """Testing new JenkinsSystem instances comparison."""
+        """Testing new JenkinsSystem instances comparison"""
         self.assertEqual(
             self.system, self.other_system,
             msg="Jobs {} and {} are not equal".format(
@@ -181,9 +159,7 @@ class TestJenkinsSystem(unittest.TestCase):
                          f"System {self.name} of type jenkins")
 
     def test_add_job(self):
-        """
-        Testing adding a new job to a system
-        """
+        """Testing adding a new job to a system"""
         job = Job("test_job")
         self.system.add_job(job)
         self.assertEqual(len(self.system.jobs.value), 1)
