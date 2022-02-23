@@ -1,6 +1,4 @@
 """
-Model different CI systems
-"""
 #    Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,6 +12,7 @@ Model different CI systems
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+"""
 
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeListValue, AttributeValue
@@ -54,6 +53,9 @@ class System:
         :type job: Job
         """
         self.jobs.append(job)
+
+    def __eq__(self, other):
+        return self.name.value == other.name.value
 
 
 class ZuulSystem(System):
