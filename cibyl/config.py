@@ -27,9 +27,12 @@ LOG = logging.getLogger(__name__)
 class Config(UserDict):
     """Representation of a Cybil's configuration file. Even though it starts
     without any contents, this dictionary can be filled in with the data
-    of an external yaml file. No post-processing is performed on the read
+    from an external yaml file. No post-processing is performed on the read
     data, as this class acts as a direct interface between the system's file
     and the app.
+
+    :ivar _path: Path, or collection of paths, to the configuration file
+        this represents.
     """
 
     DEFAULT_FILE_PATHS = (
@@ -40,21 +43,44 @@ class Config(UserDict):
     expected to be found by default.
     """
 
-    def load(self, path=DEFAULT_FILE_PATHS):
-        """Loads the contents of a configuration file into this object.
+    def __init__(self, path=None):
+        """Constructor.
 
-        :param path: Path to the configuration file to be
-            read. If more than one path is provided, this will load the
-            first file than it finds available, following the iteration
-            order indicated by the container.
-        :type path: str or :class:`typing.Iterable[str]`
-        :raises FileNotFoundError: If file at provided path was not found.
+        :param path: Paths to the configuration file to be read. If 'None' is
+            provided, this will search for the file in a collection of well
+            known paths.
+        :type path: None or str or :class:`typing.Iterable[str]`
+        """
+        super().__init__()
+
+        self._path = path
+
+    @property
+    def path(self):
+        """Getter for the paths where this searches through.
+
+        :return: A list of paths.
+        :rtype: :class:`typing.Iterable[str]`
+        """
+        if not self._path:
+            # User provided nothing, use default paths then
+            return self.DEFAULT_FILE_PATHS
+
+        # Returned value must be a list
+        if isinstance(self._path, str):
+            return [self._path]
+
+        return self._path
+
+    def load(self):
+        """Loads the contents of the configuration file into this object.
+        This will look for the first file available from the list of paths
+        provided by :attr:`~path`.
+
+        :raises FileNotFoundError: If no configuration file could be found.
         :raises YAMLError: If the configuration file could not be parsed.
         """
-        if isinstance(path, str):
-            path = [path]
-
-        if file := get_first_available_file(path):
+        if file := get_first_available_file(self.path):
             self.data = yaml.parse(file)
         else:
-            raise FileNotFoundError(f"Could not open file at: '{path}'")
+            raise FileNotFoundError(f"Could not open file at: '{self.path}'")

@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-import cibyl
+import cibyl.config
 from cibyl.config import Config
 
 
@@ -53,8 +53,8 @@ class TestConfig(TestCase):
         cibyl.config.yaml.parse = Mock()
         cibyl.config.yaml.parse.return_value = yaml
 
-        config = Config()
-        config.load(file)
+        config = Config(file)
+        config.load()
 
         cibyl.config.get_first_available_file.assert_called_with([file])
         cibyl.config.yaml.parse.assert_called_with(file)
