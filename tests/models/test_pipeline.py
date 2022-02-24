@@ -33,15 +33,15 @@ class TestPipeline(unittest.TestCase):
 
         self.assertEqual(
             self.pipeline.name.value, self.pipeline_name,
-            msg="Pipeline name is {}. Should be {}".format(
-                self.pipeline.name.value, self.pipeline_name))
+            msg=f"Pipeline name is {self.pipeline.name.value}. \
+Should be {self.pipeline_name}")
 
     def test_pipelines_comparison(self):
         """Testing new Pipeline instances comparison."""
         self.assertEqual(
             self.pipeline, self.second_pipeline,
-            msg="Pipelines {} and {} are not equal".format(
-                self.pipeline.name.value, self.second_pipeline.name.value))
+            msg=f"Pipelines {self.pipeline.name.value} and \
+{self.second_pipeline.name.value} are not equal")
 
     def test_pipeline_str(self):
         """Testing Pipeline __str__ method"""

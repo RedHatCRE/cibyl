@@ -38,5 +38,5 @@ class Environment():
 
     def __str__(self):
         string = ""
-        string += "Environment: {}\n".format(self.name.value)
+        string += f"Environment: {self.name.value}\n"
         return string

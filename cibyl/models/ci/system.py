@@ -63,7 +63,7 @@ class ZuulSystem(System):
         Model a Zuul CI system.
     """
     def __init__(self, name: str):
-        super(ZuulSystem, self).__init__(name, "zuul")
+        super().__init__(name, "zuul")
         pipeline_argument = Argument(name='--pipelines', arg_type=str,
                                      description="System pipelines")
         self.pipelines = AttributeListValue(name="pipelines",
@@ -84,7 +84,7 @@ class JenkinsSystem(System):
         Model a Jenkins CI system.
     """
     def __init__(self, name: str):
-        super(JenkinsSystem, self).__init__(name, "jenkins")
+        super().__init__(name, "jenkins")
 
     def __eq__(self, other):
         return self.name.value == other.name.value
