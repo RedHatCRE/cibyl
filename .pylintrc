@@ -1,0 +1,4 @@
+[DESIGN]
+
+# Increasing the inheritance depth so that standard classes can be extended (See R0901)
+max-parents=15

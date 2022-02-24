@@ -32,10 +32,11 @@ class TestEnvironment(unittest.TestCase):
         test_name_bool = hasattr(self.env, attribute_name)
         self.assertTrue(
             test_name_bool,
-            msg="Environment lacks an attribute: {}".format(attribute_name))
-        self.assertEqual(self.env.name.value, self.name,
-                         msg="Environment name is {} instead of {}".format(
-                             self.env.name.value, self.name))
+            msg=f"Environment lacks an attribute: {attribute_name}")
+        self.assertEqual(
+            self.env.name.value, self.name,
+            msg=f"Environment name is {self.env.name.value} \
+instead of {self.name}")
 
     def test_new_environment_systems(self):
         """Testing new Environment name systems attribute"""
@@ -43,7 +44,7 @@ class TestEnvironment(unittest.TestCase):
         test_name_bool = hasattr(self.env, attribute_name)
         self.assertTrue(
             test_name_bool,
-            msg="Environment lacks an attribute: {}".format(attribute_name))
+            msg=f"Environment lacks an attribute: {attribute_name}")
 
     def test_add_systems(self):
         """Testing adding systems to environment"""

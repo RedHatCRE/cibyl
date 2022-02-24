@@ -33,7 +33,7 @@ class AttributeListValue(AttributeValue):
 
     def __init__(self, name, arguments=None, attr_type=None, value=None):
 
-        super(AttributeListValue, self).__init__(
+        super().__init__(
             name=name, arguments=arguments, attr_type=attr_type, value=value)
 
         if isinstance(value, list):

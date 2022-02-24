@@ -35,8 +35,8 @@ class TestJob(unittest.TestCase):
 
         self.assertEqual(
             self.job.name.value, self.job_name,
-            msg="Job name is {}. Should be {}".format(
-                self.job.name.value, self.job_name))
+            msg=f"Job name is {self.job.name.value}. \
+Should be {self.job_name}")
 
     def test_job_status(self):
         """Testing new Job status attribute"""
@@ -45,20 +45,20 @@ class TestJob(unittest.TestCase):
 
         self.assertEqual(
             self.job.status.value, None,
-            msg="Job default status is {}. Should be {}".format(
-                self.job.status.value, None))
+            msg=f"Job default status is {self.job.status.value}. \
+Should be {None}")
 
         self.assertEqual(
             self.second_job.status.value, self.job_status,
-            msg="Job default status is {}. Should be {}".format(
-                self.second_job.status.value, self.job_status))
+            msg="Job default status is {self.second_job.status.value}.\
+ Should be {self.job_status}")
 
         self.job.status.value = self.job_status
 
         self.assertEqual(
             self.job.status.value, self.job_status,
-            msg="New job status is {}. Should be {}".format(
-                self.job.status.value, self.job_status))
+            msg="New job status is {self.job.status.value}. \
+Should be {self.job_status}")
 
     def test_job_url(self):
         """Testing new Job url attribute"""
@@ -67,32 +67,32 @@ class TestJob(unittest.TestCase):
 
         self.assertEqual(
             self.job.url.value, None,
-            msg="Job default url is {}. Should be {}".format(
-                self.job.url.value, None))
+            msg=f"Job default url is {self.job.url.value}. Should be {None}")
 
         self.job.url.value = self.job_url
 
         self.assertEqual(
             self.job.url.value, self.job_url,
-            msg="New job url is {}. Should be {}".format(
-                self.job.url.value, self.job_url))
+            msg=f"New job url is {self.job.url.value}. \
+Should be {self.job_url}")
 
     def test_jobs_comparison(self):
         """Testing new Job instances comparison."""
         self.assertEqual(
             self.job, self.second_job,
-            msg="Jobs {} and {} are not equal".format(
-                self.job.name.value, self.second_job.name.value))
+            msg=f"Jobs {self.job.name.value} and \
+{self.second_job.name.value} are not equal")
 
     def test_job_str(self):
         """Testing Job __str__ method"""
-        self.assertEqual(str(self.job), 'Job: {}'.format(self.job.name.value))
+        self.assertEqual(str(self.job), f'Job: {self.job.name.value}')
 
-        self.assertEqual(str(self.second_job), 'Job: {}\n  Status: {}'.format(
-            self.job_name, self.job_status))
+        self.assertEqual(
+            str(self.second_job),
+            f'Job: {self.job_name}\n  Status: {self.job_status}')
 
         self.second_job.url.value = self.job_url
 
         self.assertEqual(str(self.second_job),
-                         'Job: {}\n  Status: {}\n  URL: {}'.format(
-                             self.job_name, self.job_status, self.job_url))
+                         f'Job: {self.job_name}\n  \
+Status: {self.job_status}\n  URL: {self.job_url}')
