@@ -18,21 +18,18 @@ from yaml.error import YAMLError as YAMLLoadError
 
 
 class YAMLError(Exception):
-    """
-    Represents an error occurring while a YAML file is being parsed.
+    """Represents an error occurring while a YAML file is being parsed.
     """
 
 
 def parse(file):
-    """
-    Reads a YAML file.
+    """Reads a YAML file.
 
-    Args:
-        file(str): Path to the YAML file to be read.
-    Returns:
-        (dict): The contents of the YAML file.
-    Raises:
-        YAMLError: If the file failed to be loaded.
+    :param file: Path to the YAML file to be read.
+    :type file: str
+    :return: The contents of the YAML file.
+    :rtype: dict
+    :raises YAMLError: If the file failed to be loaded.
     """
     try:
         with open(file, 'r') as buffer:

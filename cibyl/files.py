@@ -16,19 +16,17 @@
 import logging
 import os
 from os import PathLike
-from typing import Iterable
 
 LOG = logging.getLogger(__name__)
 
 
 def _is_file_available(filename):
-    """
-    Checks if a file is available by trying to open to it.
+    """Checks if a file is present on the filesystem.
 
-    Args:
-        filename(str): A path pointing to the file to be checked.
-    Returns:
-        (bool): Whether the file can be opened or not.
+    :param filename: A path pointing to the file to be checked.
+    :type filename: str
+    :return: Whether the file is there or not.
+    :rtype: bool
     """
     try:
         with open(filename, 'r'):
@@ -38,17 +36,15 @@ def _is_file_available(filename):
 
 
 def get_first_available_file(filenames, file_check=_is_file_available):
-    """
-    Searches for the first file out of the provided paths that exists on the
-    host's drive.
+    """Searches for the first file out of the provided paths that exists
+    on the host's drive.
 
-    Args:
-        filenames(Iterable[bytes | str | PathLike]): A list of paths pointing
-            to different files.
-        file_check: A function that determines if a file is present.
-    Returns:
-        str | None: A string containing the path to the found file. 'None'
-            if no file is available.
+    :param filenames: A list of paths pointing to different files.
+    :type filenames: :class:`typing.Iterable[bytes | str | PathLike]`
+    :param file_check: A function that determines if a file is present.
+    :return: A string containing the path to the found file. 'None' if no
+        file is available
+    :rtype: bytes or str or None
     """
     for filename in filenames:
         # Resolve path into a string

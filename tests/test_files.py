@@ -19,13 +19,11 @@ from cibyl.files import get_first_available_file
 
 
 class TestGetFirstAvailableFile(TestCase):
-    """
-    Test cases for the 'get_first_available_file' function.
+    """Test cases for the 'get_first_available_file' function.
     """
 
     def test_no_file_found(self):
-        """
-        Checks that 'None' is returned when no provided file exists.
+        """Checks that 'None' is returned when no provided file exists.
         """
         self.assertIsNone(
             get_first_available_file(
@@ -35,8 +33,7 @@ class TestGetFirstAvailableFile(TestCase):
         )
 
     def test_will_report_found_file(self):
-        """
-        Checks that, when a file is available, the function will notice and
+        """Checks that, when a file is available, the function will notice and
         return it.
         """
         expected_file = 'path/to/expected/file'

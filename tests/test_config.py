@@ -21,14 +21,12 @@ from cibyl.config import Config
 
 
 class TestConfig(TestCase):
-    """
-    Test cases for the 'Config' class.
+    """Test cases for the 'Config' class.
     """
 
     def test_error_when_file_not_found(self):
-        """
-        Checks that 'load' raises a FileNotFoundError when the config file does
-        not exist.
+        """Checks that 'load' raises a FileNotFoundError when the config file
+        does not exist.
         """
         cibyl.config.get_first_available_file = Mock()
         cibyl.config.get_first_available_file.return_value = None
@@ -38,8 +36,7 @@ class TestConfig(TestCase):
         self.assertRaises(FileNotFoundError, config.load)
 
     def test_contents_are_loaded(self):
-        """
-        Checks that the contents of the loaded file are made available by
+        """Checks that the contents of the loaded file are made available by
         the class.
         """
         file = 'path/to/config/file'
