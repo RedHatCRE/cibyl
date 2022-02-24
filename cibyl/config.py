@@ -13,16 +13,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from setuptools import setup
+import logging
 
-setup(
-    name='Cibyl',
-    author='RHOS Team',
-    description='Cibyl is tool that models ci system by'
-    'creating in-memory representation of CI system entities',
-    version='0.0.1',
-    entry_points={
-        'console_scripts': ['cibyl = cibyl.cli.main:main',
-                            'ci = cibyl.cli.main:main']
-    }
-)
+LOG = logging.getLogger(__name__)
+
+
+class Config:
+    """.
+    """
+
+    def __init__(self, path=None):
+        """.
+        """
+        self.path = path
+
+    def load(self):
+        """.
+        """
+
+    def update(self):
+        """.
+        """
