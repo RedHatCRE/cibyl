@@ -14,6 +14,7 @@
 #    under the License.
 """
 from unittest import TestCase
+from unittest.mock import Mock
 
 from cibyl.orchestrator import Orchestrator
 
@@ -25,10 +26,14 @@ class TestOrchestrator(TestCase):
         self.orchestrator = Orchestrator()
 
     def test_orchestrator_config(self):
-        """Testing Orchestartor config attribute and method"""
+        """Testing Orchestrator config attribute and method"""
         self.assertTrue(hasattr(self.orchestrator, 'config'))
-        self.assertEqual(self.orchestrator.load_configuration(), None)
+
+        self.orchestrator.config = Mock()
+        self.orchestrator.load_configuration()
+
+        self.orchestrator.config.load.assert_called()
 
     def test_orchestrator_query(self):
-        """Testing Orchestartor query method"""
+        """Testing Orchestrator query method"""
         self.assertEqual(self.orchestrator.run_query(), None)
