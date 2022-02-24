@@ -42,6 +42,7 @@ def main():
 
     orchestartor = Orchestrator(config_file_path)
     orchestartor.load_configuration()
+    orchestartor.create_ci_environments()
     # We can parse user's arguments only after we have loaded the
     # configuration and extended based on it the parser with arguments
     # from the CI models

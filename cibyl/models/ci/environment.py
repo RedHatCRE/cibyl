@@ -32,9 +32,11 @@ class Environment():
             arguments=[Argument(name='--systems', arg_type=str,
                                 description="Systems of the environment")])
 
-    def add_system(self, name: str, system_type: str):
+    def add_system(self, name: str, system_type: str, jobs_scope: str = None,
+                   sources: list = None):
         """Adds a CI system to the CI environment"""
-        self.systems.append(System(name=name, system_type=system_type))
+        self.systems.append(System(name=name, system_type=system_type,
+                                   jobs_scope=jobs_scope, sources=sources))
 
     def __str__(self):
         string = ""
