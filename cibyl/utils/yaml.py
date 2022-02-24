@@ -13,16 +13,26 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from unittest import TestCase
+import yaml
+from yaml.error import YAMLError as YAMLLoadError
 
 
-class TestDummy(TestCase):
+class YAMLError(Exception):
+    """Represents an error occurring while a YAML file is being parsed.
     """
-    A dummy test class for the unit test executor to have something to report.
-    """
 
-    def test_upper(self):
-        """
-        Example of how assertions are done on this framework.
-        """
-        self.assertEqual('foo'.upper(), 'FOO')
+
+def parse(file):
+    """Reads a YAML file.
+
+    :param file: Path to the YAML file to be read.
+    :type file: str
+    :return: The contents of the YAML file.
+    :rtype: dict
+    :raises YAMLError: If the file failed to be loaded.
+    """
+    try:
+        with open(file, 'r', encoding='utf8') as buffer:
+            return yaml.safe_load(buffer)
+    except (OSError, YAMLLoadError) as ex:
+        raise YAMLError(f"Failed to parse file: '{file}'") from ex
