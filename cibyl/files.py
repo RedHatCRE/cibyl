@@ -28,11 +28,7 @@ def _is_file_available(filename):
     :return: Whether the file is there or not.
     :rtype: bool
     """
-    try:
-        with open(filename, 'r'):
-            return True
-    except OSError:
-        return False
+    return os.path.isfile(filename)
 
 
 def get_first_available_file(filenames, file_check=_is_file_available):
