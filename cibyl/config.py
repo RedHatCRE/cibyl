@@ -13,13 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Iterable
 import logging
 import os
 from collections import UserDict
 
-from cibyl.files import get_first_available_file
-import cibyl.yaml as yaml
+from cibyl.utils import yaml
+from cibyl.utils.files import get_first_available_file
 
 LOG = logging.getLogger(__name__)
 

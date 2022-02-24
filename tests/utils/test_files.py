@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from cibyl.files import get_first_available_file
+from cibyl.utils.files import get_first_available_file
 
 
 class TestGetFirstAvailableFile(TestCase):
