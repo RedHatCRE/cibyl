@@ -35,4 +35,6 @@ class Pipeline:
         return f"Pipeline {self.name.value}"
 
     def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
         return self.name.value == other.name.value

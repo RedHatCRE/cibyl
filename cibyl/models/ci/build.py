@@ -38,4 +38,6 @@ class Build:
         return build_str
 
     def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
         return self.build_id.value == other.build_id.value

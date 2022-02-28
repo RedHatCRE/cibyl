@@ -47,6 +47,8 @@ class Job:
         return job_str
 
     def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
         return self.name.value == other.name.value
 
     def add_build(self, build: Build):
