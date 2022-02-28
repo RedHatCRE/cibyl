@@ -17,6 +17,8 @@ import logging
 
 from cibyl.cli.parser import Parser
 from cibyl.config import Config
+from cibyl.exceptions.config import InvalidConfiguration
+from cibyl.models.ci.environment import Environment
 
 LOG = logging.getLogger(__name__)
 
@@ -37,14 +39,29 @@ class Orchestrator:
     :type config_file_path: str, optional
     """
 
-    def __init__(self, config_file_path=None):
+    def __init__(self, config_file_path: str = None,
+                 environments: list = None):
         """Orchestrator constructor method"""
         self.config = Config(path=config_file_path)
         self.parser = Parser()
+        if not environments:
+            self.environments = []
 
     def load_configuration(self):
         """Loads the configuration of the application."""
         self.config.load()
+
+    def create_ci_environments(self) -> None:
+        """Creates CI environment entities based on loaded configuration."""
+        try:
+            for env_name, systems_dict in \
+                    self.config.data.get('environments', {}).items():
+                environment = Environment(name=env_name)
+                for system_name, single_system in systems_dict.items():
+                    environment.add_system(name=system_name, **single_system)
+                self.environments.append(environment)
+        except AttributeError as exception:
+            raise InvalidConfiguration from exception
 
     @staticmethod
     def run_query():

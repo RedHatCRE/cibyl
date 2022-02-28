@@ -18,15 +18,17 @@ from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeListValue, AttributeValue
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.pipeline import Pipeline
+from cibyl.sources.source import Source
 
 
 class System:
-    """
-        General model for a CI system. Holds basic information such as its
-        name, type and which jobs it has.
+    """General model for a CI system.
+
+    Holds basic information such as its name, type and which jobs it has.
     """
 
-    def __init__(self, name: str, system_type: str):
+    def __init__(self, name: str, system_type: str, jobs_scope: str = "*",
+                 sources: list = None):
         name_argument = Argument(name='--system-name', arg_type=str,
                                  description="System name")
         self.name = AttributeValue(name="name", attr_type=str, value=name,
@@ -42,6 +44,11 @@ class System:
                                  description="System jobs")
         self.jobs = AttributeListValue(name="jobs", attr_type=Job,
                                        arguments=[jobs_argument])
+
+        self.jobs_scope = AttributeValue(name='jobs_scope', attr_type=str,
+                                         value=jobs_scope)
+        self.sources = AttributeListValue(name='sources', attr_type=Source,
+                                          value=sources)
 
     def __str__(self):
         return f"System {self.name.value} of type {self.type.value}"
@@ -59,9 +66,7 @@ class System:
 
 
 class ZuulSystem(System):
-    """
-        Model a Zuul CI system.
-    """
+    """Model a Zuul CI system."""
     def __init__(self, name: str):
         super().__init__(name, "zuul")
         pipeline_argument = Argument(name='--pipelines', arg_type=str,
@@ -80,9 +85,7 @@ class ZuulSystem(System):
 
 
 class JenkinsSystem(System):
-    """
-        Model a Jenkins CI system.
-    """
+    """Model a Jenkins CI system."""
     def __init__(self, name: str):
         super().__init__(name, "jenkins")
 
