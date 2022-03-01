@@ -15,6 +15,7 @@
 """
 import unittest
 
+from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 
 
@@ -25,8 +26,9 @@ class TestJob(unittest.TestCase):
         self.job_name = 'test-job'
         self.job_status = 'FAILURE'
         self.job_url = 'http://ci_system/test-job'
+        self.builds = [Build("1")]
         self.job = Job(name=self.job_name)
-        self.second_job = Job(name=self.job_name, status=self.job_status)
+        self.second_job = Job(name=self.job_name)
 
     def test_job_name(self):
         """Testing new Job name attribute"""
@@ -38,27 +40,27 @@ class TestJob(unittest.TestCase):
             msg=f"Job name is {self.job.name.value}. \
 Should be {self.job_name}")
 
-    def test_job_status(self):
-        """Testing new Job status attribute"""
+    def test_job_builds(self):
+        """Testing new Job builds attribute"""
         self.assertTrue(
-            hasattr(self.job, 'status'), msg="Job lacks status attribute")
+            hasattr(self.job, 'builds'), msg="Job lacks builds attribute")
 
         self.assertEqual(
-            self.job.status.value, None,
-            msg=f"Job default status is {self.job.status.value}. \
-Should be {None}")
+            self.job.builds.value, [],
+            msg=f"Job default builds is {self.job.builds.value}. \
+Should be []")
 
         self.assertEqual(
-            self.second_job.status.value, self.job_status,
-            msg="Job default status is {self.second_job.status.value}.\
- Should be {self.job_status}")
+            self.second_job.builds.value, [],
+            msg="Job default builds are {self.second_job.builds.value}.\
+ Should be []")
 
-        self.job.status.value = self.job_status
+        self.job.builds.value = self.builds
 
         self.assertEqual(
-            self.job.status.value, self.job_status,
-            msg="New job status is {self.job.status.value}. \
-Should be {self.job_status}")
+            self.job.builds.value, self.builds,
+            msg="New job builds are {self.job.builds.value}. \
+Should be {self.builds}")
 
     def test_job_url(self):
         """Testing new Job url attribute"""
@@ -89,10 +91,10 @@ Should be {self.job_url}")
 
         self.assertEqual(
             str(self.second_job),
-            f'Job: {self.job_name}\n  Status: {self.job_status}')
+            f'Job: {self.job_name}')
 
         self.second_job.url.value = self.job_url
 
         self.assertEqual(str(self.second_job),
                          f'Job: {self.job_name}\n  \
-Status: {self.job_status}\n  URL: {self.job_url}')
+URL: {self.job_url}')

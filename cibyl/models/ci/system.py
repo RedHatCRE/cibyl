@@ -62,6 +62,8 @@ class System:
         self.jobs.append(job)
 
     def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
         return self.name.value == other.name.value
 
 
@@ -90,4 +92,6 @@ class JenkinsSystem(System):
         super().__init__(name, "jenkins")
 
     def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
         return self.name.value == other.name.value
