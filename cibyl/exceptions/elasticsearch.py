@@ -16,7 +16,7 @@
 
 
 class ElasticSearchError(Exception):
-    """Elasticsearch error. 
+    """Elasticsearch error.
     It can be used for connection and queries
     """
 
