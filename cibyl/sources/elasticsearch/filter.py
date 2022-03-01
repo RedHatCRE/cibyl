@@ -14,16 +14,14 @@
 #    under the License.
 """
 
-import argparse
 import logging
-from sys import exit
 
-from cibyl.sources.elasticsearch.client import ElasticSearchClient
+from cibyl.exceptions.elasticsearch import ElasticSearchError
 
 LOG = logging.getLogger(__name__)
 
 
-class ElasticSearchOSPFilter:
+class ElasticSearchOSP:
 
     def __init__(self: object, elastic_client: object) -> None:
         self.es = elastic_client
@@ -82,61 +80,7 @@ class ElasticSearchOSPFilter:
                 body=query
             )
         except Exception as e:
-            LOG.error(f"Query error. Details: {e}")
-            exit(1)
+            error_message = f"Query error. Details: {e}"
+            LOG.error(error_message)
+            raise ElasticSearchError(error_message)
         return response['hits']['hits']
-
-
-def parse_arguments() -> object:
-    parser = argparse.ArgumentParser(
-        description='Tool for filters test results anomalies in order to '
-                    'compare them separately from the accepted delta range.')
-    parser.add_argument('--host',
-                        help='Elasticsearch host including scheme',
-                        type=str,
-                        default="http://localhost",
-                        dest='host')
-    parser.add_argument('--port',
-                        help='Elasticsearch port for sending REST requests',
-                        type=int,
-                        default=9200,
-                        dest='port')
-    parser.add_argument('--index',
-                        help='Index for searching queries',
-                        required=True,
-                        dest='index')
-    parser.add_argument('--type',
-                        help='Type of search. String or regex string',
-                        type=str,
-                        choices=['string', 'regex'],
-                        required=True,
-                        dest='type')
-    parser.add_argument('--key',
-                        help='key',
-                        required=True,
-                        dest='key')
-    parser.add_argument('--value',
-                        help='value',
-                        required=True,
-                        dest='value')
-    return parser.parse_args()
-
-
-def main():
-    args = parse_arguments()
-    elastic_client = ElasticSearchClient(args.host, args.port).connect()
-    elastic_filter = ElasticSearchOSPFilter(elastic_client)
-    query_data = {
-        'index': args.index,
-        'type': args.type,
-        'key': args.key,
-        'value': args.value,
-    }
-    if query_data['type'] == 'string':
-        elastic_filter.get_job_by_name(query_data)
-    else:
-        elastic_filter.get_jobs_by_regex(query_data)
-
-
-if __name__ == "__main__":
-    main()
