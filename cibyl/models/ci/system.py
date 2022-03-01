@@ -1,6 +1,4 @@
 """
-Model different CI systems
-"""
 #    Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,20 +12,23 @@ Model different CI systems
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+"""
 
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeListValue, AttributeValue
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.pipeline import Pipeline
+from cibyl.sources.source import Source
 
 
 class System:
-    """
-        General model for a CI system. Holds basic information such as its
-        name, type and which jobs it has.
+    """General model for a CI system.
+
+    Holds basic information such as its name, type and which jobs it has.
     """
 
-    def __init__(self, name: str, system_type: str):
+    def __init__(self, name: str, system_type: str, jobs_scope: str = "*",
+                 sources: list = None):
         name_argument = Argument(name='--system-name', arg_type=str,
                                  description="System name")
         self.name = AttributeValue(name="name", attr_type=str, value=name,
@@ -44,6 +45,11 @@ class System:
         self.jobs = AttributeListValue(name="jobs", attr_type=Job,
                                        arguments=[jobs_argument])
 
+        self.jobs_scope = AttributeValue(name='jobs_scope', attr_type=str,
+                                         value=jobs_scope)
+        self.sources = AttributeListValue(name='sources', attr_type=Source,
+                                          value=sources)
+
     def __str__(self):
         return f"System {self.name.value} of type {self.type.value}"
 
@@ -55,13 +61,16 @@ class System:
         """
         self.jobs.append(job)
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return self.name.value == other.name.value
+
 
 class ZuulSystem(System):
-    """
-        Model a Zuul CI system.
-    """
+    """Model a Zuul CI system."""
     def __init__(self, name: str):
-        super(ZuulSystem, self).__init__(name, "zuul")
+        super().__init__(name, "zuul")
         pipeline_argument = Argument(name='--pipelines', arg_type=str,
                                      description="System pipelines")
         self.pipelines = AttributeListValue(name="pipelines",
@@ -78,11 +87,11 @@ class ZuulSystem(System):
 
 
 class JenkinsSystem(System):
-    """
-        Model a Jenkins CI system.
-    """
+    """Model a Jenkins CI system."""
     def __init__(self, name: str):
-        super(JenkinsSystem, self).__init__(name, "jenkins")
+        super().__init__(name, "jenkins")
 
     def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
         return self.name.value == other.name.value

@@ -27,10 +27,14 @@ repos:
     rev: 3.8.3
     hooks:
       - id: flake8
-  - repo: https://github.com/pre-commit/mirrors-pylint
-    rev: v2.5.3
+  - repo: local
     hooks:
       - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        require_serial: true
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.24.2
     hooks:

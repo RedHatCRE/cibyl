@@ -13,16 +13,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from setuptools import setup
+import logging
 
-setup(
-    name='Cibyl',
-    author='RHOS Team',
-    description='Cibyl is tool that models ci system by'
-    'creating in-memory representation of CI system entities',
-    version='0.0.1',
-    entry_points={
-        'console_scripts': ['cibyl = cibyl.cli.main:main',
-                            'ci = cibyl.cli.main:main']
-    }
-)
+LOG = logging.getLogger(__name__)
+
+
+class Source:
+    """Represents a source of a system on which queries are performed."""
+
+    def __init__(self, name: str, url: str = None):
+        self.name = name
+        self.url = url
+
+    def query(self):
+        """Performs query on the source and populates environment instance"""
+        LOG.info("performing query on %s", self.name)
+
+    def connect(self):
+        """Creates a client and initiates a connection to the source."""
+        LOG.info("connection initiated: %s", self.name)

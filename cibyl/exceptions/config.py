@@ -13,16 +13,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from unittest import TestCase
 
 
-class TestDummy(TestCase):
-    """
-    A dummy test class for the unit test executor to have something to report.
-    """
+class InvalidConfiguration(Exception):
+    """Invalid configuration exception"""
 
-    def test_upper(self):
-        """
-        Example of how assertions are done on this framework.
-        """
-        self.assertEqual('foo'.upper(), 'FOO')
+    def __init__(self, message="""
+Invalid Configuration.
+A valid configuration should specify an environment, its system(s) and the
+system(s) details
+
+environments:
+    env_1:
+        jenkins_system:
+            system_type: jenkins"""):
+        self.message = message
+        super().__init__(self.message)

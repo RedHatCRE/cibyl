@@ -16,30 +16,54 @@
 import unittest
 
 from cibyl.models.ci.environment import Environment
+from cibyl.models.ci.system import JenkinsSystem, ZuulSystem
 
 
 class TestEnvironment(unittest.TestCase):
     """Testing Environment CI model"""
 
+    def setUp(self):
+        self.name = "test_env"
+        self.env = Environment(self.name)
+
     def test_new_environment_name(self):
         """Testing new Environment name attribute"""
-        env_name = "test_env"
-        env = Environment(name=env_name)
         attribute_name = 'name'
-        test_name_bool = hasattr(env, attribute_name)
+        test_name_bool = hasattr(self.env, attribute_name)
         self.assertTrue(
             test_name_bool,
-            msg="Environment lacks an attribute: {}".format(attribute_name))
-        self.assertEqual(env.name.value, env_name,
-                         msg="Environment name is {} instead of {}".format(
-                             env.name.value, env_name))
+            msg=f"Environment lacks an attribute: {attribute_name}")
+        self.assertEqual(
+            self.env.name.value, self.name,
+            msg=f"Environment name is {self.env.name.value} \
+instead of {self.name}")
 
     def test_new_environment_systems(self):
         """Testing new Environment name systems attribute"""
-        env_name = "test_env"
-        env = Environment(name=env_name)
         attribute_name = 'systems'
-        test_name_bool = hasattr(env, attribute_name)
+        test_name_bool = hasattr(self.env, attribute_name)
         self.assertTrue(
             test_name_bool,
-            msg="Environment lacks an attribute: {}".format(attribute_name))
+            msg=f"Environment lacks an attribute: {attribute_name}")
+
+    def test_add_systems(self):
+        """Testing adding systems to environment"""
+        self.env.add_system("zuul_sys", "zuul")
+        self.env.add_system("jenkins_sys", "jenkins")
+        self.assertEqual(2, len(self.env.systems.value))
+        self.assertEqual("zuul_sys", self.env.systems.value[0].name.value)
+        self.assertEqual("jenkins_sys", self.env.systems.value[1].name.value)
+
+    def test_str_environment(self):
+        """Testing environment str method"""
+        self.assertEqual(f"Environment: {self.name}\n",
+                         str(self.env))
+
+    def test_add_systems_constructor(self):
+        """Testing passing systems to environment constructor"""
+        zuul = ZuulSystem("zuul_sys")
+        jenkins = JenkinsSystem("jenkins_sys")
+        env = Environment("systems", systems=[zuul, jenkins])
+        self.assertEqual(2, len(env.systems.value))
+        self.assertEqual("zuul_sys", env.systems.value[0].name.value)
+        self.assertEqual("jenkins_sys", env.systems.value[1].name.value)
