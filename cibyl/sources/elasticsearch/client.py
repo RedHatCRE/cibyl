@@ -15,10 +15,10 @@
 """
 
 import logging
-from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import ConnectionError, ConnectionTimeout
-from sys import exit
 
+from elasticsearch import Elasticsearch
+
+from cibyl.exceptions.elasticsearch import ElasticSearchError
 
 LOG = logging.getLogger(__name__)
 
@@ -46,18 +46,13 @@ class ElasticSearchClient:
         :raises: Exception:
                  If exists an unhandled connection error
         """
+        es = Elasticsearch(self.address)
         try:
-            es = Elasticsearch(self.address)
-            es.ping()
-        except ConnectionTimeout as e:
-            LOG.error(f"Timeout connection to ElasticSearch. Details: {e}")
-            exit(1)
-        except ConnectionError as e:
-            LOG.error(f"Connection error to ElasticSearch. Details: {e}")
-            exit(1)
-        except Exception as e:
-            LOG.error(f"An unknown error occurred connecting to ElasticSearch. \
-                        Details: {e}")
-            exit(1)
+            if not es.ping():
+                error_message = "Error connecting to Elasticsearch"
+                LOG.error(error_message)
+                raise ElasticSearchError(error_message)
+        except ElasticSearchError as e:
+            raise e
         LOG.info("Connection to ElasticSearch successful")
         return es
