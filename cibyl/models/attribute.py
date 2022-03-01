@@ -24,7 +24,7 @@ class AttributeValue():
 
     name: str
     attr_type: object
-    value: object
+    value: object = None
     arguments: list[Argument] = None
 
 

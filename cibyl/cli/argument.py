@@ -23,3 +23,4 @@ class Argument():
     name: str
     arg_type: object
     description: str
+    nargs: int = 1

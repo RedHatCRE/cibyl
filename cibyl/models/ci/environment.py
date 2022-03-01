@@ -13,24 +13,32 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+# pylint: disable=no-member
 from cibyl.cli.argument import Argument
-from cibyl.models.attribute import AttributeListValue, AttributeValue
+from cibyl.models.attribute import AttributeListValue
 from cibyl.models.ci.system import System
+from cibyl.models.model import Model
 
 
-class Environment():
+class Environment(Model):
     """Represents a CI environment with one or more CI systems."""
 
-    def __init__(self, name, systems=None):
+    API = {
+        'name': {
+            'attr_type': str,
+            'arguments': [Argument(name='--env-name', arg_type=str,
+                                   description="Name of the environment")]
+        },
+        'systems': {
+            'attr_type': System,
+            'attribute_value_class': AttributeListValue,
+            'arguments': [Argument(name='--systems', arg_type=str,
+                                   description="Systems of the environment")]
+        }
+    }
 
-        self.name = AttributeValue(
-            name='name', attr_type=str, value=name,
-            arguments=[Argument(name='--env-name', arg_type=str,
-                                description="Name of the environment")])
-        self.systems = AttributeListValue(
-            name='name', attr_type=System, value=systems,
-            arguments=[Argument(name='--systems', arg_type=str,
-                                description="Systems of the environment")])
+    def __init__(self, name, systems=None):
+        super().__init__({'name': name, 'systems': systems})
 
     def add_system(self, name: str, system_type: str, jobs_scope: str = None,
                    sources: list = None):

@@ -67,3 +67,15 @@ class Orchestrator:
     def run_query():
         """Execute query based on provided arguments."""
         LOG.debug("running query...")
+
+    def extend_parser(self, attributes,
+                      group_name='Environment'):
+        """Extend parser with arguments from CI models."""
+        for attr_dict in attributes.values():
+            arguments = attr_dict.get('arguments')
+            if arguments:
+                self.parser.extend(arguments, group_name)
+                class_type = attr_dict.get('attr_type')
+                if class_type not in [str, list, dict, int] and \
+                   hasattr(class_type, 'API'):
+                    self.extend_parser(class_type.API, class_type.__name__)

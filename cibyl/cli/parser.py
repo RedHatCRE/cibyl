@@ -45,10 +45,42 @@ class Parser:
         # First item is the namespace of the parsed known arguments
         return self.argument_parser.parse_known_args()[0]
 
-    @staticmethod
-    def extend(ci_environments):
-        """Extends parser with arguments based from the given
-        CI environment entities.
+    def get_group(self, group_name: str):
+        """Returns the argument parser group based on a given group_name
+
+        :param group_name: The name of the group
+        :type group_name: str
+
+        :return: An argparse argument group if it exists and matches
+                 the given group name, otherwise returns None
+        :rtype: argparse._ArgumentGroup
         """
-        for env in ci_environments:
-            LOG.debug("extending arguments from env %s", env.name.value)
+        # pylint: disable=protected-access
+        # Access the private member '_action_groups' to check
+        # whether the group exists
+        for action_group in self.argument_parser._action_groups:
+            if action_group.title == group_name:
+                return action_group
+        return None
+
+    def extend(self, arguments: list, group_name: str):
+        """Adds arguments to a specific argument parser group.
+
+        :param arguments: A list of argument objects
+        :type arguments: list[argument]
+        :param group_name: The name of the argument parser group
+        :type group_name: str
+        """
+        group = self.get_group(group_name)
+        # If the group doesn't exists, we would like to add it
+        # so arguments are grouped based on the model class they belong to
+        if not group:
+            group = self.argument_parser.add_argument_group(group_name)
+
+        try:
+            for arg in arguments:
+                group.add_argument(
+                    arg.name, type=arg.arg_type,
+                    help=arg.description, nargs=arg.nargs)
+        except argparse.ArgumentError:
+            LOG.debug("argument already exists: %s...ignoring", arg.name)

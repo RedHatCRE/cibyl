@@ -13,10 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import argparse
 from unittest import TestCase
 
+from cibyl.cli.argument import Argument
 from cibyl.cli.parser import Parser
-from cibyl.models.ci.environment import Environment
 
 
 class TestParser(TestCase):
@@ -25,6 +26,8 @@ class TestParser(TestCase):
     def setUp(self):
         self.parser = Parser()
         self.default_debug = False
+        self.test_argument = Argument('--test', arg_type=str,
+                                      description='test')
 
     def test_parser_plugin_argument(self):
         """Testing parser plugin argument"""
@@ -44,12 +47,17 @@ class TestParser(TestCase):
             ['--config', '/some/path'])
         self.assertEqual(parsed_args.config_file_path, '/some/path')
 
-    def test_parser_extend(self):
-        """Testing parser extend method"""
-        self.assertEqual(self.parser.extend([]), None)
-        self.assertEqual(self.parser.extend([Environment("test_env")]), None)
-
     def test_parser_parse_args(self):
         """Testing parser extend method"""
         parsed_args_ns = self.parser.parse()
         self.assertEqual(vars(parsed_args_ns).get('debug'), self.default_debug)
+
+    def test_parser_get_group(self):
+        """Testing parser get_group method"""
+        group = self.parser.get_group("test")
+        self.assertIsNone(group)
+
+        self.parser.extend([self.test_argument], 'test')
+        group = self.parser.get_group("test")
+        # pylint: disable=protected-access
+        self.assertIsInstance(group, argparse._ArgumentGroup)

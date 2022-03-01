@@ -1,6 +1,4 @@
 """
-    Tests for System CI model
-"""
 # Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,7 +12,8 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
+"""
+# pylint: disable=no-member
 import unittest
 
 from cibyl.models.ci.job import Job
@@ -26,9 +25,9 @@ class TestSystem(unittest.TestCase):
     """Testing the System class"""
     def setUp(self):
         self.name = "test"
-        self.type = "test_type"
-        self.system = System(self.name, self.type)
-        self.other_system = System(self.name, self.type)
+        self.system_type = "test_type"
+        self.system = System(self.name, self.system_type)
+        self.other_system = System(self.name, self.system_type)
 
     def test_new_system_name(self):
         """Testing the name attribute of the System class"""
@@ -46,12 +45,12 @@ class TestSystem(unittest.TestCase):
     def test_new_system_type(self):
         """Testing the type attribute of the System class"""
         system = System("test", "test_type")
-        attribute_name = 'type'
+        attribute_name = 'system_type'
         test_name_bool = hasattr(system, attribute_name)
         self.assertTrue(
             test_name_bool,
             msg=f"System lacks an attribute: {attribute_name}")
-        type_name = system.type.value
+        type_name = system.system_type.value
         msg_str = f"System type should be test_type, not {type_name}"
         self.assertEqual(type_name, "test_type", msg=msg_str)
 
@@ -82,8 +81,9 @@ class TestZuulSystem(unittest.TestCase):
     def test_new_system_type(self):
         """Testing the type attribute of the ZuulSystem class"""
         self.assertTrue(
-            hasattr(self.system, 'type'), msg="System lacks type attribute")
-        system_type = self.system.type.value
+            hasattr(self.system, 'system_type'),
+            msg="System lacks type attribute")
+        system_type = self.system.system_type.value
         error_msg = f"System type should be zuul, not {system_type}"
         self.assertEqual(self.system.name.value, self.name,
                          msg=error_msg)
@@ -137,8 +137,9 @@ class TestJenkinsSystem(unittest.TestCase):
     def test_new_system_type(self):
         """Testing the type attribute of the JenkinsSystem class"""
         self.assertTrue(
-            hasattr(self.system, 'type'), msg="System lacks type attribute")
-        system_type = self.system.type.value
+            hasattr(self.system, 'system_type'),
+            msg="System lacks type attribute")
+        system_type = self.system.system_type.value
         error_msg = f"System type should be jenkins, not {system_type}"
         self.assertEqual(self.system.name.value, self.name,
                          msg=error_msg)

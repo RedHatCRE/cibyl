@@ -13,23 +13,28 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-
+# pylint: disable=no-member
 from cibyl.cli.argument import Argument
-from cibyl.models.attribute import AttributeValue
+from cibyl.models.model import Model
 
 
-class Build:
+class Build(Model):
     """General model for a job build """
+    API = {
+        'build_id': {
+            'attr_type': str,
+            'arguments': [Argument(name='--build-id', arg_type=str,
+                                   description="Build ID")]
+        },
+        'status': {
+            'attr_type': str,
+            'arguments': [Argument(name='--build-status', arg_type=str,
+                                   description="Build status")]
+        },
+    }
+
     def __init__(self, build_id: str, status: str = None):
-        id_argument = Argument(name='--build-id', arg_type=str,
-                               description="Build id")
-        self.build_id = AttributeValue(name="build_id", attr_type=str,
-                                       value=build_id, arguments=[id_argument])
-        status_argument = Argument(name='--build-status', arg_type=str,
-                                   description="Build status")
-        self.status = AttributeValue(name="status", attr_type=str,
-                                     value=status,
-                                     arguments=[status_argument])
+        super().__init__({'build_id': build_id, 'status': status})
 
     def __str__(self):
         build_str = f"Build: {self.build_id.value}"
