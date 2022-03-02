@@ -80,7 +80,5 @@ class ElasticSearchOSP:
                 body=query
             )
         except Exception as e:
-            error_message = f"Query error. Details: {e}"
-            LOG.error(error_message)
-            raise ElasticSearchError(error_message)
+            raise ElasticSearchError("Error getting the results") from e
         return response['hits']['hits']
