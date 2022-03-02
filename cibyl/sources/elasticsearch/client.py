@@ -47,12 +47,7 @@ class ElasticSearchClient:
                  If exists an unhandled connection error
         """
         es = Elasticsearch(self.address)
-        try:
-            if not es.ping():
-                error_message = "Error connecting to Elasticsearch"
-                LOG.error(error_message)
-                raise ElasticSearchError(error_message)
-        except ElasticSearchError as e:
-            raise e
+        if not es.ping():
+            raise ElasticSearchError("Error connecting to Elasticsearch")
         LOG.info("Connection to ElasticSearch successful")
         return es
