@@ -14,9 +14,9 @@
 #    under the License.
 """
 
-from cibyl.exceptions.elasticsearch import ElasticSearchError
-
 import logging
+
+from cibyl.exceptions.elasticsearch import ElasticSearchError
 
 LOG = logging.getLogger(__name__)
 
