@@ -14,11 +14,11 @@
 #    under the License.
 """
 
-import logging
-
 from elasticsearch import Elasticsearch
 
 from cibyl.exceptions.elasticsearch import ElasticSearchError
+
+import logging
 
 LOG = logging.getLogger(__name__)
 
