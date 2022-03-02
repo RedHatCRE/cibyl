@@ -28,22 +28,20 @@ class ElasticSearchClient:
     def __init__(self: object,
                  host: str = "http://localhost",
                  port: int = 9200) -> None:
+        """Initialization of ElasticSearchClient
+
+        :param host: Elasticsearch host including the scheme
+        :type host: str, optional
+        :param port: Port for sending REST requests to the instance
+        :type port: str, optional"""
         self.address = f"{host}:{port}"
 
     def connect(self: object) -> Elasticsearch:
         """This is used for connecting to the ElasticSearch instance.
 
-        :param host: Elasticsearch host including the scheme
-        :type host: str, optional
-        :param port: Port for sending REST requests to the instance
-        :type port: str, optional
         :return: Elasticsearch module instance
         :rtype: Elasticsearch
-        :raises: ConnectionTimeout:
-                 If the connection attempt reach the max time
-        :raises: ConnectionError:
-                 If exists an handled connection error
-        :raises: Exception:
+        :raises: ElasticSearchError:
                  If exists an unhandled connection error
         """
         es = Elasticsearch(self.address)
