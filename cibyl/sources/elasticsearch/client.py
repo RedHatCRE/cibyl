@@ -37,7 +37,7 @@ class ElasticSearchClient:
         self.address = f"{host}:{port}"
 
     def connect(self: object) -> Elasticsearch:
-        """This is used for connecting to the ElasticSearch instance.
+        """Connects to the elasticsearch instance
 
         :return: Elasticsearch module instance
         :rtype: Elasticsearch
