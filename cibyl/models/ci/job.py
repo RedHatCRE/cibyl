@@ -49,8 +49,8 @@ class Job(Model):
         super().__init__({'name': name, 'url': url,
                           'builds': builds})
 
-    def __str__(self):
-        job_str = f"Job: {self.name.value}"
+    def __str__(self, indent=0):
+        job_str = indent*' ' + f"Job: {self.name.value}"
         if self.url.value:
             job_str += f"\n  URL: {self.url.value}"
         return job_str

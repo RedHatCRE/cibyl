@@ -63,8 +63,12 @@ class System(Model):
                           'jobs': jobs, 'jobs_scope': jobs_scope,
                           'sources': sources})
 
-    def __str__(self):
-        return f"System {self.name.value} of type {self.system_type.value}"
+    def __str__(self, indent=0):
+        string = indent*' ' + f"System: {self.name.value} \
+(type: {self.system_type.value})\n"
+        for job in self.jobs:
+            string += job.__str__()
+        return string
 
     def add_job(self, job: Job):
         """Add a job to the CI system

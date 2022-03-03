@@ -19,6 +19,7 @@ from cibyl.cli.parser import Parser
 from cibyl.config import Config
 from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.models.ci.environment import Environment
+from cibyl.publisher import Publisher
 
 LOG = logging.getLogger(__name__)
 
@@ -44,6 +45,7 @@ class Orchestrator:
         """Orchestrator constructor method"""
         self.config = Config(path=config_file_path)
         self.parser = Parser()
+        self.publisher = Publisher()
         if not environments:
             self.environments = []
 
