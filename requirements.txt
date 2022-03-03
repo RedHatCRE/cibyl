@@ -1,1 +1,2 @@
-pyyaml
+pyyaml~=6.0
+zuul-client~=0.0.4
