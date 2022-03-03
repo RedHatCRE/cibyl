@@ -65,8 +65,8 @@ class ElasticSearchOSP:
         return hits
 
     def __query_get_hits(self: object, index: str, query: dict) -> list:
-        """This method is used to perform the search query to ElasticSearch
-        and get all the hits
+        """Perform the search query to ElasticSearch
+        and return all the hits
 
         :param index: Index
         :type index: str
