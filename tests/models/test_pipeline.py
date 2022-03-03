@@ -18,6 +18,7 @@ import unittest
 from cibyl.models.ci.pipeline import Pipeline
 
 
+# pylint: disable=no-member
 class TestPipeline(unittest.TestCase):
     """Testing Pipeline CI model"""
 

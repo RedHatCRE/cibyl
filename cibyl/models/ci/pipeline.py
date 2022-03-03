@@ -1,5 +1,4 @@
-"""
-Model a CI pipeline
+# pylint: disable=no-member
 """
 #    Copyright 2022 Red Hat
 #
@@ -14,22 +13,35 @@ Model a CI pipeline
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
+"""
 from cibyl.cli.argument import Argument
-from cibyl.models.attribute import AttributeValue
+from cibyl.models.attribute import AttributeListValue
+from cibyl.models.ci.job import Job
+from cibyl.models.model import Model
 
 
-class Pipeline:
-    """
-        General model for a CI pipeline. Holds basic information such as its
-        name.
+class Pipeline(Model):
+    """Represents a Zuul pipeline"""
 
-    """
-    def __init__(self, name: str):
-        name_argument = Argument(name='--job-name', arg_type=str,
-                                 description="Job name")
-        self.name = AttributeValue(name="name", attr_type=str, value=name,
-                                   arguments=[name_argument])
+    API = {
+        'name': {
+            'attr_type': str,
+            'arguments': [Argument(name='--pipeline-name', arg_type=str,
+                                   description="System name")]
+        },
+        'jobs': {
+            'attr_type': Job,
+            'attribute_value_class': AttributeListValue,
+            'arguments': [Argument(name='--jobs', arg_type=str,
+                                   description="Pipeline jobs")]
+        }
+    }
+
+    def __init__(self, name: str, jobs: list[Job] = None):
+        super().__init__(attributes={'name': name,
+                                     'jobs': jobs})
+        self.name.value = name
+        self.jobs.value = jobs
 
     def __str__(self):
         return f"Pipeline {self.name.value}"

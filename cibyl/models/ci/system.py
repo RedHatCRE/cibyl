@@ -13,45 +13,58 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-
+# pylint: disable=no-member
 from cibyl.cli.argument import Argument
-from cibyl.models.attribute import AttributeListValue, AttributeValue
+from cibyl.models.attribute import AttributeListValue
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.pipeline import Pipeline
+from cibyl.models.model import Model
 from cibyl.sources.source import Source
 
 
-class System:
+class System(Model):
     """General model for a CI system.
 
     Holds basic information such as its name, type and which jobs it has.
     """
+    API = {
+        'name': {
+            'attr_type': str,
+            'arguments': [Argument(name='--system-name', arg_type=str,
+                                   description="System name")]
+        },
+        'system_type': {
+            'attr_type': str,
+            'arguments': [Argument(name='--system-type', arg_type=str,
+                                   description="System type")]
+        },
+        'jobs': {
+            'attr_type': Job,
+            'attribute_value_class': AttributeListValue,
+            'arguments': [Argument(name='--jobs', arg_type=str,
+                                   description="System jobs")]
+        },
+        'jobs_scope': {
+            'attr_type': str,
+            'arguments': []
+        },
+        'sources': {
+            'attr_type': Source,
+            'attribute_value_class': AttributeListValue,
+            'arguments': [Argument(name='--sources', arg_type=str,
+                                   description="Source name")]
+        }
+    }
 
-    def __init__(self, name: str, system_type: str, jobs_scope: str = "*",
-                 sources: list = None):
-        name_argument = Argument(name='--system-name', arg_type=str,
-                                 description="System name")
-        self.name = AttributeValue(name="name", attr_type=str, value=name,
-                                   arguments=[name_argument])
-
-        type_argument = Argument(name='--system-type', arg_type=str,
-                                 description="System type")
-        self.type = AttributeValue(name="type", attr_type=str,
-                                   value=system_type,
-                                   arguments=[type_argument])
-
-        jobs_argument = Argument(name='--jobs', arg_type=str,
-                                 description="System jobs")
-        self.jobs = AttributeListValue(name="jobs", attr_type=Job,
-                                       arguments=[jobs_argument])
-
-        self.jobs_scope = AttributeValue(name='jobs_scope', attr_type=str,
-                                         value=jobs_scope)
-        self.sources = AttributeListValue(name='sources', attr_type=Source,
-                                          value=sources)
+    def __init__(self, name: str,  # pylint: disable=too-many-arguments
+                 system_type: str, jobs: list[Job] = None,
+                 jobs_scope: str = "*", sources: list = None):
+        super().__init__({'name': name, 'system_type': system_type,
+                          'jobs': jobs, 'jobs_scope': jobs_scope,
+                          'sources': sources})
 
     def __str__(self):
-        return f"System {self.name.value} of type {self.type.value}"
+        return f"System {self.name.value} of type {self.system_type.value}"
 
     def add_job(self, job: Job):
         """Add a job to the CI system

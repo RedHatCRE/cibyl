@@ -19,6 +19,7 @@ from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 
 
+# pylint: disable=no-member
 class TestJob(unittest.TestCase):
     """Testing Job CI model"""
 

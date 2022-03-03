@@ -40,14 +40,16 @@ def main():
     # arguments from the CI models based on the loaded configuration file
     config_file_path = get_config_file_path(sys.argv)
 
-    orchestartor = Orchestrator(config_file_path)
-    orchestartor.load_configuration()
-    orchestartor.create_ci_environments()
+    orchestrator = Orchestrator(config_file_path)
+    orchestrator.load_configuration()
+    orchestrator.create_ci_environments()
+    for env in orchestrator.environments:
+        orchestrator.extend_parser(attributes=env.API)
     # We can parse user's arguments only after we have loaded the
     # configuration and extended based on it the parser with arguments
     # from the CI models
-    orchestartor.parser.parse()
-    orchestartor.run_query()
+    orchestrator.parser.parse()
+    orchestrator.run_query()
 
 
 if __name__ == "__main__":

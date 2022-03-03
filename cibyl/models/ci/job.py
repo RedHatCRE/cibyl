@@ -1,3 +1,4 @@
+# pylint: disable=no-member
 """
 #    Copyright 2022 Red Hat
 #
@@ -13,32 +14,40 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-
 from cibyl.cli.argument import Argument
-from cibyl.models.attribute import AttributeListValue, AttributeValue
+from cibyl.models.attribute import AttributeListValue
 from cibyl.models.ci.build import Build
+from cibyl.models.model import Model
 
 
-class Job:
+class Job(Model):
     """
         General model for a CI job. Holds basic information such as its
         name, builds and url.
 
     """
-    def __init__(self, name: str, url: str = None):
-        name_argument = Argument(name='--job-name', arg_type=str,
-                                 description="Job name")
-        self.name = AttributeValue(name="name", attr_type=str, value=name,
-                                   arguments=[name_argument])
-        url_argument = Argument(name='--job-url', arg_type=str,
-                                description="Job URL")
-        self.url = AttributeValue(name="url", attr_type=str, value=url,
-                                  arguments=[url_argument])
-        builds_argument = Argument(name='--builds', arg_type=str,
-                                   description="Job builds")
-        self.builds = AttributeListValue(name="builds",
-                                         attr_type=Build,
-                                         arguments=[builds_argument])
+    API = {
+        'name': {
+            'attr_type': str,
+            'arguments': [Argument(name='--job-name', arg_type=str,
+                                   description="Job name")]
+        },
+        'url': {
+            'attr_type': str,
+            'arguments': [Argument(name='--job-url', arg_type=str,
+                                   description="Job URL")]
+        },
+        'builds': {
+            'attr_type': Build,
+            'attribute_value_class': AttributeListValue,
+            'arguments': [Argument(name='--builds', arg_type=str,
+                                   description="Job builds")]
+        }
+    }
+
+    def __init__(self, name: str, url: str = None, builds: list[Build] = None):
+        super().__init__({'name': name, 'url': url,
+                          'builds': builds})
 
     def __str__(self):
         job_str = f"Job: {self.name.value}"
