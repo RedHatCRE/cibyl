@@ -30,20 +30,20 @@ def return_arg(query=None):
     return {"jobs": query}
 
 
-class TestSafeRequest(TestCase):
+class TestSafeRequestJenkinsError(TestCase):
     """Tests for :func:`safe_request`.
     """
 
-    def test_wraps_errors(self):
-        """Tests that errors coming out of the call are wrapped around the
-        API's error type.
+    def test_wraps_errors_jenkins_error(self):
+        """Tests that errors coming out of the Jenkins API call are wrapped around the
+        JenkinsError type.
         """
 
         @safe_request
-        def request():
+        def request_test():
             raise Exception
 
-        self.assertRaises(JenkinsError, request)
+        self.assertRaises(JenkinsError, request_test)
 
     def test_returns_result_when_no_error(self):
         """Tests that the call's output is returned when everything goes right.
@@ -51,10 +51,10 @@ class TestSafeRequest(TestCase):
         result = {'some_key': 'some_value'}
 
         @safe_request
-        def request():
+        def request_test():
             return result
 
-        self.assertEqual(result, request())
+        self.assertEqual(result, request_test())
 
 
 class TestJenkinsSource(TestCase):
