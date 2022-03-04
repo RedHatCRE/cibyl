@@ -46,7 +46,9 @@ class Environment(Model):
         self.systems.append(System(name=name, system_type=system_type,
                                    jobs_scope=jobs_scope, sources=sources))
 
-    def __str__(self):
+    def __str__(self, indent=0):
         string = ""
         string += f"Environment: {self.name.value}\n"
+        for system in self.systems:
+            string += system.__str__(indent + 2)
         return string

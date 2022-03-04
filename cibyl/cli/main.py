@@ -50,6 +50,7 @@ def main():
     # from the CI models
     orchestrator.parser.parse()
     orchestrator.run_query()
+    orchestrator.publisher.publish(orchestrator.environments)
 
 
 if __name__ == "__main__":
