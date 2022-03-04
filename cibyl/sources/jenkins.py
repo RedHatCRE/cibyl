@@ -1,3 +1,4 @@
+"""
 #    Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -11,41 +12,139 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from cibyl.models.ci.job import Job
-from cibyl.sources.source import Source
+"""
 
 import logging
 
 import jenkins
 
+from cibyl.exceptions.jenkins import JenkinsError
+from cibyl.models.ci.build import Build
+from cibyl.models.ci.job import Job
+from cibyl.sources.source import Source
 
+LOG = logging.getLogger(__name__)
+
+
+def safe_request(request):
+    """Decorator that wraps any errors coming out of a call around a
+    :class:`JenkinsError`.
+    :param request: The unsafe call to watch errors on.
+    :type request: function
+    :return: The input call decorated to raise the desired error type.
+    """
+
+    def request_handler(*args):
+        """Calls the unsafe function and wraps any errors coming out of it
+        around a :class:`JenkinsError`.
+        :param args: Arguments with which the function is called.
+        :return: Output of the called function.
+        """
+        try:
+            return request(*args)
+        except Exception as ex:
+            raise JenkinsError('Failure on request to jenkins host.') from ex
+
+    return request_handler
+
+
+# pylint: disable=no-member
 class Jenkins(Source):
     """A class representation of Jenkins client."""
 
-    def __init__(self, url, username, token):
-        self.client = jenkins.Jenkins(url, username=username, token=token)
+    jobs_query = "?tree=jobs[name,url]"
+    jobs_builds_query = "?tree=jobs[name,url,builds[number,result]]"
 
-    def get_jobs(self):
-        return self.client.get_all_jobs(folder_depth=None)
+    def __init__(self, url: str, username: str, token: str, cert: str = None):
+        """
+            Create a client to talk to a jenkins instance.
 
-    def populate_jobs(self, system, jobs):
+            :param url: Jenkins instance address
+            :type url: str
+            :param username: Jenkins username
+            :type username: str
+            :param token: Jenkins access token
+            :type token: str
+            :param url: Jenkins instance address
+            :type url: str
+            :param cert: Path to a file with SSL certificates
+            :type cert: str
+        """
+        super().__init__("", url)
+        self.client = jenkins.Jenkins(url, username=username, password=token)
+        self.client._session.verify = cert
+
+    @safe_request
+    def get_jobs(self, get_builds: bool):
+        """
+            Get all jobs from jenkins server.
+
+            :param get_builds: Whether to get info about the jobs' builds
+            :type get_builds: bool
+
+            :returns: All jobs from jenkins server, as dictionaries of _class,
+            name, fullname, url, color
+            :rtype: list
+        """
+        if get_builds:
+            return self.client.get_info(query=self.jobs_builds_query)["jobs"]
+
+        return self.client.get_info(query=self.jobs_query)["jobs"]
+
+    # pylint: disable=no-self-use
+    def populate_jobs(self, system, jobs: list[dict]):
+        """
+            Create Job models using jenkins jobs information.
+
+            :param system: System model to input the jobs to
+            :type system: :class:`cibyl.models.ci.system.System`
+            :param jobs: Jobs received from jenkins server
+            :type jobs: list
+        """
         for job in jobs:
-            system.jobs.append(Job(name=job.get('name')))
+            if "job" not in job["_class"]:
+                # jenkins may return folders as job objects
+                continue
+            job_name = job.get('name')
+            builds_info = job.get('builds')
+            builds = None
+            if builds_info:
+                builds = [Build(str(build["number"]), build["result"])
+                          for build in builds_info]
 
-    def query(system, args):
-        LOG.debug("querying system {} using source: {}".format(
-            system.name.value, self.__name__))
+            system.jobs.append(Job(name=job_name, url=job.get('url'),
+                                   builds=builds))
+
+    # pylint: disable=inconsistent-return-statements
+    def query(self, system, args):
+        LOG.debug("querying system %s using source: %s",
+                  system.name.value, self.__name__)
 
         if args.get('jobs'):
-            jobs = self.get_jobs()
-            Source.populate_jobs(jobs)
+            jobs = self.get_jobs(args.get('builds', False))
+            self.populate_jobs(system, jobs)
 
-        if all([argument.populated for arg in args]):
+        if all(argument.populated for argument in args):
             return system
 
 
 class JenkinsOSP(Jenkins):
     """A class representation of OSP Jenkins client."""
 
-    def __init__(self, url, username, token):
-        super(self, JenkinsOSP).__init__(url, username, token)
+    # pylint: disable=useless-super-delegation
+    def __init__(self, url: str, username: str, token: str, cert: str = None):
+        """
+            Create a client to talk to a jenkins instance.
+
+            :param url: Jenkins instance address
+            :type url: str
+            :param username: Jenkins username
+            :type username: str
+            :param token: Jenkins access token
+            :type token: str
+            :param url: Jenkins instance address
+            :type url: str
+            :param cert: Path to a file with SSL certificates
+            :type cert: str
+        """
+        super().__init__(url, username, token, cert)
