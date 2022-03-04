@@ -68,6 +68,13 @@ Should be {self.build_status}")
             msg=f"Builds {self.build.build_id.value} and \
 {self.second_build.build_id.value} are not equal")
 
+    def test_builds_comparison_other_types(self):
+        """Testing new Build instances comparison."""
+        self.assertNotEqual(
+            self.build, "test",
+            msg=f"Build {self.build.build_id.value} should be different from \
+str")
+
     def test_build_str(self):
         """Testing Build __str__ method"""
         self.assertEqual(str(self.build), f'Build: {self.build_id}')
