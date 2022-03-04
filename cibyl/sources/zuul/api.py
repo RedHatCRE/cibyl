@@ -14,8 +14,11 @@
 #    under the License.
 """
 import logging
+from functools import partial
 
 from zuulclient.api import ZuulRESTClient
+
+from cibyl.sources.source import safe_request_generic
 
 LOG = logging.getLogger(__name__)
 
@@ -26,27 +29,7 @@ class ZuulAPIError(Exception):
     """
 
 
-def safe_request(request):
-    """Decorator that wraps any errors coming out of a call around a
-    :class:`ZuulAPIError`.
-
-    :param request: The unsafe call to watch errors on.
-    :return: The input call decorated to raise the desired error type.
-    """
-
-    def request_handler(*args):
-        """Calls the unsafe function and wraps any errors coming out of it
-        around a :class:`ZuulAPIError`.
-
-        :param args: Arguments with which the function is called.
-        :return: Output of the called function.
-        """
-        try:
-            return request(*args)
-        except Exception as ex:
-            raise ZuulAPIError('Failure on request to target host.') from ex
-
-    return request_handler
+safe_request = partial(safe_request_generic, custom_error=ZuulAPIError)
 
 
 class ZuulAPI:
