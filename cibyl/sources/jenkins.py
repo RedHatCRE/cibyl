@@ -15,37 +15,19 @@
 """
 
 import logging
+from functools import partial
 
 import jenkins
 
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
-from cibyl.sources.source import Source
+from cibyl.sources.source import Source, safe_request_generic
 
 LOG = logging.getLogger(__name__)
 
 
-def safe_request(request):
-    """Decorator that wraps any errors coming out of a call around a
-    :class:`JenkinsError`.
-    :param request: The unsafe call to watch errors on.
-    :type request: function
-    :return: The input call decorated to raise the desired error type.
-    """
-
-    def request_handler(*args):
-        """Calls the unsafe function and wraps any errors coming out of it
-        around a :class:`JenkinsError`.
-        :param args: Arguments with which the function is called.
-        :return: Output of the called function.
-        """
-        try:
-            return request(*args)
-        except Exception as ex:
-            raise JenkinsError('Failure on request to jenkins host.') from ex
-
-    return request_handler
+safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 
 
 # pylint: disable=no-member
