@@ -86,8 +86,14 @@ Should be {self.job_url}")
             msg=f"Jobs {self.job.name.value} and \
 {self.second_job.name.value} are not equal")
 
+    def test_jobs_comparison_other_type(self):
+        """Testing new Job instances comparison."""
+        self.assertNotEqual(
+            self.job, "hello",
+            msg=f"Job {self.job.name.value} should be different from str")
+
     def test_job_str(self):
-        """Testing Job __str__ method"""
+        """Testing Job __str__ method."""
         self.assertEqual(str(self.job), f'Job: {self.job.name.value}')
 
         self.assertEqual(
@@ -99,3 +105,10 @@ Should be {self.job_url}")
         self.assertEqual(str(self.second_job),
                          f'Job: {self.job_name}\n  \
 URL: {self.job_url}')
+
+    def test_jobs_add_build(self):
+        """Testing Job add_build method."""
+        build2 = Build("2", "SUCCESS")
+        self.job.add_build(build2)
+        self.assertEqual(1, len(self.job.builds.value))
+        self.assertEqual(build2, self.job.builds.value[0])
