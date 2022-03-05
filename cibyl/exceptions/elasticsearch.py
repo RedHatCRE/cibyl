@@ -17,7 +17,7 @@
 
 class ElasticSearchError(Exception):
     """Elasticsearch error.
-    It can be used for connection and queries
+    Used for personalized elasticsearch exceptions
     """
 
     def __init__(self: object, message: str) -> None:

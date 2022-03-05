@@ -26,52 +26,45 @@ class ElasticSearchOSP:
     def __init__(self: object, elastic_client: object) -> None:
         self.es = elastic_client
 
-    def get_job_by_name(self: object, query_data: dict):
-        """Get all the job information with an exact match
+    def get_jobs_by_name(self: object,
+                         job_name: str,
+                         query_type: str = 'term') -> list:
+        """Get jobs by kind of query
+        It can be term (literal search) or regexp
 
-        :param query_data: Information required for the query:
-                Index, Search key and Search Value.
-        :type query_data: dict
+        :param query_type: Kind of query.
+                It could be 'term' or 'regexp'
+        :type query_data: str
+        :param job_name: Name of the job to serch. Literal or regex.
+        :type job_name: str
+        :return: hits
+        :rtype: list
         """
-        query_body = {
-           'query': {
-                'term': {
-                    f"{query_data['key']}.keyword": {
-                        'value': query_data['value']
-                    }
-                }
-            }
-        }
-        hits = self.__query_get_hits(query_data['index'], query_body)
-        return hits
+        if query_type == 'term':
+            key = 'jobName.keyword'
+        else:
+            key = 'jobName'
 
-    def get_jobs_by_regex(self: object, query_data: dict):
-        """Get all the jobs that match the provided regex string
-
-        :param query_data: Information required for the query:
-                Index, Search key and Search Value.
-        :type query_data: dict
-        """
         query_body = {
             'query': {
-                'regexp': {
-                    query_data['key']: {
-                        'value': query_data['value']
+                query_type: {
+                    key: {
+                        'value': job_name
                     }
                 }
             }
         }
-        hits = self.__query_get_hits(query_data['index'], query_body)
+        hits = self.__query_get_hits(query_body)
         return hits
 
-    def __query_get_hits(self: object, index: str, query: dict) -> list:
+    def __query_get_hits(self: object, query: dict, index: str = '') -> list:
         """Perform the search query to ElasticSearch
         and return all the hits
 
+        :param query: Query to perform
+        :type query: dict
         :param index: Index
         :type index: str
-        :param query: Index and query to perform
-        :type query: dict
         :return: List of hits.
         """
         try:
