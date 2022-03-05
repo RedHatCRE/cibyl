@@ -14,6 +14,7 @@
 #    under the License.
 """
 import logging
+import operator
 
 from cibyl.cli.parser import Parser
 from cibyl.config import Config
@@ -65,19 +66,24 @@ class Orchestrator:
         except AttributeError as exception:
             raise InvalidConfiguration from exception
 
-    @staticmethod
-    def run_query():
+    def run_query(self, start_level=1):
         """Execute query based on provided arguments."""
-        LOG.debug("running query...")
+        last_level = -1
+        for arg in sorted(self.parser.ci_args.values(),
+                          key=operator.attrgetter('level'), reverse=True):
+            if arg.level >= start_level and arg.level >= last_level:
+                LOG.debug("executing the function %s", arg.func)
+                last_level = arg.level
 
-    def extend_parser(self, attributes,
-                      group_name='Environment'):
+    def extend_parser(self, attributes, group_name='Environment',
+                      level=0):
         """Extend parser with arguments from CI models."""
         for attr_dict in attributes.values():
             arguments = attr_dict.get('arguments')
             if arguments:
-                self.parser.extend(arguments, group_name)
+                self.parser.extend(arguments, group_name, level=level)
                 class_type = attr_dict.get('attr_type')
                 if class_type not in [str, list, dict, int] and \
                    hasattr(class_type, 'API'):
-                    self.extend_parser(class_type.API, class_type.__name__)
+                    self.extend_parser(class_type.API, class_type.__name__,
+                                       level=level+1)

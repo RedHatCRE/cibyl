@@ -16,6 +16,7 @@
 from dataclasses import dataclass
 
 
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class Argument():
     """Represents Parser's argument"""
@@ -24,3 +25,7 @@ class Argument():
     arg_type: object
     description: str
     nargs: int = 1
+    func: str = None
+    populated: bool = False
+    level: int = 0
+    value: object = None

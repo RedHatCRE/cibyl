@@ -14,10 +14,12 @@
 #    under the License.
 """
 import argparse
+import logging
 from unittest import TestCase
 
 from cibyl.cli.argument import Argument
 from cibyl.cli.parser import Parser
+from cibyl.models.ci.environment import Environment
 
 
 class TestParser(TestCase):
@@ -28,6 +30,9 @@ class TestParser(TestCase):
         self.default_debug = False
         self.test_argument = Argument('--test', arg_type=str,
                                       description='test')
+        self.environment = Environment(name='test-env')
+        self.environment.arguments = self.environment.API.get(
+            'name').get('arguments')
 
     def test_parser_plugin_argument(self):
         """Testing parser plugin argument"""
@@ -47,10 +52,28 @@ class TestParser(TestCase):
             ['--config', '/some/path'])
         self.assertEqual(parsed_args.config_file_path, '/some/path')
 
+    def test_parser_extend(self):
+        self.parser.extend(self.environment.arguments, 'Environment')
+        # Extend again and see if a message is logged about it
+        with self.assertLogs('cibyl.cli.parser', level='DEBUG') as cm:
+            self.parser.extend(self.environment.arguments, 'Environment')
+
     def test_parser_parse_args(self):
         """Testing parser extend method"""
-        parsed_args_ns = self.parser.parse()
-        self.assertEqual(vars(parsed_args_ns).get('debug'), self.default_debug)
+        parsed_app_args, parsed_ci_args = self.parser.parse()
+        self.assertEqual(parsed_app_args, {'plugin': 'openstack'})
+        self.assertEqual(parsed_ci_args, {})
+
+        self.parser.extend(self.environment.arguments, 'Environment')
+        parsed_app_args, parsed_ci_args = self.parser.parse(
+            ['--env-name', 'env1', '--plugin', 'openshift'])
+        self.assertEqual(parsed_app_args, {'plugin': 'openshift'})
+        self.assertEqual(parsed_ci_args,
+                         {'env_name': Argument(
+                             name='env_name', arg_type=str,
+                             description='Name of the environment', nargs=1,
+                             func=None, populated=False, level=0,
+                             value=['env1'])})
 
     def test_parser_get_group(self):
         """Testing parser get_group method"""
