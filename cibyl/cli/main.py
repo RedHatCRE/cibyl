@@ -43,12 +43,14 @@ def main():
     orchestrator = Orchestrator(config_file_path)
     orchestrator.load_configuration()
     orchestrator.create_ci_environments()
+    # Add arguments from CI & product models to the parser of the app
     for env in orchestrator.environments:
         orchestrator.extend_parser(attributes=env.API)
     # We can parse user's arguments only after we have loaded the
     # configuration and extended based on it the parser with arguments
     # from the CI models
-    orchestrator.parser.parse()
+    orchestrator.parser.app_args, orchestrator.parser.ci_args = \
+        orchestrator.parser.parse()
     orchestrator.run_query()
     orchestrator.publisher.publish(orchestrator.environments)
 
