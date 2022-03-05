@@ -22,9 +22,10 @@ LOG = logging.getLogger(__name__)
 
 
 class ElasticSearchOSP:
+    """Used to perform queries in elasticsearch"""
 
     def __init__(self: object, elastic_client: object) -> None:
-        self.es = elastic_client
+        self.es_client = elastic_client
 
     def get_jobs_by_name(self: object,
                          job_name: str,
@@ -68,10 +69,10 @@ class ElasticSearchOSP:
         :return: List of hits.
         """
         try:
-            response = self.es.search(
+            response = self.es_client.search(
                 index=index,
                 body=query
             )
-        except Exception as e:
-            raise ElasticSearchError("Error getting the results") from e
+        except Exception as exception:
+            raise ElasticSearchError("Error getting the results") from exception
         return response['hits']['hits']

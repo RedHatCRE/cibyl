@@ -19,6 +19,3 @@ class ElasticSearchError(Exception):
     """Elasticsearch error.
     Used for personalized elasticsearch exceptions
     """
-
-    def __init__(self: object, message: str) -> None:
-        super().__init__(message)

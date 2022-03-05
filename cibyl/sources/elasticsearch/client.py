@@ -24,6 +24,8 @@ LOG = logging.getLogger(__name__)
 
 
 class ElasticSearchClient:
+    """Elasticsearch client to connect to the instance
+    and retrieve the data from this one"""
 
     def __init__(self: object,
                  host: str = "http://localhost",
@@ -44,8 +46,8 @@ class ElasticSearchClient:
         :raises: ElasticSearchError:
                  If exists an unhandled connection error
         """
-        es = Elasticsearch(self.address)
-        if not es.ping():
+        es_client = Elasticsearch(self.address)
+        if not es_client.ping():
             raise ElasticSearchError("Error connecting to Elasticsearch")
         LOG.info("Connection to ElasticSearch successful")
-        return es
+        return es_client
