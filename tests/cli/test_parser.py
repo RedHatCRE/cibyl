@@ -18,6 +18,7 @@ from unittest import TestCase
 
 from cibyl.cli.argument import Argument
 from cibyl.cli.parser import Parser
+from cibyl.models.ci.environment import Environment
 
 
 class TestParser(TestCase):
@@ -28,32 +29,53 @@ class TestParser(TestCase):
         self.default_debug = False
         self.test_argument = Argument('--test', arg_type=str,
                                       description='test')
+        self.environment = Environment(name='test-env')
+        self.environment.arguments = self.environment.API.get(
+            'name').get('arguments')
 
     def test_parser_plugin_argument(self):
-        """Testing parser plugin argument"""
+        """Tests parser plugin argument"""
         parsed_args = self.parser.argument_parser.parse_args(
             ['--plugin', 'openstack'])
         self.assertEqual(parsed_args.plugin, 'openstack')
 
     def test_parser_debug_argument(self):
-        """Testing parser debug argument"""
+        """Tests parser debug argument"""
         parsed_args = self.parser.argument_parser.parse_args(
             ['--debug'])
         self.assertTrue(parsed_args.debug)
 
     def test_parser_config_argument(self):
-        """Testing parser config argument"""
+        """Tests parser config argument"""
         parsed_args = self.parser.argument_parser.parse_args(
             ['--config', '/some/path'])
         self.assertEqual(parsed_args.config_file_path, '/some/path')
 
+    def test_parser_extend(self):
+        """Tests parser extend method"""
+        self.parser.extend(self.environment.arguments, 'Environment')
+        # Extend again and see if a message is logged about it
+        with self.assertLogs('cibyl.cli.parser', level='DEBUG'):
+            self.parser.extend(self.environment.arguments, 'Environment')
+
     def test_parser_parse_args(self):
         """Testing parser extend method"""
-        parsed_args_ns = self.parser.parse()
-        self.assertEqual(vars(parsed_args_ns).get('debug'), self.default_debug)
+        self.parser.parse()
+        self.assertEqual(self.parser.app_args, {'plugin': 'openstack'})
+        self.assertEqual(self.parser.ci_args, {})
+
+        self.parser.extend(self.environment.arguments, 'Environment')
+        self.parser.parse(['--env-name', 'env1', '--plugin', 'openshift'])
+        self.assertEqual(self.parser.app_args, {'plugin': 'openshift'})
+        self.assertEqual(self.parser.ci_args,
+                         {'env_name': Argument(
+                             name='env_name', arg_type=str,
+                             description='Name of the environment', nargs=1,
+                             func=None, populated=False, level=0,
+                             value=['env1'])})
 
     def test_parser_get_group(self):
-        """Testing parser get_group method"""
+        """Tests parser get_group method"""
         group = self.parser.get_group("test")
         self.assertIsNone(group)
 
