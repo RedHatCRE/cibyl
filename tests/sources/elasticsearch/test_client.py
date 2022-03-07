@@ -36,6 +36,6 @@ class TestClient(TestCase):
         api.info = Mock()
         api.info.side_effect = raise_api_error
 
-        es = ElasticSearchClient(api)
+        es_client = ElasticSearchClient(api)
 
-        self.assertRaises(ElasticSearchError, es.connect)
+        self.assertRaises(ElasticSearchError, es_client.connect)
