@@ -44,6 +44,13 @@ Should be {self.pipeline_name}")
             msg=f"Pipelines {self.pipeline.name.value} and \
 {self.second_pipeline.name.value} are not equal")
 
+    def test_pipelines_comparison_other_types(self):
+        """Testing new Pipeline instances comparison."""
+        self.assertNotEqual(
+            self.pipeline, "test",
+            msg=f"Pipeline {self.pipeline.name.value} should be different \
+from str")
+
     def test_pipeline_str(self):
         """Testing Pipeline __str__ method"""
         self.assertEqual(str(self.pipeline),
