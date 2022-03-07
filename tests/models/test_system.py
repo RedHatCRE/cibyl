@@ -95,6 +95,13 @@ class TestZuulSystem(unittest.TestCase):
             msg="Systems {self.system.name.value} and \
 {self.system.name.value} are not equal")
 
+    def test_system_comparison_other_types(self):
+        """Testing new ZuulSystem instances comparison"""
+        self.assertNotEqual(
+            self.system, "test",
+            msg=f"System {self.system.name.value} should be different from str"
+        )
+
     def test_system_str(self):
         """Testing ZuulSystem __str__ method"""
         self.assertEqual(str(self.system),
@@ -150,6 +157,13 @@ class TestJenkinsSystem(unittest.TestCase):
             self.system, self.other_system,
             msg=f"Systems {self.system.name.value} and \
 {self.system.name.value} are not equal")
+
+    def test_system_comparison_other_types(self):
+        """Testing new JenkinsSystem instances comparison"""
+        self.assertNotEqual(
+            self.system, "test",
+            msg=f"System {self.system.name.value} should be different from str"
+        )
 
     def test_system_str(self):
         """Testing JenkinsSystem __str__ method"""

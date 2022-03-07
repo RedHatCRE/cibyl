@@ -18,6 +18,29 @@ import logging
 LOG = logging.getLogger(__name__)
 
 
+def safe_request_generic(request, custom_error):
+    """Decorator that wraps any errors coming out of a call around a
+    custom_error class.
+
+    :param request: The unsafe call to watch errors on.
+    :return: The input call decorated to raise the desired error type.
+    """
+
+    def request_handler(*args):
+        """Calls the unsafe function and wraps any errors coming out of it
+        around a custom_error class.
+
+        :param args: Arguments with which the function is called.
+        :return: Output of the called function.
+        """
+        try:
+            return request(*args)
+        except Exception as ex:
+            raise custom_error('Failure on request to target host.') from ex
+
+    return request_handler
+
+
 class Source:
     """Represents a source of a system on which queries are performed."""
 
@@ -25,7 +48,8 @@ class Source:
         self.name = name
         self.url = url
 
-    def query(self):
+    # pylint: disable=unused-argument
+    def query(self, system,  args):
         """Performs query on the source and populates environment instance"""
         LOG.info("performing query on %s", self.name)
 
