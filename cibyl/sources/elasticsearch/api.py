@@ -21,7 +21,7 @@ from cibyl.exceptions.elasticsearch import ElasticSearchError
 LOG = logging.getLogger(__name__)
 
 
-class ElasticSearchOSP:
+class ElasticSearchOSP:  # pylint: disable=too-few-public-methods
     """Used to perform queries in elasticsearch"""
 
     def __init__(self: object, elastic_client: object) -> None:
@@ -74,5 +74,6 @@ class ElasticSearchOSP:
                 body=query
             )
         except Exception as exception:
-            raise ElasticSearchError("Error getting the results") from exception
+            raise ElasticSearchError("Error getting the results") \
+                  from exception
         return response['hits']['hits']

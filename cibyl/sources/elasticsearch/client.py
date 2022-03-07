@@ -23,7 +23,7 @@ from cibyl.exceptions.elasticsearch import ElasticSearchError
 LOG = logging.getLogger(__name__)
 
 
-class ElasticSearchClient:
+class ElasticSearchClient:  # pylint: disable=too-few-public-methods
     """Elasticsearch client to connect to the instance
     and retrieve the data from this one"""
 
