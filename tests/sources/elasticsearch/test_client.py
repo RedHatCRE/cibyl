@@ -16,8 +16,9 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.sources.elasticsearch.client import ElasticSearchClient
 from cibyl.exceptions.elasticsearch import ElasticSearchError
+from cibyl.sources.elasticsearch.client import ElasticSearchClient
+
 
 class TestClient(TestCase):
     """Test cases for :class:`ElasticSearchClient`.
