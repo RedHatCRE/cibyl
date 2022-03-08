@@ -13,7 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import importlib
 import logging
+
+from cibyl.exceptions.source import (NoSupportedSourcesFound,
+                                     TooManyValidSources)
 
 LOG = logging.getLogger(__name__)
 
@@ -26,7 +30,7 @@ def safe_request_generic(request, custom_error):
     :return: The input call decorated to raise the desired error type.
     """
 
-    def request_handler(*args):
+    def request_handler(*args, **kwargs):
         """Calls the unsafe function and wraps any errors coming out of it
         around a custom_error class.
 
@@ -34,7 +38,7 @@ def safe_request_generic(request, custom_error):
         :return: Output of the called function.
         """
         try:
-            return request(*args)
+            return request(*args, **kwargs)
         except Exception as ex:
             raise custom_error('Failure on request to target host.') from ex
 
@@ -59,3 +63,39 @@ class Source:
     def connect(self):
         """Creates a client and initiates a connection to the source."""
         LOG.info("connection initiated: %s", self.name)
+
+    @staticmethod
+    def get_source_method(system_name: str, sources: list, func_name: str):
+        """Returns a method of a single source given all the sources
+        of the system and the name of function.
+
+        An exception is raised if there are no sources with such function
+        name or if there are multiple sources that have this function.
+
+        :param system_name: The name of system
+        :type system_name: str
+        :param sources: List of Source instances
+        :type sources: list[Source]
+        :param func_name: The name of the function to invoke
+        :type func_name: str
+        """
+        valid_sources = []
+        for source in sources:
+            if hasattr(source, func_name):
+                valid_sources.append(source)
+        if len(valid_sources) == 0:
+            raise NoSupportedSourcesFound(system_name,
+                                          func_name)
+        if len(valid_sources) > 2:
+            raise TooManyValidSources(system_name)
+        return getattr(valid_sources[0], func_name)
+
+    @staticmethod
+    def get_source_class(driver):
+        """Returns the class of the given driver
+
+        :param driver: the name of the driver as used by the source
+        :type driver: str
+        """
+        return getattr(importlib.import_module(
+            f"cibyl.sources.{driver}"), driver.capitalize())

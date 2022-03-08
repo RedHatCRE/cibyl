@@ -63,8 +63,9 @@ class Orchestrator:
                 environment = Environment(name=env_name)
                 for system_name, single_system in systems_dict.items():
                     sources_dict = single_system.pop('sources', {})
-                    sources = [
-                        Source(name=source_name, **source_data)
+                    sources = [Source.get_source_class(
+                            source_data.get('driver'))(
+                                name=source_name, **source_data)
                         for source_name, source_data in sources_dict.items()]
                     environment.add_system(name=system_name,
                                            **single_system, sources=sources)
@@ -72,14 +73,28 @@ class Orchestrator:
         except AttributeError as exception:
             raise InvalidConfiguration from exception
 
+    @staticmethod
+    def populate(environment, model_instances):
+        """Populate environment instance with the provided model instances"""
+        for model_instance in model_instances:
+            LOG.debug("populating environment %s: %s",
+                      environment, model_instance)
+
     def run_query(self, start_level=1):
         """Execute query based on provided arguments."""
         last_level = -1
         for arg in sorted(self.parser.ci_args.values(),
                           key=operator.attrgetter('level'), reverse=True):
             if arg.level >= start_level and arg.level >= last_level:
-                LOG.debug("executing the function %s", arg.func)
-                last_level = arg.level
+                for env in self.environments:
+                    for system in env.systems:
+                        source_method = Source.get_source_method(
+                            system.name.value,
+                            system.sources, arg.func)
+                        model_instances = source_method(
+                            **self.parser.ci_args)
+                        self.populate(env, model_instances)
+            last_level = arg.level
 
     def extend_parser(self, attributes, group_name='Environment',
                       level=0):
