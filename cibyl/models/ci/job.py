@@ -30,7 +30,8 @@ class Job(Model):
         'name': {
             'attr_type': str,
             'arguments': [Argument(name='--job-name', arg_type=str,
-                                   description="Job name")]
+                                   description="Job name",
+                                   func='get_jobs')]
         },
         'url': {
             'attr_type': str,

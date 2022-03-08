@@ -16,7 +16,32 @@
 import argparse
 import logging
 
+from cibyl.cli.argument import Argument
+
 LOG = logging.getLogger(__name__)
+
+
+class CustomAction(argparse.Action):
+    """Custom argparse.Action that allows in addition, to specify
+    whether an argument data is populated, the function associated
+    with the argument and the level in the models.
+    """
+    def __init__(self, *args, func=None, populated=False, level=-1, **kwargs):
+        """
+        argparse custom action.
+        :param func: the function the argument is associated with
+        """
+        self.func = func
+        self.level = level
+        self.populated = populated
+        super().__init__(*args, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, Argument(
+            name=self.dest, description=self.help, arg_type=self.type,
+            nargs=self.nargs, level=self.level, func=self.func,
+            populated=self.populated,
+            value=values))
 
 
 class Parser:
@@ -26,7 +51,13 @@ class Parser:
     attributes.
     """
 
-    def __init__(self):
+    def __init__(self, ci_args: dict = None, app_args: dict = None):
+        self.ci_args = ci_args
+        if not ci_args:
+            self.ci_args = {}
+        self.app_args = app_args
+        if not app_args:
+            self.app_args = {}
         self.argument_parser = argparse.ArgumentParser()
         self.__add_arguments()
 
@@ -40,10 +71,24 @@ class Parser:
         self.argument_parser.add_argument(
             '--plugin', '-p', dest="plugin", default="openstack")
 
-    def parse(self):
-        """Parses arguments"""
-        # First item is the namespace of the parsed known arguments
-        return self.argument_parser.parse_known_args()[0]
+    def parse(self, arguments=None):
+        """Parse application and CI models arguments.
+
+        Sets the attributes ci_args and app_args with dictionaries
+        including the parsed arguments.
+
+        :param arguments: Arguments to parse
+        :type arguments: list
+        """
+        # First item is the namespace of the parsed known arguments (we ignore
+        # the arguments we are not familiar with)
+        known_arguments = self.argument_parser.parse_known_args(arguments)[0]
+        # Keep only the used arguments
+        self.ci_args = {arg_name: arg_value for arg_name, arg_value in vars(
+            known_arguments).items() if isinstance(arg_value, Argument)}
+        self.app_args = {arg_name: arg_value for arg_name, arg_value in vars(
+            known_arguments).items() if arg_value and not isinstance(
+                arg_value, Argument)}
 
     def get_group(self, group_name: str):
         """Returns the argument parser group based on a given group_name
@@ -63,7 +108,7 @@ class Parser:
                 return action_group
         return None
 
-    def extend(self, arguments: list, group_name: str):
+    def extend(self, arguments: list, group_name: str, level: int = 0):
         """Adds arguments to a specific argument parser group.
 
         :param arguments: A list of argument objects
@@ -81,6 +126,9 @@ class Parser:
             for arg in arguments:
                 group.add_argument(
                     arg.name, type=arg.arg_type,
-                    help=arg.description, nargs=arg.nargs)
+                    help=arg.description, nargs=arg.nargs,
+                    action=CustomAction, func=arg.func,
+                    populated=arg.populated,
+                    level=level)
         except argparse.ArgumentError:
             LOG.debug("argument already exists: %s...ignoring", arg.name)
