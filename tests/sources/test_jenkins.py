@@ -31,8 +31,7 @@ def return_arg(query=None):
 
 
 class TestSafeRequestJenkinsError(TestCase):
-    """Tests for :func:`safe_request`.
-    """
+    """Tests for :func:`safe_request`."""
 
     def test_wraps_errors_jenkins_error(self):
         """Tests that errors coming out of the Jenkins API call are wrapped around the
@@ -58,8 +57,7 @@ class TestSafeRequestJenkinsError(TestCase):
 
 
 class TestJenkinsSource(TestCase):
-    """Tests for :class:`Jenkins`.
-    """
+    """Tests for :class:`Jenkins`."""
 
     def setUp(self):
         self.jenkins = Jenkins("url", "user", "token")
