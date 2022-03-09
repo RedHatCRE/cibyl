@@ -44,9 +44,12 @@ def safe_request_generic(request, custom_error):
 class Source:
     """Represents a source of a system on which queries are performed."""
 
-    def __init__(self, name: str, url: str = None):
+    def __init__(self, name: str, driver: str, url: str = None,
+                 priority: int = 0):
         self.name = name
+        self.driver = driver
         self.url = url
+        self.priority = priority
 
     # pylint: disable=unused-argument
     def query(self, system,  args):

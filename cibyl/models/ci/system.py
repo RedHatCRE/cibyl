@@ -79,6 +79,14 @@ class System(Model):
         """
         self.jobs.append(job)
 
+    def add_source(self, source: Source):
+        """Add a source to the CI system
+
+        :param source: Source to add to the system
+        :type source: Source
+        """
+        self.sources.append(source)
+
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False

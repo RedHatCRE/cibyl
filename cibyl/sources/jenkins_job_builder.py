@@ -47,7 +47,7 @@ class JenkinsJobBuilder(Source):
         :param branch: Branch to checkout
         :type branch: str
         """
-        super().__init__("", url)
+        super().__init__("", url=url, driver="jenkins_job_builder")
         self.dest = dest
         self.branch = branch
         if dest is None:
