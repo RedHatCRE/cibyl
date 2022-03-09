@@ -21,6 +21,7 @@ from cibyl.config import Config
 from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.models.ci.environment import Environment
 from cibyl.publisher import Publisher
+from cibyl.sources.source import Source
 
 LOG = logging.getLogger(__name__)
 
@@ -61,7 +62,12 @@ class Orchestrator:
                     self.config.data.get('environments', {}).items():
                 environment = Environment(name=env_name)
                 for system_name, single_system in systems_dict.items():
-                    environment.add_system(name=system_name, **single_system)
+                    sources_dict = single_system.pop('sources', {})
+                    sources = [
+                        Source(name=source_name, **source_data)
+                        for source_name, source_data in sources_dict.items()]
+                    environment.add_system(name=system_name,
+                                           **single_system, sources=sources)
                 self.environments.append(environment)
         except AttributeError as exception:
             raise InvalidConfiguration from exception

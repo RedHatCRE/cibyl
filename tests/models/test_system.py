@@ -19,6 +19,7 @@ import unittest
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.pipeline import Pipeline
 from cibyl.models.ci.system import JenkinsSystem, System, ZuulSystem
+from cibyl.sources.source import Source
 
 
 class TestSystem(unittest.TestCase):
@@ -123,6 +124,13 @@ class TestZuulSystem(unittest.TestCase):
         self.system.add_job(job)
         self.assertEqual(len(self.system.jobs.value), 1)
         self.assertEqual(job, self.system.jobs.value[0])
+
+    def test_add_source(self):
+        """Testing adding a new source to a system"""
+        source = Source("test_source", driver="jenkins")
+        self.system.add_source(source)
+        self.assertEqual(len(self.system.sources.value), 1)
+        self.assertEqual(source, self.system.sources.value[0])
 
 
 class TestJenkinsSystem(unittest.TestCase):

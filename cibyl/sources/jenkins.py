@@ -52,7 +52,7 @@ class Jenkins(Source):
             :param cert: Path to a file with SSL certificates
             :type cert: str
         """
-        super().__init__("", url)
+        super().__init__("", url=url, driver="jenkins")
         self.client = jenkins.Jenkins(url, username=username, password=token)
         self.client._session.verify = cert
 
