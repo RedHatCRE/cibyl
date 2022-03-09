@@ -21,8 +21,8 @@ from typing import Dict
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.model import Model
-from cibyl.models.openstack.container import Container
-from cibyl.models.openstack.package import Package
+from cibyl.plugins.openstack.container import Container
+from cibyl.plugins.openstack.package import Package
 
 # pylint: disable=no-member
 

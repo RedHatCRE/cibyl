@@ -18,8 +18,8 @@ from typing import List
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeListValue
 from cibyl.models.model import Model
-from cibyl.models.openstack.node import Node
-from cibyl.models.openstack.service import Service
+from cibyl.plugins.openstack.node import Node
+from cibyl.plugins.openstack.service import Service
 
 # pylint: disable=no-member
 
@@ -31,26 +31,26 @@ class Deployment(Model):
         'release': {
             'attr_type': float,
             'arguments': [Argument(name='--release', arg_type=float,
-                          description="Deployment release version")]
+                                   description="Deployment release version")]
         },
         'infra_type': {
             'attr_type': str,
             'arguments': [Argument(name='--infra-type', arg_type=str,
-                          description="Infra type")]
+                                   description="Infra type")]
         },
         'nodes': {
             'attr_type': Node,
             'attribute_value_class': AttributeListValue,
             'arguments': [Argument(name='--nodes', arg_type=str,
-                          nargs='*',
-                          description="Nodes on the deployment")]
+                                   nargs='*',
+                                   description="Nodes on the deployment")]
         },
         'services': {
             'attr_type': Service,
             'attribute_value_class': AttributeListValue,
             'arguments': [Argument(name='--services', arg_type=str,
-                          nargs='*',
-                          description="Services in the deployment")]
+                                   nargs='*',
+                                   description="Services in the deployment")]
         }
     }
 
