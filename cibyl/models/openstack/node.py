@@ -14,10 +14,13 @@
 #    under the License.
 """
 
-from cibyl.cli.argument import Argument
-from cibyl.models.attribute import AttributeListValue
+# flake8: noqa from cibyl.cli.argument import Argument
+# flake8: noqa from cibyl.models.attribute import AttributeListValue
 from cibyl.models.model import Model
-from cibyl.models.openstack.service import Service
+
+# pylint: disable=too-few-public-methods
+# pylint: disable=no-member
+
 
 class Node(Model):
     """
