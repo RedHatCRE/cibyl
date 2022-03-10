@@ -37,7 +37,10 @@ class Jenkins(Source):
     jobs_query = "?tree=jobs[name,url]"
     jobs_builds_query = "?tree=jobs[name,url,builds[number,result]]"
 
-    def __init__(self, url: str, username: str, token: str, cert: str = None):
+    # pylint: disable=too-many-arguments
+    def __init__(self, url: str, username: str, token: str, cert: str = None,
+                 name: str = "jenkins", driver: str = "jenkins",
+                 priority: int = 0):
         """
             Create a client to talk to a jenkins instance.
 
@@ -52,12 +55,12 @@ class Jenkins(Source):
             :param cert: Path to a file with SSL certificates
             :type cert: str
         """
-        super().__init__("", url=url, driver="jenkins")
+        super().__init__(name=name, url=url, driver=driver, priority=priority)
         self.client = jenkins.Jenkins(url, username=username, password=token)
         self.client._session.verify = cert
 
     @safe_request
-    def get_jobs(self, get_builds: bool):
+    def get_jobs(self, get_builds: bool = False, **kwargs):
         """
             Get all jobs from jenkins server.
 
@@ -70,6 +73,10 @@ class Jenkins(Source):
         """
         if get_builds:
             return self.client.get_info(query=self.jobs_builds_query)["jobs"]
+        jobs_arg = kwargs.get('jobs')
+        if jobs_arg:
+            for job in jobs_arg.value:
+                return self.client.get_job_info_regex(pattern=job)
 
         return self.client.get_info(query=self.jobs_query)["jobs"]
 
