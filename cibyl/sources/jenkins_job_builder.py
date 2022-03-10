@@ -37,7 +37,10 @@ safe_request = partial(safe_request_generic,
 class JenkinsJobBuilder(Source):
     """A class representation of a JenkinsJobBuilder repo."""
 
-    def __init__(self, url: str, dest: str = None, branch: str = None):
+    # pylint: disable=too-many-arguments
+    def __init__(self, url: str = None, dest: str = None, branch: str = None,
+                 name: str = "jenkins_job_builder",
+                 driver: str = "jenkins_job_builder"):
         """Create a client to talk to a jenkins job definitions instance.
 
         :param url: Job definitions address
@@ -47,7 +50,7 @@ class JenkinsJobBuilder(Source):
         :param branch: Branch to checkout
         :type branch: str
         """
-        super().__init__("", url=url, driver="jenkins_job_builder")
+        super().__init__(name, url=url, driver=driver)
         self.dest = dest
         self.branch = branch
         if dest is None:
@@ -76,7 +79,7 @@ class JenkinsJobBuilder(Source):
         """Use tox to generate jenkins job xml files."""
         subprocess.run(["tox",  "-e", "jobs"], check=True, cwd=self.dest)
 
-    def get_jobs(self):
+    def get_jobs(self, **kwargs):
         """Get all jobs from jenkins server.
 
         :returns: All jobs from jenkins server, as dictionaries of _class,
@@ -84,7 +87,8 @@ class JenkinsJobBuilder(Source):
         :rtype: list
         """
         self._generate_xml()
-        jobs = []
+        jobs_available = []
+        jobs_arg = kwargs.get('jobs')
         for path in Path(os.path.join(self.dest, "out-xml")).rglob("*.xml"):
             file_content = ET.parse(path).getroot()
             file_type = file_content.tag
@@ -95,9 +99,13 @@ class JenkinsJobBuilder(Source):
             # for now we store the job name as the only information, later we
             # will need to see which additional information to pull from the
             # job definition
-            jobs.append(path.parent.name)
+            jobs_available.append(path.parent.name)
 
-        return jobs
+        if jobs_arg:
+            # filter the found jobs and keep only those specified in the user
+            # input
+            return [job for job in jobs_available if job in jobs_arg.value]
+        return jobs_available
 
     # pylint: disable=no-self-use
     def populate_jobs(self, system, jobs: list[str]):
