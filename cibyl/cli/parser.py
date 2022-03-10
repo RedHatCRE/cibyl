@@ -69,6 +69,13 @@ class Parser:
         self.argument_parser.add_argument(
             '--config', '-c', dest="config_file_path")
         self.argument_parser.add_argument(
+            '--log-file', dest="log_file",
+            help='Path to store the output, default is cibyl_output.log')
+        self.argument_parser.add_argument(
+            '--log-mode', dest="log_mode",
+            choices=("terminal", "file", "both"),
+            help='Where to write the output, default is both')
+        self.argument_parser.add_argument(
             '--plugin', '-p', dest="plugin", default="openstack")
 
     def parse(self, arguments=None):
