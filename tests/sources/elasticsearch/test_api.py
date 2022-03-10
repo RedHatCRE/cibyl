@@ -14,23 +14,10 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP
-
-
-def return_hits():
-    """It will return fake hits from elasticsearch
-    to use it in a Mock
-    """
-    return [
-        {
-            '_index': 'test',
-            '_id': 'random',
-            '_score': 1.0
-        }
-    ]
-
+from cibyl.exceptions.elasticsearch import ElasticSearchError
 
 class TestElasticsearchOSP(TestCase):
     """Test cases for :class:`ElasticSearchOSP`.
@@ -38,11 +25,35 @@ class TestElasticsearchOSP(TestCase):
 
     def setUp(self) -> None:
         self.es_api = ElasticSearchOSP(Mock())
+        self.hits = [
+            {
+                '_index': 'test',
+                '_id': 'random',
+                '_score': 1.0
+            }
+        ]
+        self.job_name = 'job-test'
+        self.query_type = {
+            'valid': 'regexp',
+            'not_valid': 'example'
+        }
 
-    def test_return_list(self):
+    @patch("cibyl.sources.elasticsearch.api.ElasticSearchOSP.get_jobs_by_name")
+    def test_method_return_list(self: object, mock_query_hits: object) -> None:
         """Tests if :meth:`ElasticSearchOSP.get_jobs_by_name`
         return a list.
         """
-        self.es_api.get_jobs_by_name = Mock()
-        self.es_api.get_jobs_by_name.side_effect = return_hits
-        self.assertIsInstance(self.es_api.get_jobs_by_name(), list)
+        mock_query_hits.return_value = self.hits
+        self.assertIsInstance(ElasticSearchOSP.get_jobs_by_name(), list)
+
+    def test_type_query(self: object) -> None:
+        """Tests if :meth:`ElasticSearchOSP.get_jobs_by_name`
+        raise an exception when query_type is not in the
+        :const:`ElasticSearchOSP.ALLOWED_QUERIES`
+        """
+        self.assertRaises(
+            ElasticSearchError,
+            self.es_api.get_jobs_by_name,
+            self.job_name,
+            self.query_type['not_valid']
+        )
