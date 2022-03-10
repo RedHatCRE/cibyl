@@ -24,6 +24,11 @@ LOG = logging.getLogger(__name__)
 class ElasticSearchOSP:  # pylint: disable=too-few-public-methods
     """Used to perform queries in elasticsearch"""
 
+    ALLOWED_QUERIES = [
+        'regexp',
+        'term'
+    ]
+
     def __init__(self: object, elastic_client: object) -> None:
         self.es_client = elastic_client
 
@@ -41,6 +46,11 @@ class ElasticSearchOSP:  # pylint: disable=too-few-public-methods
         :return: hits
         :rtype: list
         """
+
+        if query_type not in self.ALLOWED_QUERIES:
+            raise ElasticSearchError(f"Query '{query_type}' not allowed. \
+                  Allowed queries: {' '.join(self.ALLOWED_QUERIES)}")
+
         if query_type == 'term':
             key = 'jobName.keyword'
         else:
