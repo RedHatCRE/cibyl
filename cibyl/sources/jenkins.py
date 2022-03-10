@@ -38,9 +38,9 @@ class Jenkins(Source):
     jobs_builds_query = "?tree=jobs[name,url,builds[number,result]]"
 
     # pylint: disable=too-many-arguments
-    def __init__(self, url: str, username: str, token: str, cert: str = None,
-                 name: str = "jenkins", driver: str = "jenkins",
-                 priority: int = 0):
+    def __init__(self, url: str, username: str = None, token: str = None,
+                 cert: str = None, name: str = "jenkins",
+                 driver: str = "jenkins", priority: int = 0):
         """
             Create a client to talk to a jenkins instance.
 
