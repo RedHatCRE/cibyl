@@ -37,11 +37,10 @@ def configure_terminal_logging(level):
     :param level: Logging level, default DEBUG
     :type level: int
     """
-    logger = logging.getLogger()
-    logger.setLevel(level)
+    logger = logging.getLogger('cibyl')
     stream_handler = logging.StreamHandler(sys.stderr)
-    stream_handler.setLevel(level)
     stream_handler.setFormatter(TERMINAL_LOGGER_FORMATTER)
+    stream_handler.setLevel(level)
     logger.addHandler(stream_handler)
 
 
@@ -53,8 +52,7 @@ def configure_file_logging(log_file, level):
     :param level: Logging level, default DEBUG
     :type level: int
     """
-    logger = logging.getLogger()
-    logger.setLevel(level)
+    logger = logging.getLogger('cibyl')
     file_handler = logging.FileHandler(log_file, mode="w")
     file_handler.setLevel(level)
     file_handler.setFormatter(FILE_LOGGER_FORMATER)
@@ -71,10 +69,14 @@ def configure_logging(log_config, level=logging.INFO):
     """
     if log_config.get("debug", False):
         level = logging.DEBUG
+    # configure a top-level cibyl logger instead of the root logger,
+    # to suppress logging coming from other libraries
+    logger = logging.getLogger('cibyl')
+    logger.setLevel(level)
+
     log_mode = log_config["log_mode"]
     log_file = log_config["log_file"]
     if log_mode == "terminal":
-        print(log_mode, log_file)
         configure_terminal_logging(level)
     elif log_mode == "file":
         configure_file_logging(log_file, level)
