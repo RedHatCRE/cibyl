@@ -39,13 +39,17 @@ class TestElasticsearchOSP(TestCase):
             'not_valid': 'example'
         }
 
-    @patch("cibyl.sources.elasticsearch.api.ElasticSearchOSP.get_jobs_by_name")
+    # @patch("cibyl.sources.elasticsearch.api.ElasticSearchOSP.__query_get_hits")
+    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
     def test_method_return_list(self: object, mock_query_hits: object) -> None:
         """Tests if :meth:`ElasticSearchOSP.get_jobs_by_name`
         return a list.
         """
         mock_query_hits.return_value = self.hits
-        self.assertIsInstance(ElasticSearchOSP.get_jobs_by_name(), list)
+        self.assertIsInstance(
+            self.es_api.get_jobs_by_name(self.job_name),
+            list
+        )
 
     def test_type_query(self: object) -> None:
         """Tests if :meth:`ElasticSearchOSP.get_jobs_by_name`
