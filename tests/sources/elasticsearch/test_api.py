@@ -16,8 +16,9 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 from cibyl.exceptions.elasticsearch import ElasticSearchError
+from cibyl.sources.elasticsearch.api import ElasticSearchOSP
+
 
 class TestElasticsearchOSP(TestCase):
     """Test cases for :class:`ElasticSearchOSP`.
