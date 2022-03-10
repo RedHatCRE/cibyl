@@ -15,49 +15,53 @@
 """
 
 from cibyl.cli.argument import Argument
-from cibyl.models.model import Model
 from cibyl.models.attribute import AttributeListValue
+from cibyl.models.model import Model
+from cibyl.models.openstack.node import Node
+from cibyl.models.openstack.service import Service
+
+# pylint: disable=too-few-public-methods
+# pylint: disable=no-member
 
 
 class Deployment(Model):
     """Openstack deployment model"""
 
-    API = { 
+    API = {
         'release': {
             'attr_type': float,
             'arguments': [Argument(name='--release', arg_type=float,
-                description="Deployment release number")]
-        },                                                                                        
+                          description="Deployment release version")]
+        },
         'infra_type': {
             'attr_type': str,
             'arguments': [Argument(name='--infra-type', arg_type=str,
-                description="Infra type")]
+                          description="Infra type")]
         },
         'nodes': {
-            'attr_type': str,
+            'attr_type': Node,
             'attribute_value_class': AttributeListValue,
             'arguments': [Argument(name='--nodes', arg_type=str,
-                description="Nodes on the deployment")]
+                          description="Nodes on the deployment")]
         },
-        'service': {
-            'attr_type': Service,  
-
-            # Not sure if I should go with building another 
-            # model for the service attribute or go with
-            # just a AttributeListValue. Thoughts?
-
-            'arguments': [Argument(name='--configuration', arg_type=str,
-                description= "Services in the deployment")]
+        'services': {
+            'attr_type': Service,
+            'attribute_value_class': AttributeListValue,
+            'arguments': [Argument(name='--services', arg_type=str,
+                          description="Services in the deployment")]
         }
     }
 
-    def __init__(self, name: str, release:float, infra_type: str):
+    def __init__(self, release: float, infra_type: str,
+                 nodes: list[Node], services: list[Service]):
         super().__init__({'release': release, 'infra_type': infra_type,
-            'nodes': nodes, 'service': configuration})
+                          'nodes': nodes, 'services': services})
 
     def __str__(self):
-        info = f'Release: {self.release} \n Infra type: {infra_type} \n'
+        info = f'Release: {self.release.value}'
+        info += f'Infra type: {self.infra_type.value} \n'
         for node in self.nodes:
             info += node.__str__()
+        if self.service:
+            info += f'\n Service: {self.service.value}'
         return info
-        
