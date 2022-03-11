@@ -32,7 +32,7 @@ class Environment(Model):
         'systems': {
             'attr_type': System,
             'attribute_value_class': AttributeListValue,
-            'arguments': [Argument(name='--systems', arg_type=str,
+            'arguments': [Argument(name='--systems', arg_type=str, nargs='*',
                                    description="Systems of the environment")]
         }
     }

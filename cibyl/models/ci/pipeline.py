@@ -33,6 +33,7 @@ class Pipeline(Model):
             'attr_type': Job,
             'attribute_value_class': AttributeListValue,
             'arguments': [Argument(name='--jobs', arg_type=str,
+                                   nargs='*',
                                    description="Pipeline jobs")]
         }
     }

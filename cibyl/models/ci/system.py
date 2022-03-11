@@ -54,6 +54,7 @@ class System(Model):
             'attr_type': Source,
             'attribute_value_class': AttributeListValue,
             'arguments': [Argument(name='--sources', arg_type=str,
+                                   nargs="*",
                                    description="Source name")]
         }
     }

@@ -42,12 +42,14 @@ class Deployment(Model):
             'attr_type': Node,
             'attribute_value_class': AttributeListValue,
             'arguments': [Argument(name='--nodes', arg_type=str,
+                          nargs='*',
                           description="Nodes on the deployment")]
         },
         'services': {
             'attr_type': Service,
             'attribute_value_class': AttributeListValue,
             'arguments': [Argument(name='--services', arg_type=str,
+                          nargs='*',
                           description="Services in the deployment")]
         }
     }
