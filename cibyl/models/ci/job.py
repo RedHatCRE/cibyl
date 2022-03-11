@@ -52,9 +52,14 @@ class Job(Model):
                           'builds': builds})
 
     def __str__(self, indent=0):
-        job_str = indent*' ' + f"Job: {self.name.value}"
+        indent_space = indent*' '
+        job_str = f"{indent_space}Job: {self.name.value}"
         if self.url.value:
-            job_str += f"\n  URL: {self.url.value}"
+            job_str += f"\n{indent_space}  URL: {self.url.value}"
+        if self.builds.value:
+            for build in self.builds:
+                job_str += f"\n{indent_space}  build {build.build_id.value}"
+                job_str += f" status {build.status.value}"
         return job_str
 
     def __eq__(self, other):

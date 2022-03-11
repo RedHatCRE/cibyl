@@ -35,7 +35,7 @@ class Jenkins(Source):
     """A class representation of Jenkins client."""
 
     jobs_query = "?tree=jobs[name,url]"
-    jobs_builds_query = "?tree=jobs[name,url,builds[number,result]]"
+    jobs_builds_query = "?tree=allBuilds[number,result]"
 
     # pylint: disable=too-many-arguments
     def __init__(self, url: str, username: str = None, token: str = None,
@@ -60,64 +60,49 @@ class Jenkins(Source):
         self.client._session.verify = cert
 
     @safe_request
-    def get_jobs(self, get_builds: bool = False, **kwargs):
+    def get_jobs(self, **kwargs):
         """
             Get all jobs from jenkins server.
 
-            :param get_builds: Whether to get info about the jobs' builds
-            :type get_builds: bool
-
-            :returns: All jobs from jenkins server, as dictionaries of _class,
-            name, fullname, url, color
+            :returns: List of Job objects from jenkins server
             :rtype: list
         """
-        if get_builds:
-            return self.client.get_info(query=self.jobs_builds_query)["jobs"]
-        jobs_arg = kwargs.get('jobs')
-        if jobs_arg:
-            jobs_found = []
+        jobs_arg = kwargs.get('jobs', ["*"])
+        jobs_found = []
+        if jobs_arg == ["*"] or jobs_arg.value == ["*"]:
+            # default case, where user wants all jobs
+            jobs_found = self.client.get_info(query=self.jobs_query)["jobs"]
+        else:
             for job in jobs_arg.value:
                 LOG.debug("querying %s for job %s", self.name, job)
                 jobs_found.extend(self.client.get_job_info_regex(pattern=job))
-            return jobs_found
 
-        return self.client.get_info(query=self.jobs_query)["jobs"]
-
-    # pylint: disable=no-self-use
-    def populate_jobs(self, system, jobs: list[dict]):
-        """
-            Create Job models using jenkins jobs information.
-
-            :param system: System model to input the jobs to
-            :type system: :class:`cibyl.models.ci.system.System`
-            :param jobs: Jobs received from jenkins server
-            :type jobs: list
-        """
-        for job in jobs:
+        job_objects = []
+        for job in jobs_found:
             if "job" not in job["_class"]:
                 # jenkins may return folders as job objects
                 continue
-            job_name = job.get('name')
-            builds_info = job.get('builds')
-            builds = None
+            job_objects.append(Job(name=job.get('name'), url=job.get('url')))
+
+        return job_objects
+
+    def get_builds(self, **kwargs):
+        """
+            Get builds from jenkins server.
+
+            :returns: List of jobs with build information from jenkins server
+            :rtype: list
+        """
+
+        jobs_found = self.get_jobs(**kwargs)
+        for job in jobs_found:
+            builds_info = self.client.get_info(item="job/"+job.name.value,
+                                               query=self.jobs_builds_query)
             if builds_info:
-                builds = [Build(str(build["number"]), build["result"])
-                          for build in builds_info]
+                for build in builds_info["allBuilds"]:
+                    job.add_build(Build(str(build["number"]), build["result"]))
 
-            system.jobs.append(Job(name=job_name, url=job.get('url'),
-                                   builds=builds))
-
-    # pylint: disable=inconsistent-return-statements
-    def query(self, system, args):
-        LOG.debug("querying system %s using source: %s",
-                  system.name.value, self.__name__)
-
-        if args.get('jobs'):
-            jobs = self.get_jobs(args.get('builds', False))
-            self.populate_jobs(system, jobs)
-
-        if all(argument.populated for argument in args):
-            return system
+        return jobs_found
 
 
 class JenkinsOSP(Jenkins):
