@@ -86,6 +86,11 @@ class Orchestrator:
         for arg in sorted(self.parser.ci_args.values(),
                           key=operator.attrgetter('level'), reverse=True):
             if arg.level >= start_level and arg.level >= last_level:
+                if not arg.func:
+                    # if an argument does not have a function
+                    # associated, we should not consider it here, e.g.
+                    # --sources
+                    continue
                 for env in self.environments:
                     for system in env.systems:
                         source_method = Source.get_source_method(
