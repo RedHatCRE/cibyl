@@ -18,6 +18,7 @@ import logging
 
 from cibyl.exceptions.source import (NoSupportedSourcesFound,
                                      TooManyValidSources)
+from cibyl.sources.source_registry import SourceRegistry
 
 LOG = logging.getLogger(__name__)
 
@@ -97,5 +98,9 @@ class Source:
         :param driver: the name of the driver as used by the source
         :type driver: str
         """
-        return getattr(importlib.import_module(
-            f"cibyl.sources.{driver}"), driver.capitalize())
+        module, class_name = SourceRegistry.sources.get(driver, (None, None))
+        if module is None or class_name is None:
+            # fallback in case the driver is not in the source registry
+            return getattr(importlib.import_module(
+                    f"cibyl.sources.{driver}"), driver.capitalize())
+        return getattr(importlib.import_module(module), class_name)
