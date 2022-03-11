@@ -54,7 +54,7 @@ from str")
     def test_pipeline_str(self):
         """Testing Pipeline __str__ method"""
         self.assertEqual(str(self.pipeline),
-                         f'Pipeline {self.pipeline.name.value}')
+                         f'Pipeline: {self.pipeline.name.value}')
 
         self.assertEqual(str(self.second_pipeline),
-                         f'Pipeline {self.second_pipeline.name.value}')
+                         f'Pipeline: {self.second_pipeline.name.value}')

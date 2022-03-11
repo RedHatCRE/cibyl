@@ -57,7 +57,7 @@ instead of {self.name}")
 
     def test_str_environment(self):
         """Testing environment str method"""
-        self.assertEqual(f"Environment: {self.name}\n",
+        self.assertEqual(f"Environment: {self.name}",
                          str(self.env))
 
     def test_add_systems_constructor(self):
