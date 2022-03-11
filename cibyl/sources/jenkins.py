@@ -13,11 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-
+import json
 import logging
 from functools import partial
 
 import jenkins
+import requests
 
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.ci.build import Build
@@ -25,6 +26,7 @@ from cibyl.models.ci.job import Job
 from cibyl.sources.source import Source, safe_request_generic
 
 LOG = logging.getLogger(__name__)
+requests.packages.urllib3.disable_warnings()
 
 
 safe_request = partial(safe_request_generic, custom_error=JenkinsError)
@@ -34,7 +36,6 @@ safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 class Jenkins(Source):
     """A class representation of Jenkins client."""
 
-    jobs_query = "?tree=jobs[name,url]"
     jobs_builds_query = "?tree=allBuilds[number,result]"
 
     # pylint: disable=too-many-arguments
@@ -67,24 +68,29 @@ class Jenkins(Source):
             :returns: List of Job objects from jenkins server
             :rtype: list
         """
-        jobs_arg = kwargs.get('jobs', ["*"])
+        jobs_arg = kwargs.get('jobs')
+        if not jobs_arg:
+            jobs_arg = [""]
+        jobs_result = {}
+
+        # default case, where user wants all jobs
         jobs_found = []
-        if jobs_arg == ["*"] or jobs_arg.value == ["*"]:
-            # default case, where user wants all jobs
-            jobs_found = self.client.get_info(query=self.jobs_query)["jobs"]
-        else:
-            for job in jobs_arg.value:
-                LOG.debug("querying %s for job %s", self.name, job)
-                jobs_found.extend(self.client.get_job_info_regex(pattern=job))
+        for job in jobs_arg:
+            jobs_found = self.client.run_script(
+                f"""
+                import groovy.json.JsonBuilder;
+                items = Jenkins.instance.getAllItems().findAll(
+                    {{ item -> item.getFullName().contains("{job}") }});
+                def json = new JsonBuilder();
+                json {{jobs items.collect {{[name: it.name, url: it.url]}}}};
+                println json.toString();
+                """)
+            jobs_found_json = json.loads(jobs_found)['jobs']
+            jobs_result['jobs'] = {
+                job.get('name'): Job(name=job.get('name'), url=job.get('url'))
+                for job in jobs_found_json}
 
-        job_objects = []
-        for job in jobs_found:
-            if "job" not in job["_class"]:
-                # jenkins may return folders as job objects
-                continue
-            job_objects.append(Job(name=job.get('name'), url=job.get('url')))
-
-        return job_objects
+        return jobs_result
 
     def get_builds(self, **kwargs):
         """

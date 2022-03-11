@@ -55,12 +55,12 @@ class TestSystem(unittest.TestCase):
         msg_str = f"System type should be test_type, not {type_name}"
         self.assertEqual(type_name, "test_type", msg=msg_str)
 
-    def test_add_job(self):
+    def test_add_jobs(self):
         """Testing adding a new job to a system"""
-        job = Job("test_job")
-        self.system.add_job(job)
+        jobs = {'test_job': Job("test_job")}
+        self.system.add_jobs(jobs)
         self.assertEqual(len(self.system.jobs.value), 1)
-        self.assertEqual(job, self.system.jobs.value[0])
+        self.assertEqual(jobs['test_job'], self.system.jobs.value['test_job'])
 
 
 class TestZuulSystem(unittest.TestCase):
@@ -118,12 +118,12 @@ class TestZuulSystem(unittest.TestCase):
         self.assertEqual(len(self.system.pipelines.value), 1)
         self.assertEqual(pipeline, self.system.pipelines[0])
 
-    def test_add_job(self):
+    def test_add_jobs(self):
         """Testing adding a new job to a system"""
         job = Job("test_job")
-        self.system.add_job(job)
+        self.system.add_jobs({'jobs': {'test_job': job}})
         self.assertEqual(len(self.system.jobs.value), 1)
-        self.assertEqual(job, self.system.jobs.value[0])
+        self.assertEqual(job, self.system.jobs['test_job'])
 
     def test_add_source(self):
         """Testing adding a new source to a system"""
@@ -181,9 +181,9 @@ class TestJenkinsSystem(unittest.TestCase):
         self.assertEqual(str(self.other_system),
                          f"System: {self.name} (type: jenkins)")
 
-    def test_add_job(self):
+    def test_add_jobs(self):
         """Testing adding a new job to a system"""
-        job = Job("test_job")
-        self.system.add_job(job)
+        jobs = {'test_job': Job("test_job")}
+        self.system.add_jobs(jobs)
         self.assertEqual(len(self.system.jobs.value), 1)
-        self.assertEqual(job, self.system.jobs.value[0])
+        self.assertEqual(jobs['test_job'], self.system.jobs.value['test_job'])

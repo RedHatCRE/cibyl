@@ -74,11 +74,21 @@ class Orchestrator:
             raise InvalidConfiguration from exception
 
     @staticmethod
-    def populate(environment, model_instances):
-        """Populate environment instance with the provided model instances"""
-        for model_instance in model_instances:
-            LOG.debug("populating environment %s: %s",
-                      environment, model_instance)
+    def populate(system, model_instances):
+        """Populate system instance with the provided model instances.
+
+        :param system: System to add the models to
+        :type system: :class:`.System`
+        :param model_instances: List of models to include in the system
+        :type model_instances: list
+        """
+        LOG.debug("populating system %s", system)
+        for attribute_key, value in model_instances.items():
+            population_method_name = f"add_{attribute_key}"
+            if hasattr(system, population_method_name):
+                population_method = getattr(system, population_method_name)
+                LOG.debug("  populating %s", attribute_key)
+                population_method(value)
 
     def run_query(self, start_level=1):
         """Execute query based on provided arguments."""
@@ -96,9 +106,12 @@ class Orchestrator:
                         source_method = Source.get_source_method(
                             system.name.value,
                             system.sources, arg.func)
+                        LOG.debug("querying %s using the method: %s",
+                                  system.name.value, arg.func)
                         model_instances = source_method(
-                            **self.parser.ci_args)
-                        self.populate(env, model_instances)
+                            **{arg_name: arg.value for arg_name, arg in
+                               self.parser.ci_args.items()})
+                        self.populate(system, model_instances)
             last_level = arg.level
 
     def extend_parser(self, attributes, group_name='Environment',

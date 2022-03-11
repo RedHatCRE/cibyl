@@ -54,3 +54,38 @@ class AttributeListValue(AttributeValue):
         :return:
         """
         return self.value[index]
+
+
+class AttributeDictValue(AttributeValue):
+    """Represents a dict of AttributeValue objects"""
+
+    def __init__(self, name, arguments=None, attr_type=None, value=None):
+
+        super().__init__(
+            name=name, arguments=arguments, attr_type=attr_type, value=value)
+
+        if isinstance(value, dict):
+            self.value = value
+        if value is None:
+            self.value = {}
+
+    def __setitem__(self, key, item):
+        self.value[key] = item
+
+    def __getitem__(self, key):
+        return self.value[key]
+
+    def __len__(self):
+        return len(self.value)
+
+    def items(self):
+        """Return the value as key:value items"""
+        return self.value.items()
+
+    def values(self):
+        """Return dictionary values"""
+        return self.value.values()
+
+    def keys(self):
+        """Return dictionary values"""
+        return self.value.keys()

@@ -85,47 +85,39 @@ class TestJenkinsSource(TestCase):
             Tests that the internal logic from :meth:`Jenkins.get_jobs` is
             correct.
         """
-        self.jenkins.client.get_info = Mock(return_value={"jobs": []})
+        self.jenkins.client.run_script = Mock(return_value='{"jobs": []}')
         jobs_arg = Mock()
-        jobs_arg.value = ["*"]
+        jobs_arg = [""]
 
         jobs = self.jenkins.get_jobs(jobs=jobs_arg)
-        self.jenkins.client.get_info.assert_called_with(
-                                query=self.jenkins.jobs_query)
-        self.assertEqual(jobs, [])
+        self.assertEqual(jobs, {'jobs': {}})
 
     def test_get_jobs(self):
         """
             Tests that the internal logic from :meth:`Jenkins.get_jobs` is
             correct.
         """
-        response = [{'_class': 'org..job.WorkflowRun', 'name': "ansible",
-                     'url': 'url1'},
-                    {'_class': 'org..job.WorkflowRun', 'name': "job2",
-                     'url': 'url2'},
-                    {'_class': 'empty'}]
-        self.jenkins.client.get_job_info_regex = Mock(return_value=response)
+        response = '{"jobs": [{"name": "ansible", "url": "url1"},\
+                {"name": "job2", "url": "url2"}]}'
+        self.jenkins.client.run_script = Mock(return_value=response)
         jobs_arg = Mock()
-        jobs_arg.value = ["ansible"]
+        jobs_arg = ["ansible"]
 
-        jobs = self.jenkins.get_jobs(jobs=jobs_arg)
-        self.assertEqual(len(jobs), 2)
-        self.assertEqual(jobs[0].name.value, "ansible")
-        self.assertEqual(jobs[0].url.value, "url1")
-        self.assertEqual(jobs[1].name.value, "job2")
-        self.assertEqual(jobs[1].url.value, "url2")
+        jobs_dict = self.jenkins.get_jobs(jobs=jobs_arg)
+        self.assertEqual(len(jobs_dict), 1)
+        self.assertEqual(jobs_dict['jobs']['ansible'].name.value, "ansible")
+        self.assertEqual(jobs_dict['jobs']['ansible'].url.value, "url1")
 
     def test_get_builds(self):
         """
             Tests that the internal logic from :meth:`Jenkins.get_builds` is
             correct.
         """
-        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
-                              'name': "ansible", 'url': 'url1'}]}
+        response = '{"jobs": [{"name": "ansible", "url": "url1"}]}'
         builds = {'_class': '_empty',
                   'allBuilds': [{'number': 1, 'result': "SUCCESS"},
                                 {'number': 2, 'result': "FAILURE"}]}
-        self.jenkins.client.get_info = Mock(side_effect=[response, builds])
+        self.jenkins.client.run_script = Mock(side_effect=[response, builds])
 
         jobs = self.jenkins.get_builds()
         self.assertEqual(len(jobs), 1)

@@ -15,7 +15,7 @@
 """
 # pylint: disable=no-member
 from cibyl.cli.argument import Argument
-from cibyl.models.attribute import AttributeListValue
+from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.pipeline import Pipeline
 from cibyl.models.model import Model
@@ -40,9 +40,9 @@ class System(Model):
         },
         'jobs': {
             'attr_type': Job,
-            'attribute_value_class': AttributeListValue,
+            'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--jobs', arg_type=str,
-                                   default=['*'], nargs='*',
+                                   nargs='*',
                                    description="System jobs",
                                    func='get_jobs')]
         },
@@ -69,17 +69,18 @@ class System(Model):
     def __str__(self, indent=0):
         string = indent*' ' + f"System: {self.name.value} \
 (type: {self.system_type.value})"
-        for job in self.jobs:
-            string += f"\n{job.__str__(indent=indent+2)}"
+        for job_instance in self.jobs.values():
+            string += f"\n{job_instance.__str__(indent=indent+2)}"
         return string
 
-    def add_job(self, job: Job):
+    def add_jobs(self, jobs: dict):
         """Add a job to the CI system
 
         :param job: Job to add to the system
         :type job: Job
         """
-        self.jobs.append(job)
+        for job_name, job_instnace in jobs.items():
+            self.jobs[job_name] = job_instnace
 
     def add_source(self, source: Source):
         """Add a source to the CI system
