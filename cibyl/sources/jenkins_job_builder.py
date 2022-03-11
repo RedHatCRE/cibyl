@@ -16,6 +16,7 @@
 
 import logging
 import os
+import re
 import subprocess
 import xml.etree.ElementTree as ET
 from functools import partial
@@ -23,6 +24,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from cibyl.exceptions.jenkins_job_builder import JenkinsJobBuilderError
+from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.job import Job
 from cibyl.sources.source import Source, safe_request_generic
 
@@ -87,8 +89,14 @@ class JenkinsJobBuilder(Source):
         :rtype: list
         """
         self._generate_xml()
-        jobs_available = []
-        jobs_arg = kwargs.get('jobs')
+        jobs_available = {}
+        jobs_arg = kwargs.get('jobs', ["*"])
+        if jobs_arg == ["*"] or jobs_arg.value == ["*"]:
+            # default case, where user wants all jobs
+            pattern = re.compile(".*")
+        else:
+            pattern = re.compile(".*"+".*|.*".join(jobs_arg.value)+".*")
+
         for path in Path(os.path.join(self.dest, "out-xml")).rglob("*.xml"):
             file_content = ET.parse(path).getroot()
             file_type = file_content.tag
@@ -99,34 +107,9 @@ class JenkinsJobBuilder(Source):
             # for now we store the job name as the only information, later we
             # will need to see which additional information to pull from the
             # job definition
-            jobs_available.append(path.parent.name)
-
-        if jobs_arg:
             # filter the found jobs and keep only those specified in the user
             # input
-            return [job for job in jobs_available if job in jobs_arg.value]
-        return jobs_available
+            if pattern.match(path.parent.name):
+                jobs_available[path.parent.name] = Job(name=path.parent.name)
 
-    # pylint: disable=no-self-use
-    def populate_jobs(self, system, jobs: list[str]):
-        """Create Job models using jenkins jobs information.
-
-        :param system: System model to input the jobs to
-        :type system: :class:`cibyl.models.ci.system.System`
-        :param jobs: Jobs received from jenkins server
-        :type jobs: list
-        """
-        for job_name in jobs:
-            system.jobs.append(Job(name=job_name))
-
-    # pylint: disable=inconsistent-return-statements
-    def query(self, system, args):
-        LOG.debug("querying system %s using source: %s",
-                  system.name.value, self.__name__)
-
-        if args.get('jobs'):
-            jobs = self.get_jobs()
-            self.populate_jobs(system, jobs)
-
-        if all(argument.populated for argument in args):
-            return system
+        return AttributeDictValue("jobs", attr_type=Job, value=jobs_available)

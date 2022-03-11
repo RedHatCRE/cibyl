@@ -42,7 +42,7 @@ class Job(Model):
             'attr_type': Build,
             'attribute_value_class': AttributeListValue,
             'arguments': [Argument(name='--builds', arg_type=str,
-                                   nargs="*",
+                                   nargs="*", func="get_builds",
                                    description="Job builds")]
         }
     }
@@ -52,7 +52,8 @@ class Job(Model):
                           'builds': builds})
 
     def __str__(self, indent=0):
-        job_str = indent*' ' + f"Job: {self.name.value}"
+        indent_space = indent*' '
+        job_str = f"{indent_space}Job: {self.name.value}"
         if self.url.value:
             job_str += f"\n{indent_space}  URL: {self.url.value}"
         if self.builds.value:
