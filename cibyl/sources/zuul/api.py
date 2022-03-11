@@ -13,101 +13,85 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import logging
-from functools import partial
-
-from zuulclient.api import ZuulRESTClient
-
-from cibyl.sources.source import safe_request_generic
-
-LOG = logging.getLogger(__name__)
+from abc import ABC, abstractmethod
 
 
 class ZuulAPIError(Exception):
-    """Represents an error occurring during the execution of an operation over
-    the target host.
+    """Represents an error occurring while performing a call to Zuul's API
     """
 
 
-safe_request = partial(safe_request_generic, custom_error=ZuulAPIError)
-
-
-class ZuulAPI:
-    """Provides a low-level client to interact with Zuul's REST-API.
+class ZuulTenantAPI(ABC):
+    """Interface which defines the information that can be retrieved from
+    Zuul regarding a particular tenant.
     """
 
-    def __init__(self, client):
+    def __init__(self, tenant):
         """Constructor.
-        This constructor is not meant to be called directly, please refer to
-        the static constructors before.
 
-        :param client: A REST-API client to communicate with the host through.
-        :type client: :class:`zuulclient.api.ZuulRESTClient`
+        :param tenant: Description of the tenant being consulted by this
+            API. At least a field called 'name' providing the name
+            of the tenant is required here.
+        :type tenant: dict
         """
-        self._client = client
-
-    @staticmethod
-    def from_url(url, cert=None, auth_token=None):
-        """Builds an API from the parameters that define the connection to
-        the target host.
-
-        :param url: URL where the host is located.
-        :type url: str
-        :param cert: Path to the certificate that identifies the host. 'None'
-            will disable authentication of the host, not recommended in
-            production environments as it allows man-in-the-middle attacks
-            to be made.
-        :type cert: None or str
-        :param auth_token: Token used to perform admin operations. 'None'
-            will simply not allow such operations to be performed.
-        :type auth_token: None or str
-        :return: The built instance.
-        :rtype: :class:`ZuulAPI`
-        """
-        # Host is not verified by default
-        verify = False
-
-        # Check if a certificate to do so has been provided
-        if cert:
-            verify = cert
-
-        return ZuulAPI(ZuulRESTClient(url, verify, auth_token))
+        self._tenant = tenant
 
     @property
-    def url(self):
+    def name(self):
         """
-        :return: The host's URL.
-        :rtype: str
+        :return: Name of the tenant being consulted.
         """
-        return self._client.url
+        return self._tenant['name']
 
-    @property
-    def cert(self):
-        """
-        :return: Path to the certificate that authenticates the host.
-        :rtype: None or str
-        """
-        verify = self._client.verify
+    @abstractmethod
+    def builds(self):
+        """A build is an instance of a job running independently.
 
-        if isinstance(verify, str):
-            return verify
-
-        return None
-
-    @property
-    def auth_token(self):
+        :return: Information about all executed builds under this tenant.
+        :rtype: list[dict]
         """
-        :return: Authentication token used to perform admin tasks.
-        :rtype: None or str
-        """
-        return self._client.auth_token
+        raise NotImplementedError
 
-    @safe_request
+    @abstractmethod
+    def buildsets(self):
+        """A buildset is a collection of builds running under a common context.
+
+        :return: Information about all executed buildsets under this tenant.
+        :rtype: list[dict]
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def jobs(self):
+        """A job describes the steps that need to be taken in order to test
+        a project.
+
+        :return: Information about all jobs under this tenant.
+        :rtype: list[dict]
+        """
+        raise NotImplementedError
+
+
+class ZuulAPI(ABC):
+    """Interface describing the actions that can be taken over Zuul's API.
+    """
+
+    @abstractmethod
     def info(self):
-        """Gets Zuul's info data, containing information about capabilities
-        and tenants
+        """Information which define the target host. Among this info there
+        are entries such as 'capabilities' or 'authentication' param.
 
-        :return: The JSON structure returned by the host.
+        :return: General information about the host.
         :rtype: dict
         """
-        return self._client.info
+        raise NotImplementedError
+
+    @abstractmethod
+    def tenants(self):
+        """Gets all tenants currently present on the host.
+
+        :return: A sub-api to retrieve information about all tenants on the
+            host.
+        :rtype: list[:class:`ZuulTenantAPI`]
+        """
+        raise NotImplementedError
