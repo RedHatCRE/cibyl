@@ -41,11 +41,13 @@ class Pipeline(Model):
     def __init__(self, name: str, jobs: list[Job] = None):
         super().__init__(attributes={'name': name,
                                      'jobs': jobs})
-        self.name.value = name
-        self.jobs.value = jobs
 
-    def __str__(self):
-        return f"Pipeline {self.name.value}"
+    def __str__(self, indent=0):
+        indent_space = indent*' '
+        string = f"{indent_space}Pipeline: {self.name.value}"
+        for job in self.jobs:
+            string += f"\n{job.__str__(indent=indent+2)}"
+        return string
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):

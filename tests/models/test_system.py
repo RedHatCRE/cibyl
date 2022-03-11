@@ -106,10 +106,10 @@ class TestZuulSystem(unittest.TestCase):
     def test_system_str(self):
         """Testing ZuulSystem __str__ method"""
         self.assertEqual(str(self.system),
-                         f"System: {self.name} (type: zuul)\n")
+                         f"System: {self.name} (type: zuul)")
 
         self.assertEqual(str(self.other_system),
-                         f"System: {self.name} (type: zuul)\n")
+                         f"System: {self.name} (type: zuul)")
 
     def test_add_pipeline(self):
         """Testing ZuulSystem add pipeline method"""
@@ -176,10 +176,10 @@ class TestJenkinsSystem(unittest.TestCase):
     def test_system_str(self):
         """Testing JenkinsSystem __str__ method"""
         self.assertEqual(str(self.system),
-                         f"System: {self.name} (type: jenkins)\n")
+                         f"System: {self.name} (type: jenkins)")
 
         self.assertEqual(str(self.other_system),
-                         f"System: {self.name} (type: jenkins)\n")
+                         f"System: {self.name} (type: jenkins)")
 
     def test_add_job(self):
         """Testing adding a new job to a system"""

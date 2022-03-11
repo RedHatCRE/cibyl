@@ -58,8 +58,7 @@ class Job(Model):
             job_str += f"\n{indent_space}  URL: {self.url.value}"
         if self.builds.value:
             for build in self.builds:
-                job_str += f"\n{indent_space}  build {build.build_id.value}"
-                job_str += f" status {build.status.value}"
+                job_str += f"\n{build.__str__(indent=indent+2)}"
         return job_str
 
     def __eq__(self, other):
