@@ -29,3 +29,4 @@ class Argument():
     populated: bool = False
     level: int = 0
     value: object = None
+    default: object = None

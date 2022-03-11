@@ -42,6 +42,7 @@ class System(Model):
             'attr_type': Job,
             'attribute_value_class': AttributeListValue,
             'arguments': [Argument(name='--jobs', arg_type=str,
+                                   default=['*'], nargs='*',
                                    description="System jobs",
                                    func='get_jobs')]
         },

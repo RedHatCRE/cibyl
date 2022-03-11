@@ -37,6 +37,8 @@ class CustomAction(argparse.Action):
         super().__init__(*args, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
+        if self.default and not values:
+            values = self.default
         setattr(namespace, self.dest, Argument(
             name=self.dest, description=self.help, arg_type=self.type,
             nargs=self.nargs, level=self.level, func=self.func,
@@ -136,6 +138,7 @@ class Parser:
                     help=arg.description, nargs=arg.nargs,
                     action=CustomAction, func=arg.func,
                     populated=arg.populated,
+                    default=arg.default,
                     level=level)
         except argparse.ArgumentError:
             LOG.debug("argument already exists: %s...ignoring", arg.name)
