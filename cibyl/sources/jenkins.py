@@ -75,8 +75,11 @@ class Jenkins(Source):
             return self.client.get_info(query=self.jobs_builds_query)["jobs"]
         jobs_arg = kwargs.get('jobs')
         if jobs_arg:
+            jobs_found = []
             for job in jobs_arg.value:
-                return self.client.get_job_info_regex(pattern=job)
+                LOG.debug("querying %s for job %s", self.name, job)
+                jobs_found.extend(self.client.get_job_info_regex(pattern=job))
+            return jobs_found
 
         return self.client.get_info(query=self.jobs_query)["jobs"]
 

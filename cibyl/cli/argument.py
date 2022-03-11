@@ -14,6 +14,7 @@
 #    under the License.
 """
 from dataclasses import dataclass
+from typing import Union
 
 
 # pylint: disable=too-many-instance-attributes
@@ -24,7 +25,7 @@ class Argument():
     name: str
     arg_type: object
     description: str
-    nargs: int = 1
+    nargs: Union[str, int] = 1
     func: str = None
     populated: bool = False
     level: int = 0

@@ -42,6 +42,7 @@ class Job(Model):
             'attr_type': Build,
             'attribute_value_class': AttributeListValue,
             'arguments': [Argument(name='--builds', arg_type=str,
+                                   nargs="*",
                                    description="Job builds")]
         }
     }
