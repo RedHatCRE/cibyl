@@ -71,6 +71,8 @@ class System(Model):
 (type: {self.system_type.value})"
         for job_instance in self.jobs.values():
             string += f"\n{job_instance.__str__(indent=indent+2)}"
+        if len(self.jobs):
+            string += "\n" + indent*' ' + f"Total jobs: {len(self.jobs)}"
         return string
 
     def add_jobs(self, jobs: dict):

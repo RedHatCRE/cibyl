@@ -87,7 +87,9 @@ class Jenkins(Source):
                 """)
             jobs_found_json = json.loads(jobs_found)['jobs']
             jobs_result['jobs'] = {
-                job.get('name'): Job(name=job.get('name'), url=job.get('url'))
+                job.get('name'): Job(name=job.get('name'),
+                                     url=requests.compat.urljoin(
+                                         self.url, job.get('url')))
                 for job in jobs_found_json}
 
         return jobs_result
@@ -99,16 +101,45 @@ class Jenkins(Source):
             :returns: List of jobs with build information from jenkins server
             :rtype: list
         """
+        jobs_arg = kwargs.get('jobs')
+        if not jobs_arg:
+            jobs_arg = [""]
+        jobs_result = {}
+        for job in jobs_arg:
+            builds_found = self.client.run_script(
+                f"""
+                import groovy.json.JsonBuilder;
 
-        jobs_found = self.get_jobs(**kwargs)
-        for job in jobs_found:
-            builds_info = self.client.get_info(item="job/"+job.name.value,
-                                               query=self.jobs_builds_query)
-            if builds_info:
-                for build in builds_info["allBuilds"]:
-                    job.add_build(Build(str(build["number"]), build["result"]))
+                def builds = []
+                for (job in Jenkins.instance.getAllItems(Job).findAll{{
+                item -> item.getFullName().contains("{job}") }}) {{
 
-        return jobs_found
+                  last_build = job.getLastBuild()
+                  if (last_build) {{
+                    builds.add([number: last_build.number, job_name: job.name,
+                                result: last_build.result.toString()]);
+                  }}
+
+                }}
+
+                def data = [
+                  success: true,
+                  count: builds.size(),
+                  data: builds.collect {{[number: it.number,
+                                          job_name: it.job_name,
+                                          result:it.result]}}
+                ]
+
+                def json = new JsonBuilder(data)
+                println json.toPrettyString()
+                """)
+            builds_found_json = json.loads(builds_found).get('data')
+        jobs_result['jobs'] = {build.get('job_name'): Job(
+            name=build.get('job_name'),
+            builds=[Build(number=build.get('number'),
+                          result=build.get('result'))])
+                    for build in builds_found_json}
+        return jobs_result
 
 
 class JenkinsOSP(Jenkins):

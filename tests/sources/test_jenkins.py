@@ -113,23 +113,18 @@ class TestJenkinsSource(TestCase):
             Tests that the internal logic from :meth:`Jenkins.get_builds` is
             correct.
         """
-        response = '{"jobs": [{"name": "ansible", "url": "url1"}]}'
-        builds = {'_class': '_empty',
-                  'allBuilds': [{'number': 1, 'result': "SUCCESS"},
-                                {'number': 2, 'result': "FAILURE"}]}
-        self.jenkins.client.run_script = Mock(side_effect=[response, builds])
+        response = '{"data": [{"job_name": "ansible",\
+                               "number": "4", "result": "SUCCESS"}]}'
+        self.jenkins.client.run_script = Mock(return_value=response)
 
-        jobs = self.jenkins.get_builds()
+        jobs = self.jenkins.get_builds()['jobs']
         self.assertEqual(len(jobs), 1)
-        job = jobs[0]
+        job = jobs['ansible']
         self.assertEqual(job.name.value, "ansible")
-        self.assertEqual(job.url.value, "url1")
         builds_found = job.builds.value
-        self.assertEqual(len(builds_found), 2)
-        self.assertEqual(builds_found[0].build_id.value, "1")
-        self.assertEqual(builds_found[0].status.value, "SUCCESS")
-        self.assertEqual(builds_found[1].build_id.value, "2")
-        self.assertEqual(builds_found[1].status.value, "FAILURE")
+        self.assertEqual(len(builds_found), 1)
+        self.assertEqual(builds_found[0].number.value, "4")
+        self.assertEqual(builds_found[0].result.value, "SUCCESS")
 
 
 class TestJenkinsOSPSource(TestCase):

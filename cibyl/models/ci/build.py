@@ -21,29 +21,29 @@ from cibyl.models.model import Model
 class Build(Model):
     """General model for a job build """
     API = {
-        'build_id': {
+        'number': {
             'attr_type': str,
-            'arguments': [Argument(name='--build-id', arg_type=str,
+            'arguments': [Argument(name='--build-number', arg_type=str,
                                    description="Build ID")]
         },
-        'status': {
+        'result': {
             'attr_type': str,
-            'arguments': [Argument(name='--build-status', arg_type=str,
-                                   description="Build status")]
+            'arguments': [Argument(name='--build-result', arg_type=str,
+                                   description="Build result")]
         },
     }
 
-    def __init__(self, build_id: str, status: str = None):
-        super().__init__({'build_id': build_id, 'status': status})
+    def __init__(self, number: str, result: str = None):
+        super().__init__({'number': number, 'result': result})
 
     def __str__(self, indent=0):
         indent_space = indent*' '
-        build_str = f"{indent_space}Build: {self.build_id.value}"
-        if self.status.value:
-            build_str += f"\n{indent_space}  Status: {self.status.value}"
+        build_str = f"{indent_space}Build: {self.number.value}"
+        if self.result.value:
+            build_str += f"\n{indent_space}  result: {self.result.value}"
         return build_str
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False
-        return self.build_id.value == other.build_id.value
+        return self.number.value == other.number.value

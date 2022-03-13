@@ -121,7 +121,7 @@ class TestZuulSystem(unittest.TestCase):
     def test_add_jobs(self):
         """Testing adding a new job to a system"""
         job = Job("test_job")
-        self.system.add_jobs({'jobs': {'test_job': job}})
+        self.system.add_jobs({'test_job': job})
         self.assertEqual(len(self.system.jobs.value), 1)
         self.assertEqual(job, self.system.jobs['test_job'])
 
