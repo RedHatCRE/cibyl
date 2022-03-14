@@ -16,6 +16,7 @@
 # pylint: disable=no-member
 import unittest
 
+from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.pipeline import Pipeline
 from cibyl.models.ci.system import JenkinsSystem, System, ZuulSystem
@@ -59,6 +60,15 @@ class TestSystem(unittest.TestCase):
         """Testing adding a new job to a system"""
         job = Job("test_job")
         self.system.add_job(job)
+        self.assertEqual(len(self.system.jobs.value), 1)
+        self.assertEqual(job, self.system.jobs.value[0])
+
+    def test_system_populate(self):
+        """Testing adding a new job to a system"""
+        job = Job("test_job")
+        jobs = AttributeDictValue(name='jobs', value={'test_job': job},
+                                  attr_type=Job)
+        self.system.populate(jobs)
         self.assertEqual(len(self.system.jobs.value), 1)
         self.assertEqual(job, self.system.jobs.value[0])
 
