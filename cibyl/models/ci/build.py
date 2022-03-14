@@ -36,10 +36,11 @@ class Build(Model):
     def __init__(self, build_id: str, status: str = None):
         super().__init__({'build_id': build_id, 'status': status})
 
-    def __str__(self):
-        build_str = f"Build: {self.build_id.value}"
+    def __str__(self, indent=0):
+        indent_space = indent*' '
+        build_str = f"{indent_space}Build: {self.build_id.value}"
         if self.status.value:
-            build_str += f"\n  Status: {self.status.value}"
+            build_str += f"\n{indent_space}  Status: {self.status.value}"
         return build_str
 
     def __eq__(self, other):

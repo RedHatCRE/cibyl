@@ -18,16 +18,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.exceptions.jenkins import JenkinsError
-from cibyl.models.ci.system import System
-from cibyl.sources.jenkins import Jenkins, JenkinsOSP, safe_request
-
-
-def return_arg(query=None):
-    """
-        Helper function that returns its argument. It can't be a lambda because
-        it will get called inside a decorated function
-    """
-    return {"jobs": query}
+from cibyl.sources.jenkins import Jenkins, safe_request
 
 
 class TestSafeRequestJenkinsError(TestCase):
@@ -74,7 +65,7 @@ class TestJenkinsSource(TestCase):
 
         jenkins = Jenkins(url, username, token, cert)
 
-        self.assertEqual(cert, jenkins.client._session.verify)
+        self.assertEqual(cert, jenkins.cert)
 
     def test_with_no_cert(self):
         """Checks that object is built correctly when the certificate is not
@@ -87,111 +78,62 @@ class TestJenkinsSource(TestCase):
 
         jenkins = Jenkins(url, username, token, cert)
 
-        self.assertIsNone(jenkins.client._session.verify)
+        self.assertIsNone(jenkins.cert)
+
+    def test_get_jobs_all(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_jobs` is
+            correct.
+        """
+        self.jenkins.send_request = Mock(return_value={"jobs": []})
+        jobs_arg = Mock()
+        jobs_arg.value = []
+
+        jobs = self.jenkins.get_jobs(jobs=jobs_arg)
+        self.jenkins.send_request.assert_called_with(
+                                self.jenkins.jobs_query)
+        self.assertEqual(len(jobs), 0)
 
     def test_get_jobs(self):
         """
             Tests that the internal logic from :meth:`Jenkins.get_jobs` is
-            correct. The jenkins API method that should do the query is mocked
-            to that it returns the query itself.
+            correct.
         """
-        self.jenkins.client.get_info = Mock()
-        self.jenkins.client.get_info.side_effect = return_arg
+        response = {"jobs": [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1'},
+                    {'_class': 'org..job.WorkflowRun', 'name': "job2",
+                     'url': 'url2'},
+                    {'_class': 'empty', 'name': 'empty'}]}
+        self.jenkins.send_request = Mock(return_value=response)
+        jobs_arg = Mock()
+        jobs_arg.value = ["ansible"]
 
-        jobs_builds = self.jenkins.get_jobs(True)
-        jobs = self.jenkins.get_jobs(False)
-        self.assertEqual(jobs_builds, self.jenkins.jobs_builds_query)
-        self.assertEqual(jobs, self.jenkins.jobs_query)
+        jobs = self.jenkins.get_jobs(jobs=jobs_arg)
+        self.assertEqual(len(jobs), 1)
+        self.assertTrue("ansible" in jobs)
+        self.assertEqual(jobs["ansible"].name.value, "ansible")
+        self.assertEqual(jobs["ansible"].url.value, "url1")
 
-    def test_populate_jobs_without_builds(self):
+    def test_get_builds(self):
         """
-            Tests that the jenkins info is correctly parsed and job models are
-            populated.
+            Tests that the internal logic from :meth:`Jenkins.get_builds` is
+            correct.
         """
-        jobs = [{"_class": "job", "name": "job1", "url": "url1"},
-                {"_class": "job", "name": "job2", "url": "url2"},
-                {"_class": "job", "name": "job3", "url": "url3"}]
-        system = System("test_system", "test")
-        self.jenkins.populate_jobs(system, jobs)
-        self.assertEqual(3, len(system.jobs.value))
-        self.assertEqual("job1", system.jobs.value[0].name.value)
-        self.assertEqual("job2", system.jobs.value[1].name.value)
-        self.assertEqual("job3", system.jobs.value[2].name.value)
-        self.assertEqual("url1", system.jobs.value[0].url.value)
-        self.assertEqual("url2", system.jobs.value[1].url.value)
-        self.assertEqual("url3", system.jobs.value[2].url.value)
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1'}]}
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': "SUCCESS"},
+                                {'number': 2, 'result': "FAILURE"}]}
+        self.jenkins.send_request = Mock(side_effect=[response, builds])
 
-    def test_populate_jobs_with_builds(self):
-        """
-            Tests that the jenkins info is correctly parsed and job and build
-            models are correctly populated.
-        """
-        jobs = [{'_class': 'org.jenkinsci.plugins.workflow.job.WorkflowJob',
-                 'name': 'job1', 'url': 'url1',
-                 'builds': [
-                     {'_class': 'org.jenkinsci.plugins.workflow.job.',
-                      'number': 13, 'result': 'FAILURE'},
-                     {'_class': 'org.jenkinsci.plugins.workflow.job',
-                      'number': 10, 'result': 'SUCCESS'}]},
-                {'_class': 'jenkins.branch.OrganizationFolder',
-                 'name': 'ccc',
-                 'url': 'url2'},
-                {'_class': 'org.jenkinsci.plugins.workflow.job.WorkflowJob',
-                 'name': 'job3', 'url': 'url3',
-                 'builds': [
-                     {'_class': 'org.jenkinsci.plugins.workflow.job',
-                      'number': 2, 'result': 'SUCCESS'}]}
-                ]
-
-        system = System("test_system", "test")
-        self.jenkins.populate_jobs(system, jobs)
-
-        self.assertEqual(2, len(system.jobs.value))
-        job1 = system.jobs.value[0]
-        job2 = system.jobs.value[1]
-        self.assertEqual("job1", job1.name.value)
-        self.assertEqual("job3", job2.name.value)
-        self.assertEqual("url1", job1.url.value)
-        self.assertEqual("url3", job2.url.value)
-
-        self.assertEqual(2, len(job1.builds.value))
-        self.assertEqual("13", job1.builds.value[0].build_id.value)
-        self.assertEqual("FAILURE", job1.builds.value[0].status.value)
-        self.assertEqual("10", job1.builds.value[1].build_id.value)
-        self.assertEqual("SUCCESS", job1.builds.value[1].status.value)
-
-        self.assertEqual(1, len(job2.builds.value))
-        self.assertEqual("2", job2.builds.value[0].build_id.value)
-        self.assertEqual("SUCCESS", job2.builds.value[0].status.value)
-
-
-class TestJenkinsOSPSource(TestCase):
-    """Tests for :class:`Jenkins`.
-    """
-
-    # pylint: disable=protected-access
-    def test_with_all_args(self):
-        """Checks that the object is built correctly when all arguments are
-        provided.
-        """
-        url = 'url/to/jenkins/'
-        username = 'user'
-        cert = 'path/to/cert.pem'
-        token = 'token'
-
-        jenkins = JenkinsOSP(url, username, token, cert)
-
-        self.assertEqual(cert, jenkins.client._session.verify)
-
-    def test_with_no_cert(self):
-        """Checks that object is built correctly when the certificate is not
-        provided.
-        """
-        url = 'url/to/jenkins/'
-        username = 'user'
-        cert = None
-        token = 'token'
-
-        jenkins = JenkinsOSP(url, username, token, cert)
-
-        self.assertIsNone(jenkins.client._session.verify)
+        jobs = self.jenkins.get_builds()
+        self.assertEqual(len(jobs), 1)
+        job = jobs["ansible"]
+        self.assertEqual(job.name.value, "ansible")
+        self.assertEqual(job.url.value, "url1")
+        builds_found = job.builds.value
+        self.assertEqual(len(builds_found), 2)
+        self.assertEqual(builds_found[0].build_id.value, "1")
+        self.assertEqual(builds_found[0].status.value, "SUCCESS")
+        self.assertEqual(builds_found[1].build_id.value, "2")
+        self.assertEqual(builds_found[1].status.value, "FAILURE")

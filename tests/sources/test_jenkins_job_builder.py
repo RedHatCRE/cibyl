@@ -19,7 +19,8 @@ import shutil
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from cibyl.models.ci.system import System
+from cibyl.models.attribute import AttributeDictValue
+from cibyl.models.ci.job import Job
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 
 
@@ -114,19 +115,9 @@ class TestJenkinsJobBuilderSource(TestCase):
         jenkins = JenkinsJobBuilder("url", dest="out_jjb_test")
         jenkins._generate_xml = Mock()
 
-        jobs = jenkins.get_jobs()
-        self.assertEqual(jobs, ["fake_job2"])
+        jobs = jenkins.get_jobs(jobs=["*"])
+        job = Job(name="fake_job2")
+        result = AttributeDictValue("jobs", attr_type=Job,
+                                    value={"fake_job2": job})
 
-    def test_populate_jobs(self, _):
-        """
-            Tests that the jenkins info is correctly parsed and job models are
-            populated.
-        """
-        jenkins = JenkinsJobBuilder("url", dest="out_jjb_test")
-        jenkins._generate_xml = Mock()
-
-        jobs = jenkins.get_jobs()
-        system = System("test_system", "test")
-        jenkins.populate_jobs(system, jobs)
-        self.assertEqual(1, len(system.jobs.value))
-        self.assertEqual("fake_job2", system.jobs.value[0].name.value)
+        self.assertEqual(jobs, result)

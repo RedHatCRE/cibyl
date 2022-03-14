@@ -14,12 +14,15 @@
 #    under the License.
 """
 
+import json
 import logging
+import re
 from functools import partial
 
-import jenkins
+import requests
 
 from cibyl.exceptions.jenkins import JenkinsError
+from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.sources.source import Source, safe_request_generic
@@ -35,7 +38,7 @@ class Jenkins(Source):
     """A class representation of Jenkins client."""
 
     jobs_query = "?tree=jobs[name,url]"
-    jobs_builds_query = "?tree=jobs[name,url,builds[number,result]]"
+    jobs_builds_query = "?tree=allBuilds[number,result]"
 
     # pylint: disable=too-many-arguments
     def __init__(self, url: str, username: str = None, token: str = None,
@@ -56,87 +59,75 @@ class Jenkins(Source):
             :type cert: str
         """
         super().__init__(name=name, url=url, driver=driver, priority=priority)
-        self.client = jenkins.Jenkins(url, username=username, password=token)
-        self.client._session.verify = cert
+        self.username = username
+        self.token = token
+        self.cert = cert
 
     @safe_request
-    def get_jobs(self, get_builds: bool = False, **kwargs):
+    def send_request(self, query, timeout=None, item=""):
         """
-            Get all jobs from jenkins server.
+            Send a request to the jenkins instance and parse its json response.
 
-            :param get_builds: Whether to get info about the jobs' builds
-            :type get_builds: bool
-
-            :returns: All jobs from jenkins server, as dictionaries of _class,
-            name, fullname, url, color
-            :rtype: list
+            :param query: Part of the API request that specifies which data to
+            request
+            :type query: str
+            :param timeout: How many seconds to wait for the server to send
+            data before giving up
+            :type timetout: float
+            :param item: item to get information about
+            :type item: str
+            :returns: Information from the jenkins instance
+            :rtype: dict
         """
-        if get_builds:
-            return self.client.get_info(query=self.jobs_builds_query)["jobs"]
+
+        response = requests.get(f"{self.url}/{item}/api/json{query}",
+                                verify=self.cert, timeout=timeout)
+        response.raise_for_status()
+        return json.loads(response.text)
+
+    def get_jobs(self, **kwargs):
+        """
+            Get jobs from jenkins server.
+
+            :returns: container of Job objects queried from jenkins server
+            :rtype: :class:`AttributeDictValue`
+        """
         jobs_arg = kwargs.get('jobs')
+        pattern = None
         if jobs_arg:
-            jobs_found = []
-            for job in jobs_arg.value:
-                LOG.debug("querying %s for job %s", self.name, job)
-                jobs_found.extend(self.client.get_job_info_regex(pattern=job))
-            return jobs_found
+            pattern = re.compile("|".join(jobs_arg.value))
 
-        return self.client.get_info(query=self.jobs_query)["jobs"]
-
-    # pylint: disable=no-self-use
-    def populate_jobs(self, system, jobs: list[dict]):
-        """
-            Create Job models using jenkins jobs information.
-
-            :param system: System model to input the jobs to
-            :type system: :class:`cibyl.models.ci.system.System`
-            :param jobs: Jobs received from jenkins server
-            :type jobs: list
-        """
-        for job in jobs:
+        jobs_found = self.send_request(self.jobs_query)["jobs"]
+        jobs_filtered = jobs_found
+        if pattern:
+            jobs_filtered = [job for job in jobs_found if re.search(pattern,
+                                                                    job['name']
+                                                                    )]
+        job_objects = {}
+        for job in jobs_filtered:
             if "job" not in job["_class"]:
                 # jenkins may return folders as job objects
                 continue
-            job_name = job.get('name')
-            builds_info = job.get('builds')
-            builds = None
+            name = job.get('name')
+            job_objects[name] = Job(name=name, url=job.get('url'))
+
+        return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
+
+    def get_builds(self, **kwargs):
+        """
+            Get builds from jenkins server.
+
+            :returns: container of jobs with build information from
+            jenkins server
+            :rtype: :class:`AttributeDictValue`
+        """
+
+        jobs_found = self.get_jobs(**kwargs)
+        for job_name, job in jobs_found.items():
+            builds_info = self.send_request(item=f"job/{job_name}",
+                                            query=self.jobs_builds_query)
             if builds_info:
-                builds = [Build(str(build["number"]), build["result"])
-                          for build in builds_info]
+                for build in builds_info["allBuilds"]:
+                    job.add_build(Build(str(build["number"]), build["result"]))
 
-            system.jobs.append(Job(name=job_name, url=job.get('url'),
-                                   builds=builds))
-
-    # pylint: disable=inconsistent-return-statements
-    def query(self, system, args):
-        LOG.debug("querying system %s using source: %s",
-                  system.name.value, self.__name__)
-
-        if args.get('jobs'):
-            jobs = self.get_jobs(args.get('builds', False))
-            self.populate_jobs(system, jobs)
-
-        if all(argument.populated for argument in args):
-            return system
-
-
-class JenkinsOSP(Jenkins):
-    """A class representation of OSP Jenkins client."""
-
-    # pylint: disable=useless-super-delegation
-    def __init__(self, url: str, username: str, token: str, cert: str = None):
-        """
-            Create a client to talk to a jenkins instance.
-
-            :param url: Jenkins instance address
-            :type url: str
-            :param username: Jenkins username
-            :type username: str
-            :param token: Jenkins access token
-            :type token: str
-            :param url: Jenkins instance address
-            :type url: str
-            :param cert: Path to a file with SSL certificates
-            :type cert: str
-        """
-        super().__init__(url, username, token, cert)
+        return jobs_found

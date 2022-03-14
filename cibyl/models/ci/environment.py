@@ -48,7 +48,7 @@ class Environment(Model):
 
     def __str__(self, indent=0):
         string = ""
-        string += f"Environment: {self.name.value}\n"
+        string += f"Environment: {self.name.value}"
         for system in self.systems:
-            string += system.__str__(indent + 2)
+            string += f"\n{system.__str__(indent + 2)}"
         return string
