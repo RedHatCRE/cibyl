@@ -19,6 +19,7 @@ import operator
 from cibyl.cli.parser import Parser
 from cibyl.config import Config
 from cibyl.exceptions.config import InvalidConfiguration
+from cibyl.exceptions.source import NoValidSources
 from cibyl.models.ci.environment import Environment
 from cibyl.publisher import Publisher
 from cibyl.sources.source import Source
@@ -80,6 +81,27 @@ class Orchestrator:
             LOG.debug("populating environment %s: %s",
                       environment, model_instance)
 
+    def select_source_method(self, system, argument):
+        """Select the apropiate source considering the user input.
+
+        :param system: system to select sources from
+        :type system: :class:`.System`
+        :param argument: argument that is considered for the query
+        :type argument: :class:`.Argument`
+
+        :returns: method to call from the selected source
+        :rtype: function
+        """
+        sources_user = self.parser.ci_args.get("sources")
+        system_sources = system.sources
+        if sources_user:
+            system_sources = [source for source in system.sources if
+                              source.name in sources_user.value]
+        if not system_sources:
+            raise NoValidSources(system)
+        return Source.get_source_method(system.name.value, system_sources,
+                                        argument.func)
+
     def run_query(self, start_level=1):
         """Execute query based on provided arguments."""
         last_level = -1
@@ -93,9 +115,7 @@ class Orchestrator:
                     continue
                 for env in self.environments:
                     for system in env.systems:
-                        source_method = Source.get_source_method(
-                            system.name.value,
-                            system.sources, arg.func)
+                        source_method = self.select_source_method(system, arg)
                         model_instances = source_method(
                             **self.parser.ci_args)
                         self.populate(env, model_instances)
