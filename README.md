@@ -21,18 +21,17 @@ environments:
         jenkins_system:
             system_type: ""
 ```
-
 For query purposes, add sources in the following format:
 
 ```
 environments:
-  phases:
-    phase1:
-      system_type: 'SYSTEM_TYPE'                                                                                                                                                   
+  staging:
+    environment1:
+      system_type: 'SYSTEM_TYPE'
       sources:
         source1:
           driver: 'DRIVER'
-          username: 'USERNAME' 
+          username: 'USERNAME'
           token: 'PERSONAL_TOKEN'
           url: 'https://URL.com'
 ```
