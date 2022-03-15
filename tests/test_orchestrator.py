@@ -14,10 +14,12 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from cibyl.config import Config
 from cibyl.exceptions.config import InvalidConfiguration
+from cibyl.exceptions.model import NoValidEnvironment
+from cibyl.exceptions.source import NoValidSources
 from cibyl.orchestrator import Orchestrator
 
 
@@ -53,6 +55,22 @@ class TestOrchestrator(TestCase):
             }
         }
 
+        self.valid_env_sources = {
+            'environments': {
+                'env1': {
+                    'system1': {
+                        'system_type': 'jenkins',
+                        'sources': {
+                            'jenkins': {
+                                'driver': 'jenkins',
+                                'url': ''
+                                },
+                            'jenkins2': {
+                                'driver': 'jenkins',
+                                'url': ''
+                                }
+                            }}}}}
+
     def test_orchestrator_config(self):
         """Testing Orchestrator config attribute and method"""
         self.assertTrue(hasattr(self.orchestrator, 'config'))
@@ -62,9 +80,9 @@ class TestOrchestrator(TestCase):
 
         self.orchestrator.config.load.assert_called()
 
-    def test_orchestrator_query(self):
+    def test_orchestrator_query_empty(self):
         """Testing Orchestrator query method"""
-        self.assertEqual(self.orchestrator.run_query(), None)
+        self.assertRaises(NoValidEnvironment, self.orchestrator.run_query)
 
     def test_orchestrator_create_ci_environments(self):
         """Testing Orchestartor query method"""
@@ -102,3 +120,43 @@ class TestOrchestrator(TestCase):
             self.orchestrator.environments[0].systems[0].name.value, 'system3')
         self.assertEqual(
             self.orchestrator.environments[0].systems[1].name.value, 'system4')
+
+    @patch("cibyl.sources.source.Source.get_source_method")
+    def test_orchestrator_select_source(self, patched_method):
+        """Testing Orchestartor select_source_method method"""
+        self.orchestrator.config.data = self.valid_env_sources
+        self.orchestrator.create_ci_environments()
+        self.orchestrator.parser.ci_args["sources"] = Mock()
+        self.orchestrator.parser.ci_args["sources"].value = ["jenkins"]
+        system = Mock()
+        system.name = Mock()
+        system.name.value = "system"
+        system.sources = Mock()
+        source = Mock()
+        source.name = "jenkins"
+        system.sources = [source]
+        argument = Mock()
+        argument.func = None
+        self.orchestrator.select_source_method(system, argument)
+        patched_method.assert_called_with("system", [source], None)
+
+    def test_orchestrator_select_source_invalid_source(self):
+        """Testing Orchestrator select_source_method method with no valid
+        source.
+        """
+        self.orchestrator.config.data = self.valid_env_sources
+        self.orchestrator.create_ci_environments()
+        self.orchestrator.parser.ci_args["sources"] = Mock()
+        self.orchestrator.parser.ci_args["sources"].value = ["unknown"]
+        system = Mock()
+        system.name = Mock()
+        system.name.value = "system"
+        system.sources = Mock()
+        source = Mock()
+        source.name = "jenkins"
+        system.sources = [source]
+        argument = Mock()
+        argument.func = None
+        self.assertRaises(NoValidSources,
+                          self.orchestrator.select_source_method,
+                          system, argument)
