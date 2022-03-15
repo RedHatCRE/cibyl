@@ -26,15 +26,15 @@ For query purposes, add sources in the following format:
 
 ```
 environments:
-  osp_phases:
-    osp_jenkins:
+  phases:
+    phase1:
       system_type: 'SYSTEM_TYPE'                                                                                                                                                   
       sources:
-        osp_jenkins1:
+        source1:
           driver: 'DRIVER'
           username: 'USERNAME' 
           token: 'PERSONAL_TOKEN'
-          url: 'https://SOME_JENKINS.com'
+          url: 'https://URL.com'
 ```
 ## Usage
 
