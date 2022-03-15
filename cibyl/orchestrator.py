@@ -116,9 +116,9 @@ class Orchestrator:
                 for env in self.environments:
                     for system in env.systems:
                         source_method = self.select_source_method(system, arg)
-                        model_instances = source_method(
+                        model_instances_dict = source_method(
                             **self.parser.ci_args)
-                        self.populate(env, model_instances)
+                        system.populate(model_instances_dict)
             last_level = arg.level
 
     def extend_parser(self, attributes, group_name='Environment',

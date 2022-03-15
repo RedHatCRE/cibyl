@@ -15,6 +15,7 @@
 """
 # pylint: disable=no-member
 from cibyl.cli.argument import Argument
+from cibyl.exceptions.model import NonSupportedModelType
 from cibyl.models.attribute import AttributeListValue
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.pipeline import Pipeline
@@ -41,8 +42,7 @@ class System(Model):
         'jobs': {
             'attr_type': Job,
             'attribute_value_class': AttributeListValue,
-            'arguments': [Argument(name='--jobs', arg_type=str,
-                                   default=['*'], nargs='*',
+            'arguments': [Argument(name='--jobs', arg_type=str, nargs='*',
                                    description="System jobs",
                                    func='get_jobs')]
         },
@@ -72,6 +72,14 @@ class System(Model):
         for job in self.jobs:
             string += f"\n{job.__str__(indent=indent+2)}"
         return string
+
+    def populate(self, instances_dict):
+        """Populate instances from a given dictionary of instances."""
+        if instances_dict.attr_type == Job:
+            for job in instances_dict.values():
+                self.add_job(job)
+        else:
+            raise NonSupportedModelType(instances_dict.attr_type)
 
     def add_job(self, job: Job):
         """Add a job to the CI system
