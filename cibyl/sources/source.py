@@ -43,8 +43,9 @@ def safe_request_generic(request, custom_error):
         try:
             return request(*args, **kwargs)
         except requests.exceptions.SSLError as ex:
-            raise custom_error("Please set certificates in order to \
-                               connect to the system") from ex
+            raise custom_error(
+                "Please set certificates in order to connect to the system"
+            ) from ex
         except Exception as ex:
             raise custom_error('Failure on request to target host.') from ex
 
