@@ -47,3 +47,15 @@ class NoSupportedSourcesFound(Exception):
 that implements the function {function}
 """
         super().__init__(self.message)
+
+
+class NoValidSources(Exception):
+    """Exception for a case when no valid source is found."""
+
+    def __init__(self, system):
+        self.system = system
+        self.message = f"""No valid source defined for the system
+{self.system}.  Please ensure the specified sources with --source argument
+are present in the configuration.
+"""
+        super().__init__(self.message)
