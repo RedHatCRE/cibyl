@@ -49,6 +49,7 @@ class ZuulTenantAPI(ABC):
 
         :return: Information about all executed builds under this tenant.
         :rtype: list[dict]
+        :raises ZuulAPIError: If the request failed.
         """
         raise NotImplementedError
 
@@ -58,6 +59,7 @@ class ZuulTenantAPI(ABC):
 
         :return: Information about all executed buildsets under this tenant.
         :rtype: list[dict]
+        :raises ZuulAPIError: If the request failed.
         """
         raise NotImplementedError
 
@@ -68,6 +70,7 @@ class ZuulTenantAPI(ABC):
 
         :return: Information about all jobs under this tenant.
         :rtype: list[dict]
+        :raises ZuulAPIError: If the request failed.
         """
         raise NotImplementedError
 
@@ -83,6 +86,7 @@ class ZuulAPI(ABC):
 
         :return: General information about the host.
         :rtype: dict
+        :raises ZuulAPIError: If the request failed.
         """
         raise NotImplementedError
 
@@ -93,5 +97,6 @@ class ZuulAPI(ABC):
         :return: A sub-api to retrieve information about all tenants on the
             host.
         :rtype: list[:class:`ZuulTenantAPI`]
+        :raises ZuulAPIError: If the request failed.
         """
         raise NotImplementedError
