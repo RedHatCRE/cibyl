@@ -17,10 +17,13 @@ from setuptools import setup
 
 setup(
     name='Cibyl',
-    author='RHOS Team',
+    author='RHOS CRE Team',
+    license='Apache',
     description='Cibyl is tool that models ci system by'
-    'creating in-memory representation of CI system entities',
+    'command-line interface for querying CI environments',
     version='0.0.1',
+    url='https://github.com/rhos-infra/cibyl',
+    packages=['cibyl'],
     entry_points={
         'console_scripts': ['cibyl = cibyl.cli.main:main',
                             'ci = cibyl.cli.main:main']
