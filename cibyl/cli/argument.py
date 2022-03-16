@@ -13,21 +13,29 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from dataclasses import dataclass
 from typing import Union
 
 
-# pylint: disable=too-many-instance-attributes
-@dataclass
 class Argument():
     """Represents Parser's argument"""
 
-    name: str
-    arg_type: object
-    description: str
-    nargs: Union[str, int] = 1
-    func: str = None
-    populated: bool = False
-    level: int = 0
-    value: object = None
-    default: object = None
+    # pylint: disable=too-many-arguments,too-many-instance-attributes
+    def __init__(self, name: str, arg_type: object, description: str,
+                 nargs: Union[str, int] = 1, func: str = None,
+                 populated: bool = False, level: int = 0,
+                 value: object = None, default: object = None):
+        self.name = name
+        self.arg_type = arg_type
+        self.description = description
+        self.nargs = nargs
+        self.func = func
+        self.populated = populated
+        self.level = level
+        self.value = value
+        self.default = default
+
+    def __eq__(self, other):
+        return self.name == other.name and self.value == other.value
+
+    def __str__(self):
+        return str(self.value)
