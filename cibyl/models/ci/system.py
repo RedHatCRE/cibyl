@@ -14,6 +14,8 @@
 #    under the License.
 """
 # pylint: disable=no-member
+from typing import List
+
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.model import NonSupportedModelType
 from cibyl.models.attribute import AttributeListValue
@@ -60,8 +62,8 @@ class System(Model):
     }
 
     def __init__(self, name: str,  # pylint: disable=too-many-arguments
-                 system_type: str, jobs: list[Job] = None,
-                 jobs_scope: str = "*", sources: list = None):
+                 system_type: str, jobs: List[Job] = None,
+                 jobs_scope: str = "*", sources: List = None):
         super().__init__({'name': name, 'system_type': system_type,
                           'jobs': jobs, 'jobs_scope': jobs_scope,
                           'sources': sources})
