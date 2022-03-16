@@ -15,27 +15,33 @@
 """
 
 import logging
+from urllib.parse import urlsplit
 
 from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
+from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
-from cibyl.sources.source import Source
 
 LOG = logging.getLogger(__name__)
 
 
-class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
+class ElasticSearchOSP():  # pylint: disable=too-few-public-methods
     """Used to perform queries in elasticsearch"""
 
     def __init__(self: object, **kwargs) -> None:
+
         if 'elastic_client' in kwargs:
             self.es_client = kwargs.get('elastic_client')
         else:
-            self.es_client = ElasticSearchClient(
-                host=kwargs.get('host'),
-                port=kwargs.get('port'),
-            ).connect()
+            try:
+                url_parsed = urlsplit(kwargs.get('url'))
+                host = f"{url_parsed.scheme}://{url_parsed.hostname}"
+                port = url_parsed.port
+            except Exception as exception:
+                raise ElasticSearchError('The URL given is not valid') \
+                      from exception
+            self.es_client = ElasticSearchClient(host, port).connect()
 
     def get_jobs(self: object, **kwargs) -> list:
         """Get jobs from elasticsearch
@@ -44,18 +50,14 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
             :rtype: :class:`AttributeDictValue`
         """
 
-        query_body = {
-            'query': {
-                'match': {
-                    'jobName': kwargs.get('jobs').value[0]
-                }
-            }
-        }
+        query_body = QueryTemplate('jobName', kwargs.get('jobs').value[0]).get
 
-        hits = self.__query_get_hits(query_body)
+        hits = self.__query_get_hits(
+            index='jenkins',
+            query=query_body
+        )
 
         job_objects = {}
-
         for hit in hits:
             job_name = hit['_source']['jobName']
             url = hit['_source']['envVars']['BUILD_URL']
@@ -82,3 +84,45 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
             raise ElasticSearchError("Error getting the results") \
                   from exception
         return response['hits']['hits']
+
+    def get_builds(self, **kwargs):
+        """
+            Get builds from elasticsearch server.
+
+            :returns: container of jobs with build information from
+            jenkins server
+            :rtype: :class:`AttributeDictValue`
+        """
+        jobs_found = self.get_jobs(**kwargs)
+
+        for job_name, job in jobs_found.items():
+            query_body = QueryTemplate('job_name', job_name).get
+
+            builds = self.__query_get_hits(
+                index='jenkins_builds',
+                query=query_body
+            )
+
+            for build in builds:
+                job.add_build(Build(str(build['_source']['build_id']),
+                                    build["_source"]['build_result']))
+
+        return jobs_found
+
+
+class QueryTemplate():  # pylint: disable=too-few-public-methods
+    """Used for basic template and substitution in DSL query"""
+
+    def __init__(self: object, search_key: str, search_value: str) -> None:
+        self.query_body = {
+            'query': {
+                'match': {
+                    search_key: search_value
+                }
+            }
+        }
+
+    @property
+    def get(self: object) -> dict:
+        """Return DSL query in dictionary format"""
+        return self.query_body
