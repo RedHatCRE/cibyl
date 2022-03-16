@@ -22,14 +22,18 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
+from cibyl.sources.source import Source
 
 LOG = logging.getLogger(__name__)
 
 
-class ElasticSearchOSP():  # pylint: disable=too-few-public-methods
+class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
     """Used to perform queries in elasticsearch"""
 
-    def __init__(self: object, **kwargs) -> None:
+    def __init__(self: object, driver: str = 'elasticsearch',
+                 name: str = "elasticsearch", priority: int = 0,
+                 **kwargs) -> None:
+        super().__init__(name=name, driver=driver, priority=priority)
 
         if 'elastic_client' in kwargs:
             self.es_client = kwargs.get('elastic_client')
