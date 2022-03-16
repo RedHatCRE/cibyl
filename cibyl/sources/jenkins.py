@@ -18,6 +18,7 @@ import json
 import logging
 import re
 from functools import partial
+from typing import Dict, List
 
 import requests
 
@@ -33,12 +34,28 @@ LOG = logging.getLogger(__name__)
 safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 
 
+def filter_jobs(jobs_found: List[Dict], **kwargs):
+    """Filter the result from the Jenkins API according to user input"""
+    pattern = None
+    jobs_arg = kwargs.get('jobs')
+    if jobs_arg:
+        pattern = re.compile("|".join(jobs_arg.value))
+
+    jobs_filtered = jobs_found
+    if pattern:
+        jobs_filtered = [job for job in jobs_found if re.search(pattern,
+                                                                job['name']
+                                                                )]
+    return jobs_filtered
+
+
 # pylint: disable=no-member
 class Jenkins(Source):
     """A class representation of Jenkins client."""
 
     jobs_query = "?tree=jobs[name,url]"
     jobs_builds_query = "?tree=allBuilds[number,result]"
+    jobs_last_build_query = "?tree=jobs[name,url,lastBuild[number,result]]"
 
     # pylint: disable=too-many-arguments
     def __init__(self, url: str, username: str = None, token: str = None,
@@ -73,7 +90,7 @@ class Jenkins(Source):
             :type query: str
             :param timeout: How many seconds to wait for the server to send
             data before giving up
-            :type timetout: float
+            :type timeout: float
             :param item: item to get information about
             :type item: str
             :returns: Information from the jenkins instance
@@ -92,17 +109,9 @@ class Jenkins(Source):
             :returns: container of Job objects queried from jenkins server
             :rtype: :class:`AttributeDictValue`
         """
-        jobs_arg = kwargs.get('jobs')
-        pattern = None
-        if jobs_arg:
-            pattern = re.compile("|".join(jobs_arg.value))
-
         jobs_found = self.send_request(self.jobs_query)["jobs"]
-        jobs_filtered = jobs_found
-        if pattern:
-            jobs_filtered = [job for job in jobs_found if re.search(pattern,
-                                                                    job['name']
-                                                                    )]
+        jobs_filtered = filter_jobs(jobs_found, **kwargs)
+
         job_objects = {}
         for job in jobs_filtered:
             if "job" not in job["_class"]:
@@ -131,3 +140,31 @@ class Jenkins(Source):
                     job.add_build(Build(str(build["number"]), build["result"]))
 
         return jobs_found
+
+    def get_last_build(self, **kwargs):
+        """
+            Get last build for jobs from jenkins server.
+
+            :returns: container of jobs with build information from
+            jenkins server
+            :rtype: :class:`AttributeDictValue`
+        """
+
+        jobs_found = self.send_request(self.jobs_last_build_query)["jobs"]
+        jobs_filtered = filter_jobs(jobs_found, **kwargs)
+
+        job_objects = {}
+        for job in jobs_filtered:
+            if "job" not in job["_class"]:
+                # jenkins may return folders as job objects
+                continue
+            name = job.get('name')
+
+            job_object = Job(name=name, url=job.get('url'))
+            if job["lastBuild"]:
+                build = job["lastBuild"]
+                build_obj = Build(str(build["number"]), build["result"])
+                job_object.add_build(build_obj)
+            job_objects[name] = job_object
+
+        return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
