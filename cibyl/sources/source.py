@@ -93,7 +93,7 @@ class Source:
         if len(valid_sources) == 0:
             raise NoSupportedSourcesFound(system_name,
                                           func_name)
-        if len(valid_sources) > 2:
+        if len(valid_sources) > 1:
             raise TooManyValidSources(system_name)
         return getattr(valid_sources[0], func_name)
 
