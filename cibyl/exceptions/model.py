@@ -23,3 +23,25 @@ class NonSupportedModelType(Exception):
         self.message = f"""Not supported type for model: {self.model_type}.
 Unable to populate system with pulled data"""
         super().__init__(self.message)
+
+
+class NoValidEnvironment(Exception):
+    """Exception for a case when no valid environment is found."""
+
+    def __init__(self):
+        self.message = """No valid environment defined.
+ Please ensure the specified environments with --env-name argument
+are present in the configuration.
+"""
+        super().__init__(self.message)
+
+
+class NoValidSystem(Exception):
+    """Exception for a case when no valid system is found."""
+
+    def __init__(self):
+        self.message = """No valid system defined.
+ Please ensure the specified environments with --systems, --system-name or
+ --system-type arguments are present in the configuration.
+"""
+        super().__init__(self.message)
