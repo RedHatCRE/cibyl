@@ -21,7 +21,12 @@ from cibyl.sources.source import Source
 
 
 class TestGetSourceMethod(TestCase):
+    """Tests for the get_source_method static function."""
+
     def test_no_more_than_two_valid_sources_allowed(self):
+        """Checks that only a single source is allowed to provide the
+        desired function.
+        """
         source1 = Mock()
         source2 = Mock()
 
