@@ -90,7 +90,7 @@ class ElasticSearchOSP():  # pylint: disable=too-few-public-methods
             Get builds from elasticsearch server.
 
             :returns: container of jobs with build information from
-            jenkins server
+            elasticsearch server
             :rtype: :class:`AttributeDictValue`
         """
         jobs_found = self.get_jobs(**kwargs)
