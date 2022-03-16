@@ -79,7 +79,8 @@ class Config(UserDict):
         :raises FileNotFoundError: If no configuration file could be found.
         :raises YAMLError: If the configuration file could not be parsed.
         """
-        if file := get_first_available_file(self.path):
+        file = get_first_available_file(self.path)
+        if file:
             self.data = yaml.parse(file)
         else:
             raise FileNotFoundError(f"Could not open file at: '{self.path}'")
