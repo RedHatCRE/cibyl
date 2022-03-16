@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import List
+
 from cibyl.cli.argument import Argument
 
 
@@ -20,7 +22,7 @@ class AttributeValue():
     """Represents the value used by the attributes of the different models"""
 
     def __init__(self, name: str, attr_type: object,
-                 value: object = None, arguments: list[Argument] = None):
+                 value: object = None, arguments: List[Argument] = None):
         self.name = name
         self.attr_type = attr_type
         self.value = value
