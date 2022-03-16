@@ -16,7 +16,6 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 
 
@@ -48,16 +47,4 @@ class TestElasticsearchOSP(TestCase):
         self.assertIsInstance(
             self.es_api.get_jobs_by_name(self.job_name),
             list
-        )
-
-    def test_type_query(self: object) -> None:
-        """Tests if :meth:`ElasticSearchOSP.get_jobs_by_name`
-        raise an exception when query_type is not in the
-        :const:`ElasticSearchOSP.ALLOWED_QUERIES`
-        """
-        self.assertRaises(
-            ElasticSearchError,
-            self.es_api.get_jobs_by_name,
-            self.job_name,
-            self.query_type['not_valid']
         )

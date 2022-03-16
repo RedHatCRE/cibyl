@@ -17,56 +17,50 @@
 import logging
 
 from cibyl.exceptions.elasticsearch import ElasticSearchError
+from cibyl.models.attribute import AttributeDictValue
+from cibyl.models.ci.job import Job
+from cibyl.sources.elasticsearch.client import ElasticSearchClient
+from cibyl.sources.source import Source
 
 LOG = logging.getLogger(__name__)
 
 
-class ElasticSearchOSP:  # pylint: disable=too-few-public-methods
+class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
     """Used to perform queries in elasticsearch"""
 
-    ALLOWED_QUERIES = [
-        'regexp',
-        'term'
-    ]
-
-    def __init__(self: object, elastic_client: object) -> None:
-        self.es_client = elastic_client
-
-    def get_jobs_by_name(self: object,
-                         job_name: str,
-                         query_type: str = 'term') -> list:
-        """Get jobs by kind of query
-        It can be term (literal search) or regexp
-
-        :param query_type: Kind of query.
-                It could be 'term' or 'regexp'
-        :type query_data: str
-        :param job_name: Name of the job to serch. Literal or regex.
-        :type job_name: str
-        :return: hits
-        :rtype: list
-        """
-
-        if query_type not in self.ALLOWED_QUERIES:
-            raise ElasticSearchError(f"Query '{query_type}' not allowed. \
-                  Allowed queries: {' '.join(self.ALLOWED_QUERIES)}")
-
-        if query_type == 'term':
-            key = 'jobName.keyword'
+    def __init__(self: object, **kwargs) -> None:
+        if 'elastic_client' in kwargs:
+            self.es_client = kwargs.get('elastic_client')
         else:
-            key = 'jobName'
+            self.es_client = ElasticSearchClient(
+                host=kwargs.get('host'),
+                port=kwargs.get('port'),
+            ).connect()
+
+    def get_jobs(self: object, **kwargs) -> list:
+        """Get jobs from elasticsearch
+
+            :returns: Job objects queried from elasticserach
+            :rtype: :class:`AttributeDictValue`
+        """
 
         query_body = {
             'query': {
-                query_type: {
-                    key: {
-                        'value': job_name
-                    }
+                'match': {
+                    'jobName': kwargs.get('jobs').value[0]
                 }
             }
         }
+
         hits = self.__query_get_hits(query_body)
-        return hits
+
+        job_objects = {}
+
+        for hit in hits:
+            job_name = hit['_source']['jobName']
+            url = hit['_source']['envVars']['BUILD_URL']
+            job_objects[job_name] = Job(name=job_name, url=url)
+        return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
     def __query_get_hits(self: object, query: dict, index: str = '') -> list:
         """Perform the search query to ElasticSearch
@@ -81,7 +75,8 @@ class ElasticSearchOSP:  # pylint: disable=too-few-public-methods
         try:
             response = self.es_client.search(
                 index=index,
-                body=query
+                body=query,
+                size=1000
             )
         except Exception as exception:
             raise ElasticSearchError("Error getting the results") \
