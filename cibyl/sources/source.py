@@ -13,14 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import importlib
 import logging
 
 import requests
 
 from cibyl.exceptions.source import (NoSupportedSourcesFound,
                                      TooManyValidSources)
-from cibyl.sources.source_registry import SourceRegistry
 
 LOG = logging.getLogger(__name__)
 
@@ -63,7 +61,7 @@ class Source:
         self.priority = priority
 
     # pylint: disable=unused-argument
-    def query(self, system,  args):
+    def query(self, system, args):
         """Performs query on the source and populates environment instance"""
         LOG.info("performing query on %s", self.name)
 
@@ -96,17 +94,3 @@ class Source:
         if len(valid_sources) > 1:
             raise TooManyValidSources(system_name)
         return getattr(valid_sources[0], func_name)
-
-    @staticmethod
-    def get_source_class(driver):
-        """Returns the class of the given driver
-
-        :param driver: the name of the driver as used by the source
-        :type driver: str
-        """
-        module, class_name = SourceRegistry.sources.get(driver, (None, None))
-        if module is None or class_name is None:
-            # fallback in case the driver is not in the source registry
-            return getattr(importlib.import_module(
-                    f"cibyl.sources.{driver}"), driver.capitalize())
-        return getattr(importlib.import_module(module), class_name)
