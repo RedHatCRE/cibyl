@@ -55,7 +55,7 @@ class Deployment(Model):
     }
 
     def __init__(self, release: float, infra_type: str,
-                 nodes: list[Node], services: list[Service]):
+                 nodes: list, services: list):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services})
 
