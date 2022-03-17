@@ -39,8 +39,8 @@ class SourceFactory:
         :type source_type: str or :class:`SourceType`
         :param name: A name to identify the source.
         :type name: str
-        :param kwargs: Collection of data that further describe the source.
-        :type kwargs: dict
+        :param kwargs: Collection of data that further describes the source.
+        :type kwargs: str
         :return: A new instance.
         :rtype: :class:`cibyl.sources.source.Source`
         """
@@ -59,11 +59,17 @@ class SourceFactory:
 
     @staticmethod
     def build_zuul_source(**kwargs):
+        """Builds a new Zuul source.
+
+        :param kwargs: Collection of data that further describes the source.
+        :type kwargs: str
+        :return: A new instance.
+        :rtype: :class:`Zuul`
+        """
+
         def get_url():
             if 'url' not in kwargs:
-                raise ValueError(
-                    f"Missing 'url' parameter on Zuul source."
-                )
+                raise ValueError("Missing 'url' parameter on Zuul source.")
 
             # Zuul's constructor will not expect a 'url' field
             return kwargs.pop('url')

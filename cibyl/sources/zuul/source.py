@@ -88,7 +88,7 @@ class Zuul(Source):
 
         :param kwargs: Parameters which narrow down the jobs to search for.
             Currently, the accepted parameters are:
-                - jobs -> list[str]: Name of jobs to search for.
+                * jobs -> list[str]: Name of jobs to search for.
         :type kwargs: :class:`cibyl.cli.argument.Argument`
         :return: The jobs retrieved from the query, formatted as an attribute
             of type :class:`Job`. Jobs are indexed by their name on the
@@ -164,7 +164,7 @@ class Zuul(Source):
 
         :param kwargs: Parameters which narrow down the builds to search for.
             Currently, the accepted parameters are:
-                - jobs -> list[str]: Name of jobs to search for.
+                * jobs -> list[str]: Name of jobs to search for.
         :type kwargs: :class:`cibyl.cli.argument.Argument`
         :return: The jobs retrieved from the query, formatted as an attribute
             of type :class:`Job`. Jobs are indexed by their name on the
