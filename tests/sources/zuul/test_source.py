@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.models.attribute import AttributeDictValue
+from cibyl.cli.argument import Argument
 from cibyl.models.ci.job import Job
 from cibyl.sources.zuul.api import ZuulAPIError
 from cibyl.sources.zuul.source import Zuul
@@ -97,11 +97,9 @@ class TestZuulGetJobs(TestCase):
         """Checks that the source invokes all necessary calls to retrieve
         the jobs.
         """
-        kwargs = {}
-
         zuul = Zuul(self.api, url='')
 
-        zuul.get_jobs(**kwargs)
+        zuul.get_jobs()
 
         self.api.tenants.assert_called()
 
@@ -111,11 +109,9 @@ class TestZuulGetJobs(TestCase):
     def test_returned_attribute(self):
         """Checks the correct format of the returned attribute dictionary.
         """
-        kwargs = {}
-
         zuul = Zuul(self.api, url='')
 
-        result: AttributeDictValue = zuul.get_jobs(**kwargs)
+        result = zuul.get_jobs()
 
         self.assertEqual('jobs', result.name)
         self.assertEqual(Job, result.attr_type)
@@ -129,7 +125,9 @@ class TestZuulGetJobs(TestCase):
 
         url = 'localhost:8080/zuul'
 
-        kwargs = {}
+        kwargs = {
+            'jobs': Argument('name', list, '', value=[])
+        }
 
         def build_url(tenant, job):
             return f"{url}/t/{tenant.name}/job/{job}"
@@ -153,7 +151,7 @@ class TestZuulGetJobs(TestCase):
 
         zuul = Zuul(self.api, url)
 
-        result: dict = zuul.get_jobs(**kwargs).value
+        result = zuul.get_jobs(**kwargs).value
 
         # Check that the desired data was obtained from the jobs
         self.assertEqual(expected_jobs, result)
@@ -168,7 +166,7 @@ class TestZuulGetJobs(TestCase):
         job3 = 'job_3'
 
         kwargs = {
-            'jobs': [job1, job2]
+            'jobs': Argument('name', list, '', value=[job1, job2])
         }
 
         self.tenants[0].name.value = 'tenant1'
@@ -180,9 +178,9 @@ class TestZuulGetJobs(TestCase):
         zuul = Zuul(self.api, url='')
 
         # Check that just the desired jobs where retrieved
-        result: dict = zuul.get_jobs(**kwargs).value
+        result = zuul.get_jobs(**kwargs).value
 
-        self.assertEqual(kwargs['jobs'], list(result.keys()))
+        self.assertEqual(kwargs['jobs'].value, list(result.keys()))
 
 
 class TestZuulGetBuilds(TestCase):
@@ -213,11 +211,9 @@ class TestZuulGetBuilds(TestCase):
         following the idea that requests should always try to provide
         information of the highest possible level.
         """
-        kwargs = {}
-
         zuul = Zuul(self.api, url='')
 
-        result: AttributeDictValue = zuul.get_builds(**kwargs)
+        result = zuul.get_builds()
 
         self.assertEqual('jobs', result.name)
         self.assertEqual(Job, result.attr_type)
@@ -225,75 +221,68 @@ class TestZuulGetBuilds(TestCase):
     def test_all_builds_retrieved(self):
         """Checks that the source is capable of retrieving all builds
         on the remote alongside their appropriate data."""
+        build1 = '1'
+        build2 = '2'
+
         job1 = 'job1'
         job2 = 'job2'
 
-        build1 = {
-            'uuid': '1',
-            'job_name': job1,
-            'result': 'success'
+        kwargs = {
+            'jobs': Argument('name', list, '', value=[])
         }
-
-        build2 = {
-            'uuid': '2',
-            'job_name': job2,
-            'result': 'success'
-        }
-
-        kwargs = {}
 
         self.tenants[0].jobs.return_value = [{'name': job1}]
         self.tenants[1].jobs.return_value = [{'name': job2}]
 
-        self.tenants[0].builds.return_value = [build1]
-        self.tenants[1].builds.return_value = [build2]
+        self.tenants[0].builds.return_value = [
+            {'uuid': build1, 'job_name': job1, 'result': 'success'}
+        ]
+        self.tenants[1].builds.return_value = [
+            {'uuid': build2, 'job_name': job2, 'result': 'success'}
+        ]
 
         zuul = Zuul(self.api, url='')
 
-        result: dict = zuul.get_builds(**kwargs).value
+        result = zuul.get_builds(**kwargs).value
 
         self.assertEqual([job1, job2], list(result.keys()))
 
-        self.assertEqual(1, len(result[job1].builds.value))
-        self.assertEqual(build1['uuid'], result[job1].builds[0].build_id.value)
+        self.assertEqual([build1], list(result[job1].builds.keys()))
+        self.assertEqual([build2], list(result[job2].builds.keys()))
 
-        self.assertEqual(1, len(result[job2].builds.value))
-        self.assertEqual(build2['uuid'], result[job2].builds[0].build_id.value)
+        self.assertEqual(build1, result[job1].builds[build1].build_id.value)
+        self.assertEqual(build2, result[job2].builds[build2].build_id.value)
 
     def test_builds_for_searched_jobs_are_retrieved(self):
         """Checks that only the builds belonging to the requested jobs
         are retrieved.
         """
+        build1 = '1'
+        build2 = '2'
+
         job1 = 'job1'
         job2 = 'job2'
 
-        build1 = {
-            'uuid': '1',
-            'job_name': job1,
-            'result': 'success'
-        }
-
-        build2 = {
-            'uuid': '2',
-            'job_name': job2,
-            'result': 'success'
-        }
-
         kwargs = {
-            'jobs': [job1]
+            'jobs': Argument('name', list, '', value=[job1])
         }
 
         self.tenants[0].jobs.return_value = [{'name': job1}]
         self.tenants[1].jobs.return_value = [{'name': job2}]
 
-        self.tenants[0].builds.return_value = [build1]
-        self.tenants[1].builds.return_value = [build2]
+        self.tenants[0].builds.return_value = [
+            {'uuid': build1, 'job_name': job1, 'result': 'success'}
+        ]
+        self.tenants[1].builds.return_value = [
+            {'uuid': build2, 'job_name': job2, 'result': 'success'}
+        ]
 
         zuul = Zuul(self.api, url='')
 
-        result: dict = zuul.get_builds(**kwargs).value
+        result = zuul.get_builds(**kwargs).value
 
         self.assertEqual([job1], list(result.keys()))
 
-        self.assertEqual(1, len(result[job1].builds.value))
-        self.assertEqual(build1['uuid'], result[job1].builds[0].build_id.value)
+        self.assertEqual([build1], list(result[job1].builds.keys()))
+
+        self.assertEqual(build1, result[job1].builds[build1].build_id.value)

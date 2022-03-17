@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Iterable
+
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
@@ -86,8 +88,8 @@ class Zuul(Source):
 
         :param kwargs: Parameters which narrow down the jobs to search for.
             Currently, the accepted parameters are:
-                - jobs: list[str] -> Name of jobs to search for.
-        :type kwargs: dict
+                - jobs -> list[str]: Name of jobs to search for.
+        :type kwargs: :class:`cibyl.cli.argument.Argument`
         :return: The jobs retrieved from the query, formatted as an attribute
             of type :class:`Job`. Jobs are indexed by their name on the
             attribute.
@@ -101,10 +103,16 @@ class Zuul(Source):
             :return: Whether the query is asking for this job or not.
             :rtype: bool
             """
-            targets = kwargs.get('jobs')
-
             # Check if user wants to filter jobs
+            if 'jobs' not in kwargs:
+                return True
+
+            targets = kwargs.get('jobs').value
+
             if not targets:
+                return True
+
+            if not isinstance(targets, Iterable):
                 return True
 
             # Check if this job is desired by user
@@ -156,8 +164,8 @@ class Zuul(Source):
 
         :param kwargs: Parameters which narrow down the builds to search for.
             Currently, the accepted parameters are:
-                - jobs: list[str] -> Name of jobs to search builds for.
-        :type kwargs: dict
+                - jobs -> list[str]: Name of jobs to search for.
+        :type kwargs: :class:`cibyl.cli.argument.Argument`
         :return: The jobs retrieved from the query, formatted as an attribute
             of type :class:`Job`. Jobs are indexed by their name on the
             attribute. Builds can be found inside each of the jobs listed here.
@@ -165,7 +173,7 @@ class Zuul(Source):
         """
         result = self.get_jobs(**kwargs)
 
-        jobs: dict = result.value
+        jobs = result.value
 
         for tenant in self._api.tenants():
             for build in tenant.builds():
@@ -177,7 +185,7 @@ class Zuul(Source):
                     continue
 
                 # Add build to job
-                job: Job = jobs.get(build_job)
+                job = jobs.get(build_job)
                 job.add_build(Build(build['uuid'], build['result']))
 
         return result
