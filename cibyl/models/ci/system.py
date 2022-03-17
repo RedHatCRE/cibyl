@@ -72,7 +72,7 @@ class System(Model):
         string = indent*' ' + f"System: {self.name.value}"
         if verbosity > 0:
             string += f" (type: {self.system_type.value})"
-        for job in self.jobs:
+        for job in self.jobs.values():
             string += f"\n{job.__str__(indent+2, verbosity)}"
         return string
 
