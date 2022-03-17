@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import List
 
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeListValue
@@ -55,7 +56,7 @@ class Deployment(Model):
     }
 
     def __init__(self, release: float, infra_type: str,
-                 nodes: list[Node], services: list[Service]):
+                 nodes: List[Node], services: List[Service]):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services})
 
