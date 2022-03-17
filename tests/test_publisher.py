@@ -33,4 +33,4 @@ class TestOrchestrator(TestCase):
         """Testing Publisher publish method"""
         self.publisher.publish(environments=[self.environment],
                                dest="terminal")
-        mock_print.assert_called_with(self.environment)
+        mock_print.assert_called_with(self.environment.__str__())

@@ -102,9 +102,7 @@ Should be {self.job_url}")
 
         self.second_job.url.value = self.job_url
 
-        self.assertEqual(str(self.second_job),
-                         f'Job: {self.job_name}\n  \
-URL: {self.job_url}')
+        self.assertEqual(str(self.second_job), f'Job: {self.job_name}')
 
     def test_jobs_add_build(self):
         """Testing Job add_build method."""

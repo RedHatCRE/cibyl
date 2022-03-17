@@ -61,12 +61,16 @@ class TestParser(TestCase):
     def test_parser_parse_args(self):
         """Testing parser extend method"""
         self.parser.parse()
-        self.assertEqual(self.parser.app_args, {'plugin': 'openstack'})
+        self.assertEqual(self.parser.app_args, {'debug': False,
+                                                'plugin': 'openstack',
+                                                'verbosity': 0})
         self.assertEqual(self.parser.ci_args, {})
 
         self.parser.extend(self.environment.arguments, 'Environment')
         self.parser.parse(['--env-name', 'env1', '--plugin', 'openshift'])
-        self.assertEqual(self.parser.app_args, {'plugin': 'openshift'})
+        self.assertEqual(self.parser.app_args, {'plugin': 'openshift',
+                                                'verbosity': 0,
+                                                'debug': False})
         self.assertEqual(self.parser.ci_args,
                          {'env_name': Argument(
                              name='env_name', arg_type=str,

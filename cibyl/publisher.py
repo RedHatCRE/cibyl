@@ -25,10 +25,10 @@ class Publisher:
     """
 
     @staticmethod
-    def publish(environments, dest="terminal"):
+    def publish(environments, dest="terminal", verbosity=0):
         """Publishes the data of the given environments to the
         chosen destination.
         """
         if dest == "terminal":
             for env in environments:
-                print(env)
+                print(env.__str__(verbosity=verbosity))
