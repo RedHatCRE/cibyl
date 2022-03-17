@@ -21,7 +21,6 @@ from cibyl.models.model import Model
 from cibyl.models.openstack.node import Node
 from cibyl.models.openstack.service import Service
 
-# pylint: disable=too-few-public-methods
 # pylint: disable=no-member
 
 
