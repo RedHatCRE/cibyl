@@ -27,11 +27,7 @@ from cibyl.sources.source import Source
 LOG = logging.getLogger(__name__)
 
 
-<<<<<<< HEAD
 class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
-=======
-class ElasticSearchOSP:
->>>>>>> main
     """Used to perform queries in elasticsearch"""
 
     def __init__(self: object, driver: str = 'elasticsearch',
