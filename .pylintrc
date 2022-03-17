@@ -2,3 +2,6 @@
 
 # Increasing the inheritance depth so that standard classes can be extended (See R0901)
 max-parents=15
+
+# A class can have a single function if it needs to, but avoid classes that do nothing (See R0903)
+min-public-methods=1

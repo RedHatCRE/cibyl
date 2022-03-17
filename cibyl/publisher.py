@@ -18,7 +18,6 @@ import logging
 LOG = logging.getLogger(__name__)
 
 
-# pylint: disable=too-few-public-methods
 class Publisher:
     """Represents a publisher which is responsible for publishing the data
     collected by the application in the chosen format and to the chosen
