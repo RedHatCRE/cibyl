@@ -36,7 +36,7 @@ class Build(Model):
     def __init__(self, build_id: str, status: str = None):
         super().__init__({'build_id': build_id, 'status': status})
 
-    def __str__(self, indent=0):
+    def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
         build_str = f"{indent_space}Build: {self.build_id.value}"
         if self.status.value:

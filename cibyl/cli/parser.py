@@ -80,6 +80,10 @@ class Parser:
             help='Where to write the output, default is both')
         self.argument_parser.add_argument(
             '--plugin', '-p', dest="plugin", default="openstack")
+        self.argument_parser.add_argument(
+            '-v', '--verbose', dest="verbosity", default=0, action="count",
+            help="Causes Cibyl to print more debug messages. "
+                 "Adding multiple -v will increase the verbosity.")
 
     def parse(self, arguments=None):
         """Parse application and CI models arguments.
@@ -97,8 +101,8 @@ class Parser:
         self.ci_args = {arg_name: arg_value for arg_name, arg_value in vars(
             known_arguments).items() if isinstance(arg_value, Argument)}
         self.app_args = {arg_name: arg_value for arg_name, arg_value in vars(
-            known_arguments).items() if arg_value and not isinstance(
-                arg_value, Argument)}
+            known_arguments).items() if arg_value is not None and not
+            isinstance(arg_value, Argument)}
 
     def get_group(self, group_name: str):
         """Returns the argument parser group based on a given group_name
