@@ -21,7 +21,8 @@ from cibyl.cli.argument import Argument
 LOG = logging.getLogger(__name__)
 
 
-class CustomAction(argparse.Action):  # pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods
+class CustomAction(argparse.Action):
     """Custom argparse.Action that allows in addition, to specify
     whether an argument data is populated, the function associated
     with the argument and the level in the models.

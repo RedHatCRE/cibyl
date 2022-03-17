@@ -21,7 +21,7 @@ from cibyl.exceptions.elasticsearch import ElasticSearchError
 LOG = logging.getLogger(__name__)
 
 
-class ElasticSearchOSP:  # pylint: disable=too-few-public-methods
+class ElasticSearchOSP:
     """Used to perform queries in elasticsearch"""
 
     ALLOWED_QUERIES = [

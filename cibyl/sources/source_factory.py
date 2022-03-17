@@ -13,31 +13,51 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from enum import Enum
+
+from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.zuul.source import Zuul, ZuulData
 
 
+class SourceType(str, Enum):
+    """Describes the sources known by the app, those which can be build.
+    """
+    JENKINS = 'jenkins'
+    ZUUL = 'zuul'
+    ELASTICSEARCH = 'elasticsearch'
+
+
 class SourceFactory:
+    """Instantiates sources from inputs coming from the configuration file.
+    """
+
     @staticmethod
     def create_source(source_type, name, **kwargs):
-        """
-        :param source_type:
-        :type source_type: str
-        :param name:
-        :param kwargs:
-        :return:
-        """
-        source_type = source_type.upper()
+        """Builds a new source.
 
-        if source_type == 'JENKINS':
-            pass
-        elif source_type == 'ZUUL':
+        :param source_type: Type of the source to build.
+        :type source_type: str or :class:`SourceType`
+        :param name: A name to identify the source.
+        :type name: str
+        :param kwargs: Collection of data that further describe the source.
+        :type kwargs: dict
+        :return: A new instance.
+        :rtype: :class:`cibyl.sources.source.Source`
+        """
+        source_type = source_type.lower()
+
+        if source_type == SourceType.JENKINS:
+            return Jenkins(name=name, **kwargs)
+
+        if source_type == SourceType.ZUUL:
             kwargs['name'] = name
 
             return SourceFactory.build_zuul_source(**kwargs)
-        elif source_type == 'ELASTICSEARCH':
-            pass
-        else:
-            raise NotImplementedError(f"Unknown source type '{source_type}'")
+
+        if source_type == SourceType.ELASTICSEARCH:
+            return None
+
+        raise NotImplementedError(f"Unknown source type '{source_type}'")
 
     @staticmethod
     def build_zuul_source(**kwargs):

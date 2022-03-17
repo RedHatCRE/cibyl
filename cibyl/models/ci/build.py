@@ -47,3 +47,13 @@ class Build(Model):
         if not isinstance(other, self.__class__):
             return False
         return self.build_id.value == other.build_id.value
+
+    def merge(self, other):
+        """Merge the information of two build objects representing the same
+        build.
+
+        :param other: The Build object to merge
+        :type other: :class:`.Build`
+        """
+        if not self.status.value:
+            self.status.value = other.status.value
