@@ -18,7 +18,6 @@
 # flake8: noqa from cibyl.models.attribute import AttributeListValue
 from cibyl.models.model import Model
 
-# pylint: disable=too-few-public-methods
 # pylint: disable=no-member
 
 
