@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import List
+
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeListValue
 from cibyl.models.ci.job import Job
@@ -38,7 +40,7 @@ class Pipeline(Model):
         }
     }
 
-    def __init__(self, name: str, jobs: list[Job] = None):
+    def __init__(self, name: str, jobs: List[Job] = None):
         super().__init__(attributes={'name': name,
                                      'jobs': jobs})
 

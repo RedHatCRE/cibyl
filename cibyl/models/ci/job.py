@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import List
+
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeListValue
 from cibyl.models.ci.build import Build
@@ -47,7 +49,7 @@ class Job(Model):
         }
     }
 
-    def __init__(self, name: str, url: str = None, builds: list[Build] = None):
+    def __init__(self, name: str, url: str = None, builds: List[Build] = None):
         super().__init__({'name': name, 'url': url,
                           'builds': builds})
 
