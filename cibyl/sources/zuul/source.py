@@ -20,7 +20,7 @@ from cibyl.sources.source import Source
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
 
 
-class SourceData:  # pylint: disable=too-few-public-methods
+class ZuulData:  # pylint: disable=too-few-public-methods
     """Data class representing the source side of Zuul.
     """
 
@@ -43,7 +43,7 @@ class Zuul(Source):
     """Source implementation for a Zuul host.
     """
 
-    def __init__(self, api, url, data=SourceData()):
+    def __init__(self, api, url, data=ZuulData()):
         """Constructor.
 
         :param api: Medium of communication with host.
@@ -51,7 +51,7 @@ class Zuul(Source):
         :param url: Address where the host is located.
         :type url: str
         :param data: Additional information detailing the source.
-        :type data: :class:`SourceData`
+        :type data: :class:`ZuulData`
         """
         # URLs are built assuming no slash at the end of URL
         if url.endswith('/'):
@@ -62,7 +62,7 @@ class Zuul(Source):
         self._api = api
 
     @staticmethod
-    def new_source(url, cert=None, data=SourceData()):
+    def new_source(url, cert=None, data=ZuulData()):
         """Builds a Zuul source from the data that describes it.
 
         :param url: Address of Zuul's host.
@@ -70,7 +70,7 @@ class Zuul(Source):
         :param cert: See :meth:`ZuulRESTClient.from_url`
         :type cert: str or None
         :param data: Additional data describing the source.
-        :type data: :class:`SourceData`
+        :type data: :class:`ZuulData`
         :return: The instance.
         """
         return Zuul(ZuulRESTClient.from_url(url, cert), url, data)
