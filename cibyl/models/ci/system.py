@@ -71,7 +71,7 @@ class System(Model):
     def __str__(self, indent=0):
         string = indent*' ' + f"System: {self.name.value} \
 (type: {self.system_type.value})"
-        for job in self.jobs:
+        for job in self.jobs.values():
             string += f"\n{job.__str__(indent=indent+2)}"
         return string
 
