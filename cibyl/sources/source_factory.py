@@ -18,7 +18,7 @@ from enum import Enum
 from cibyl.sources.jenkins import Jenkins
 
 
-class SourceType(Enum):
+class SourceType(str, Enum):
     JENKINS = 'jenkins',
     ZUUL = 'zuul',
     ELASTICSEARCH = 'elasticsearch'
