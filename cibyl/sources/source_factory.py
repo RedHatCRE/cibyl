@@ -19,28 +19,39 @@ from cibyl.sources.jenkins import Jenkins
 
 
 class SourceType(str, Enum):
-    JENKINS = 'jenkins',
-    ZUUL = 'zuul',
+    """Describes the sources known by the app, those which can be build.
+    """
+    JENKINS = 'jenkins'
+    ZUUL = 'zuul'
     ELASTICSEARCH = 'elasticsearch'
 
 
 class SourceFactory:
+    """Instantiates sources from inputs coming from the configuration file.
+    """
+
     @staticmethod
     def create_source(source_type, name, **kwargs):
-        """
-        :param source_type:
+        """Builds a new source.
+
+        :param source_type: Type of the source to build.
         :type source_type: str or :class:`SourceType`
-        :param name:
-        :param kwargs:
-        :return:
+        :param name: A name to identify the source.
+        :type name: str
+        :param kwargs: Collection of data that further describe the source.
+        :type kwargs: dict
+        :return: A new instance.
+        :rtype: :class:`cibyl.sources.source.Source`
         """
         source_type = source_type.lower()
 
         if source_type == SourceType.JENKINS:
             return Jenkins(name=name, **kwargs)
-        elif source_type == SourceType.ZUUL:
+
+        if source_type == SourceType.ZUUL:
             return None
-        elif source_type == SourceType.ELASTICSEARCH:
+
+        if source_type == SourceType.ELASTICSEARCH:
             return None
-        else:
-            raise NotImplementedError(f"Unknown source type '{source_type}'")
+
+        raise NotImplementedError(f"Unknown source type '{source_type}'")
