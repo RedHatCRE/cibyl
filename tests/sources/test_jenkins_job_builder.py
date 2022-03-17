@@ -115,7 +115,7 @@ class TestJenkinsJobBuilderSource(TestCase):
         jenkins = JenkinsJobBuilder("url", dest="out_jjb_test")
         jenkins._generate_xml = Mock()
 
-        jobs = jenkins.get_jobs(jobs=["*"])
+        jobs = jenkins.get_jobs()
         job = Job(name="fake_job2")
         result = AttributeDictValue("jobs", attr_type=Job,
                                     value={"fake_job2": job})
