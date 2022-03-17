@@ -80,7 +80,7 @@ class TestSystem(unittest.TestCase):
         job.add_build(build)
         self.system.add_job(job)
         output = str(self.system)
-        expected = """System: test (type: test_type)
+        expected = """System: test
   Job: test_job
     Build: 1
       Status: SUCCESS"""
