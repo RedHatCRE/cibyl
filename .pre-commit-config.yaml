@@ -35,6 +35,13 @@ repos:
         language: system
         types: [python]
         require_serial: true
+        args: [
+          "-j 4",
+          "--reports=n", # Simple report -> Just the problems
+          "--fail-under=9",
+          "--output=pylint.report.txt", # Does not get printed on console anymore
+          "--output-format=text"
+        ]
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.24.2
     hooks:

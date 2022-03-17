@@ -21,7 +21,6 @@ from cibyl.exceptions.model import NoValidEnvironment, NoValidSystem
 LOG = logging.getLogger(__name__)
 
 
-# pylint: disable=too-few-public-methods
 class Validator:
     """This is a helper class that will filter the configuration according to
     the user input.
