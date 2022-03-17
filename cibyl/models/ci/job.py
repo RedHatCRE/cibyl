@@ -14,8 +14,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Dict
+
 from cibyl.cli.argument import Argument
-from cibyl.models.attribute import AttributeListValue
+from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.model import Model
 
@@ -40,14 +42,15 @@ class Job(Model):
         },
         'builds': {
             'attr_type': Build,
-            'attribute_value_class': AttributeListValue,
+            'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--builds', arg_type=str,
                                    nargs="*", func="get_builds",
                                    description="Job builds")]
         }
     }
 
-    def __init__(self, name: str, url: str = None, builds: list[Build] = None):
+    def __init__(self, name: str, url: str = None,
+                 builds: Dict[str, Build] = None):
         super().__init__({'name': name, 'url': url,
                           'builds': builds})
 
@@ -57,7 +60,7 @@ class Job(Model):
         if self.url.value:
             job_str += f"\n{indent_space}  URL: {self.url.value}"
         if self.builds.value:
-            for build in self.builds:
+            for build in self.builds.values():
                 job_str += f"\n{build.__str__(indent=indent+2)}"
         return job_str
 
@@ -72,4 +75,20 @@ class Job(Model):
         :param build: Build to add to the job
         :type build: Build
         """
-        self.builds.append(build)
+        build_id = build.build_id.value
+        if build_id in self.builds:
+            self.builds[build_id].merge(build)
+        else:
+            self.builds[build_id] = build
+
+    def merge(self, other):
+        """Merge the information of two job objects representing the same
+        job.
+
+        :param other: The Job object to merge
+        :type other: :class:`.Job`
+        """
+        if not self.url.value:
+            self.url.value = other.url.value
+        for build in other.builds.values():
+            self.add_build(build)

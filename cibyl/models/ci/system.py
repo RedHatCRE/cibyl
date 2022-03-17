@@ -14,9 +14,11 @@
 #    under the License.
 """
 # pylint: disable=no-member
+from typing import Dict, List
+
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.model import NonSupportedModelType
-from cibyl.models.attribute import AttributeListValue
+from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.pipeline import Pipeline
 from cibyl.models.model import Model
@@ -41,7 +43,7 @@ class System(Model):
         },
         'jobs': {
             'attr_type': Job,
-            'attribute_value_class': AttributeListValue,
+            'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--jobs', arg_type=str, nargs='*',
                                    description="System jobs",
                                    func='get_jobs')]
@@ -60,8 +62,8 @@ class System(Model):
     }
 
     def __init__(self, name: str,  # pylint: disable=too-many-arguments
-                 system_type: str, jobs: list[Job] = None,
-                 jobs_scope: str = "*", sources: list = None):
+                 system_type: str, jobs: Dict[str, Job] = None,
+                 jobs_scope: str = "*", sources: List = None):
         super().__init__({'name': name, 'system_type': system_type,
                           'jobs': jobs, 'jobs_scope': jobs_scope,
                           'sources': sources})
@@ -69,7 +71,7 @@ class System(Model):
     def __str__(self, indent=0):
         string = indent*' ' + f"System: {self.name.value} \
 (type: {self.system_type.value})"
-        for job in self.jobs:
+        for job in self.jobs.values():
             string += f"\n{job.__str__(indent=indent+2)}"
         return string
 
@@ -87,7 +89,11 @@ class System(Model):
         :param job: Job to add to the system
         :type job: Job
         """
-        self.jobs.append(job)
+        job_name = job.name.value
+        if job_name in self.jobs.values():
+            self.jobs[job_name].merge(job)
+        else:
+            self.jobs[job_name] = job
 
     def add_source(self, source: Source):
         """Add a source to the CI system
@@ -109,7 +115,7 @@ class ZuulSystem(System):
         super().__init__(name, "zuul")
         pipeline_argument = Argument(name='--pipelines', arg_type=str,
                                      description="System pipelines")
-        self.pipelines = AttributeListValue(name="pipelines",
+        self.pipelines = AttributeDictValue(name="pipelines",
                                             attr_type=Pipeline,
                                             arguments=[pipeline_argument])
 
@@ -119,7 +125,11 @@ class ZuulSystem(System):
         :param pipeline: Pipeline to add to the system
         :type pipeline: Pipeline
         """
-        self.pipelines.append(pipeline)
+        pipeline_name = pipeline.name.value
+        if pipeline_name in self.pipelines.values():
+            self.pipelines[pipeline_name].merge(pipeline)
+        else:
+            self.pipelines[pipeline_name] = pipeline
 
 
 class JenkinsSystem(System):

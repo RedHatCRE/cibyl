@@ -130,3 +130,6 @@ dmypy.json
 
 # Jetbrains IDEA
 .idea/
+
+# Pylint
+pylint.report.txt

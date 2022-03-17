@@ -17,12 +17,14 @@ import logging
 import operator
 
 from cibyl.cli.parser import Parser
+from cibyl.cli.validator import Validator
 from cibyl.config import Config
 from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.exceptions.source import NoValidSources
 from cibyl.models.ci.environment import Environment
 from cibyl.publisher import Publisher
 from cibyl.sources.source import Source
+from cibyl.sources.source_factory import SourceFactory
 
 LOG = logging.getLogger(__name__)
 
@@ -59,27 +61,33 @@ class Orchestrator:
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""
         try:
-            for env_name, systems_dict in \
-                    self.config.data.get('environments', {}).items():
+            env_data = self.config.data.get('environments', {}).items()
+
+            for env_name, systems_dict in env_data:
                 environment = Environment(name=env_name)
+
                 for system_name, single_system in systems_dict.items():
                     sources_dict = single_system.pop('sources', {})
-                    sources = [Source.get_source_class(
-                            source_data.get('driver'))(
-                                name=source_name, **source_data)
-                        for source_name, source_data in sources_dict.items()]
-                    environment.add_system(name=system_name,
-                                           **single_system, sources=sources)
+                    sources = []
+
+                    for source_name, source_data in sources_dict.items():
+                        sources.append(
+                            SourceFactory.create_source(
+                                source_data.get('driver'),
+                                source_name,
+                                **source_data
+                            )
+                        )
+
+                    environment.add_system(
+                        name=system_name,
+                        sources=sources,
+                        **single_system
+                    )
+
                 self.environments.append(environment)
         except AttributeError as exception:
             raise InvalidConfiguration from exception
-
-    @staticmethod
-    def populate(environment, model_instances):
-        """Populate environment instance with the provided model instances"""
-        for model_instance in model_instances:
-            LOG.debug("populating environment %s: %s",
-                      environment, model_instance)
 
     def select_source_method(self, system, argument):
         """Select the apropiate source considering the user input.
@@ -105,6 +113,12 @@ class Orchestrator:
     def run_query(self, start_level=1):
         """Execute query based on provided arguments."""
         last_level = -1
+        validator = Validator(self.parser.ci_args)
+        # we keep only the environments consistent with the user input, this
+        # should be helpful for the publisher to avoid showing unnecessary
+        # information
+        self.environments, valid_systems = validator.validate_environments(
+                self.environments)
         for arg in sorted(self.parser.ci_args.values(),
                           key=operator.attrgetter('level'), reverse=True):
             if arg.level >= start_level and arg.level >= last_level:
@@ -113,12 +127,14 @@ class Orchestrator:
                     # associated, we should not consider it here, e.g.
                     # --sources
                     continue
-                for env in self.environments:
-                    for system in env.systems:
-                        source_method = self.select_source_method(system, arg)
-                        model_instances_dict = source_method(
-                            **self.parser.ci_args)
-                        system.populate(model_instances_dict)
+                # the validation process provides a flat list of systems
+                # because the environment information is not used from this
+                # point forward
+                for system in valid_systems:
+                    source_method = self.select_source_method(system, arg)
+                    model_instances_dict = source_method(
+                        **self.parser.ci_args)
+                    system.populate(model_instances_dict)
             last_level = arg.level
 
     def extend_parser(self, attributes, group_name='Environment',

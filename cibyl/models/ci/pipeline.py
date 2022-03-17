@@ -14,8 +14,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Dict
+
 from cibyl.cli.argument import Argument
-from cibyl.models.attribute import AttributeListValue
+from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.job import Job
 from cibyl.models.model import Model
 
@@ -31,14 +33,14 @@ class Pipeline(Model):
         },
         'jobs': {
             'attr_type': Job,
-            'attribute_value_class': AttributeListValue,
+            'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--jobs', arg_type=str,
                                    nargs='*',
                                    description="Pipeline jobs")]
         }
     }
 
-    def __init__(self, name: str, jobs: list[Job] = None):
+    def __init__(self, name: str, jobs: Dict[str, Job] = None):
         super().__init__(attributes={'name': name,
                                      'jobs': jobs})
 
@@ -53,3 +55,24 @@ class Pipeline(Model):
         if not isinstance(other, self.__class__):
             return False
         return self.name.value == other.name.value
+
+    def add_job(self, job: Job):
+        """Add a job to the CI pipeline
+
+        :param job: Job to add to the pipeline
+        :type job: Job
+        """
+        name = job.name.value
+        if name in self.jobs:
+            self.jobs[name].merge(job)
+        else:
+            self.jobs[name] = job
+
+    def merge(self, other):
+        """Merge the information of two pipelines.
+
+        :param other: The Pipeline object to merge
+        :type other: :class:`.Pipeline`
+        """
+        for job in other.jobs.values():
+            self.add_job(job)

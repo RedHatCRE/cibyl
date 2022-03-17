@@ -133,7 +133,7 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(job.url.value, "url1")
         builds_found = job.builds.value
         self.assertEqual(len(builds_found), 2)
-        self.assertEqual(builds_found[0].build_id.value, "1")
-        self.assertEqual(builds_found[0].status.value, "SUCCESS")
-        self.assertEqual(builds_found[1].build_id.value, "2")
-        self.assertEqual(builds_found[1].status.value, "FAILURE")
+        self.assertEqual(builds_found["1"].build_id.value, "1")
+        self.assertEqual(builds_found["1"].status.value, "SUCCESS")
+        self.assertEqual(builds_found["2"].build_id.value, "2")
+        self.assertEqual(builds_found["2"].status.value, "FAILURE")

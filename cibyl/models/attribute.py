@@ -13,19 +13,26 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from dataclasses import dataclass
+from typing import List
 
 from cibyl.cli.argument import Argument
 
 
-@dataclass
 class AttributeValue():
     """Represents the value used by the attributes of the different models"""
 
-    name: str
-    attr_type: object
-    value: object = None
-    arguments: list[Argument] = None
+    def __init__(self, name: str, attr_type: object,
+                 value: object = None, arguments: List[Argument] = None):
+        self.name = name
+        self.attr_type = attr_type
+        self.value = value
+        self.arguments = arguments
+
+    def __eq__(self, other):
+        return self.name == other.name and self.value == other.value
+
+    def __str__(self):
+        return str(self.value)
 
 
 class AttributeListValue(AttributeValue):

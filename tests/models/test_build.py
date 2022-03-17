@@ -20,7 +20,7 @@ from cibyl.models.ci.build import Build
 
 
 class TestBuild(unittest.TestCase):
-    """Testing Build CI model"""
+    """Test Build CI model."""
 
     def setUp(self):
         self.build_id = 'test-build'
@@ -29,7 +29,7 @@ class TestBuild(unittest.TestCase):
         self.second_build = Build(build_id=self.build_id)
 
     def test_build_id(self):
-        """Testing new Build id attribute"""
+        """Test new Build id attribute"""
         self.assertTrue(
             hasattr(self.build, 'build_id'),
             msg="Build lacks build_id attribute")
@@ -40,7 +40,7 @@ class TestBuild(unittest.TestCase):
 Should be {self.build_id}")
 
     def test_build_status(self):
-        """Testing new Build status attribute"""
+        """Test new Build status attribute."""
         self.assertTrue(
             hasattr(self.build, 'status'), msg="Build lacks status attribute")
 
@@ -62,21 +62,21 @@ Should be None")
 Should be {self.build_status}")
 
     def test_builds_comparison(self):
-        """Testing new Build instances comparison."""
+        """Test new Build instances comparison."""
         self.assertEqual(
             self.build, self.second_build,
             msg=f"Builds {self.build.build_id.value} and \
 {self.second_build.build_id.value} are not equal")
 
     def test_builds_comparison_other_types(self):
-        """Testing new Build instances comparison."""
+        """Test new Build instances comparison."""
         self.assertNotEqual(
             self.build, "test",
             msg=f"Build {self.build.build_id.value} should be different from \
 str")
 
     def test_build_str(self):
-        """Testing Build __str__ method"""
+        """Test Build __str__ method."""
         self.assertEqual(str(self.build), f'Build: {self.build_id}')
 
         self.assertEqual(
@@ -88,3 +88,9 @@ str")
         self.assertEqual(
                 str(self.second_build),
                 f'Build: {self.build_id}\n  Status: {self.build_status}')
+
+    def test_build_merge(self):
+        """Test Build merge method."""
+        self.build.status.value = "SUCCESS"
+        self.second_build.merge(self.build)
+        self.assertEqual(self.second_build.status.value, "SUCCESS")
