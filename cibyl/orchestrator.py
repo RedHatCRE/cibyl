@@ -24,6 +24,7 @@ from cibyl.exceptions.source import NoValidSources
 from cibyl.models.ci.environment import Environment
 from cibyl.publisher import Publisher
 from cibyl.sources.source import Source
+from cibyl.sources.source_factory import SourceFactory
 
 LOG = logging.getLogger(__name__)
 
@@ -60,17 +61,30 @@ class Orchestrator:
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""
         try:
-            for env_name, systems_dict in \
-                    self.config.data.get('environments', {}).items():
+            env_data = self.config.data.get('environments', {}).items()
+
+            for env_name, systems_dict in env_data:
                 environment = Environment(name=env_name)
+
                 for system_name, single_system in systems_dict.items():
                     sources_dict = single_system.pop('sources', {})
-                    sources = [Source.get_source_class(
-                            source_data.get('driver'))(
-                                name=source_name, **source_data)
-                        for source_name, source_data in sources_dict.items()]
-                    environment.add_system(name=system_name,
-                                           **single_system, sources=sources)
+                    sources = []
+
+                    for source_name, source_data in sources_dict.items():
+                        sources.append(
+                            SourceFactory.create_source(
+                                source_data.get('driver'),
+                                source_name,
+                                **source_data
+                            )
+                        )
+
+                    environment.add_system(
+                        name=system_name,
+                        sources=sources,
+                        **single_system
+                    )
+
                 self.environments.append(environment)
         except AttributeError as exception:
             raise InvalidConfiguration from exception

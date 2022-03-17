@@ -26,6 +26,6 @@ class SourceRegistry:
             "jenkins": ("cibyl.sources.jenkins", "Jenkins"),
             "jenkins_job_builder": ("cibyl.sources.jenkins_job_builder",
                                     "JenkinsJobBuilder"),
-            "zuul": ("cibyl.sources.zuul", ""),
+            "zuul": ("cibyl.sources.zuul.source", "Zuul"),
             "elasticsearch": ("cibyl.sources.elasticsearch", "")
             }
