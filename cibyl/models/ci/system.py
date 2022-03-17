@@ -72,7 +72,7 @@ class System(Model):
         string = indent*' ' + f"System: {self.name.value} \
 (type: {self.system_type.value})"
         for job in self.jobs:
-            string += f"\n{job.__str__(indent=indent+2)}"
+            string += f"\n{self.jobs[job].__str__(indent=indent+2)}"
         return string
 
     def populate(self, instances_dict):
