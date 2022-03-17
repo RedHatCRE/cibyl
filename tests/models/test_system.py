@@ -61,7 +61,7 @@ class TestSystem(unittest.TestCase):
         job = Job("test_job")
         self.system.add_job(job)
         self.assertEqual(len(self.system.jobs.value), 1)
-        self.assertEqual(job, self.system.jobs.value[0])
+        self.assertEqual(job, self.system.jobs.value["test_job"])
 
     def test_system_populate(self):
         """Testing adding a new job to a system"""
@@ -70,7 +70,7 @@ class TestSystem(unittest.TestCase):
                                   attr_type=Job)
         self.system.populate(jobs)
         self.assertEqual(len(self.system.jobs.value), 1)
-        self.assertEqual(job, self.system.jobs.value[0])
+        self.assertEqual(job, self.system.jobs.value["test_job"])
 
 
 class TestZuulSystem(unittest.TestCase):
@@ -126,14 +126,30 @@ class TestZuulSystem(unittest.TestCase):
         pipeline = Pipeline("check")
         self.system.add_pipeline(pipeline)
         self.assertEqual(len(self.system.pipelines.value), 1)
-        self.assertEqual(pipeline, self.system.pipelines[0])
+        self.assertEqual(pipeline, self.system.pipelines["check"])
+
+    def test_add_pipeline_with_merge(self):
+        """Testing ZuulSystem add pipeline method"""
+        pipeline = Pipeline("check")
+        self.system.add_pipeline(pipeline)
+        self.system.add_pipeline(pipeline)
+        self.assertEqual(len(self.system.pipelines.value), 1)
+        self.assertEqual(pipeline, self.system.pipelines["check"])
 
     def test_add_job(self):
         """Testing adding a new job to a system"""
         job = Job("test_job")
         self.system.add_job(job)
         self.assertEqual(len(self.system.jobs.value), 1)
-        self.assertEqual(job, self.system.jobs.value[0])
+        self.assertEqual(job, self.system.jobs.value["test_job"])
+
+    def test_add_job_with_merge(self):
+        """Testing adding a new job to a system"""
+        job = Job("test_job")
+        self.system.add_job(job)
+        self.system.add_job(job)
+        self.assertEqual(len(self.system.jobs.value), 1)
+        self.assertEqual(job, self.system.jobs.value["test_job"])
 
     def test_add_source(self):
         """Testing adding a new source to a system"""
@@ -196,4 +212,4 @@ class TestJenkinsSystem(unittest.TestCase):
         job = Job("test_job")
         self.system.add_job(job)
         self.assertEqual(len(self.system.jobs.value), 1)
-        self.assertEqual(job, self.system.jobs.value[0])
+        self.assertEqual(job, self.system.jobs.value["test_job"])

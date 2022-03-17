@@ -47,12 +47,12 @@ Should be {self.job_name}")
             hasattr(self.job, 'builds'), msg="Job lacks builds attribute")
 
         self.assertEqual(
-            self.job.builds.value, [],
+            self.job.builds.value, {},
             msg=f"Job default builds is {self.job.builds.value}. \
 Should be []")
 
         self.assertEqual(
-            self.second_job.builds.value, [],
+            self.second_job.builds.value, {},
             msg="Job default builds are {self.second_job.builds.value}.\
  Should be []")
 
@@ -111,4 +111,20 @@ URL: {self.job_url}')
         build2 = Build("2", "SUCCESS")
         self.job.add_build(build2)
         self.assertEqual(1, len(self.job.builds.value))
-        self.assertEqual(build2, self.job.builds.value[0])
+        self.assertEqual(build2, self.job.builds.value["2"])
+
+    def test_jobs_add_build_with_merge(self):
+        """Testing Job add_build method."""
+        build2 = Build("2")
+        build3 = Build("2", "SUCCESS")
+        self.job.add_build(build2)
+        self.job.add_build(build3)
+        self.assertEqual(1, len(self.job.builds.value))
+        build = self.job.builds.value["2"]
+        self.assertEqual(build.status.value, build3.status.value)
+
+    def test_jobs_merge(self):
+        """Testing Job merge method."""
+        self.second_job.url.value = self.job_url
+        self.job.merge(self.second_job)
+        self.assertEqual(self.job.url.value, self.job_url)
