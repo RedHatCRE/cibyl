@@ -50,9 +50,7 @@ class SourceFactory:
             return Jenkins(name=name, **kwargs)
 
         if source_type == SourceType.ZUUL:
-            kwargs['name'] = name
-
-            return SourceFactory.build_zuul_source(**kwargs)
+            return SourceFactory.build_zuul_source(name=name, **kwargs)
 
         if source_type == SourceType.ELASTICSEARCH:
             return None
@@ -61,6 +59,15 @@ class SourceFactory:
 
     @staticmethod
     def build_zuul_source(**kwargs):
+        def get_url():
+            if 'url' not in kwargs:
+                raise ValueError(
+                    f"Missing 'url' parameter on Zuul source."
+                )
+
+            # Zuul's constructor will not expect a 'url' field
+            return kwargs.pop('url')
+
         def get_cert():
             cert = None
 
@@ -68,14 +75,6 @@ class SourceFactory:
                 cert = kwargs.get('cert')
 
             return cert
-
-        def get_url():
-            if 'url' not in kwargs:
-                raise ValueError(
-                    f"Missing 'url' parameter on Zuul source."
-                )
-
-            return kwargs.pop('url')
 
         return Zuul.new_source(
             get_url(),
