@@ -20,6 +20,7 @@ import re
 from functools import partial
 
 import requests
+import urllib3
 
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue
@@ -31,6 +32,7 @@ LOG = logging.getLogger(__name__)
 
 
 safe_request = partial(safe_request_generic, custom_error=JenkinsError)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 # pylint: disable=no-member
