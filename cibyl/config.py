@@ -83,4 +83,5 @@ class Config(UserDict):
         if file:
             self.data = yaml.parse(file)
         else:
-            raise FileNotFoundError(f"Could not open file at: '{self.path}'")
+            raise FileNotFoundError(f"Could not find configuration file: \
+'{self.path}'")
