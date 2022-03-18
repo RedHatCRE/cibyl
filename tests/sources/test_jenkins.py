@@ -104,7 +104,7 @@ class TestJenkinsSource(TestCase):
                               'name': "ansible", 'url': 'url1'},
                     {'_class': 'org..job.WorkflowRun', 'name': "job2",
                      'url': 'url2'},
-                    {'_class': 'empty', 'name': 'empty'}]}
+                    {'_class': 'empty', 'name': 'ansible-empty'}]}
         self.jenkins.send_request = Mock(return_value=response)
         jobs_arg = Mock()
         jobs_arg.value = ["ansible"]
@@ -165,7 +165,8 @@ class TestJenkinsSource(TestCase):
 
         response = {'jobs': [{'_class': 'org.job.WorkflowJob',
                               'name': 'ansible-nfv-branch', 'url': 'url',
-                              'lastBuild': None}]}
+                              'lastBuild': None},
+                             {'_class': 'folder'}]}
 
         self.jenkins.send_request = Mock(side_effect=[response])
 
@@ -212,4 +213,97 @@ class TestJenkinsSource(TestCase):
                      'name': "ans2", 'url': 'url3',
                      'lastBuild': {'number': 0, 'result': "FAILURE"}},
                     ]
+        self.assertEqual(jobs_filtered, expected)
+
+    def test_filter_job_name_job_url(self):
+        """
+            Test that filter_jobs filters the jobs given the user input.
+        """
+        response = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "test_jobs", 'url': 'url2',
+                     'lastBuild': {'number': 2, 'result': "FAILURE"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}}]
+        job_name = Mock()
+        job_name.value = ["ans2"]
+        job_url = Mock()
+        job_url.value = ["url3"]
+        jobs_filtered = filter_jobs(response, job_name=job_name,
+                                    job_url=job_url)
+        expected = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}}]
+        self.assertEqual(jobs_filtered, expected)
+
+    def test_filter_job_name(self):
+        """
+            Test that filter_jobs filters the jobs given the user input.
+        """
+        response = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "test_jobs", 'url': 'url2',
+                     'lastBuild': {'number': 2, 'result': "FAILURE"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}}]
+        job_name = Mock()
+        job_name.value = ["ansible"]
+        jobs_filtered = filter_jobs(response, job_name=job_name)
+        expected = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}}]
+        self.assertEqual(jobs_filtered, expected)
+
+    def test_filter_job_url(self):
+        """
+            Test that filter_jobs filters the jobs given the user input.
+        """
+        response = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "test_jobs", 'url': 'url2',
+                     'lastBuild': {'number': 2, 'result': "FAILURE"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}}
+                    ]
+        job_url = Mock()
+        job_url.value = ["url2"]
+        jobs_filtered = filter_jobs(response, job_url=job_url)
+        expected = [{'_class': 'org..job.WorkflowRun',
+                     'name': "test_jobs", 'url': 'url2',
+                     'lastBuild': {'number': 2, 'result': "FAILURE"}}]
+        self.assertEqual(jobs_filtered, expected)
+
+    def test_filter_job_name_job_url_jobs(self):
+        """
+            Test that filter_jobs filters the jobs given the user input.
+        """
+        response = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "test_jobs", 'url': 'url2',
+                     'lastBuild': {'number': 2, 'result': "FAILURE"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}}]
+        args = Mock()
+        args.value = ["ans"]
+        job_name = Mock()
+        job_name.value = ["ansible"]
+        job_url = Mock()
+        job_url.value = ["url1"]
+        jobs_filtered = filter_jobs(response, jobs=args, job_url=job_url,
+                                    job_name=job_name)
+        expected = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}}]
         self.assertEqual(jobs_filtered, expected)
