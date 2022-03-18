@@ -53,8 +53,9 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
             :returns: Job objects queried from elasticserach
             :rtype: :class:`AttributeDictValue`
         """
+        jobs_provided = kwargs.get('jobs').value
 
-        query_body = QueryTemplate('jobName', kwargs.get('jobs').value[0]).get
+        query_body = QueryTemplate('jobName', jobs_provided).get
 
         hits = self.__query_get_hits(
             index='jenkins',
@@ -64,7 +65,7 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
         job_objects = {}
         for hit in hits:
             job_name = hit['_source']['jobName']
-            url = hit['_source']['envVars']['BUILD_URL']
+            url = hit['_source']['envVars']['JOB_URL']
             job_objects[job_name] = Job(name=job_name, url=url)
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
@@ -100,7 +101,9 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
         jobs_found = self.get_jobs(**kwargs)
 
         for job_name, job in jobs_found.items():
-            query_body = QueryTemplate('job_name', job_name).get
+            query_body = QueryTemplate('job_name',
+                                       [job_name],
+                                       query_type='match').get
 
             builds = self.__query_get_hits(
                 index='jenkins_builds',
@@ -115,16 +118,57 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
 
 
 class QueryTemplate():  # pylint: disable=too-few-public-methods
-    """Used for basic template and substitution in DSL query"""
+    """Used for template and substitutions according to the
+       elements received and return a dictionary equivalent to
+       a DSL query
+    """
 
-    def __init__(self: object, search_key: str, search_value: str) -> None:
-        self.query_body = {
-            'query': {
-                'match': {
-                    search_key: search_value
+    def __init__(self: object, search_key: str,
+                 search_values: list, **kwargs) -> None:
+        if not isinstance(search_values, list):
+            raise TypeError(f"search_values argument received: '{search_values}' \
+                              is not a list")
+
+        # Empty query for all hits or elements
+        if not search_values:
+            self.query_body = ''
+        # Just one element that start with string
+        # is better to use 'match_phrase_prefix'
+        elif len(search_values) == 1:
+            query_type = 'match_phrase_prefix'
+
+            if 'query_type' in kwargs:
+                query_type = 'match'
+
+            self.query_body = {
+                'query': {
+                    query_type: {
+                        search_key: search_values[0]
+                    }
                 }
             }
-        }
+        # If we want to find more than one element and all of them
+        # start with string we need to search using OR condition
+        else:
+            match_to_process = {
+                'should': [],
+                "minimum_should_match": 1
+            }
+
+            for value in search_values:
+                match_to_process['should'].append(
+                    {
+                        "match_phrase": {
+                            search_key: value
+                        }
+                    }
+                )
+
+            self.query_body = {
+                'query': {
+                    'bool': match_to_process,
+                }
+            }
 
     @property
     def get(self: object) -> dict:

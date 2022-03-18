@@ -15,6 +15,7 @@
 """
 from enum import Enum
 
+from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 
@@ -54,7 +55,7 @@ class SourceFactory:
             return None
 
         if source_type == SourceType.ELASTICSEARCH:
-            return None
+            return ElasticSearchOSP(name=name, **kwargs)
 
         if source_type == SourceType.JENKINS_JOB_BUILDER:
             return JenkinsJobBuilder(name=name, **kwargs)
