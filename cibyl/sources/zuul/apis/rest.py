@@ -50,7 +50,10 @@ class ZuulSession:
 
     @property
     def url(self):
-        """URL to the entry point of the host's REST-API."""
+        """
+        :return: URL to the entry point of the host's REST-API.
+        :rtype: str
+        """
         return self._api_url
 
     def get(self, service):
@@ -60,6 +63,7 @@ class ZuulSession:
         :type service: str
         :return: JSON-like response from host.
         :rtype: dict
+        :raises ZuulAPIError: If the request failed.
         """
         request = self._session.get(urljoin(self._api_url, service))
 
@@ -137,6 +141,14 @@ class ZuulRESTClient(ZuulAPI):
         :rtype: :class:`ZuulRESTClient`
         """
         return ZuulRESTClient(ZuulSession(Session(), host_url, cert))
+
+    @property
+    def session(self):
+        """
+        :return: The session this client is working on top of.
+        :rtype: :class:`ZuulSession`
+        """
+        return self._session
 
     def info(self):
         return self._session.get('info')
