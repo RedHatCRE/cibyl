@@ -43,8 +43,8 @@ class NoSupportedSourcesFound(Exception):
     """
 
     def __init__(self, system, function):
-        self.message = f"""Couldn't find any source for the system {system}
-that implements the function {function}
+        self.message = f"""Couldn't find any enabled source for the system
+{system} that implements the function {function}.
 """
         super().__init__(self.message)
 
