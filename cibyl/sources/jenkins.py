@@ -37,47 +37,67 @@ safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def satisfy_regex_match(job: Dict[str, str], pattern: Pattern,
+def satisfy_regex_match(model: Dict[str, str], pattern: Pattern,
                         field_to_check: str):
-    """Check whether job should be included according to the user input.
-    The job should be added if the information provided field_to_check
-    (the job name or url for example) is matches the regex pattern.
+    """Check whether model (job or build) should be included according to
+    the user input.
+    The model should be added if the information provided field_to_check
+    (the model name or url for example) is matches the regex pattern.
 
-    :param job: job information obtained from jenkins
-    :type job: str
-    :param pattern: regex patter that the job name should match
+    :param model: model information obtained from jenkins
+    :type model: str
+    :param pattern: regex patter that the model name should match
     :type pattern: :class:`re.Pattern`
-    :param field_to_check: Job field to perform the check
+    :param field_to_check: model field to perform the check
     :param field_to_check: str
-    :returns: Whether the job satisfies user input
+    :returns: Whether the model satisfies user input
     :rtype: bool
     """
-    return re.search(pattern, job[field_to_check]) is not None
+    return re.search(pattern, model[field_to_check]) is not None
 
 
-def satisfy_exact_match(job: Dict[str, str], user_input: Argument,
+def satisfy_exact_match(model: Dict[str, str], user_input: Argument,
                         field_to_check: str):
-    """Check whether job should be included according to the user input. The
-    job should be added if the information provided field_to_check
-    (the job name or url for example) is present in the user_input values.
+    """Check whether model should be included according to the user input. The
+    model should be added if the information provided field_to_check
+    (the model name or url for example) is present in the user_input values.
 
-    :param job: job information obtained from jenkins
-    :type job: str
+    :param model: model information obtained from jenkins
+    :type model: str
     :param user_input: input argument specified by the user
-    :type job_urls: :class:`.Argument`
+    :type model_urls: :class:`.Argument`
     :param field_to_check: Job field to perform the check
     :param field_to_check: str
-    :returns: Whether the job satisfies user input
+    :returns: Whether the model satisfies user input
     :rtype: bool
     """
-    return job[field_to_check] in user_input.value
+    return model[field_to_check] in user_input.value
+
+
+def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
+                                   field_to_check: str):
+    """Check whether model should be included according to the user input. The
+    model should be added if the information provided field_to_check
+    (the model name or url for example) is an exact case-insensitive match to
+    the information in the user_input values.
+
+    :param model: model information obtained from jenkins
+    :type model: str
+    :param user_input: input argument specified by the user
+    :type model_urls: :class:`.Argument`
+    :param field_to_check: Job field to perform the check
+    :param field_to_check: str
+    :returns: Whether the model satisfies user input
+    :rtype: bool
+    """
+    lowercase_input = [status.lower() for status in user_input.value]
+    return model[field_to_check].lower() in lowercase_input
 
 
 def filter_jobs(jobs_found: List[Dict], **kwargs):
     """Filter the result from the Jenkins API according to user input"""
     checks_to_apply = []
 
-    pattern = None
     jobs_arg = kwargs.get('jobs')
     if jobs_arg:
         pattern = re.compile("|".join(jobs_arg.value))
@@ -98,15 +118,63 @@ def filter_jobs(jobs_found: List[Dict], **kwargs):
 
     jobs_filtered = []
     for job in jobs_found:
+        if "job" not in job["_class"]:
+            # jenkins may return folders as job objects
+            continue
+
         is_valid_job = True
         # we build the list of checks to apply dynamically depending on the
         # user input, to avoid repeating the same checks for every job
         for check in checks_to_apply:
-            is_valid_job &= check(job=job)
+            if not check(model=job):
+                is_valid_job = False
+                break
+
         if is_valid_job:
             jobs_filtered.append(job)
 
     return jobs_filtered
+
+
+def filter_builds(builds_found: List[Dict], **kwargs):
+    """Filter the result from the Jenkins API according to user input"""
+    checks_to_apply = []
+
+    builds_arg = kwargs.get('builds')
+    if builds_arg:
+        pattern = re.compile("|".join(builds_arg.value))
+        checks_to_apply.append(partial(satisfy_regex_match, pattern=pattern,
+                                       field_to_check="number"))
+
+    build_ids = kwargs.get('build_id')
+    if build_ids:
+        checks_to_apply.append(partial(satisfy_exact_match,
+                                       user_input=build_ids,
+                                       field_to_check="number"))
+
+    build_status = kwargs.get('build_status')
+    if build_status:
+        checks_to_apply.append(partial(satisfy_case_insensitive_match,
+                                       user_input=build_status,
+                                       field_to_check="result"))
+
+    builds_filtered = []
+    for build in builds_found:
+        is_valid_build = True
+        # ensure that the build number is passed as a string, Jenkins usually
+        # sends it as an int
+        build["number"] = str(build["number"])
+        # we build the list of checks to apply dynamically depending on the
+        # user input, to avoid repeating the same checks for every build
+        for check in checks_to_apply:
+            if not check(model=build):
+                is_valid_build = False
+                break
+
+        if is_valid_build:
+            builds_filtered.append(build)
+
+    return builds_filtered
 
 
 # pylint: disable=no-member
@@ -177,9 +245,6 @@ class Jenkins(Source):
 
         job_objects = {}
         for job in jobs_filtered:
-            if "job" not in job["_class"]:
-                # jenkins may return folders as job objects
-                continue
             name = job.get('name')
             job_objects[name] = Job(name=name, url=job.get('url'))
 
@@ -206,6 +271,10 @@ try reducing verbosity for quicker query")
                 for build in builds_info["allBuilds"]:
                     job.add_build(Build(str(build["number"]), build["result"],
                                         duration=build.get('duration')))
+                builds_to_add = filter_builds(builds_info["allBuilds"],
+                                              **kwargs)
+                for build in builds_to_add:
+                    job.add_build(Build(build["number"], build["result"]))
 
         return jobs_found
 
@@ -223,16 +292,15 @@ try reducing verbosity for quicker query")
 
         job_objects = {}
         for job in jobs_filtered:
-            if "job" not in job["_class"]:
-                # jenkins may return folders as job objects
-                continue
             name = job.get('name')
 
             job_object = Job(name=name, url=job.get('url'))
             if job["lastBuild"]:
-                build = job["lastBuild"]
-                build_obj = Build(str(build["number"]), build["result"])
-                job_object.add_build(build_obj)
+                builds_to_add = filter_builds([job["lastBuild"]],
+                                              **kwargs)
+                for build in builds_to_add:
+                    build_obj = Build(build["number"], build["result"])
+                    job_object.add_build(build_obj)
             job_objects[name] = job_object
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
