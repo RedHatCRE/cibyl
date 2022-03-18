@@ -14,10 +14,11 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock, call, patch
+from unittest.mock import Mock, call
 
+import cibyl
 from cibyl.exceptions.source import TooManyValidSources
-from cibyl.sources.source import Source
+from cibyl.sources.source import get_source_method, is_source_valid
 
 
 class TestIsSourceValid(TestCase):
@@ -30,7 +31,7 @@ class TestIsSourceValid(TestCase):
 
         source.enabled = False
 
-        self.assertFalse(Source.is_source_valid(source, 'func'))
+        self.assertFalse(is_source_valid(source, 'func'))
 
     def test_invalid_if_no_desired_attribute(self):
         """Checks that a source is invalid if it does not present the
@@ -41,7 +42,7 @@ class TestIsSourceValid(TestCase):
         source.enabled = True
         del source.func
 
-        self.assertFalse(Source.is_source_valid(source, 'func'))
+        self.assertFalse(is_source_valid(source, 'func'))
 
     def test_valid_if_meets_all_requirements(self):
         """Checks that a source can be considered valid if it meets all
@@ -52,31 +53,28 @@ class TestIsSourceValid(TestCase):
         source.enabled = True
         source.func = Mock()
 
-        self.assertTrue(Source.is_source_valid(source, 'func'))
+        self.assertTrue(is_source_valid(source, 'func'))
 
 
 class TestGetSourceMethod(TestCase):
     """Tests for the get_source_method static function."""
 
-    @patch('cibyl.sources.source.Source.is_source_valid')
-    def test_no_more_than_two_valid_sources_allowed(self, valid_source):
+    def test_no_more_than_two_valid_sources_allowed(self):
         """Checks that only a single source is allowed to provide the
         desired function.
-
-        :param valid_source: Mock for "is_source_valid"
-        :type valid_source: :class:`Mock`
         """
         func = 'func'
 
         source1 = Mock()
         source2 = Mock()
 
-        valid_source.return_value = True
+        validity_check = cibyl.sources.source.is_source_valid = Mock()
+        validity_check.return_value = True
 
         with self.assertRaises(TooManyValidSources):
-            Source.get_source_method('system', [source1, source2], func)
+            get_source_method('system', [source1, source2], func)
 
-        valid_source.assert_has_calls([
+        validity_check.assert_has_calls([
             call(source1, func),
             call(source2, func)
         ])

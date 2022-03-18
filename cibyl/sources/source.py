@@ -28,6 +28,8 @@ def safe_request_generic(request, custom_error):
     custom_error class.
 
     :param request: The unsafe call to watch errors on.
+    :param custom_error: Error type used to wrap any error coming out of
+        the request.
     :return: The input call decorated to raise the desired error type.
     """
 
@@ -65,61 +67,61 @@ class Source:
         self.enabled = enabled
         self.priority = priority
 
-    @staticmethod
-    def is_source_valid(source, desired_attr):
-        """Checks if a source can be considered valid to perform a query.
 
-        For a source to be considered valid it must:
-            * Be enabled.
-            * Have the attribute passed as input.
+def is_source_valid(source: Source, desired_attr: str):
+    """Checks if a source can be considered valid to perform a query.
 
-        :param source: The source to check.
-        :type source: :class:`Source`
-        :param desired_attr: An attribute that is useful for performing a
-            query and that is desired for the source to have.
-        :type desired_attr: str
-        :return: Whether the source is valid or not.
-        :rtype: bool
-        """
-        if not source.enabled:
-            return False
+    For a source to be considered valid it must:
+        * Be enabled.
+        * Have the attribute passed as input.
 
-        if not hasattr(source, desired_attr):
-            return False
+    :param source: The source to check.
+    :type source: :class:`Source`
+    :param desired_attr: An attribute that is useful for performing a
+        query and that is desired for the source to have.
+    :type desired_attr: str
+    :return: Whether the source is valid or not.
+    :rtype: bool
+    """
+    if not source.enabled:
+        return False
 
-        return True
+    if not hasattr(source, desired_attr):
+        return False
 
-    @staticmethod
-    def get_source_method(system_name: str, sources: list, func_name: str):
-        """Returns a method of a single source given all the sources
-        of the system and the name of function.
+    return True
 
-        An exception is raised if there are no sources with such function
-        name or if there are multiple sources that have this function.
 
-        :param system_name: The name of system
-        :type system_name: str
-        :param sources: List of Source instances
-        :type sources: list[Source]
-        :param func_name: The name of the function to invoke
-        :type func_name: str
-        """
+def get_source_method(system_name: str, sources: list, func_name: str):
+    """Returns a method of a single source given all the sources
+    of the system and the name of function.
 
-        def get_valid_sources():
-            result = []
+    An exception is raised if there are no sources with such function
+    name or if there are multiple sources that have this function.
 
-            for source in sources:
-                if Source.is_source_valid(source, func_name):
-                    result.append(source)
+    :param system_name: The name of system
+    :type system_name: str
+    :param sources: List of Source instances
+    :type sources: list[Source]
+    :param func_name: The name of the function to invoke
+    :type func_name: str
+    """
 
-            return result
+    def get_valid_sources():
+        result = []
 
-        valid_sources = get_valid_sources()
+        for source in sources:
+            if is_source_valid(source, func_name):
+                result.append(source)
 
-        if len(valid_sources) == 0:
-            raise NoSupportedSourcesFound(system_name, func_name)
+        return result
 
-        if len(valid_sources) > 1:
-            raise TooManyValidSources(system_name)
+    valid_sources = get_valid_sources()
 
-        return getattr(valid_sources[0], func_name)
+    if len(valid_sources) == 0:
+        raise NoSupportedSourcesFound(system_name, func_name)
+
+    if len(valid_sources) > 1:
+        raise TooManyValidSources(system_name)
+
+    return getattr(valid_sources[0], func_name)
