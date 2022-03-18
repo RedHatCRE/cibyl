@@ -62,7 +62,8 @@ class Jenkins(Source):
     # pylint: disable=too-many-arguments
     def __init__(self, url: str, username: str = None, token: str = None,
                  cert: str = None, name: str = "jenkins",
-                 driver: str = "jenkins", priority: int = 0):
+                 driver: str = "jenkins", enabled: bool = True,
+                 priority: int = 0):
         """
             Create a client to talk to a jenkins instance.
 
@@ -77,7 +78,8 @@ class Jenkins(Source):
             :param cert: Path to a file with SSL certificates
             :type cert: str
         """
-        super().__init__(name=name, url=url, driver=driver, priority=priority)
+        super().__init__(name=name, url=url, driver=driver,
+                         enabled=enabled, priority=priority)
         self.username = username
         self.token = token
         self.cert = cert
