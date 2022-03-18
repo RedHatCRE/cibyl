@@ -13,12 +13,25 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.exceptions import CibylException
 
-from cibyl.utils.colors import Colors
+class Colors:
 
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+    YELLOW = '\033[93m'
+    CLOSE = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    
+    def red(text):
+        return f'{Colors.RED}{text}{Colors.CLOSE}'
 
-class ElasticSearchError(CibylException):
-    """Elasticsearch error.
-    Used for personalized elasticsearch exceptions
-    """
+    def green(text):
+        return f"{Colors.GREEN}{text}{Colors.CLOSE}"
+
+    def blue(text):
+        return f"{Colors.BLUE}{text}{Colors.CLOSE}"
+
+    def yellow(text):
+        return f"{Colors.YELLOW}{text}{Colors.CLOSE}"

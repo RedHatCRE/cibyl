@@ -24,7 +24,7 @@ from cibyl.models.ci.job import Job
 from cibyl.models.ci.pipeline import Pipeline
 from cibyl.models.model import Model
 from cibyl.sources.source import Source
-
+from cibyl.utils.colors import Colors
 
 class System(Model):
     """General model for a CI system.
@@ -117,7 +117,7 @@ class JobsSystem(System):
                          sources=sources, jobs=jobs)
 
     def __str__(self, indent=0, verbosity=0):
-        string = indent*' ' + f"System: {self.name.value}"
+        string = indent*' ' + "System: " +  Colors.green(f"{self.name.value}")
         if verbosity > 0:
             string += f" (type: {self.system_type.value})"
         for job in self.jobs.values():

@@ -15,7 +15,7 @@
 """
 import yaml
 from yaml.error import YAMLError as YAMLLoadError
-
+from cibyl.utils.colors import Colors
 
 class YAMLError(Exception):
     """Represents an error occurring while a YAML file is being parsed.
@@ -35,4 +35,4 @@ def parse(file):
         with open(file, 'r', encoding='utf8') as buffer:
             return yaml.safe_load(buffer)
     except (OSError, YAMLLoadError) as ex:
-        raise YAMLError(f"Failed to parse file: '{file}'") from ex
+        raise YAMLError(Colors.red(f"Failed to parse file: '{file}'")) from ex

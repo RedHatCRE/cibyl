@@ -15,11 +15,12 @@
 """
 from cibyl.exceptions import CibylException
 
+from cibyl.utils.colors import Colors
 
 class InvalidConfiguration(CibylException):
     """Invalid configuration exception"""
 
-    def __init__(self, message="""
+    def __init__(self, message=Colors.yellow("""
 Invalid Configuration.
 A valid configuration should specify an environment, its system(s) and the
 system(s) details
@@ -27,7 +28,7 @@ system(s) details
 environments:
     env_1:
         jenkins_system:
-            system_type: jenkins"""):
+            system_type: jenkins""")):
         self.message = message
         super().__init__(self.message)
 

@@ -20,6 +20,7 @@ from collections import UserDict
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.utils import yaml
 from cibyl.utils.files import get_first_available_file
+from cibyl.utils.colors import Colors
 
 LOG = logging.getLogger(__name__)
 
