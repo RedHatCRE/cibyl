@@ -80,7 +80,7 @@ class TestSystem(unittest.TestCase):
         job.add_build(build)
         self.system.add_job(job)
         output = str(self.system)
-        expected = """System: test (type: test_type)
+        expected = """System: test
   Job: test_job
     Build: 1
       Status: SUCCESS"""
@@ -130,10 +130,10 @@ class TestZuulSystem(unittest.TestCase):
     def test_system_str(self):
         """Test ZuulSystem __str__ method."""
         self.assertEqual(str(self.system),
-                         f"System: {self.name} (type: zuul)")
+                         f"System: {self.name}")
 
         self.assertEqual(str(self.other_system),
-                         f"System: {self.name} (type: zuul)")
+                         f"System: {self.name}")
 
     def test_add_pipeline(self):
         """Test ZuulSystem add pipeline method."""
@@ -216,10 +216,10 @@ class TestJenkinsSystem(unittest.TestCase):
     def test_system_str(self):
         """Test JenkinsSystem __str__ method."""
         self.assertEqual(str(self.system),
-                         f"System: {self.name} (type: jenkins)")
+                         f"System: {self.name}")
 
         self.assertEqual(str(self.other_system),
-                         f"System: {self.name} (type: jenkins)")
+                         f"System: {self.name}")
 
     def test_add_job(self):
         """Test adding a new job to a system."""

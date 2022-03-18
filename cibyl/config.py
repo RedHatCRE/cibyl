@@ -35,7 +35,7 @@ class Config(UserDict):
     """
 
     DEFAULT_FILE_PATHS = (
-        os.path.join(os.path.expanduser('~'), '.cibyl/cibyl.yaml'),
+        os.path.join(os.path.expanduser('~'), '.config/cibyl.yaml'),
         '/etc/cibyl/cibyl.yaml'
     )
     """Collection of paths where the configuration file for the app is

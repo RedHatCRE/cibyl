@@ -45,7 +45,10 @@ class Job(Model):
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--builds', arg_type=str,
                                    nargs="*", func="get_builds",
-                                   description="Job builds")]
+                                   description="Job builds"),
+                          Argument(name='--last-build', arg_type=str,
+                                   func='get_last_build', nargs=0,
+                                   description="Last build for job")]
         }
     }
 
@@ -54,14 +57,14 @@ class Job(Model):
         super().__init__({'name': name, 'url': url,
                           'builds': builds})
 
-    def __str__(self, indent=0):
+    def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
         job_str = f"{indent_space}Job: {self.name.value}"
-        if self.url.value:
+        if verbosity > 0 and self.url.value:
             job_str += f"\n{indent_space}  URL: {self.url.value}"
         if self.builds.value:
             for build in self.builds.values():
-                job_str += f"\n{build.__str__(indent=indent+2)}"
+                job_str += f"\n{build.__str__(indent+2, verbosity)}"
         return job_str
 
     def __eq__(self, other):

@@ -14,11 +14,12 @@
 #    under the License.
 """
 # pylint: disable=no-member
+import json
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from cibyl.exceptions.jenkins import JenkinsError
-from cibyl.sources.jenkins import Jenkins, safe_request
+from cibyl.sources.jenkins import Jenkins, filter_jobs, safe_request
 
 
 class TestSafeRequestJenkinsError(TestCase):
@@ -137,3 +138,78 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(builds_found["1"].status.value, "SUCCESS")
         self.assertEqual(builds_found["2"].build_id.value, "2")
         self.assertEqual(builds_found["2"].status.value, "FAILURE")
+
+    def test_get_last_build(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_last_build`
+        is correct.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1',
+                              'lastBuild': {'number': 1, 'result': "SUCCESS"}
+                              }]}
+        self.jenkins.send_request = Mock(side_effect=[response])
+
+        jobs = self.jenkins.get_last_build()
+        self.assertEqual(len(jobs), 1)
+        job = jobs["ansible"]
+        self.assertEqual(job.name.value, "ansible")
+        self.assertEqual(job.url.value, "url1")
+        self.assertEqual(len(job.builds.value), 1)
+        build = job.builds.value["1"]
+        self.assertEqual(build.build_id.value, "1")
+        self.assertEqual(build.status.value, "SUCCESS")
+
+    def test_get_last_build_job_no_builds(self):
+        """Test that get_last_build handles properly a job has no builds."""
+
+        response = {'jobs': [{'_class': 'org.job.WorkflowJob',
+                              'name': 'ansible-nfv-branch', 'url': 'url',
+                              'lastBuild': None}]}
+
+        self.jenkins.send_request = Mock(side_effect=[response])
+
+        jobs = self.jenkins.get_last_build()
+        self.assertEqual(len(jobs), 1)
+        job = jobs["ansible-nfv-branch"]
+        self.assertEqual(job.name.value, "ansible-nfv-branch")
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+
+    @patch("requests.get")
+    def test_send_request(self, patched_get):
+        """
+            Test that send_request method parses the response correctly.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1'}]}
+        patched_get.return_value = Mock(text=json.dumps(response))
+        self.assertEqual(response, self.jenkins.send_request("test"))
+        patched_get.assert_called_with("url//api/jsontest",
+                                       verify=self.jenkins.cert,
+                                       timeout=None)
+
+    def test_filter_jobs(self):
+        """
+            Test that filter_jobs filters the jobs given the user input.
+        """
+        response = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "test_jobs", 'url': 'url2',
+                     'lastBuild': {'number': 2, 'result': "FAILURE"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}}]
+        args = Mock()
+        args.value = ["ans"]
+        jobs_filtered = filter_jobs(response, jobs=args)
+        expected = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}},
+                    ]
+        self.assertEqual(jobs_filtered, expected)

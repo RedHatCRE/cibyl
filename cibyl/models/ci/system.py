@@ -68,11 +68,12 @@ class System(Model):
                           'jobs': jobs, 'jobs_scope': jobs_scope,
                           'sources': sources})
 
-    def __str__(self, indent=0):
-        string = indent*' ' + f"System: {self.name.value} \
-(type: {self.system_type.value})"
+    def __str__(self, indent=0, verbosity=0):
+        string = indent*' ' + f"System: {self.name.value}"
+        if verbosity > 0:
+            string += f" (type: {self.system_type.value})"
         for job in self.jobs.values():
-            string += f"\n{job.__str__(indent=indent+2)}"
+            string += f"\n{job.__str__(indent+2, verbosity)}"
         return string
 
     def populate(self, instances_dict):

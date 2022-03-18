@@ -75,7 +75,9 @@ def main():
     # from the CI models
     orchestrator.parser.parse()
     orchestrator.run_query()
-    orchestrator.publisher.publish(orchestrator.environments)
+    orchestrator.publisher.publish(
+        orchestrator.environments,
+        verbosity=orchestrator.parser.app_args.get('verbosity'))
 
 
 if __name__ == "__main__":
