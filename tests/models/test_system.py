@@ -20,7 +20,7 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.pipeline import Pipeline
-from cibyl.models.ci.system import System, ZuulSystem
+from cibyl.models.ci.system import GenericSystem, System, ZuulSystem
 from cibyl.sources.source import Source
 
 
@@ -56,6 +56,15 @@ class TestSystem(unittest.TestCase):
         type_name = system.system_type.value
         msg_str = f"System type should be test_type, not {type_name}"
         self.assertEqual(type_name, "test_type", msg=msg_str)
+
+
+class TestGenericSystem(unittest.TestCase):
+    """Test the GenericSystem class."""
+    def setUp(self):
+        self.name = "test"
+        self.system_type = "test_type"
+        self.system = GenericSystem(self.name, self.system_type)
+        self.other_system = GenericSystem(self.name, self.system_type)
 
     def test_add_job(self):
         """Test adding a new job to a system."""
@@ -150,20 +159,16 @@ class TestZuulSystem(unittest.TestCase):
         self.assertEqual(len(self.system.pipelines.value), 1)
         self.assertEqual(pipeline, self.system.pipelines["check"])
 
-    def test_add_job(self):
-        """Test adding a new job to a system."""
-        job = Job("test_job")
-        self.system.add_job(job)
-        self.assertEqual(len(self.system.jobs.value), 1)
-        self.assertEqual(job, self.system.jobs.value["test_job"])
-
-    def test_add_job_with_merge(self):
-        """Test adding a new job to a system."""
-        job = Job("test_job")
-        self.system.add_job(job)
-        self.system.add_job(job)
-        self.assertEqual(len(self.system.jobs.value), 1)
-        self.assertEqual(job, self.system.jobs.value["test_job"])
+    def test_populate(self):
+        """Test populating the system."""
+        pipeline_name = "check"
+        pipeline = Pipeline("check")
+        pipelines = AttributeDictValue(name='pipelines',
+                                       value={pipeline_name: pipeline},
+                                       attr_type=Pipeline)
+        self.system.populate(pipelines)
+        self.assertEqual(len(self.system.pipelines.value), 1)
+        self.assertEqual(pipeline, self.system.pipelines.value[pipeline_name])
 
     def test_add_source(self):
         """Test adding a new source to a system."""

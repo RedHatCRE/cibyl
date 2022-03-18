@@ -137,8 +137,6 @@ class Parser:
 
         try:
             for arg in arguments:
-                # if arg.name == "--jobs":
-                #     breakpoint()
                 group.add_argument(
                     arg.name, type=arg.arg_type,
                     help=arg.description, nargs=arg.nargs,

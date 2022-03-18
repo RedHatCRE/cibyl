@@ -16,7 +16,7 @@
 # pylint: disable=no-member
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeListValue
-from cibyl.models.ci.system import System, ZuulSystem
+from cibyl.models.ci.system import GenericSystem, System, ZuulSystem
 from cibyl.models.model import Model
 
 
@@ -48,8 +48,10 @@ class Environment(Model):
                                            jobs_scope=jobs_scope,
                                            sources=sources))
         else:
-            self.systems.append(System(name=name, system_type=system_type,
-                                       jobs_scope=jobs_scope, sources=sources))
+            self.systems.append(GenericSystem(name=name,
+                                              system_type=system_type,
+                                              jobs_scope=jobs_scope,
+                                              sources=sources))
 
     def __str__(self, indent=0, verbosity=0):
         string = ""

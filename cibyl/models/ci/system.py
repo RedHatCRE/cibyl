@@ -14,6 +14,7 @@
 #    under the License.
 """
 # pylint: disable=no-member
+from abc import abstractmethod
 from typing import Dict, List
 
 from cibyl.cli.argument import Argument
@@ -58,13 +59,6 @@ class System(Model):
             'arguments': [Argument(name='--pipelines', arg_type=str, nargs='*',
                                    description="System pipelines",
                                    func='get_pipelines')]
-        },
-        'jobs': {
-            'attr_type': Job,
-            'attribute_value_class': AttributeDictValue,
-            'arguments': [Argument(name='--jobs', arg_type=str, nargs='*',
-                                   description="System jobs",
-                                   func='get_jobs')]
         }
     }
 
@@ -80,6 +74,55 @@ class System(Model):
         # be Pipeline
         self.top_level_model = Job
 
+    def add_source(self, source: Source):
+        """Add a source to the CI system
+
+        :param source: Source to add to the system
+        :type source: Source
+        """
+        self.sources.append(source)
+
+    @abstractmethod
+    def add_toplevel_model(self, model: object):
+        """Add a top-level model to the system. This will be different
+        depending on the system type so it is left empty and will be overloaded
+        by each type.
+        """
+
+    def populate(self, instances_dict):
+        """Populate instances from a given dictionary of instances."""
+        if instances_dict.attr_type == self.top_level_model:
+            for model in instances_dict.values():
+                self.add_toplevel_model(model)
+        else:
+            raise NonSupportedModelType(instances_dict.attr_type)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return self.name.value == other.name.value
+
+
+class GenericSystem(System):
+    """Model a generic system with Job as top-level model."""
+    API = System.API.copy()
+    API.pop('pipelines')
+    API['jobs'] = {'attr_type': Job,
+                   'attribute_value_class': AttributeDictValue,
+                   'arguments': [Argument(name='--jobs', arg_type=str,
+                                          nargs='*',
+                                          description="System jobs",
+                                          func='get_jobs')]}
+
+    # pylint: disable=too-many-arguments
+    def __init__(self, name: str, system_type: str,
+                 jobs: Dict[str, Job] = None,
+                 jobs_scope: str = "*", sources: List = None):
+
+        super().__init__(name=name, system_type=system_type,
+                         pipelines=None, jobs_scope=jobs_scope,
+                         sources=sources, jobs=jobs)
+
     def __str__(self, indent=0, verbosity=0):
         string = indent*' ' + f"System: {self.name.value}"
         if verbosity > 0:
@@ -90,13 +133,13 @@ class System(Model):
             string += "\n" + indent*' ' + f"Total jobs: {len(self.jobs)}"
         return string
 
-    def populate(self, instances_dict):
-        """Populate instances from a given dictionary of instances."""
-        if instances_dict.attr_type == self.top_level_model:
-            for job in instances_dict.values():
-                self.add_job(job)
-        else:
-            raise NonSupportedModelType(instances_dict.attr_type)
+    def add_toplevel_model(self, model: Job):
+        """Add a top-level model to the system.
+
+        :param job: Job to add to the system
+        :type job: Job
+        """
+        self.add_job(model)
 
     def add_job(self, job: Job):
         """Add a job to the CI system
@@ -109,19 +152,6 @@ class System(Model):
             self.jobs[job_name].merge(job)
         else:
             self.jobs[job_name] = job
-
-    def add_source(self, source: Source):
-        """Add a source to the CI system
-
-        :param source: Source to add to the system
-        :type source: Source
-        """
-        self.sources.append(source)
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        return self.name.value == other.name.value
 
 
 class ZuulSystem(System):
@@ -137,6 +167,14 @@ class ZuulSystem(System):
                          pipelines=pipelines, jobs_scope=jobs_scope,
                          sources=sources, jobs=None)
         self.top_level_model = Pipeline
+
+    def add_toplevel_model(self, model: Pipeline):
+        """Add a top-level model to the system.
+
+        :param pipeline: Pipeline to add to the system
+        :type pipeline: Pipeline
+        """
+        self.add_pipeline(model)
 
     def add_pipeline(self, pipeline: Pipeline):
         """Add a pipeline to the CI system
