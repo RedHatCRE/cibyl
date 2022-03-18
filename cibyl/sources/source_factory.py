@@ -46,8 +46,6 @@ class SourceFactory:
         :return: A new instance.
         :rtype: :class:`cibyl.sources.source.Source`
         """
-        source_type = source_type.lower()
-
         if source_type == SourceType.JENKINS:
             return Jenkins(name=name, **kwargs)
 
@@ -55,7 +53,9 @@ class SourceFactory:
             return SourceFactory.build_zuul_source(name=name, **kwargs)
 
         if source_type == SourceType.ELASTICSEARCH:
-            return None
+            raise NotImplementedError(
+                f"Source '{source_type}' not yet implemented."
+            )
 
         if source_type == SourceType.JENKINS_JOB_BUILDER:
             return JenkinsJobBuilder(name=name, **kwargs)
