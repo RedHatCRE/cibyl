@@ -14,10 +14,45 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock, patch, call
+from unittest.mock import Mock, call, patch
 
 from cibyl.exceptions.source import TooManyValidSources
 from cibyl.sources.source import Source
+
+
+class TestIsSourceValid(TestCase):
+    """Test for the is_source_valid static function."""
+
+    def test_invalid_if_disabled(self):
+        """Checks that a source is not valid is not enabled.
+        """
+        source = Mock()
+
+        source.enabled = False
+
+        self.assertFalse(Source.is_source_valid(source, 'func'))
+
+    def test_invalid_if_no_desired_attribute(self):
+        """Checks that a source is invalid if it does not present the
+        desired attribute.
+        """
+        source = Mock()
+
+        source.enabled = True
+        del source.func
+
+        self.assertFalse(Source.is_source_valid(source, 'func'))
+
+    def test_valid_if_meets_all_requirements(self):
+        """Checks that a source can be considered valid if it meets all
+        requirements.
+        """
+        source = Mock()
+
+        source.enabled = True
+        source.func = Mock()
+
+        self.assertTrue(Source.is_source_valid(source, 'func'))
 
 
 class TestGetSourceMethod(TestCase):
@@ -31,7 +66,7 @@ class TestGetSourceMethod(TestCase):
         :param valid_source: Mock for "is_source_valid"
         :type valid_source: :class:`Mock`
         """
-        desired_func = 'func'
+        func = 'func'
 
         source1 = Mock()
         source2 = Mock()
@@ -39,13 +74,9 @@ class TestGetSourceMethod(TestCase):
         valid_source.return_value = True
 
         with self.assertRaises(TooManyValidSources):
-            Source.get_source_method(
-                'system',
-                [source1, source2],
-                desired_func
-            )
+            Source.get_source_method('system', [source1, source2], func)
 
         valid_source.assert_has_calls([
-            call(source1, desired_func),
-            call(source2, desired_func)
+            call(source1, func),
+            call(source2, func)
         ])

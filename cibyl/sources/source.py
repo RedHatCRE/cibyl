@@ -53,12 +53,41 @@ def safe_request_generic(request, custom_error):
 class Source:
     """Represents a source of a system on which queries are performed."""
 
-    def __init__(self, name: str, driver: str, url: str = None,
+    def __init__(self,
+                 name: str,
+                 driver: str,
+                 url: str = None,
+                 enabled: bool = True,
                  priority: int = 0):
         self.name = name
         self.driver = driver
         self.url = url
+        self.enabled = enabled
         self.priority = priority
+
+    @staticmethod
+    def is_source_valid(source, desired_attr):
+        """Checks if a source can be considered valid to perform a query.
+
+        For a source to be considered valid it must:
+            * Be enabled.
+            * Have the attribute passed as input.
+
+        :param source: The source to check.
+        :type source: :class:`Source`
+        :param desired_attr: An attribute that is useful for performing a
+            query and that is desired for the source to have.
+        :type desired_attr: str
+        :return: Whether the source is valid or not.
+        :rtype: bool
+        """
+        if not source.enabled:
+            return False
+
+        if not hasattr(source, desired_attr):
+            return False
+
+        return True
 
     @staticmethod
     def get_source_method(system_name: str, sources: list, func_name: str):
@@ -75,13 +104,22 @@ class Source:
         :param func_name: The name of the function to invoke
         :type func_name: str
         """
-        valid_sources = []
-        for source in sources:
-            if hasattr(source, func_name):
-                valid_sources.append(source)
+
+        def get_valid_sources():
+            result = []
+
+            for source in sources:
+                if Source.is_source_valid(source, func_name):
+                    result.append(source)
+
+            return result
+
+        valid_sources = get_valid_sources()
+
         if len(valid_sources) == 0:
-            raise NoSupportedSourcesFound(system_name,
-                                          func_name)
+            raise NoSupportedSourcesFound(system_name, func_name)
+
         if len(valid_sources) > 1:
             raise TooManyValidSources(system_name)
+
         return getattr(valid_sources[0], func_name)
