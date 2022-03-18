@@ -120,6 +120,30 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
 
         return jobs_found
 
+    def get_last_build(self, **kwargs):
+        """
+            Get last build for jobs from elasticsearch server.
+            It uses the `method:get_builds` implemented in this class
+
+            :returns: container of jobs with last build information
+            :rtype: :class:`AttributeDictValue`
+        """
+        builds_jobs = self.get_builds(**kwargs)
+
+        job_object = {}
+        for job_name, build_info in builds_jobs.items():
+            builds = build_info.builds
+            last_build_number = sorted(builds.keys(), key=int)[-1]
+            last_build_info = builds[last_build_number]
+            # Now we need to consturct the Job object
+            # with the last build object in this one
+            build_object = Build(str(last_build_info.build_id),
+                                 last_build_info.status)
+            job_object[job_name] = Job(name=job_name)
+            job_object[job_name].add_build(build_object)
+
+        return AttributeDictValue("jobs", attr_type=Job, value=job_object)
+
 
 class QueryTemplate():  # pylint: disable=too-few-public-methods
     """Used for template and substitutions according to the
