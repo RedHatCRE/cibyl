@@ -60,15 +60,6 @@ class Source:
         self.url = url
         self.priority = priority
 
-    # pylint: disable=unused-argument
-    def query(self, system, args):
-        """Performs query on the source and populates environment instance"""
-        LOG.info("performing query on %s", self.name)
-
-    def connect(self):
-        """Creates a client and initiates a connection to the source."""
-        LOG.info("connection initiated: %s", self.name)
-
     @staticmethod
     def get_source_method(system_name: str, sources: list, func_name: str):
         """Returns a method of a single source given all the sources
