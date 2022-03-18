@@ -45,7 +45,10 @@ class Job(Model):
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--builds', arg_type=str,
                                    nargs="*", func="get_builds",
-                                   description="Job builds")]
+                                   description="Job builds"),
+                          Argument(name='--last-build', arg_type=str,
+                                   func='get_last_build', nargs=0,
+                                   description="Last build for job")]
         }
     }
 
