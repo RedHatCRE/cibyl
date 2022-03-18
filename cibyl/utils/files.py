@@ -13,12 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import logging
 import os
 from os import PathLike
+from cibyl.utils.colors import Colors
 
-LOG = logging.getLogger(__name__)
-
+class NoFileFound(Exception):
+    """Exception for when file is not found"""
 
 def _is_file_available(filename):
     """Checks if a file is present on the filesystem.
@@ -51,7 +51,7 @@ def get_first_available_file(filenames, file_check=_is_file_available):
         if file_check(filename):
             return filename
 
-        LOG.debug('%s: %s', 'file not found', filename)
-
+        # LOG.debug('%s: %s', 'file not found', filename)
+        raise NoFileFound(Colors.red(f'{filename} was not found'))
     # None of the files exist
     return None

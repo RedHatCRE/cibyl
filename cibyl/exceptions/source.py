@@ -14,13 +14,14 @@
 #    under the License.
 """
 
+from cibyl.utils.colors import Colors
 
 class TooManyValidSources(Exception):
     """Exception for trying to use multiple supported sources."""
 
     def __init__(self, system):
         self.system = system
-        self.message = f"""You have more than one source defined for the system
+        self.message = Colors.yellow(f"""You have more than one source defined for the system
  {self.system}.
 Please either specify one source with --source argument or set higher
 priority for the source
@@ -33,7 +34,7 @@ environments:
                  sources:
                    jenkins:
                      priority: 1
-"""
+""")
         super().__init__(self.message)
 
 
@@ -43,9 +44,9 @@ class NoSupportedSourcesFound(Exception):
     """
 
     def __init__(self, system, function):
-        self.message = f"""Couldn't find any source for the system {system}
+        self.message = Colors.yellow(f"""Couldn't find any source for the system {system}
 that implements the function {function}
-"""
+""")
         super().__init__(self.message)
 
 
@@ -54,8 +55,8 @@ class NoValidSources(Exception):
 
     def __init__(self, system):
         self.system = system
-        self.message = f"""No valid source defined for the system
+        self.message = Colors.yellow(f"""No valid source defined for the system
 {self.system}.  Please ensure the specified sources with --source argument
 are present in the configuration.
-"""
+""")
         super().__init__(self.message)
