@@ -49,7 +49,7 @@ class TestZuulConnect(TestCase):
         api.info = Mock()
         api.info.side_effect = successful_connection
 
-        zuul = Zuul(api, url='')
+        zuul = Zuul(api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         self.assert_not_raises(ZuulAPIError, zuul.connect)
 
@@ -67,7 +67,7 @@ class TestZuulConnect(TestCase):
         api.info = Mock()
         api.info.side_effect = failed_connection
 
-        zuul = Zuul(api, url='')
+        zuul = Zuul(api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         self.assertRaises(ZuulAPIError, zuul.connect)
 
@@ -97,7 +97,7 @@ class TestZuulGetJobs(TestCase):
         """Checks that the source invokes all necessary calls to retrieve
         the jobs.
         """
-        zuul = Zuul(self.api, url='')
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         zuul.get_jobs()
 
@@ -109,7 +109,7 @@ class TestZuulGetJobs(TestCase):
     def test_returned_attribute(self):
         """Checks the correct format of the returned attribute dictionary.
         """
-        zuul = Zuul(self.api, url='')
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         result = zuul.get_jobs()
 
@@ -149,7 +149,7 @@ class TestZuulGetJobs(TestCase):
         self.tenants[0].jobs.return_value = [{'name': job1}]
         self.tenants[1].jobs.return_value = [{'name': job2}]
 
-        zuul = Zuul(self.api, url)
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', url)
 
         result = zuul.get_jobs(**kwargs).value
 
@@ -175,7 +175,7 @@ class TestZuulGetJobs(TestCase):
         self.tenants[0].jobs.return_value = [{'name': job1}]
         self.tenants[1].jobs.return_value = [{'name': job2}, {'name': job3}]
 
-        zuul = Zuul(self.api, url='')
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         # Check that just the desired jobs where retrieved
         result = zuul.get_jobs(**kwargs).value
@@ -211,7 +211,7 @@ class TestZuulGetBuilds(TestCase):
         following the idea that requests should always try to provide
         information of the highest possible level.
         """
-        zuul = Zuul(self.api, url='')
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         result = zuul.get_builds()
 
@@ -241,7 +241,7 @@ class TestZuulGetBuilds(TestCase):
             {'uuid': build2, 'job_name': job2, 'result': 'success'}
         ]
 
-        zuul = Zuul(self.api, url='')
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         result = zuul.get_builds(**kwargs).value
 
@@ -277,7 +277,7 @@ class TestZuulGetBuilds(TestCase):
             {'uuid': build2, 'job_name': job2, 'result': 'success'}
         ]
 
-        zuul = Zuul(self.api, url='')
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         result = zuul.get_builds(**kwargs).value
 

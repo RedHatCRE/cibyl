@@ -26,21 +26,25 @@ class Zuul(Source):
     """Source implementation for a Zuul host.
     """
 
-    def __init__(self, api, url, **kwargs):
+    def __init__(self, api, name, driver, url, **kwargs):
         """Constructor.
 
         :param api: Medium of communication with host.
         :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+        :param name: Name of the source.
+        :type name: str
+        :param driver: Driver used by the source.
+        :type driver: str
         :param url: Address where the host is located.
         :type url: str
-        :param kwargs:
+        :param kwargs: Additional parameters that define the source.
         :type kwargs: Any
         """
         # URLs are built assuming no slash at the end of URL
         if url.endswith('/'):
             url = url[:-1]  # Removes last character of string
 
-        super().__init__(url=url, **kwargs)
+        super().__init__(name, driver, url, **kwargs)
 
         self._api = api
 
@@ -56,7 +60,11 @@ class Zuul(Source):
         :type kwargs: Any
         :return: The instance.
         """
-        return Zuul(ZuulRESTClient.from_url(url, cert), url, **kwargs)
+
+        kwargs.setdefault('name', 'zuul-ci')
+        kwargs.setdefault('driver', 'zuul')
+
+        return Zuul(api=ZuulRESTClient.from_url(url, cert), url=url, **kwargs)
 
     def connect(self):
         self._api.info()

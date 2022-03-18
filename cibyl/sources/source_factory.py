@@ -67,24 +67,13 @@ class SourceFactory:
         """Builds a new Zuul source.
 
         :param kwargs: Collection of data that further describes the source.
-        :type kwargs: str
+        :type kwargs: Any
         :return: A new instance.
         :rtype: :class:`Zuul`
         """
+        if 'url' not in kwargs:
+            raise ValueError(
+                "Missing required parameter 'url' on Zuul source's definition."
+            )
 
-        def get_url():
-            if 'url' not in kwargs:
-                raise ValueError("Missing 'url' parameter on Zuul source.")
-
-            # Zuul's constructor will not expect a 'url' field
-            return kwargs.pop('url')
-
-        def get_cert():
-            cert = None
-
-            if 'cert' in kwargs:
-                cert = kwargs.get('cert')
-
-            return cert
-
-        return Zuul.new_source(get_url(), get_cert(), **kwargs)
+        return Zuul.new_source(**kwargs)

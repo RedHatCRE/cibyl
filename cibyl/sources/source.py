@@ -60,7 +60,7 @@ class Source(AttrDict):
         kwargs.setdefault('enabled', True)
         kwargs.setdefault('priority', 0)
 
-        super().__init__(**dict(kwargs, name=name, driver=driver, url=url))
+        super().__init__(name=name, driver=driver, url=url, **kwargs)
 
 
 def is_source_valid(source: Source, desired_attr: str):
