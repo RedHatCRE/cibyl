@@ -14,7 +14,7 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 
@@ -37,14 +37,3 @@ class TestElasticsearchOSP(TestCase):
             'valid': 'regexp',
             'not_valid': 'example'
         }
-
-    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
-    def test_method_return_list(self: object, mock_query_hits: object) -> None:
-        """Tests if :meth:`ElasticSearchOSP.get_jobs_by_name`
-        return a list.
-        """
-        mock_query_hits.return_value = self.hits
-        self.assertIsInstance(
-            self.es_api.get_jobs_by_name(self.job_name),
-            list
-        )
