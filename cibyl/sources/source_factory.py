@@ -16,6 +16,7 @@
 from enum import Enum
 
 from cibyl.sources.jenkins import Jenkins
+from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 from cibyl.sources.zuul.source import Zuul, ZuulData
 
 
@@ -25,6 +26,7 @@ class SourceType(str, Enum):
     JENKINS = 'jenkins'
     ZUUL = 'zuul'
     ELASTICSEARCH = 'elasticsearch'
+    JENKINS_JOB_BUILDER = 'jenkins_job_builder'
 
 
 class SourceFactory:
@@ -54,6 +56,9 @@ class SourceFactory:
 
         if source_type == SourceType.ELASTICSEARCH:
             return None
+
+        if source_type == SourceType.JENKINS_JOB_BUILDER:
+            return JenkinsJobBuilder(name=name, **kwargs)
 
         raise NotImplementedError(f"Unknown source type '{source_type}'")
 

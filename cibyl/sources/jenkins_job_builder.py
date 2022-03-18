@@ -90,13 +90,12 @@ class JenkinsJobBuilder(Source):
         """
         self._generate_xml()
         jobs_available = {}
-        jobs_arg = kwargs.get('jobs', ["*"])
-        if jobs_arg == ["*"] or jobs_arg.value == ["*"]:
-            # default case, where user wants all jobs
-            pattern = re.compile(".*")
-        else:
-            pattern = re.compile(".*"+".*|.*".join(jobs_arg.value)+".*")
+        jobs_arg = kwargs.get('jobs')
+        pattern = None
+        if jobs_arg:
+            pattern = re.compile("|".join(jobs_arg.value))
 
+        jobs_found = []
         for path in Path(os.path.join(self.dest, "out-xml")).rglob("*.xml"):
             file_content = ET.parse(path).getroot()
             file_type = file_content.tag
@@ -107,9 +106,15 @@ class JenkinsJobBuilder(Source):
             # for now we store the job name as the only information, later we
             # will need to see which additional information to pull from the
             # job definition
+            jobs_found.append(path.parent.name)
+        jobs_filtered = jobs_found
+        if pattern:
             # filter the found jobs and keep only those specified in the user
             # input
-            if pattern.match(path.parent.name):
-                jobs_available[path.parent.name] = Job(name=path.parent.name)
+            jobs_filtered = [job for job in jobs_found if re.search(pattern,
+                                                                    job
+                                                                    )]
+        for job in jobs_filtered:
+            jobs_available[job] = Job(name=job)
 
         return AttributeDictValue("jobs", attr_type=Job, value=jobs_available)
