@@ -17,7 +17,7 @@ from enum import Enum
 
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
-from cibyl.sources.zuul.source import Zuul, ZuulData
+from cibyl.sources.zuul.source import Zuul
 
 
 class SourceType(str, Enum):
@@ -87,8 +87,4 @@ class SourceFactory:
 
             return cert
 
-        return Zuul.new_source(
-            get_url(),
-            get_cert(),
-            ZuulData(**kwargs)
-        )
+        return Zuul.new_source(get_url(), get_cert(), **kwargs)
