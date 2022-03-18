@@ -59,7 +59,7 @@ class Zuul(Source):
         if url.endswith('/'):
             url = url[:-1]  # Removes last character of string
 
-        super().__init__(data.name, data.driver, url, data.priority)
+        super().__init__(data.name, data.driver, url, priority=data.priority)
 
         self._api = api
 

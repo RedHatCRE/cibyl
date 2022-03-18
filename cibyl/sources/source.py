@@ -19,6 +19,7 @@ import requests
 
 from cibyl.exceptions.source import (NoSupportedSourcesFound,
                                      TooManyValidSources)
+from cibyl.utils.attrdict import AttrDict
 
 LOG = logging.getLogger(__name__)
 
@@ -52,20 +53,14 @@ def safe_request_generic(request, custom_error):
     return request_handler
 
 
-class Source:
-    """Represents a source of a system on which queries are performed."""
+class Source(AttrDict):
+    """Represents a data provider within a system."""
 
-    def __init__(self,
-                 name: str,
-                 driver: str,
-                 url: str = None,
-                 enabled: bool = True,
-                 priority: int = 0):
-        self.name = name
-        self.driver = driver
-        self.url = url
-        self.enabled = enabled
-        self.priority = priority
+    def __init__(self, name: str, driver: str, url: str, **kwargs):
+        kwargs.setdefault('enabled', True)
+        kwargs.setdefault('priority', 0)
+
+        super().__init__(**dict(kwargs, name=name, driver=driver, url=url))
 
 
 def is_source_valid(source: Source, desired_attr: str):
