@@ -111,6 +111,10 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
             )
 
             for build in builds:
+
+                if not build['_source']['build_result']:
+                    continue
+
                 job.add_build(Build(str(build['_source']['build_id']),
                                     build["_source"]['build_result']))
 
