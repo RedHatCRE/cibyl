@@ -133,7 +133,7 @@ class Orchestrator:
                 for system in valid_systems:
                     source_method = self.select_source_method(system, arg)
                     model_instances_dict = source_method(
-                        **self.parser.ci_args)
+                        **self.parser.ci_args, **self.parser.app_args)
                     system.populate(model_instances_dict)
             last_level = arg.level
 

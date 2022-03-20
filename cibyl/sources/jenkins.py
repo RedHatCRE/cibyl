@@ -56,7 +56,10 @@ class Jenkins(Source):
     """A class representation of Jenkins client."""
 
     jobs_query = "?tree=jobs[name,url]"
-    jobs_builds_query = "?tree=allBuilds[number,result]"
+    jobs_builds_query = {0: "?tree=allBuilds[number,result]",
+                         1: "?tree=allBuilds[number,result,duration]",
+                         2: "?tree=allBuilds[number,result,duration]",
+                         3: "?tree=allBuilds[number,result,duration]"}
     jobs_last_build_query = "?tree=jobs[name,url,lastBuild[number,result]]"
 
     # pylint: disable=too-many-arguments
@@ -134,12 +137,17 @@ class Jenkins(Source):
         """
 
         jobs_found = self.get_jobs(**kwargs)
+        if kwargs.get('verbosity', 0) > 0 and len(jobs_found) > 80:
+            LOG.warning("This might take a couple of minutes...\
+try reducing verbosity for quicker query")
         for job_name, job in jobs_found.items():
             builds_info = self.send_request(item=f"job/{job_name}",
-                                            query=self.jobs_builds_query)
+                                            query=self.jobs_builds_query.get(
+                                                kwargs.get('verbosity'), 0))
             if builds_info:
                 for build in builds_info["allBuilds"]:
-                    job.add_build(Build(str(build["number"]), build["result"]))
+                    job.add_build(Build(str(build["number"]), build["result"],
+                                        duration=build.get('duration')))
 
         return jobs_found
 

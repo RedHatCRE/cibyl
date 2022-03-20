@@ -74,6 +74,8 @@ class System(Model):
             string += f" (type: {self.system_type.value})"
         for job in self.jobs.values():
             string += f"\n{job.__str__(indent+2, verbosity)}"
+        if verbosity > 1:
+            string += "\n" + indent*' ' + f"Total jobs: {len(self.jobs)}"
         return string
 
     def populate(self, instances_dict):
