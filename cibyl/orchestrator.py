@@ -61,7 +61,10 @@ class Orchestrator:
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""
         try:
-            env_data = self.config.data.get('environments', {}).items()
+            if self.config.data:
+                env_data = self.config.data.get('environments', {}).items()
+            else:
+                env_data = {}
 
             for env_name, systems_dict in env_data:
                 environment = Environment(name=env_name)

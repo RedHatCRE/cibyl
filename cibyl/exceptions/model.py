@@ -29,9 +29,8 @@ class NoValidEnvironment(Exception):
     """Exception for a case when no valid environment is found."""
 
     def __init__(self):
-        self.message = """No valid environment defined.
- Please ensure the specified environments with --env-name argument
-are present in the configuration.
+        self.message = """No valid environments are defined.
+Please set at least one environment in the configuration file.
 """
         super().__init__(self.message)
 
