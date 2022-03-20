@@ -68,8 +68,8 @@ class TestElasticsearchOSP(TestCase):
 
     @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
     def test_get_builds(self: object, mock_query_hits: object) -> None:
-        """Tests that the internal logic from :meth:`ElasticSearchOSP.get_builds`
-            is correct.
+        """Tests that the internal logic from
+           :meth:`ElasticSearchOSP.get_builds` is correct.
         """
         mock_query_hits.return_value = self.job_hit
 

@@ -154,8 +154,8 @@ class QueryTemplate():
     def __init__(self: object, search_key: str,
                  search_values: list, **kwargs) -> None:
         if not isinstance(search_values, list):
-            raise TypeError(f"search_values argument received: '{search_values}' \
-                              is not a list")
+            raise TypeError(f"search_values argument received: \
+                            '{search_values}' is not a list")
 
         # Empty query for all hits or elements
         if not search_values:
