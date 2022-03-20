@@ -71,7 +71,7 @@ class Config(UserDict):
 
         return self._path
 
-    def load(self):
+    def load(self, skip_on_missing=False):
         """Loads the contents of the configuration file into this object.
         This will look for the first file available from the list of paths
         provided by :attr:`~path`.
@@ -82,6 +82,6 @@ class Config(UserDict):
         file = get_first_available_file(self.path)
         if file:
             self.data = yaml.parse(file)
-        else:
+        elif not skip_on_missing:
             raise FileNotFoundError(f"Could not find configuration file: \
 '{self.path}'")
