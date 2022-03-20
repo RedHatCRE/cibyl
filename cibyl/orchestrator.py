@@ -54,9 +54,9 @@ class Orchestrator:
         if not environments:
             self.environments = []
 
-    def load_configuration(self):
+    def load_configuration(self, skip_on_missing=False):
         """Loads the configuration of the application."""
-        self.config.load()
+        self.config.load(skip_on_missing)
 
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""
