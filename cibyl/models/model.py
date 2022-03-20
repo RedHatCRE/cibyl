@@ -16,7 +16,6 @@
 from cibyl.models.attribute import AttributeValue
 
 
-# pylint: disable=too-few-public-methods
 class Model:
     """Represents a base class inherited by CI and product models."""
 

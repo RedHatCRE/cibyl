@@ -22,7 +22,7 @@ from cibyl.sources.source import Source
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
 
 
-class ZuulData:  # pylint: disable=too-few-public-methods
+class ZuulData:
     """Data class representing the source side of Zuul.
     """
 

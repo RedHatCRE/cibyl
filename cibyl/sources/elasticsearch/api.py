@@ -27,7 +27,7 @@ from cibyl.sources.source import Source
 LOG = logging.getLogger(__name__)
 
 
-class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
+class ElasticSearchOSP(Source):
     """Used to perform queries in elasticsearch"""
 
     def __init__(self: object, driver: str = 'elasticsearch',
@@ -145,7 +145,7 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
         return AttributeDictValue("jobs", attr_type=Job, value=job_object)
 
 
-class QueryTemplate():  # pylint: disable=too-few-public-methods
+class QueryTemplate():
     """Used for template and substitutions according to the
        elements received and return a dictionary equivalent to
        a DSL query
@@ -166,7 +166,7 @@ class QueryTemplate():  # pylint: disable=too-few-public-methods
             query_type = 'match_phrase_prefix'
 
             if 'query_type' in kwargs:
-                query_type = 'match'
+                query_type = kwargs.get('query_type')
 
             self.query_body = {
                 'query': {
