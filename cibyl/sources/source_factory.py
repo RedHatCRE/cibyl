@@ -15,6 +15,7 @@
 """
 from enum import Enum
 
+from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 from cibyl.sources.zuul.source import Zuul, ZuulData
@@ -55,7 +56,7 @@ class SourceFactory:
             return SourceFactory.build_zuul_source(name=name, **kwargs)
 
         if source_type == SourceType.ELASTICSEARCH:
-            return None
+            return ElasticSearchOSP(name=name, **kwargs)
 
         if source_type == SourceType.JENKINS_JOB_BUILDER:
             return JenkinsJobBuilder(name=name, **kwargs)
