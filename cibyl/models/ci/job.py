@@ -55,8 +55,10 @@ class Job(Model):
 
     def __init__(self, name: str, url: str = None,
                  builds: Dict[str, Build] = None):
-        super().__init__({'name': name, 'url': url,
-                          'builds': builds})
+        self_init_dict = {}
+        for key in self.API.keys():
+            self_init_dict[key] = vars().get(key)
+        super().__init__(self_init_dict)
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '

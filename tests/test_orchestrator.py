@@ -19,6 +19,7 @@ from unittest.mock import Mock, patch
 from cibyl.config import Config
 from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.exceptions.model import NoValidEnvironment
+from cibyl.exceptions.plugin import MissingPlugin
 from cibyl.exceptions.source import NoValidSources
 from cibyl.orchestrator import Orchestrator
 
@@ -160,3 +161,23 @@ class TestOrchestrator(TestCase):
         self.assertRaises(NoValidSources,
                           self.orchestrator.select_source_method,
                           system, argument)
+
+    def test_orchestrator_extend_models(self):
+        """Testing Orchestrator extend models method."""
+        self.assertRaises(MissingPlugin,
+                          self.orchestrator.extend_models,
+                          "nonExistingPlugin")
+
+        # Test no deployment attribute in Job
+        self.orchestrator.config.data = self.valid_env_sources
+        self.orchestrator.create_ci_environments()
+        self.assertNotIn(
+            'deployment',
+            self.orchestrator.environments[0].systems[0].jobs.attr_type.API)
+
+        # Test deployment attribute in Job after plugin extension
+        self.orchestrator.extend_models("openstack")
+        self.orchestrator.create_ci_environments()
+        self.assertIn(
+            'deployment',
+            self.orchestrator.environments[0].systems[0].jobs.attr_type.API)

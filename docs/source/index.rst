@@ -13,8 +13,10 @@ Welcome to Cibyl documentation
    contribute.rst
 
 .. toctree::
-   :caption: Development
-   :maxdepth: 1
+   :caption: Core
+   :maxdepth: 2
+
+   plugins
 
 .. toctree::
    :maxdepth: 1
@@ -23,7 +25,7 @@ Welcome to Cibyl documentation
    core_ci_models/core_models.rst
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Plugins Models
+   :caption: Plugins
+   :maxdepth: 2
 
-   plugins/OpenStack_models/OpenStack_models.rst
+   openstack

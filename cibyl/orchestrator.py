@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import importlib
 import logging
 import operator
 
@@ -20,6 +21,7 @@ from cibyl.cli.parser import Parser
 from cibyl.cli.validator import Validator
 from cibyl.config import Config
 from cibyl.exceptions.config import InvalidConfiguration
+from cibyl.exceptions.plugin import MissingPlugin
 from cibyl.exceptions.source import NoValidSources
 from cibyl.models.ci.environment import Environment
 from cibyl.publisher import Publisher
@@ -92,6 +94,15 @@ class Orchestrator:
         except AttributeError as exception:
             raise InvalidConfiguration from exception
 
+    def extend_models(self, plugin_name):
+        try:
+            plugin_class = getattr(importlib.import_module(
+                f"cibyl.plugins.{plugin_name}.plugin"),
+                plugin_name.capitalize()+"Plugin")
+            plugin_class().extend(Environment.API)
+        except ModuleNotFoundError:
+            raise MissingPlugin(plugin_name)
+
     def select_source_method(self, system, argument):
         """Select the apropiate source considering the user input.
 
@@ -147,8 +158,8 @@ class Orchestrator:
             arguments = attr_dict.get('arguments')
             if arguments:
                 self.parser.extend(arguments, group_name, level=level)
-                class_type = attr_dict.get('attr_type')
-                if class_type not in [str, list, dict, int] and \
-                   hasattr(class_type, 'API'):
-                    self.extend_parser(class_type.API, class_type.__name__,
-                                       level=level+1)
+            class_type = attr_dict.get('attr_type')
+            if class_type not in [str, list, dict, int] and \
+               hasattr(class_type, 'API'):
+                self.extend_parser(class_type.API, class_type.__name__,
+                                   level=level+1)

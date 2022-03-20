@@ -16,6 +16,7 @@
 import sys
 
 from cibyl.orchestrator import Orchestrator
+from cibyl.plugins.constants import PLUGIN_NAME
 from cibyl.utils.logger import configure_logging
 
 
@@ -28,7 +29,7 @@ def raw_parsing(arguments):
     """
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
-            "debug": False}
+            "debug": False, "plugin": PLUGIN_NAME}
     for i, item in enumerate(arguments[1:]):
         if item == "--config":
             args['config_file_path'] = arguments[i + 2]
@@ -37,9 +38,11 @@ def raw_parsing(arguments):
         if item == "--log-file":
             args["log_file"] = arguments[i + 2]
         elif item == "--log-mode":
-            args["log_mode"] = arguments[i+2]
+            args["log_mode"] = arguments[i + 2]
         elif item == "--debug":
             args["debug"] = True
+        elif item == "--plugin" or item == "-p":
+            args["plugin"] = arguments[i + 2]
     return args
 
 
@@ -56,6 +59,8 @@ def main():
     orchestrator = Orchestrator(arguments.get('config_file_path'))
     orchestrator.load_configuration(
         skip_on_missing=arguments.get('help', False))
+    if arguments.get('plugin'):
+        orchestrator.extend_models(arguments.get('plugin'))
     orchestrator.create_ci_environments()
     # Add arguments from CI & product models to the parser of the app
     for env in orchestrator.environments:

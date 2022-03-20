@@ -17,6 +17,7 @@ import argparse
 import logging
 
 from cibyl.cli.argument import Argument
+from cibyl.plugins.constants import PLUGIN_NAME
 
 LOG = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ class Parser:
             choices=("terminal", "file", "both"),
             help='Where to write the output, default is both')
         self.argument_parser.add_argument(
-            '--plugin', '-p', dest="plugin", default="openstack")
+            '--plugin', '-p', dest="plugin", default=PLUGIN_NAME)
         self.argument_parser.add_argument(
             '-v', '--verbose', dest="verbosity", default=0, action="count",
             help="Causes Cibyl to print more debug messages. "
