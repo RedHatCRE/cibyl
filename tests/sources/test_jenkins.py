@@ -421,12 +421,10 @@ class TestFilters(TestCase):
                     {'_class': 'org..job.WorkflowRun', 'number': 5,
                      'result': 'success'}]
         builds = Mock()
-        builds.value = []
+        builds.value = ["3", "5"]
         builds_filtered = filter_builds(response, builds=builds)
         expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
                      'result': 'SUCCESS'},
-                    {'_class': 'org..job.WorkflowRun', 'number': "4",
-                     'result': 'FAILURE'},
                     {'_class': 'org..job.WorkflowRun', 'number': "5",
                      'result': 'success'}]
         self.assertEqual(builds_filtered, expected)

@@ -141,9 +141,9 @@ def filter_builds(builds_found: List[Dict], **kwargs):
     checks_to_apply = []
 
     builds_arg = kwargs.get('builds')
-    if builds_arg:
-        pattern = re.compile("|".join(builds_arg.value))
-        checks_to_apply.append(partial(satisfy_regex_match, pattern=pattern,
+    if builds_arg and builds_arg.value:
+        checks_to_apply.append(partial(satisfy_exact_match,
+                                       user_input=builds_arg,
                                        field_to_check="number"))
 
     build_ids = kwargs.get('build_id')
@@ -263,11 +263,14 @@ class Jenkins(Source):
         if kwargs.get('verbosity', 0) > 0 and len(jobs_found) > 80:
             LOG.warning("This might take a couple of minutes...\
 try reducing verbosity for quicker query")
+        LOG.debug("Requesting builds for %d jobs", len(jobs_found))
         for job_name, job in jobs_found.items():
             builds_info = self.send_request(item=f"job/{job_name}",
                                             query=self.jobs_builds_query.get(
                                                 kwargs.get('verbosity'), 0))
             if builds_info:
+                LOG.debug("Got %d builds for job %s",
+                          len(builds_info["allBuilds"]), job_name)
                 for build in builds_info["allBuilds"]:
                     job.add_build(Build(str(build["number"]), build["result"],
                                         duration=build.get('duration')))
