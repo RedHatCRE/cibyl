@@ -50,7 +50,7 @@ class SourceFactory:
             return Jenkins(name=name, **kwargs)
 
         if source_type == SourceType.ZUUL:
-            return SourceFactory.build_zuul_source(name=name, **kwargs)
+            return Zuul.new_source(name=name, **kwargs)
 
         if source_type == SourceType.ELASTICSEARCH:
             raise NotImplementedError(
@@ -61,19 +61,3 @@ class SourceFactory:
             return JenkinsJobBuilder(name=name, **kwargs)
 
         raise NotImplementedError(f"Unknown source type '{source_type}'")
-
-    @staticmethod
-    def build_zuul_source(**kwargs):
-        """Builds a new Zuul source.
-
-        :param kwargs: Collection of data that further describes the source.
-        :type kwargs: Any
-        :return: A new instance.
-        :rtype: :class:`Zuul`
-        """
-        if 'url' not in kwargs:
-            raise ValueError(
-                "Missing required parameter 'url' on Zuul source's definition."
-            )
-
-        return Zuul.new_source(**kwargs)
