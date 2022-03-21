@@ -53,13 +53,12 @@ class System(Model):
                                    nargs="*",
                                    description="Source name")]
         },
-        'pipelines': {
-            'attr_type': Pipeline,
-            'attribute_value_class': AttributeDictValue,
-            'arguments': [Argument(name='--pipelines', arg_type=str, nargs='*',
-                                   description="System pipelines",
-                                   func='get_pipelines')]
-        }
+        'jobs': {'attr_type': Job,
+                 'attribute_value_class': AttributeDictValue,
+                 'arguments': [Argument(name='--jobs', arg_type=str,
+                                        nargs='*',
+                                        description="System jobs",
+                                        func='get_jobs')]}
     }
 
     def __init__(self, name: str,  # pylint: disable=too-many-arguments
@@ -103,16 +102,11 @@ class System(Model):
         return self.name.value == other.name.value
 
 
-class GenericSystem(System):
-    """Model a generic system with Job as top-level model."""
+class JobsSystem(System):
+    """Model a system with Job as top-level model."""
+    # make a copy so that it persists and we have the right attributes
+    # if we later have to modify the System API
     API = System.API.copy()
-    API.pop('pipelines')
-    API['jobs'] = {'attr_type': Job,
-                   'attribute_value_class': AttributeDictValue,
-                   'arguments': [Argument(name='--jobs', arg_type=str,
-                                          nargs='*',
-                                          description="System jobs",
-                                          func='get_jobs')]}
 
     # pylint: disable=too-many-arguments
     def __init__(self, name: str, system_type: str,
@@ -154,19 +148,30 @@ class GenericSystem(System):
             self.jobs[job_name] = job
 
 
-class ZuulSystem(System):
-    """Model a Zuul CI system."""
-    type_str = "zuul"
+class PipelineSystem(System):
+    """Model a system with Pipeline as top-level model."""
+    API = System.API.copy()
+    API.pop('jobs')
+    API['pipelines'] = {'attr_type': Pipeline,
+                        'attribute_value_class': AttributeDictValue,
+                        'arguments': [Argument(name='--pipelines',
+                                               arg_type=str,
+                                               nargs='*',
+                                               description="System pipelines",
+                                               func='get_pipelines')]}
 
     # pylint: disable=too-many-arguments
-    def __init__(self, name: str,
+    def __init__(self, name: str, system_type: str,
                  pipelines: Dict[str, Pipeline] = None,
                  jobs_scope: str = "*", sources: List = None):
 
-        super().__init__(name=name, system_type=self.type_str,
+        super().__init__(name=name, system_type=system_type,
                          pipelines=pipelines, jobs_scope=jobs_scope,
                          sources=sources, jobs=None)
         self.top_level_model = Pipeline
+        # if we have a pipeline-based system in the configuration, we need to
+        # change the System hierarchy to include pipelines
+        System.API = self.API
 
     def add_toplevel_model(self, model: Pipeline):
         """Add a top-level model to the system.

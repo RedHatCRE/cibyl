@@ -16,7 +16,8 @@
 # pylint: disable=no-member
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeListValue
-from cibyl.models.ci.system import GenericSystem, System, ZuulSystem
+from cibyl.models.ci.system import System
+from cibyl.models.ci.system_factory import SystemFactory
 from cibyl.models.model import Model
 
 
@@ -43,15 +44,9 @@ class Environment(Model):
     def add_system(self, name: str, system_type: str, jobs_scope: str = None,
                    sources: list = None):
         """Adds a CI system to the CI environment"""
-        if system_type == ZuulSystem.type_str:
-            self.systems.append(ZuulSystem(name=name,
-                                           jobs_scope=jobs_scope,
-                                           sources=sources))
-        else:
-            self.systems.append(GenericSystem(name=name,
-                                              system_type=system_type,
-                                              jobs_scope=jobs_scope,
-                                              sources=sources))
+        self.systems.append(SystemFactory.create_system(system_type, name,
+                                                        sources=sources,
+                                                        jobs_scope=jobs_scope))
 
     def __str__(self, indent=0, verbosity=0):
         string = ""
