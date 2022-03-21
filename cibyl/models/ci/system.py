@@ -14,6 +14,7 @@
 #    under the License.
 """
 # pylint: disable=no-member
+from abc import abstractmethod
 from typing import Dict, List
 
 from cibyl.cli.argument import Argument
@@ -41,13 +42,6 @@ class System(Model):
             'arguments': [Argument(name='--system-type', arg_type=str,
                                    description="System type")]
         },
-        'jobs': {
-            'attr_type': Job,
-            'attribute_value_class': AttributeDictValue,
-            'arguments': [Argument(name='--jobs', arg_type=str, nargs='*',
-                                   description="System jobs",
-                                   func='get_jobs')]
-        },
         'jobs_scope': {
             'attr_type': str,
             'arguments': []
@@ -58,15 +52,70 @@ class System(Model):
             'arguments': [Argument(name='--sources', arg_type=str,
                                    nargs="*",
                                    description="Source name")]
-        }
+        },
+        'jobs': {'attr_type': Job,
+                 'attribute_value_class': AttributeDictValue,
+                 'arguments': [Argument(name='--jobs', arg_type=str,
+                                        nargs='*',
+                                        description="System jobs",
+                                        func='get_jobs')]}
     }
 
     def __init__(self, name: str,  # pylint: disable=too-many-arguments
                  system_type: str, jobs: Dict[str, Job] = None,
-                 jobs_scope: str = "*", sources: List = None):
+                 jobs_scope: str = "*", sources: List = None,
+                 pipelines: Dict[str, Pipeline] = None):
         super().__init__({'name': name, 'system_type': system_type,
                           'jobs': jobs, 'jobs_scope': jobs_scope,
-                          'sources': sources})
+                          'sources': sources, 'pipelines': pipelines})
+        # this variable describes which model will the system use as top-level
+        # model. For most systems, this will be Job, for zuul systems it will
+        # be Pipeline
+        self.top_level_model = Job
+
+    def add_source(self, source: Source):
+        """Add a source to the CI system
+
+        :param source: Source to add to the system
+        :type source: Source
+        """
+        self.sources.append(source)
+
+    @abstractmethod
+    def add_toplevel_model(self, model: object):
+        """Add a top-level model to the system. This will be different
+        depending on the system type so it is left empty and will be overloaded
+        by each type.
+        """
+
+    def populate(self, instances_dict):
+        """Populate instances from a given dictionary of instances."""
+        if instances_dict.attr_type == self.top_level_model:
+            for model in instances_dict.values():
+                self.add_toplevel_model(model)
+        else:
+            raise NonSupportedModelType(instances_dict.attr_type)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return self.name.value == other.name.value
+
+
+class JobsSystem(System):
+    """Model a system with Job as top-level model."""
+    # make a copy so that it persists and we have the right attributes
+    # if we later have to modify the System API
+    API = System.API.copy()
+
+    # pylint: disable=too-many-arguments
+    def __init__(self, name: str, system_type: str,
+                 jobs: Dict[str, Job] = None,
+                 jobs_scope: str = "*", sources: List = None):
+
+        super().__init__(name=name, system_type=system_type,
+                         pipelines=None, jobs_scope=jobs_scope,
+                         sources=sources, jobs=jobs)
 
     def __str__(self, indent=0, verbosity=0):
         string = indent*' ' + f"System: {self.name.value}"
@@ -78,13 +127,13 @@ class System(Model):
             string += "\n" + indent*' ' + f"Total jobs: {len(self.jobs)}"
         return string
 
-    def populate(self, instances_dict):
-        """Populate instances from a given dictionary of instances."""
-        if instances_dict.attr_type == Job:
-            for job in instances_dict.values():
-                self.add_job(job)
-        else:
-            raise NonSupportedModelType(instances_dict.attr_type)
+    def add_toplevel_model(self, model: Job):
+        """Add a top-level model to the system.
+
+        :param job: Job to add to the system
+        :type job: Job
+        """
+        self.add_job(model)
 
     def add_job(self, job: Job):
         """Add a job to the CI system
@@ -98,29 +147,39 @@ class System(Model):
         else:
             self.jobs[job_name] = job
 
-    def add_source(self, source: Source):
-        """Add a source to the CI system
 
-        :param source: Source to add to the system
-        :type source: Source
+class PipelineSystem(System):
+    """Model a system with Pipeline as top-level model."""
+    API = System.API.copy()
+    API.pop('jobs')
+    API['pipelines'] = {'attr_type': Pipeline,
+                        'attribute_value_class': AttributeDictValue,
+                        'arguments': [Argument(name='--pipelines',
+                                               arg_type=str,
+                                               nargs='*',
+                                               description="System pipelines",
+                                               func='get_pipelines')]}
+
+    # pylint: disable=too-many-arguments
+    def __init__(self, name: str, system_type: str,
+                 pipelines: Dict[str, Pipeline] = None,
+                 jobs_scope: str = "*", sources: List = None):
+
+        super().__init__(name=name, system_type=system_type,
+                         pipelines=pipelines, jobs_scope=jobs_scope,
+                         sources=sources, jobs=None)
+        self.top_level_model = Pipeline
+        # if we have a pipeline-based system in the configuration, we need to
+        # change the System hierarchy to include pipelines
+        System.API = self.API
+
+    def add_toplevel_model(self, model: Pipeline):
+        """Add a top-level model to the system.
+
+        :param pipeline: Pipeline to add to the system
+        :type pipeline: Pipeline
         """
-        self.sources.append(source)
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        return self.name.value == other.name.value
-
-
-class ZuulSystem(System):
-    """Model a Zuul CI system."""
-    def __init__(self, name: str):
-        super().__init__(name, "zuul")
-        pipeline_argument = Argument(name='--pipelines', arg_type=str,
-                                     description="System pipelines")
-        self.pipelines = AttributeDictValue(name="pipelines",
-                                            attr_type=Pipeline,
-                                            arguments=[pipeline_argument])
+        self.add_pipeline(model)
 
     def add_pipeline(self, pipeline: Pipeline):
         """Add a pipeline to the CI system
@@ -134,13 +193,10 @@ class ZuulSystem(System):
         else:
             self.pipelines[pipeline_name] = pipeline
 
-
-class JenkinsSystem(System):
-    """Model a Jenkins CI system."""
-    def __init__(self, name: str):
-        super().__init__(name, "jenkins")
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        return self.name.value == other.name.value
+    def __str__(self, indent=0, verbosity=0):
+        string = indent*' ' + f"System: {self.name.value}"
+        if verbosity > 0:
+            string += f" (type: {self.system_type.value})"
+        for pipeline in self.pipelines.values():
+            string += f"\n{pipeline.__str__(indent+2, verbosity)}"
+        return string

@@ -17,7 +17,7 @@
 import unittest
 
 from cibyl.models.ci.environment import Environment
-from cibyl.models.ci.system import JenkinsSystem, ZuulSystem
+from cibyl.models.ci.system import PipelineSystem, System
 
 
 class TestEnvironment(unittest.TestCase):
@@ -62,8 +62,8 @@ instead of {self.name}")
 
     def test_add_systems_constructor(self):
         """Testing passing systems to environment constructor"""
-        zuul = ZuulSystem("zuul_sys")
-        jenkins = JenkinsSystem("jenkins_sys")
+        zuul = PipelineSystem("zuul_sys", "zuul")
+        jenkins = System("jenkins_sys", "jenkins")
         env = Environment("systems", systems=[zuul, jenkins])
         self.assertEqual(2, len(env.systems.value))
         self.assertEqual("zuul_sys", env.systems.value[0].name.value)
