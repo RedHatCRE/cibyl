@@ -9,7 +9,7 @@ Installation
 
 `pip install cibyl`
 
-Next, set up `configuration <http://cibyl.readthedocs.org/installation.html>`_
+Next, set up `configuration <http://cibyl.readthedocs.org/>`_
 
 You can now run Cibyl commands :)
 
