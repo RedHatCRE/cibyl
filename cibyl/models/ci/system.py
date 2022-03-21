@@ -34,8 +34,7 @@ class System(Model):
     API = {
         'name': {
             'attr_type': str,
-            'arguments': [Argument(name='--system-name', arg_type=str,
-                                   description="System name")]
+            'arguments': []
         },
         'system_type': {
             'attr_type': str,

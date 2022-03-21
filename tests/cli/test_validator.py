@@ -79,24 +79,6 @@ class TestValidator(TestCase):
         self.assertEqual("system3", systems[0].name.value)
         self.assertEqual("jenkins", systems[0].system_type.value)
 
-    def tests_validator_validate_environments_system_name(self):
-        """Testing Validator validate_environment method."""
-        self.orchestrator.config.data = self.config
-        self.orchestrator.create_ci_environments()
-        self.ci_args["env_name"] = Mock()
-        self.ci_args["env_name"].value = ["env"]
-        self.ci_args["system_name"] = Mock()
-        self.ci_args["system_name"].value = ["system3"]
-
-        validator = Validator(self.ci_args)
-        original_envs = self.orchestrator.environments
-
-        envs, systems = validator.validate_environments(original_envs)
-        self.assertEqual(1, len(envs))
-        self.assertEqual(1, len(systems))
-        self.assertEqual("system3", systems[0].name.value)
-        self.assertEqual("jenkins", systems[0].system_type.value)
-
     def tests_validator_validate_environments_system_type(self):
         """Testing Validator validate_environment method."""
         self.orchestrator.config.data = self.config
@@ -135,8 +117,8 @@ class TestValidator(TestCase):
         """Testing Validator validate_environment method."""
         self.orchestrator.config.data = self.config
         self.orchestrator.create_ci_environments()
-        self.ci_args["system_name"] = Mock()
-        self.ci_args["system_name"].value = ["unknown"]
+        self.ci_args["systems"] = Mock()
+        self.ci_args["systems"].value = ["unknown"]
 
         validator = Validator(self.ci_args)
         original_envs = self.orchestrator.environments

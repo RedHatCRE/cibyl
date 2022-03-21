@@ -40,7 +40,7 @@ class NoValidSystem(Exception):
 
     def __init__(self):
         self.message = """No valid system defined.
- Please ensure the specified environments with --systems, --system-name or
+ Please ensure the specified environments with --systems or
  --system-type arguments are present in the configuration.
 """
         super().__init__(self.message)
