@@ -23,7 +23,7 @@ from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.exceptions.source import NoValidSources
 from cibyl.models.ci.environment import Environment
 from cibyl.publisher import Publisher
-from cibyl.sources.source import Source
+from cibyl.sources.source import get_source_method
 from cibyl.sources.source_factory import SourceFactory
 
 LOG = logging.getLogger(__name__)
@@ -110,8 +110,8 @@ class Orchestrator:
                               source.name in sources_user.value]
         if not system_sources:
             raise NoValidSources(system)
-        return Source.get_source_method(system.name.value, system_sources,
-                                        argument.func)
+        return get_source_method(system.name.value, system_sources,
+                                 argument.func)
 
     def run_query(self, start_level=1):
         """Execute query based on provided arguments."""

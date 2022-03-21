@@ -19,6 +19,7 @@ import requests
 
 from cibyl.exceptions.source import (NoSupportedSourcesFound,
                                      TooManyValidSources)
+from cibyl.utils.attrdict import AttrDict
 
 LOG = logging.getLogger(__name__)
 
@@ -28,6 +29,8 @@ def safe_request_generic(request, custom_error):
     custom_error class.
 
     :param request: The unsafe call to watch errors on.
+    :param custom_error: Error type used to wrap any error coming out of
+        the request.
     :return: The input call decorated to raise the desired error type.
     """
 
@@ -50,38 +53,70 @@ def safe_request_generic(request, custom_error):
     return request_handler
 
 
-class Source:
-    """Represents a source of a system on which queries are performed."""
+class Source(AttrDict):
+    """Represents a data provider within a system."""
 
-    def __init__(self, name: str, driver: str, url: str = None,
-                 priority: int = 0):
-        self.name = name
-        self.driver = driver
-        self.url = url
-        self.priority = priority
+    def __init__(self, name: str, driver: str, **kwargs):
+        kwargs.setdefault('enabled', True)
+        kwargs.setdefault('priority', 0)
 
-    @staticmethod
-    def get_source_method(system_name: str, sources: list, func_name: str):
-        """Returns a method of a single source given all the sources
-        of the system and the name of function.
+        super().__init__(name=name, driver=driver, **kwargs)
 
-        An exception is raised if there are no sources with such function
-        name or if there are multiple sources that have this function.
 
-        :param system_name: The name of system
-        :type system_name: str
-        :param sources: List of Source instances
-        :type sources: list[Source]
-        :param func_name: The name of the function to invoke
-        :type func_name: str
-        """
-        valid_sources = []
+def is_source_valid(source: Source, desired_attr: str):
+    """Checks if a source can be considered valid to perform a query.
+
+    For a source to be considered valid it must:
+        * Be enabled.
+        * Have the attribute passed as input.
+
+    :param source: The source to check.
+    :type source: :class:`Source`
+    :param desired_attr: An attribute that is useful for performing a
+        query and that is desired for the source to have.
+    :type desired_attr: str
+    :return: Whether the source is valid or not.
+    :rtype: bool
+    """
+    if not source.enabled:
+        return False
+
+    if not hasattr(source, desired_attr):
+        return False
+
+    return True
+
+
+def get_source_method(system_name: str, sources: list, func_name: str):
+    """Returns a method of a single source given all the sources
+    of the system and the name of function.
+
+    An exception is raised if there are no sources with such function
+    name or if there are multiple sources that have this function.
+
+    :param system_name: The name of system
+    :type system_name: str
+    :param sources: List of Source instances
+    :type sources: list[Source]
+    :param func_name: The name of the function to invoke
+    :type func_name: str
+    """
+
+    def get_valid_sources():
+        result = []
+
         for source in sources:
-            if hasattr(source, func_name):
-                valid_sources.append(source)
-        if len(valid_sources) == 0:
-            raise NoSupportedSourcesFound(system_name,
-                                          func_name)
-        if len(valid_sources) > 1:
-            raise TooManyValidSources(system_name)
-        return getattr(valid_sources[0], func_name)
+            if is_source_valid(source, func_name):
+                result.append(source)
+
+        return result
+
+    valid_sources = get_valid_sources()
+
+    if len(valid_sources) == 0:
+        raise NoSupportedSourcesFound(system_name, func_name)
+
+    if len(valid_sources) > 1:
+        raise TooManyValidSources(system_name)
+
+    return getattr(valid_sources[0], func_name)

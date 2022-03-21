@@ -41,6 +41,7 @@ class JenkinsJobBuilder(Source):
 
     # pylint: disable=too-many-arguments
     def __init__(self, url: str = None, dest: str = None, branch: str = None,
+                 enabled: bool = True, priority: int = 0,
                  name: str = "jenkins_job_builder",
                  driver: str = "jenkins_job_builder"):
         """Create a client to talk to a jenkins job definitions instance.
@@ -52,7 +53,8 @@ class JenkinsJobBuilder(Source):
         :param branch: Branch to checkout
         :type branch: str
         """
-        super().__init__(name, url=url, driver=driver)
+        super().__init__(name, url=url, driver=driver,
+                         enabled=enabled, priority=priority)
         self.dest = dest
         self.branch = branch
         if dest is None:
