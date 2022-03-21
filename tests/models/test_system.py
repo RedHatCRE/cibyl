@@ -167,7 +167,7 @@ class TestZuulSystem(unittest.TestCase):
 
     def test_add_source(self):
         """Test adding a new source to a system."""
-        source = Source("test_source", "jenkins", "http://localhost:8080")
+        source = Source("test_source", driver="jenkins")
         self.system.add_source(source)
         self.assertEqual(len(self.system.sources.value), 1)
         self.assertEqual(source, self.system.sources.value[0])

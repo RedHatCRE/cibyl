@@ -44,7 +44,7 @@ class Zuul(Source):
         if url.endswith('/'):
             url = url[:-1]  # Removes last character of string
 
-        super().__init__(name, driver, url, **kwargs)
+        super().__init__(name, driver, url=url, **kwargs)
 
         self._api = api
 

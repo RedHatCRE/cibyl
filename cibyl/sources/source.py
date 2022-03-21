@@ -56,11 +56,11 @@ def safe_request_generic(request, custom_error):
 class Source(AttrDict):
     """Represents a data provider within a system."""
 
-    def __init__(self, name: str, driver: str, url: str, **kwargs):
+    def __init__(self, name: str, driver: str, **kwargs):
         kwargs.setdefault('enabled', True)
         kwargs.setdefault('priority', 0)
 
-        super().__init__(name=name, driver=driver, url=url, **kwargs)
+        super().__init__(name=name, driver=driver, **kwargs)
 
 
 def is_source_valid(source: Source, desired_attr: str):
