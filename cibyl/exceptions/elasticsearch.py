@@ -13,9 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.exceptions import CibylException
 
 
-class ElasticSearchError(Exception):
+class ElasticSearchError(CibylException):
     """Elasticsearch error.
     Used for personalized elasticsearch exceptions
     """

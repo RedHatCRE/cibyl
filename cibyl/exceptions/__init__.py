@@ -11,3 +11,19 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+import sys
+
+
+class CibylException(Exception):
+
+    @staticmethod
+    def setup_quiet_exceptions():
+        """Sets up quiet exceptions, without tracebacks, if they are
+        of the type CibylException
+        """
+        def quiet_hook(kind, message, traceback):
+            if CibylException in kind.__bases__:
+                print(f'{message}')
+            else:
+                sys.__excepthook__(kind, message, traceback)
+        sys.excepthook = quiet_hook

@@ -13,9 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.exceptions import CibylException
 
 
-class NonSupportedModelType(Exception):
+class NonSupportedModelType(CibylException):
     """Exception for trying to populate non-supported model"""
 
     def __init__(self, model_type):
@@ -25,7 +26,7 @@ Unable to populate system with pulled data"""
         super().__init__(self.message)
 
 
-class NoValidEnvironment(Exception):
+class NoValidEnvironment(CibylException):
     """Exception for a case when no valid environment is found."""
 
     def __init__(self):
@@ -35,12 +36,13 @@ Please set at least one environment in the configuration file.
         super().__init__(self.message)
 
 
-class NoValidSystem(Exception):
+class NoValidSystem(CibylException):
     """Exception for a case when no valid system is found."""
 
     def __init__(self):
-        self.message = """No valid system defined.
- Please ensure the specified environments with --systems, --system-name or
- --system-type arguments are present in the configuration.
+        self.message = """
+No valid system defined.
+Please ensure the specified environments arguments are present in the
+configuration.
 """
         super().__init__(self.message)

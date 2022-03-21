@@ -13,9 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.exceptions import CibylException
 
 
-class InvalidConfiguration(Exception):
+class InvalidConfiguration(CibylException):
     """Invalid configuration exception"""
 
     def __init__(self, message="""
