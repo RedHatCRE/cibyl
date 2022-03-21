@@ -16,5 +16,8 @@
 
 
 class AttrDict(dict):
+    """A dictionary that allows you to access its items as attributes, meaning
+    that the following: "dict['item']" can also be written as "dict.item".
+    """
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setattr__

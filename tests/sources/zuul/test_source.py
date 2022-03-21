@@ -18,58 +18,7 @@ from unittest.mock import Mock
 
 from cibyl.cli.argument import Argument
 from cibyl.models.ci.job import Job
-from cibyl.sources.zuul.api import ZuulAPIError
 from cibyl.sources.zuul.source import Zuul
-
-
-class TestZuulConnect(TestCase):
-    """Tests the 'connect' function on the Zuul source.
-    """
-
-    def assert_not_raises(self, exception_type, call):
-        """Verifies that an undesired exception does not come out of
-        a certain function.
-
-        :param exception_type: The type of the undesired exception.
-        :param call: The call to check.
-        """
-        try:
-            call()
-        except exception_type:
-            self.fail('Unexpected exception.')
-
-    def test_connect_success(self):
-        """Checks that nothing happens if the host can be connected to.
-        """
-
-        def successful_connection():
-            return
-
-        api = Mock()
-        api.info = Mock()
-        api.info.side_effect = successful_connection
-
-        zuul = Zuul(api, 'zuul-ci', 'zuul', 'http://localhost:8080')
-
-        self.assert_not_raises(ZuulAPIError, zuul.connect)
-
-        api.info.assert_called()
-
-    def test_error_when_connect_fails(self):
-        """Checks that a :class:`ZuulAPIError` is thrown when connection to
-        the host could not be made.
-        """
-
-        def failed_connection():
-            raise ZuulAPIError
-
-        api = Mock()
-        api.info = Mock()
-        api.info.side_effect = failed_connection
-
-        zuul = Zuul(api, 'zuul-ci', 'zuul', 'http://localhost:8080')
-
-        self.assertRaises(ZuulAPIError, zuul.connect)
 
 
 class TestZuulGetJobs(TestCase):

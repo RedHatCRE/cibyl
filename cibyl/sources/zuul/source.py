@@ -66,12 +66,6 @@ class Zuul(Source):
 
         return Zuul(api=ZuulRESTClient.from_url(url, cert), url=url, **kwargs)
 
-    def connect(self):
-        self._api.info()
-
-    def query(self, system, args):
-        raise NotImplementedError
-
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 
