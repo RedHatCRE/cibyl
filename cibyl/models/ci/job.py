@@ -38,6 +38,7 @@ class Job(Model):
         'url': {
             'attr_type': str,
             'arguments': [Argument(name='--job-url', arg_type=str,
+                                   func='get_jobs',
                                    description="Job URL")]
         },
         'builds': {

@@ -18,11 +18,12 @@ import json
 import logging
 import re
 from functools import partial
-from typing import Dict, List
+from typing import Dict, List, Pattern
 
 import requests
 import urllib3
 
+from cibyl.cli.argument import Argument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
@@ -36,18 +37,75 @@ safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
+def satisfy_regex_match(job: Dict[str, str], pattern: Pattern,
+                        field_to_check: str):
+    """Check whether job should be included according to the user input.
+    The job should be added if the information provided field_to_check
+    (the job name or url for example) is matches the regex pattern.
+
+    :param job: job information obtained from jenkins
+    :type job: str
+    :param pattern: regex patter that the job name should match
+    :type pattern: :class:`re.Pattern`
+    :param field_to_check: Job field to perform the check
+    :param field_to_check: str
+    :returns: Whether the job satisfies user input
+    :rtype: bool
+    """
+    return re.search(pattern, job[field_to_check]) is not None
+
+
+def satisfy_exact_match(job: Dict[str, str], user_input: Argument,
+                        field_to_check: str):
+    """Check whether job should be included according to the user input. The
+    job should be added if the information provided field_to_check
+    (the job name or url for example) is present in the user_input values.
+
+    :param job: job information obtained from jenkins
+    :type job: str
+    :param user_input: input argument specified by the user
+    :type job_urls: :class:`.Argument`
+    :param field_to_check: Job field to perform the check
+    :param field_to_check: str
+    :returns: Whether the job satisfies user input
+    :rtype: bool
+    """
+    return job[field_to_check] in user_input.value
+
+
 def filter_jobs(jobs_found: List[Dict], **kwargs):
     """Filter the result from the Jenkins API according to user input"""
+    checks_to_apply = []
+
     pattern = None
     jobs_arg = kwargs.get('jobs')
     if jobs_arg:
         pattern = re.compile("|".join(jobs_arg.value))
+        checks_to_apply.append(partial(satisfy_regex_match, pattern=pattern,
+                                       field_to_check="name"))
 
-    jobs_filtered = jobs_found
-    if pattern:
-        jobs_filtered = [job for job in jobs_found if re.search(pattern,
-                                                                job['name']
-                                                                )]
+    job_names = kwargs.get('job_name')
+    if job_names:
+        checks_to_apply.append(partial(satisfy_exact_match,
+                                       user_input=job_names,
+                                       field_to_check="name"))
+
+    job_urls = kwargs.get('job_url')
+    if job_urls:
+        checks_to_apply.append(partial(satisfy_exact_match,
+                                       user_input=job_urls,
+                                       field_to_check="url"))
+
+    jobs_filtered = []
+    for job in jobs_found:
+        is_valid_job = True
+        # we build the list of checks to apply dynamically depending on the
+        # user input, to avoid repeating the same checks for every job
+        for check in checks_to_apply:
+            is_valid_job &= check(job=job)
+        if is_valid_job:
+            jobs_filtered.append(job)
+
     return jobs_filtered
 
 
@@ -56,7 +114,10 @@ class Jenkins(Source):
     """A class representation of Jenkins client."""
 
     jobs_query = "?tree=jobs[name,url]"
-    jobs_builds_query = "?tree=allBuilds[number,result]"
+    jobs_builds_query = {0: "?tree=allBuilds[number,result]",
+                         1: "?tree=allBuilds[number,result,duration]",
+                         2: "?tree=allBuilds[number,result,duration]",
+                         3: "?tree=allBuilds[number,result,duration]"}
     jobs_last_build_query = "?tree=jobs[name,url,lastBuild[number,result]]"
 
     # pylint: disable=too-many-arguments
@@ -136,12 +197,17 @@ class Jenkins(Source):
         """
 
         jobs_found = self.get_jobs(**kwargs)
+        if kwargs.get('verbosity', 0) > 0 and len(jobs_found) > 80:
+            LOG.warning("This might take a couple of minutes...\
+try reducing verbosity for quicker query")
         for job_name, job in jobs_found.items():
             builds_info = self.send_request(item=f"job/{job_name}",
-                                            query=self.jobs_builds_query)
+                                            query=self.jobs_builds_query.get(
+                                                kwargs.get('verbosity'), 0))
             if builds_info:
                 for build in builds_info["allBuilds"]:
-                    job.add_build(Build(str(build["number"]), build["result"]))
+                    job.add_build(Build(str(build["number"]), build["result"],
+                                        duration=build.get('duration')))
 
         return jobs_found
 

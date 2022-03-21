@@ -15,6 +15,7 @@
 """
 from enum import Enum
 
+from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 from cibyl.sources.zuul.source import Zuul
@@ -53,9 +54,7 @@ class SourceFactory:
             return Zuul.new_source(name=name, **kwargs)
 
         if source_type == SourceType.ELASTICSEARCH:
-            raise NotImplementedError(
-                f"Source '{source_type}' not yet implemented."
-            )
+            return ElasticSearchOSP(name=name, **kwargs)
 
         if source_type == SourceType.JENKINS_JOB_BUILDER:
             return JenkinsJobBuilder(name=name, **kwargs)

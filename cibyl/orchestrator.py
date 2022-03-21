@@ -54,14 +54,17 @@ class Orchestrator:
         if not environments:
             self.environments = []
 
-    def load_configuration(self):
+    def load_configuration(self, skip_on_missing=False):
         """Loads the configuration of the application."""
-        self.config.load()
+        self.config.load(skip_on_missing)
 
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""
         try:
-            env_data = self.config.data.get('environments', {}).items()
+            if self.config.data:
+                env_data = self.config.data.get('environments', {}).items()
+            else:
+                env_data = {}
 
             for env_name, systems_dict in env_data:
                 environment = Environment(name=env_name)
@@ -133,7 +136,7 @@ class Orchestrator:
                 for system in valid_systems:
                     source_method = self.select_source_method(system, arg)
                     model_instances_dict = source_method(
-                        **self.parser.ci_args)
+                        **self.parser.ci_args, **self.parser.app_args)
                     system.populate(model_instances_dict)
             last_level = arg.level
 
