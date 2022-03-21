@@ -19,7 +19,8 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 from cibyl.exceptions.jenkins import JenkinsError
-from cibyl.sources.jenkins import Jenkins, filter_jobs, safe_request
+from cibyl.sources.jenkins import (Jenkins, filter_builds, filter_jobs,
+                                   safe_request)
 
 
 class TestSafeRequestJenkinsError(TestCase):
@@ -190,6 +191,9 @@ class TestJenkinsSource(TestCase):
                                        verify=self.jenkins.cert,
                                        timeout=None)
 
+
+class TestFilters(TestCase):
+    """Tests for filter functions in jenkins source module."""
     def test_filter_jobs(self):
         """
             Test that filter_jobs filters the jobs given the user input.
@@ -307,3 +311,156 @@ class TestJenkinsSource(TestCase):
                      'name': "ansible", 'url': 'url1',
                      'lastBuild': {'number': 1, 'result': "SUCCESS"}}]
         self.assertEqual(jobs_filtered, expected)
+
+    def test_filter_builds_builds_build_id_build_status_empty(self):
+        """Test that filter builds filters the builds given the user input."""
+        response = [{'_class': 'org..job.WorkflowRun', 'number': 3,
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 4,
+                     'result': 'FAILURE'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 5,
+                     'result': 'success'}]
+        builds = Mock()
+        builds.value = []
+        build_id = Mock()
+        build_id.value = ["3"]
+        build_status = Mock()
+        build_status.value = ["failure"]
+        builds_filtered = filter_builds(response, builds=builds,
+                                        build_status=build_status,
+                                        build_id=build_id)
+        expected = []
+        self.assertEqual(builds_filtered, expected)
+
+    def test_filter_builds_builds_build_id_build_status(self):
+        """Test that filter builds filters the builds given the user input."""
+        response = [{'_class': 'org..job.WorkflowRun', 'number': 3,
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 4,
+                     'result': 'FAILURE'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 5,
+                     'result': 'success'}]
+        builds = Mock()
+        builds.value = []
+        build_id = Mock()
+        build_id.value = ["3"]
+        build_status = Mock()
+        build_status.value = ["success"]
+        builds_filtered = filter_builds(response, builds=builds,
+                                        build_status=build_status,
+                                        build_id=build_id)
+        expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
+                     'result': 'SUCCESS'}]
+        self.assertEqual(builds_filtered, expected)
+
+    def test_filter_builds_builds_build_id(self):
+        """Test that filter builds filters the builds given the user input."""
+        response = [{'_class': 'org..job.WorkflowRun', 'number': 3,
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 3,
+                     'result': 'FAILURE'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 5,
+                     'result': 'success'}]
+        builds = Mock()
+        builds.value = []
+        build_id = Mock()
+        build_id.value = ["3"]
+        builds_filtered = filter_builds(response, builds=builds,
+                                        build_id=build_id)
+        expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': "3",
+                     'result': 'FAILURE'}]
+        self.assertEqual(builds_filtered, expected)
+
+    def test_filter_builds_builds_build_status(self):
+        """Test that filter builds filters the builds given the user input."""
+        response = [{'_class': 'org..job.WorkflowRun', 'number': 3,
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 4,
+                     'result': 'FAILURE'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 5,
+                     'result': 'success'}]
+        builds = Mock()
+        builds.value = []
+        build_status = Mock()
+        build_status.value = ["success"]
+        builds_filtered = filter_builds(response, builds=builds,
+                                        build_status=build_status)
+        expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': "5",
+                     'result': 'success'}]
+        self.assertEqual(builds_filtered, expected)
+
+    def test_filter_builds_build_id_build_status(self):
+        """Test that filter builds filters the builds given the user input."""
+        response = [{'_class': 'org..job.WorkflowRun', 'number': 3,
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 4,
+                     'result': 'FAILURE'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 5,
+                     'result': 'success'}]
+        build_id = Mock()
+        build_id.value = ["3"]
+        build_status = Mock()
+        build_status.value = ["success"]
+        builds_filtered = filter_builds(response,
+                                        build_status=build_status,
+                                        build_id=build_id)
+        expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
+                     'result': 'SUCCESS'}]
+        self.assertEqual(builds_filtered, expected)
+
+    def test_filter_builds_builds(self):
+        """Test that filter builds filters the builds given the user input."""
+        response = [{'_class': 'org..job.WorkflowRun', 'number': 3,
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 4,
+                     'result': 'FAILURE'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 5,
+                     'result': 'success'}]
+        builds = Mock()
+        builds.value = []
+        builds_filtered = filter_builds(response, builds=builds)
+        expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': "4",
+                     'result': 'FAILURE'},
+                    {'_class': 'org..job.WorkflowRun', 'number': "5",
+                     'result': 'success'}]
+        self.assertEqual(builds_filtered, expected)
+
+    def test_filter_builds_build_status(self):
+        """Test that filter builds filters the builds given the user input."""
+        response = [{'_class': 'org..job.WorkflowRun', 'number': 3,
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 4,
+                     'result': 'FAILURE'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 5,
+                     'result': 'success'}]
+        build_status = Mock()
+        build_status.value = ["success"]
+        builds_filtered = filter_builds(response,
+                                        build_status=build_status)
+        expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': "5",
+                     'result': 'success'}]
+        self.assertEqual(builds_filtered, expected)
+
+    def test_filter_builds_build_id(self):
+        """Test that filter builds filters the builds given the user input."""
+        response = [{'_class': 'org..job.WorkflowRun', 'number': 3,
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 4,
+                     'result': 'FAILURE'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 5,
+                     'result': 'success'}]
+        build_id = Mock()
+        build_id.value = ["3"]
+        builds_filtered = filter_builds(response,
+                                        build_id=build_id)
+        expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
+                     'result': 'SUCCESS'}]
+        self.assertEqual(builds_filtered, expected)
