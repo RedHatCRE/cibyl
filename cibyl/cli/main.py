@@ -32,7 +32,7 @@ def raw_parsing(arguments):
     for i, item in enumerate(arguments[1:]):
         if item == "--config":
             args['config_file_path'] = arguments[i + 2]
-        if item == "-h" or item == "--help":
+        if item in ('-h', '--help'):
             args['help'] = True
         if item == "--log-file":
             args["log_file"] = arguments[i + 2]
