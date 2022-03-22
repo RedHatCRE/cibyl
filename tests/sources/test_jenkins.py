@@ -27,8 +27,8 @@ class TestSafeRequestJenkinsError(TestCase):
     """Tests for :func:`safe_request`."""
 
     def test_wraps_errors_jenkins_error(self):
-        """Tests that errors coming out of the Jenkins API call are wrapped around the
-        JenkinsError type.
+        """Tests that errors coming out of the Jenkins API call
+        are wrapped around the JenkinsError type.
         """
 
         @safe_request

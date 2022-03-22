@@ -42,7 +42,6 @@ class NoValidSystem(CibylException):
     def __init__(self):
         self.message = """
 No valid system defined.
-Please ensure the specified environments arguments are present in the
-configuration.
+Please ensure the specified systems are present in the configuration.
 """
         super().__init__(self.message)
