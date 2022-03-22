@@ -15,6 +15,7 @@
 """
 import sys
 
+from cibyl.exceptions import CibylException
 from cibyl.orchestrator import Orchestrator
 from cibyl.utils.logger import configure_logging
 
@@ -51,6 +52,7 @@ def main():
     # arguments from the CI models based on the loaded configuration file
 
     arguments = raw_parsing(sys.argv)
+    CibylException.setup_quiet_exceptions()
     configure_logging(arguments)
 
     orchestrator = Orchestrator(arguments.get('config_file_path'))
