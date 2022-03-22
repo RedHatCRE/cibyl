@@ -15,6 +15,7 @@
 """
 import logging
 import operator
+import time
 
 from cibyl.cli.parser import Parser
 from cibyl.cli.validator import Validator
@@ -27,6 +28,20 @@ from cibyl.sources.source import get_source_method
 from cibyl.sources.source_factory import SourceFactory
 
 LOG = logging.getLogger(__name__)
+
+
+def source_information_from_method(source_method):
+    """Obtain source information from a method of a source object.
+
+    :param source_method: Source method that is used
+    :type source_method: method
+    :returns: string with source information identifying the object that the
+    method belongs to
+    :rtype: str
+    """
+    source = source_method.__self__
+    info_str = f"source {source.name} of type {source.driver} using method "
+    return info_str+f"{source_method.__name__}"
 
 
 class Orchestrator:
@@ -135,8 +150,13 @@ class Orchestrator:
                 # point forward
                 for system in valid_systems:
                     source_method = self.select_source_method(system, arg)
+                    start_time = time.time()
                     model_instances_dict = source_method(
                         **self.parser.ci_args, **self.parser.app_args)
+                    end_time = time.time()
+                    LOG.info("Took %.2fs to query system %s using %s",
+                             end_time-start_time, system.name.value,
+                             source_information_from_method(source_method))
                     system.populate(model_instances_dict)
             last_level = arg.level
 
