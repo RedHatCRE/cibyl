@@ -187,9 +187,10 @@ class TestJenkinsSource(TestCase):
                               'name': "ansible", 'url': 'url1'}]}
         patched_get.return_value = Mock(text=json.dumps(response))
         self.assertEqual(response, self.jenkins.send_request("test"))
-        patched_get.assert_called_with("url//api/jsontest",
-                                       verify=self.jenkins.cert,
-                                       timeout=None)
+        patched_get.assert_called_with(
+            f'://{self.jenkins.username}:{self.jenkins.token}@/api/jsontest',
+            verify=self.jenkins.cert, timeout=None
+        )
 
 
 class TestFilters(TestCase):
