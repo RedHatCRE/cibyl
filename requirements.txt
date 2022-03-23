@@ -1,4 +1,5 @@
 pyyaml~=6.0
 requests~=2.27.1
 elasticsearch~=7.17.1
-colorlog
+colorlog~=6.6.0
+urllib3~=1.26.9
