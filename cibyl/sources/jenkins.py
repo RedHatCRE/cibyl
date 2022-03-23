@@ -19,6 +19,7 @@ import logging
 import re
 from functools import partial
 from typing import Dict, List, Pattern
+from urllib.parse import urlparse
 
 import requests
 import urllib3
@@ -31,7 +32,6 @@ from cibyl.models.ci.job import Job
 from cibyl.sources.source import Source, safe_request_generic
 
 LOG = logging.getLogger(__name__)
-
 
 safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -230,8 +230,33 @@ class Jenkins(Source):
             :rtype: dict
         """
 
-        response = requests.get(f"{self.url}/{item}/api/json{query}",
-                                verify=self.cert, timeout=timeout)
+        def generate_query_url():
+            base = urlparse(self.url)
+
+            # Add protocol
+            url = f'{base.scheme}://'
+
+            # Add user and pass
+            if self.username:
+                url += f'{self.username}'
+
+                if self.token:
+                    url += f':{self.token}'
+
+                url += '@'
+
+            # Add host name
+            url += f'{base.netloc}'
+
+            # Add path
+            if item:
+                url += f'/{item}'
+
+            url += f'/api/json{query}'
+
+            return url
+
+        response = requests.get(generate_query_url(), verify=self.cert, timeout=timeout)
         response.raise_for_status()
         return json.loads(response.text)
 
