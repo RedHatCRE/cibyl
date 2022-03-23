@@ -18,6 +18,7 @@ from unittest.mock import Mock
 
 import cibyl.config
 from cibyl.config import Config
+from cibyl.exceptions.config import ConfigurationNotFound
 
 
 class TestConfig(TestCase):
@@ -25,15 +26,15 @@ class TestConfig(TestCase):
     """
 
     def test_error_when_file_not_found(self):
-        """Checks that 'load' raises a FileNotFoundError when the config file
-        does not exist.
+        """Checks that 'load' raises a ConfigurationNotFound when the config
+        file does not exist.
         """
         cibyl.config.get_first_available_file = Mock()
         cibyl.config.get_first_available_file.return_value = None
 
         config = Config()
 
-        self.assertRaises(FileNotFoundError, config.load)
+        self.assertRaises(ConfigurationNotFound, config.load)
 
     def test_contents_are_loaded(self):
         """Checks that the contents of the loaded file are made available by
