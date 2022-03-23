@@ -256,8 +256,12 @@ class Jenkins(Source):
 
             return url
 
-        response = requests.get(generate_query_url(), verify=self.cert, timeout=timeout)
+        response = requests.get(
+            generate_query_url(), verify=self.cert, timeout=timeout
+        )
+
         response.raise_for_status()
+
         return json.loads(response.text)
 
     def get_jobs(self, **kwargs):
