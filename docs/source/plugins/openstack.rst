@@ -1,2 +1,2 @@
-OpenStack models
+OpenStack Plugin
 ================

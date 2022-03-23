@@ -1,9 +1,10 @@
 Installation
-------------
+============
 
-```
-pip install cibyl
-```
+.. code-block:: bash
+   :linenos:
+
+        pip install cibyl
 
 Set up configuration in one of the following paths:
   * ~/.config/cibyl.yaml
