@@ -47,7 +47,7 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
                       from exception
             self.es_client = ElasticSearchClient(host, port).connect()
 
-    def get_jobs(self: object, **kwargs) -> list:
+    def get_jobs(self: object, **kwargs: str) -> list:
         """Get jobs from elasticsearch
 
             :returns: Job objects queried from elasticserach
@@ -90,7 +90,7 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
                   from exception
         return response['hits']['hits']
 
-    def get_builds(self, **kwargs):
+    def get_builds(self: object, **kwargs: str):
         """
             Get builds from elasticsearch server.
 
@@ -120,7 +120,7 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
 
         return jobs_found
 
-    def get_last_build(self, **kwargs):
+    def get_last_build(self: object, **kwargs: str):
         """
             Get last build for jobs from elasticsearch server.
             It uses the `method:get_builds` implemented in this class
@@ -143,6 +143,27 @@ class ElasticSearchOSP(Source):  # pylint: disable=too-few-public-methods
             job_object[job_name].add_build(build_object)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_object)
+
+    def get_builds_by_status(self: object, **kwargs: str):
+        """
+            Get builds by status for jobs from elasticsearch server.
+            It uses the `method:get_builds` implemented in this class
+
+            :returns: container of jobs with all builds by specific status
+            :rtype: :class:`AttributeDictValue`
+        """
+        build_statuses = [status.upper()
+                          for status in kwargs.get('build_status').value]
+
+        builds_jobs = self.get_builds(**kwargs)
+        for _, build_info in builds_jobs.items():
+
+            builds = build_info.builds
+            for build_number, build_object in list(builds.items()):
+                if build_object.status.value not in build_statuses:
+                    del builds[build_number]
+
+        return builds_jobs
 
 
 class QueryTemplate():  # pylint: disable=too-few-public-methods
