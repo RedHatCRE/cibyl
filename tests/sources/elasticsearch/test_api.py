@@ -95,7 +95,7 @@ class TestElasticsearchOSP(TestCase):
     @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
     def test_get_builds_by_status(self: object,
                                   mock_query_hits: object) -> None:
-        """Tests internal logic from :meth:`ElasticSearchOSP.get_builds_by_status`
+        """Tests filtering by status in :meth:`ElasticSearchOSP.get_builds`
             is correct.
         """
         mock_query_hits.return_value = self.job_hit
@@ -103,8 +103,6 @@ class TestElasticsearchOSP(TestCase):
         jobs_argument = Mock()
         jobs_argument.value = ['test']
         jobs = self.es_api.get_jobs(jobs=jobs_argument)
-        self.assertEqual(len(jobs), 1)
-
         self.es_api.get_jobs = Mock()
         self.es_api.get_jobs.return_value = jobs
         mock_query_hits.return_value = self.build_hits
@@ -115,12 +113,11 @@ class TestElasticsearchOSP(TestCase):
         build_status = PropertyMock(return_value=['fAiL'])
         type(status_argument).value = build_status
 
-        # We have one FAIL and one SUCCESS job. If we filter by one of
-        # them then we should have just 1 job.
-        builds = self.es_api.get_builds_by_status(build_status=status_argument)
-        self.assertEqual(len(builds['test'].builds), 1)
-        status = builds['test'].builds['2'].status.value
-        self.assertEqual(status, 'FAIL')
+        builds = self.es_api.get_builds(build_status=status_argument)
+        builds_values = builds['test'].builds
+        build = builds_values['2']
+        self.assertEqual(build.build_id.value, '2')
+        self.assertEqual(build.status.value, "FAIL")
 
 
 class TestQueryTemplate(TestCase):
