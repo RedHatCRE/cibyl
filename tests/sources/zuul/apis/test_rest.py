@@ -16,10 +16,8 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.sources.zuul.apis.rest import (ZuulRESTClient,
-                                          ZuulSession,
-                                          ZuulTenantRESTClient,
-                                          ZuulJobRESTClient)
+from cibyl.sources.zuul.apis.rest import (ZuulJobRESTClient, ZuulRESTClient,
+                                          ZuulSession, ZuulTenantRESTClient)
 
 
 class TestZuulSession(TestCase):
@@ -68,7 +66,12 @@ class TestZuulSession(TestCase):
 
 
 class TestZuulJobRESTClient(TestCase):
+    """Tests for :class:`ZuulJobRESTClient`.
+    """
+
     def test_equality(self):
+        """Checks '__eq__'.
+        """
         job = {
             'name': 'job'
         }
@@ -88,6 +91,9 @@ class TestZuulJobRESTClient(TestCase):
         self.assertEqual(ZuulJobRESTClient(session, tenant, job), client)
 
     def test_builds(self):
+        """Checks that the current steps are taken to get the builds
+        of this job.
+        """
         job = {
             'name': 'job'
         }

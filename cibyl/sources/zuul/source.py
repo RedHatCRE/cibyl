@@ -27,16 +27,23 @@ class Zuul(Source):
     """
 
     class Jobs:
-        def __init__(self, parent):
-            """
+        """Extends actions that the source can do with regard to jobs.
+        """
 
-            :param parent:
+        def __init__(self, parent):
+            """Constructor.
+
+            :param parent: Source this extends.
             :type parent: :class:`Zuul`
             """
             self._parent = parent
 
         @property
         def api(self):
+            """
+            :return: Link this uses to perform queries with.
+            :rtype: :class:`cibyl.sources.zuul.api.ZuulAPI`
+            """
             return self._parent.api
 
         @staticmethod
@@ -73,6 +80,14 @@ class Zuul(Source):
             return f"{self._parent.url}/t/{tenant.name}/job/{job.name}"
 
         def get_jobs_in_zuul(self, **kwargs):
+            """Provides a link to the jobs present on the host that meet
+            the filters described on the keyed arguments.
+
+            :key jobs: Name of the desired jobs. Type: list[str].
+                Default: None.
+            :return: The jobs.
+            :rtype: list[:class:`sources.zuul.api.ZuulJobAPI`]
+            """
             result = []
 
             for tenant in self.api.tenants():
@@ -107,6 +122,10 @@ class Zuul(Source):
 
     @property
     def api(self):
+        """
+        :return: Link this uses to perform queries with.
+        :rtype: :class:`cibyl.sources.zuul.api.ZuulAPI`
+        """
         return self._api
 
     @staticmethod
@@ -117,8 +136,11 @@ class Zuul(Source):
         :type url: str
         :param cert: See :meth:`ZuulRESTClient.from_url`
         :type cert: str or None
-        :param kwargs:
-        :type kwargs: Any
+        :key name: Name of the source. Type: str. Default: 'zuul-ci'.
+        :key driver: Driver for this source. Type: str. Default: 'zuul'.
+        :key priority: Priority of the source. Type: int. Default: 0.
+        :key enabled: Whether this source is to be used.
+            Type: bool. Default: True.
         :return: The instance.
         """
         kwargs.setdefault('name', 'zuul-ci')

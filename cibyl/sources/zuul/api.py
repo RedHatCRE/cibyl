@@ -22,20 +22,46 @@ class ZuulAPIError(Exception):
 
 
 class ZuulJobAPI(ABC):
+    """Interface which defines the information that can be retrieved from
+    Zuul regarding a particular job.
+    """
+
     def __init__(self, tenant, job):
+        """Constructor.
+
+        :param tenant: Tenant this job belongs to.
+        :type tenant: :class:`ZuulTenantAPI`
+        :param job: Description of the job being consulted by this
+            API. At least a field called 'name' providing the name
+            of the job is required here.
+        :type job: dict
+        """
         self._tenant = tenant
         self._job = job
 
     @property
     def tenant(self):
+        """
+        :return: The tenant this job belongs to.
+        :rtype: :class:`ZuulTenantAPI`
+        """
         return self._tenant
 
     @property
     def name(self):
+        """
+        :return: Name of the job being consulted.
+        :rtype: str
+        """
         return self._job['name']
 
     @abstractmethod
     def builds(self):
+        """
+        :return: The builds of this job.
+        :rtype: list[dict]
+        :raises ZuulAPIError: If the request failed.
+        """
         raise NotImplementedError
 
 
@@ -58,6 +84,7 @@ class ZuulTenantAPI(ABC):
     def name(self):
         """
         :return: Name of the tenant being consulted.
+        :rtype: str
         """
         return self._tenant['name']
 

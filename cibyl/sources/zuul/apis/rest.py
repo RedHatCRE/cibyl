@@ -17,10 +17,8 @@ from urllib.parse import urljoin
 
 from requests import HTTPError, Session
 
-from cibyl.sources.zuul.api import (ZuulAPI,
-                                    ZuulAPIError,
-                                    ZuulTenantAPI,
-                                    ZuulJobAPI)
+from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulJobAPI,
+                                    ZuulTenantAPI)
 
 
 class ZuulSession:
@@ -94,7 +92,15 @@ class ZuulSession:
 
 
 class ZuulJobRESTClient(ZuulJobAPI):
+    """Implementation of a Zuul client through the use of Zuul's REST-API.
+    """
+
     def __init__(self, session, tenant, job):
+        """Constructor. See parent class for more information.
+
+        :param session: The link through which the REST-API will be contacted.
+        :type session: :class:`ZuulSession`
+        """
         super().__init__(tenant, job)
 
         self._session = session
@@ -119,7 +125,7 @@ class ZuulTenantRESTClient(ZuulTenantAPI):
     """
 
     def __init__(self, session, tenant):
-        """ Constructor. See parent class for more information.
+        """Constructor. See parent class for more information.
 
         :param session: The link through which the REST-API will be contacted.
         :type session: :class:`ZuulSession`
