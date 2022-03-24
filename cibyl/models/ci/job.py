@@ -20,6 +20,7 @@ from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.model import Model
+from cibyl.utils.colors import Colors
 
 
 class Job(Model):
@@ -60,9 +61,10 @@ class Job(Model):
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
-        job_str = f"{indent_space}Job: {self.name.value}"
+        job_str = Colors.green(f"{indent_space}Job: ") + f"{self.name.value}"
         if verbosity > 0 and self.url.value:
-            job_str += f"\n{indent_space}  URL: {self.url.value}"
+            job_str += Colors.green(f"\n{indent_space}  URL: ") + \
+                f"{self.url.value}"
         if self.builds.value:
             for build in self.builds.values():
                 job_str += f"\n{build.__str__(indent+2, verbosity)}"

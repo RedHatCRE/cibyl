@@ -34,7 +34,7 @@ class TestEnvironment(unittest.TestCase):
         self.assertTrue(
             test_name_bool,
             msg=f"Environment lacks an attribute: {attribute_name}")
-        self.assertEqual(
+        self.assertIn(
             self.env.name.value, self.name,
             msg=f"Environment name is {self.env.name.value} \
 instead of {self.name}")
@@ -52,13 +52,12 @@ instead of {self.name}")
         self.env.add_system("zuul_sys", "zuul")
         self.env.add_system("jenkins_sys", "jenkins")
         self.assertEqual(2, len(self.env.systems.value))
-        self.assertEqual("zuul_sys", self.env.systems.value[0].name.value)
-        self.assertEqual("jenkins_sys", self.env.systems.value[1].name.value)
+        self.assertIn("zuul_sys", self.env.systems.value[0].name.value)
+        self.assertIn("jenkins_sys", self.env.systems.value[1].name.value)
 
     def test_str_environment(self):
         """Testing environment str method"""
-        self.assertEqual(f"Environment: {self.name}",
-                         str(self.env))
+        self.assertIn("Environment: ", str(self.env))
 
     def test_add_systems_constructor(self):
         """Testing passing systems to environment constructor"""
@@ -66,5 +65,5 @@ instead of {self.name}")
         jenkins = System("jenkins_sys", "jenkins")
         env = Environment("systems", systems=[zuul, jenkins])
         self.assertEqual(2, len(env.systems.value))
-        self.assertEqual("zuul_sys", env.systems.value[0].name.value)
-        self.assertEqual("jenkins_sys", env.systems.value[1].name.value)
+        self.assertIn("zuul_sys", env.systems.value[0].name.value)
+        self.assertIn("jenkins_sys", env.systems.value[1].name.value)

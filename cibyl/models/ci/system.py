@@ -26,6 +26,7 @@ from cibyl.models.model import Model
 from cibyl.sources.source import Source
 from cibyl.utils.colors import Colors
 
+
 class System(Model):
     """General model for a CI system.
 
@@ -117,9 +118,9 @@ class JobsSystem(System):
                          sources=sources, jobs=jobs)
 
     def __str__(self, indent=0, verbosity=0):
-        string = indent*' ' + "System: " +  Colors.green(f"{self.name.value}")
+        string = indent*' ' + Colors.blue("System: ") + f"{self.name.value}"
         if verbosity > 0:
-            string += f" (type: {self.system_type.value})"
+            string += Colors.blue("Type: ") + f"{self.system_type.value})"
         for job in self.jobs.values():
             string += f"\n{job.__str__(indent+2, verbosity)}"
         if verbosity > 1:
@@ -192,10 +193,14 @@ class PipelineSystem(System):
         else:
             self.pipelines[pipeline_name] = pipeline
 
-    def __str__(self, indent=0, verbosity=0):
-        string = indent*' ' + f"System: {self.name.value}"
-        if verbosity > 0:
-            string += f" (type: {self.system_type.value})"
-        for pipeline in self.pipelines.values():
-            string += f"\n{pipeline.__str__(indent+2, verbosity)}"
-        return string
+
+class JenkinsSystem(System):
+    """Model a Jenkins CI system."""
+
+    def __init__(self, name: str):
+        super().__init__(name, "jenkins")
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return self.name.value == other.name.value

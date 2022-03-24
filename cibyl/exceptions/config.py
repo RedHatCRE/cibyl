@@ -17,6 +17,7 @@ from cibyl.exceptions import CibylException
 
 from cibyl.utils.colors import Colors
 
+
 class InvalidConfiguration(CibylException):
     """Invalid configuration exception"""
 
@@ -35,6 +36,7 @@ environments:
 
 class ConfigurationNotFound(CibylException):
     """Configuration file not found exception"""
+
     def __init__(self, message="Could not find configuration file:"
                  "('~/.config/cibyl.yaml', '/etc/cibyl/cibyl.yaml')"):
         self.message = message
