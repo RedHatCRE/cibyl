@@ -17,6 +17,7 @@
 import logging
 from urllib.parse import urlsplit
 
+from cibyl.cli.argument import Argument
 from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
@@ -47,7 +48,7 @@ class ElasticSearchOSP(Source):
                       from exception
             self.es_client = ElasticSearchClient(host, port).connect()
 
-    def get_jobs(self: object, **kwargs) -> list:
+    def get_jobs(self: object, **kwargs: Argument) -> list:
         """Get jobs from elasticsearch
 
             :returns: Job objects queried from elasticserach
@@ -90,7 +91,7 @@ class ElasticSearchOSP(Source):
                   from exception
         return response['hits']['hits']
 
-    def get_builds(self, **kwargs):
+    def get_builds(self: object, **kwargs: Argument):
         """
             Get builds from elasticsearch server.
 
@@ -110,9 +111,19 @@ class ElasticSearchOSP(Source):
                 query=query_body
             )
 
+            build_statuses = []
+            if 'build_status' in kwargs:
+                build_statuses = [status.upper()
+                                  for status in
+                                  kwargs.get('build_status').value]
+
             for build in builds:
 
                 if not build['_source']['build_result']:
+                    continue
+
+                if 'build_status' in kwargs and \
+                        build['_source']['build_result'] not in build_statuses:
                     continue
 
                 job.add_build(Build(str(build['_source']['build_id']),
@@ -120,7 +131,7 @@ class ElasticSearchOSP(Source):
 
         return jobs_found
 
-    def get_last_build(self, **kwargs):
+    def get_last_build(self: object, **kwargs: Argument):
         """
             Get last build for jobs from elasticsearch server.
             It uses the `method:get_builds` implemented in this class

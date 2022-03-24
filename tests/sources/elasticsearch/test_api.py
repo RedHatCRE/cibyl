@@ -14,7 +14,7 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP, QueryTemplate
 
@@ -38,16 +38,19 @@ class TestElasticsearchOSP(TestCase):
                 }
             }
         ]
-        self.build_hit = [
-            {
-                '_index': 'test',
-                '_id': 'random',
-                '_score': 1.0,
-                '_source': {
-                    'build_result': 'SUCCESS',
-                    'build_id': '1',
-                }
-            }
+        self.build_hits = [
+                    {
+                        '_source': {
+                            'build_result': 'SUCCESS',
+                            'build_id': '1',
+                        }
+                    },
+                    {
+                        '_source': {
+                            'build_result': 'FAIL',
+                            'build_id': '2',
+                        }
+                    }
         ]
 
     @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
@@ -80,14 +83,41 @@ class TestElasticsearchOSP(TestCase):
 
         self.es_api.get_jobs = Mock()
         self.es_api.get_jobs.return_value = jobs
-        mock_query_hits.return_value = self.build_hit
+        mock_query_hits.return_value = self.build_hits
 
         builds = self.es_api.get_builds()['test'].builds
-        self.assertEqual(len(builds), 1)
+        self.assertEqual(len(builds), 2)
 
         build = builds['1']
         self.assertEqual(build.build_id.value, '1')
         self.assertEqual(build.status.value, "SUCCESS")
+
+    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    def test_get_builds_by_status(self: object,
+                                  mock_query_hits: object) -> None:
+        """Tests filtering by status in :meth:`ElasticSearchOSP.get_builds`
+            is correct.
+        """
+        mock_query_hits.return_value = self.job_hit
+
+        jobs_argument = Mock()
+        jobs_argument.value = ['test']
+        jobs = self.es_api.get_jobs(jobs=jobs_argument)
+        self.es_api.get_jobs = Mock()
+        self.es_api.get_jobs.return_value = jobs
+        mock_query_hits.return_value = self.build_hits
+
+        # We need to mock the Argument kwargs passed. In this case
+        # build_status
+        status_argument = MagicMock()
+        build_status = PropertyMock(return_value=['fAiL'])
+        type(status_argument).value = build_status
+
+        builds = self.es_api.get_builds(build_status=status_argument)
+        builds_values = builds['test'].builds
+        build = builds_values['2']
+        self.assertEqual(build.build_id.value, '2')
+        self.assertEqual(build.status.value, "FAIL")
 
 
 class TestQueryTemplate(TestCase):

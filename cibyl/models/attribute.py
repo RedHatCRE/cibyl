@@ -88,6 +88,9 @@ class AttributeDictValue(AttributeValue):
     def __iter__(self):
         yield from self.value
 
+    def __delitem__(self, key):
+        del self.value[key]
+
     def items(self):
         """Return the value as key:value items"""
         return self.value.items()
