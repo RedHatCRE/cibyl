@@ -141,7 +141,7 @@ class JobsSystem(System):
         :type job: Job
         """
         job_name = job.name.value
-        if job_name in self.jobs.values():
+        if job_name in self.jobs:
             self.jobs[job_name].merge(job)
         else:
             self.jobs[job_name] = job
@@ -187,7 +187,7 @@ class PipelineSystem(System):
         :type pipeline: Pipeline
         """
         pipeline_name = pipeline.name.value
-        if pipeline_name in self.pipelines.values():
+        if pipeline_name in self.pipelines:
             self.pipelines[pipeline_name].merge(pipeline)
         else:
             self.pipelines[pipeline_name] = pipeline

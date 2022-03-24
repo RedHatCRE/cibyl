@@ -302,13 +302,11 @@ try reducing verbosity for quicker query")
             if builds_info:
                 LOG.debug("Got %d builds for job %s",
                           len(builds_info["allBuilds"]), job_name)
-                for build in builds_info["allBuilds"]:
-                    job.add_build(Build(str(build["number"]), build["result"],
-                                        duration=build.get('duration')))
                 builds_to_add = filter_builds(builds_info["allBuilds"],
                                               **kwargs)
                 for build in builds_to_add:
-                    job.add_build(Build(build["number"], build["result"]))
+                    job.add_build(Build(build["number"], build["result"],
+                                        duration=build.get('duration')))
 
         return jobs_found
 
@@ -333,7 +331,8 @@ try reducing verbosity for quicker query")
                 builds_to_add = filter_builds([job["lastBuild"]],
                                               **kwargs)
                 for build in builds_to_add:
-                    build_obj = Build(build["number"], build["result"])
+                    build_obj = Build(build["number"], build["result"],
+                                      duration=build.get('duration'))
                     job_object.add_build(build_obj)
             job_objects[name] = job_object
 
