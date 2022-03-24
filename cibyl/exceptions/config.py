@@ -16,6 +16,7 @@
 
 from cibyl.utils.colors import Colors
 
+
 class InvalidConfiguration(Exception):
     """Invalid configuration exception"""
 

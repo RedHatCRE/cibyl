@@ -16,13 +16,14 @@
 
 from cibyl.utils.colors import Colors
 
+
 class NonSupportedModelType(Exception):
     """Exception for trying to populate non-supported model"""
 
     def __init__(self, model_type):
         self.model_type = model_type
         self.message = Colors.red(
-        f"""Not supported type for model: {self.model_type}.
+            f"""Not supported type for model: {self.model_type}.
             Unable to populate system with pulled data""")
         super().__init__(self.message)
 
@@ -42,8 +43,8 @@ class NoValidSystem(Exception):
     """Exception for a case when no valid system is found."""
 
     def __init__(self):
-        self.message = Colors.red("""No valid system defined.
+        self.message = str(Colors.red("""No valid system defined.
  Please ensure the specified environments with --systems, --system-name or
  --system-type arguments are present in the configuration.
-""")
+"""))
         super().__init__(self.message)

@@ -15,7 +15,9 @@
 """
 import yaml
 from yaml.error import YAMLError as YAMLLoadError
+
 from cibyl.utils.colors import Colors
+
 
 class YAMLError(Exception):
     """Represents an error occurring while a YAML file is being parsed.

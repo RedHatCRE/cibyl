@@ -14,6 +14,7 @@
 #    under the License.
 """
 
+
 class Colors:
 
     BLUE = '\033[94m'
@@ -23,15 +24,18 @@ class Colors:
     CLOSE = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
-    
+
     def red(text):
-        return f'{Colors.RED}{text}{Colors.CLOSE}'
+        return f"{Colors.RED}{Colors.BOLD}{text}{Colors.CLOSE}"
 
     def green(text):
-        return f"{Colors.GREEN}{text}{Colors.CLOSE}"
+        return f"{Colors.GREEN}{Colors.BOLD}{text}{Colors.CLOSE}"
 
     def blue(text):
-        return f"{Colors.BLUE}{text}{Colors.CLOSE}"
+        return f"{Colors.BLUE}{Colors.BOLD}{text}{Colors.CLOSE}"
 
     def yellow(text):
         return f"{Colors.YELLOW}{text}{Colors.CLOSE}"
+
+    def underline(text):
+        return f"{Colors.UNDERLINE}{text}{Colors.CLOSE}"

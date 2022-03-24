@@ -25,6 +25,7 @@ from cibyl.models.model import Model
 from cibyl.sources.source import Source
 from cibyl.utils.colors import Colors
 
+
 class System(Model):
     """General model for a CI system.
 
@@ -69,9 +70,9 @@ class System(Model):
                           'sources': sources})
 
     def __str__(self, indent=0, verbosity=0):
-        string = indent*' ' + "System: " +  Colors.green(f"{self.name.value}")
+        string = indent*' ' + Colors.blue("System: ") + f"{self.name.value}"
         if verbosity > 0:
-            string += f" (type: {self.system_type.value})"
+            string += Colors.blue("Type: ") + f"{self.system_type.value})"
         for job in self.jobs.values():
             string += f"\n{job.__str__(indent+2, verbosity)}"
         return string
@@ -112,6 +113,7 @@ class System(Model):
 
 class ZuulSystem(System):
     """Model a Zuul CI system."""
+
     def __init__(self, name: str):
         super().__init__(name, "zuul")
         pipeline_argument = Argument(name='--pipelines', arg_type=str,
@@ -135,6 +137,7 @@ class ZuulSystem(System):
 
 class JenkinsSystem(System):
     """Model a Jenkins CI system."""
+
     def __init__(self, name: str):
         super().__init__(name, "jenkins")
 

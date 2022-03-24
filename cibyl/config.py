@@ -18,8 +18,8 @@ import os
 from collections import UserDict
 
 from cibyl.utils import yaml
-from cibyl.utils.files import get_first_available_file
 from cibyl.utils.colors import Colors
+from cibyl.utils.files import get_first_available_file
 
 LOG = logging.getLogger(__name__)
 
@@ -84,4 +84,5 @@ class Config(UserDict):
         if file:
             self.data = yaml.parse(file)
         else:
-            raise FileNotFoundError(Colors.red(f"Could not open file at: '{self.path}'"))
+            raise FileNotFoundError(Colors.red(
+                f"Could not open file at: {self.path}"))

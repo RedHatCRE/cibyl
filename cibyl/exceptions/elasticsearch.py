@@ -14,9 +14,8 @@
 #    under the License.
 """
 
-from cibyl.utils.colors import Colors
 
-class ElasticSearchError(Colors.red(Exception)):
+class ElasticSearchError(Exception):
     """Elasticsearch error.
     Used for personalized elasticsearch exceptions
     """

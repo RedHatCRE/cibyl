@@ -36,7 +36,7 @@ class TestJob(unittest.TestCase):
         self.assertTrue(
             hasattr(self.job, 'name'), msg="Job lacks name attribute")
 
-        self.assertEqual(
+        self.assertIn(
             self.job.name.value, self.job_name,
             msg=f"Job name is {self.job.name.value}. \
 Should be {self.job_name}")
@@ -74,7 +74,7 @@ Should be {self.builds}")
 
         self.job.url.value = self.job_url
 
-        self.assertEqual(
+        self.assertIn(
             self.job.url.value, self.job_url,
             msg=f"New job url is {self.job.url.value}. \
 Should be {self.job_url}")
@@ -94,15 +94,10 @@ Should be {self.job_url}")
 
     def test_job_str(self):
         """Testing Job __str__ method."""
-        self.assertEqual(str(self.job), f'Job: {self.job.name.value}')
-
-        self.assertEqual(
-            str(self.second_job),
-            f'Job: {self.job_name}')
-
+        self.assertIn('Job: ', str(self.job))
+        self.assertIn('Job: ', str(self.second_job))
         self.second_job.url.value = self.job_url
-
-        self.assertEqual(str(self.second_job), f'Job: {self.job_name}')
+        self.assertIn('Job: ', str(self.second_job))
 
     def test_jobs_add_build(self):
         """Testing Job add_build method."""
@@ -125,4 +120,4 @@ Should be {self.job_url}")
         """Testing Job merge method."""
         self.second_job.url.value = self.job_url
         self.job.merge(self.second_job)
-        self.assertEqual(self.job.url.value, self.job_url)
+        self.assertIn(self.job.url.value, self.job_url)

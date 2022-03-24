@@ -20,6 +20,7 @@ from cibyl.models.ci.system import System
 from cibyl.models.model import Model
 from cibyl.utils.colors import Colors
 
+
 class Environment(Model):
     """Represents a CI environment with one or more CI systems."""
 
@@ -48,7 +49,7 @@ class Environment(Model):
 
     def __str__(self, indent=0, verbosity=0):
         string = ""
-        string += "Environment: " + Colors.blue(f'{self.name.value}')
+        string += Colors.blue("Environment: ") + f'{self.name.value}'
         for system in self.systems:
             string += f"\n{system.__str__(indent + 2)}"
         return string

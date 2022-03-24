@@ -16,6 +16,7 @@
 # pylint: disable=no-member
 from cibyl.cli.argument import Argument
 from cibyl.models.model import Model
+from cibyl.utils.colors import Colors
 
 
 class Build(Model):
@@ -38,9 +39,14 @@ class Build(Model):
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
-        build_str = f"{indent_space}Build: {self.build_id.value}"
-        if self.status.value:
-            build_str += f"\n{indent_space}  Status: {self.status.value}"
+        build_str = Colors.green(
+            f"{indent_space}Build: ") + f"{self.build_id.value}"
+        if self.status.value == "SUCCESS":
+            build_str += f"\n{indent_space}  Status: " + \
+                Colors.green(f"{self.status.value}")
+        if self.status.value == "FAILED":
+            build_str += f"\n{indent_space}  Status: " + \
+                Colors.red(f"{self.status.value}")
         return build_str
 
     def __eq__(self, other):
