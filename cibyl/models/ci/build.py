@@ -32,14 +32,20 @@ class Build(Model):
             'arguments': [Argument(name='--build-status', arg_type=str,
                                    description="Build status")]
         },
+        'duration': {
+            'attr_type': int,
+            'arguments': [],
+        },
     }
 
-    def __init__(self, build_id: str, status: str = None):
-        super().__init__({'build_id': build_id, 'status': status})
+    def __init__(self, build_id: str, status: str = None,
+                 duration: int = None):
+        super().__init__({'build_id': build_id, 'status': status,
+                          'duration': duration})
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
-        build_str = Colors.green(
+        build_str = Colors.blue(
             f"{indent_space}Build: ") + f"{self.build_id.value}"
         if self.status.value == "SUCCESS":
             build_str += f"\n{indent_space}  Status: " + \
@@ -47,6 +53,10 @@ class Build(Model):
         if self.status.value == "FAILED":
             build_str += f"\n{indent_space}  Status: " + \
                 Colors.red(f"{self.status.value}")
+				if verbosity > 0 and self.duration.value:
+            duration_in_min = self.duration.value / 60000
+            build_str += Color.blue(f"\n{indent_space}  Duration: ") + \
+								{duration_in_min}m"
         return build_str
 
     def __eq__(self, other):

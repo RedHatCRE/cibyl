@@ -13,10 +13,32 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.exceptions import CibylException
+import sys
+from io import StringIO
+from unittest import TestCase
+
+from cibyl.cli.main import main
 
 
-class ElasticSearchError(CibylException):
-    """Elasticsearch error.
-    Used for personalized elasticsearch exceptions
-    """
+class TestJenkins(TestCase):
+    def setUp(self) -> None:
+        self._output = StringIO()
+
+        sys.stdout = self._output
+
+    @property
+    def output(self):
+        return self._output.getvalue()
+
+    def test_get_jobs(self):
+        sys.argv = [
+            '',
+            '--config',
+            'e2e/configs/jenkins.yaml',
+            '--jobs',
+            '-vv'
+        ]
+
+        main()
+
+        self.assertIn('Total jobs: 0', self.output)

@@ -58,10 +58,6 @@ class Validator:
         if user_system_type and system_type not in user_system_type.value:
             is_valid_system = False
 
-        user_system_name = self.ci_args.get("system_name")
-        if user_system_name and name not in user_system_name.value:
-            is_valid_system = False
-
         user_systems = self.ci_args.get("systems")
         if user_systems and name not in user_systems.value:
             is_valid_system = False

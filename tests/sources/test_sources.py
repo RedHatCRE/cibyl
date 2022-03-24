@@ -14,10 +14,46 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
+import cibyl
 from cibyl.exceptions.source import TooManyValidSources
-from cibyl.sources.source import Source
+from cibyl.sources.source import get_source_method, is_source_valid
+
+
+class TestIsSourceValid(TestCase):
+    """Test for the is_source_valid static function."""
+
+    def test_invalid_if_disabled(self):
+        """Checks that a source is not valid is not enabled.
+        """
+        source = Mock()
+
+        source.enabled = False
+
+        self.assertFalse(is_source_valid(source, 'func'))
+
+    def test_invalid_if_no_desired_attribute(self):
+        """Checks that a source is invalid if it does not present the
+        desired attribute.
+        """
+        source = Mock()
+
+        source.enabled = True
+        del source.func
+
+        self.assertFalse(is_source_valid(source, 'func'))
+
+    def test_valid_if_meets_all_requirements(self):
+        """Checks that a source can be considered valid if it meets all
+        requirements.
+        """
+        source = Mock()
+
+        source.enabled = True
+        source.func = Mock()
+
+        self.assertTrue(is_source_valid(source, 'func'))
 
 
 class TestGetSourceMethod(TestCase):
@@ -27,16 +63,18 @@ class TestGetSourceMethod(TestCase):
         """Checks that only a single source is allowed to provide the
         desired function.
         """
+        func = 'func'
+
         source1 = Mock()
         source2 = Mock()
 
-        source1.func = Mock()
-        source2.func = Mock()
+        validity_check = cibyl.sources.source.is_source_valid = Mock()
+        validity_check.return_value = True
 
-        self.assertRaises(
-            TooManyValidSources,
-            Source.get_source_method,
-            'system',
-            [source1, source2],
-            'func'
-        )
+        with self.assertRaises(TooManyValidSources):
+            get_source_method('system', [source1, source2], func)
+
+        validity_check.assert_has_calls([
+            call(source1, func),
+            call(source2, func)
+        ])

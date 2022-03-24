@@ -15,6 +15,7 @@
 """
 import logging
 import operator
+import time
 
 from cibyl.cli.parser import Parser
 from cibyl.cli.validator import Validator
@@ -23,10 +24,24 @@ from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.exceptions.source import NoValidSources
 from cibyl.models.ci.environment import Environment
 from cibyl.publisher import Publisher
-from cibyl.sources.source import Source
+from cibyl.sources.source import get_source_method
 from cibyl.sources.source_factory import SourceFactory
 
 LOG = logging.getLogger(__name__)
+
+
+def source_information_from_method(source_method):
+    """Obtain source information from a method of a source object.
+
+    :param source_method: Source method that is used
+    :type source_method: method
+    :returns: string with source information identifying the object that the
+    method belongs to
+    :rtype: str
+    """
+    source = source_method.__self__
+    info_str = f"source {source.name} of type {source.driver} using method "
+    return info_str+f"{source_method.__name__}"
 
 
 class Orchestrator:
@@ -54,14 +69,17 @@ class Orchestrator:
         if not environments:
             self.environments = []
 
-    def load_configuration(self):
+    def load_configuration(self, skip_on_missing=False):
         """Loads the configuration of the application."""
-        self.config.load()
+        self.config.load(skip_on_missing)
 
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""
         try:
-            env_data = self.config.data.get('environments', {}).items()
+            if self.config.data:
+                env_data = self.config.data.get('environments', {}).items()
+            else:
+                env_data = {}
 
             for env_name, systems_dict in env_data:
                 environment = Environment(name=env_name)
@@ -107,8 +125,8 @@ class Orchestrator:
                               source.name in sources_user.value]
         if not system_sources:
             raise NoValidSources(system)
-        return Source.get_source_method(system.name.value, system_sources,
-                                        argument.func)
+        return get_source_method(system.name.value, system_sources,
+                                 argument.func)
 
     def run_query(self, start_level=1):
         """Execute query based on provided arguments."""
@@ -132,8 +150,13 @@ class Orchestrator:
                 # point forward
                 for system in valid_systems:
                     source_method = self.select_source_method(system, arg)
+                    start_time = time.time()
                     model_instances_dict = source_method(
-                        **self.parser.ci_args)
+                        **self.parser.ci_args, **self.parser.app_args)
+                    end_time = time.time()
+                    LOG.info("Took %.2fs to query system %s using %s",
+                             end_time-start_time, system.name.value,
+                             source_information_from_method(source_method))
                     system.populate(model_instances_dict)
             last_level = arg.level
 

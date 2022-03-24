@@ -16,6 +16,8 @@ Welcome to Cibyl documentation
    :caption: Development
    :maxdepth: 1
 
+   parser
+
 .. toctree::
    :maxdepth: 1
    :caption: Core CI Models

@@ -22,66 +22,49 @@ from cibyl.sources.source import Source
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
 
 
-class ZuulData:  # pylint: disable=too-few-public-methods
-    """Data class representing the source side of Zuul.
-    """
-
-    def __init__(self, name='zuul-ci', driver='zuul', priority=0):
-        """Constructor.
-
-        :param name: Name of the source.
-        :type name: str
-        :param driver: Name of the driver used by the source.
-        :type driver: str
-        :param priority: The source's priority.
-        :type priority: int
-        """
-        self.name = name
-        self.driver = driver
-        self.priority = priority
-
-
 class Zuul(Source):
     """Source implementation for a Zuul host.
     """
 
-    def __init__(self, api, url, data=ZuulData()):
+    def __init__(self, api, name, driver, url, **kwargs):
         """Constructor.
 
         :param api: Medium of communication with host.
         :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+        :param name: Name of the source.
+        :type name: str
+        :param driver: Driver used by the source.
+        :type driver: str
         :param url: Address where the host is located.
         :type url: str
-        :param data: Additional information detailing the source.
-        :type data: :class:`ZuulData`
+        :param kwargs: Additional parameters that define the source.
+        :type kwargs: Any
         """
         # URLs are built assuming no slash at the end of URL
         if url.endswith('/'):
             url = url[:-1]  # Removes last character of string
 
-        super().__init__(data.name, data.driver, url, data.priority)
+        super().__init__(name, driver, url=url, **kwargs)
 
         self._api = api
 
     @staticmethod
-    def new_source(url, cert=None, data=ZuulData()):
+    def new_source(url, cert=None, **kwargs):
         """Builds a Zuul source from the data that describes it.
 
         :param url: Address of Zuul's host.
         :type url: str
         :param cert: See :meth:`ZuulRESTClient.from_url`
         :type cert: str or None
-        :param data: Additional data describing the source.
-        :type data: :class:`ZuulData`
+        :param kwargs:
+        :type kwargs: Any
         :return: The instance.
         """
-        return Zuul(ZuulRESTClient.from_url(url, cert), url, data)
 
-    def connect(self):
-        self._api.info()
+        kwargs.setdefault('name', 'zuul-ci')
+        kwargs.setdefault('driver', 'zuul')
 
-    def query(self, system, args):
-        raise NotImplementedError
+        return Zuul(api=ZuulRESTClient.from_url(url, cert), url=url, **kwargs)
 
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.

@@ -13,11 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.exceptions import CibylException
 
 from cibyl.utils.colors import Colors
 
 
-class TooManyValidSources(Exception):
+class TooManyValidSources(CibylException):
     """Exception for trying to use multiple supported sources."""
 
     def __init__(self, system):
@@ -39,7 +40,7 @@ environments:
         super().__init__(self.message)
 
 
-class NoSupportedSourcesFound(Exception):
+class NoSupportedSourcesFound(CibylException):
     """Exception for a case where non of the sources of a single system is
        implementing the function of the argument the user is interested in
     """
@@ -51,7 +52,7 @@ that implements the function {function}
         super().__init__(self.message)
 
 
-class NoValidSources(Exception):
+class NoValidSources(CibylException):
     """Exception for a case when no valid source is found."""
 
     def __init__(self, system):

@@ -13,10 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.exceptions import CibylException
 
 
-class ElasticSearchError(CibylException):
-    """Elasticsearch error.
-    Used for personalized elasticsearch exceptions
+class AttrDict(dict):
+    """A dictionary that allows you to access its items as attributes, meaning
+    that the following: "dict['item']" can also be written as "dict.item".
     """
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setattr__

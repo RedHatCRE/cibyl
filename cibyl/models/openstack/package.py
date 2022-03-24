@@ -13,10 +13,18 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.exceptions import CibylException
+
+# flake8: noqa from cibyl.cli.argument import Argument
+# flake8: noqa from cibyl.models.attribute import AttributeListValue
+from cibyl.models.model import Model
+
+# pylint: disable=no-member
 
 
-class ElasticSearchError(CibylException):
-    """Elasticsearch error.
-    Used for personalized elasticsearch exceptions
+class Package(Model):
     """
+    Model for packages found on Openstack node
+    """
+    # To be implemented in future PR
+
+    API = {}

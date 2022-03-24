@@ -121,7 +121,7 @@ class TestOrchestrator(TestCase):
         self.assertEqual(
             self.orchestrator.environments[0].systems[1].name.value, 'system4')
 
-    @patch("cibyl.sources.source.Source.get_source_method")
+    @patch("cibyl.orchestrator.get_source_method")
     def test_orchestrator_select_source(self, patched_method):
         """Testing Orchestartor select_source_method method"""
         self.orchestrator.config.data = self.valid_env_sources

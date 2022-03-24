@@ -1,0 +1,11 @@
+---
+environments:
+  osp_phases:
+    osp_jenkins:
+      system_type: jenkins
+      sources:
+        jenkins:
+          driver: jenkins
+          username: 'admin'
+          token: 'passw'
+          url: 'http://localhost:8080/'

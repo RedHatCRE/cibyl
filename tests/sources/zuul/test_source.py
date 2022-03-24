@@ -18,58 +18,7 @@ from unittest.mock import Mock
 
 from cibyl.cli.argument import Argument
 from cibyl.models.ci.job import Job
-from cibyl.sources.zuul.api import ZuulAPIError
 from cibyl.sources.zuul.source import Zuul
-
-
-class TestZuulConnect(TestCase):
-    """Tests the 'connect' function on the Zuul source.
-    """
-
-    def assert_not_raises(self, exception_type, call):
-        """Verifies that an undesired exception does not come out of
-        a certain function.
-
-        :param exception_type: The type of the undesired exception.
-        :param call: The call to check.
-        """
-        try:
-            call()
-        except exception_type:
-            self.fail('Unexpected exception.')
-
-    def test_connect_success(self):
-        """Checks that nothing happens if the host can be connected to.
-        """
-
-        def successful_connection():
-            return
-
-        api = Mock()
-        api.info = Mock()
-        api.info.side_effect = successful_connection
-
-        zuul = Zuul(api, url='')
-
-        self.assert_not_raises(ZuulAPIError, zuul.connect)
-
-        api.info.assert_called()
-
-    def test_error_when_connect_fails(self):
-        """Checks that a :class:`ZuulAPIError` is thrown when connection to
-        the host could not be made.
-        """
-
-        def failed_connection():
-            raise ZuulAPIError
-
-        api = Mock()
-        api.info = Mock()
-        api.info.side_effect = failed_connection
-
-        zuul = Zuul(api, url='')
-
-        self.assertRaises(ZuulAPIError, zuul.connect)
 
 
 class TestZuulGetJobs(TestCase):
@@ -97,7 +46,7 @@ class TestZuulGetJobs(TestCase):
         """Checks that the source invokes all necessary calls to retrieve
         the jobs.
         """
-        zuul = Zuul(self.api, url='')
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         zuul.get_jobs()
 
@@ -109,7 +58,7 @@ class TestZuulGetJobs(TestCase):
     def test_returned_attribute(self):
         """Checks the correct format of the returned attribute dictionary.
         """
-        zuul = Zuul(self.api, url='')
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         result = zuul.get_jobs()
 
@@ -149,7 +98,7 @@ class TestZuulGetJobs(TestCase):
         self.tenants[0].jobs.return_value = [{'name': job1}]
         self.tenants[1].jobs.return_value = [{'name': job2}]
 
-        zuul = Zuul(self.api, url)
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', url)
 
         result = zuul.get_jobs(**kwargs).value
 
@@ -175,7 +124,7 @@ class TestZuulGetJobs(TestCase):
         self.tenants[0].jobs.return_value = [{'name': job1}]
         self.tenants[1].jobs.return_value = [{'name': job2}, {'name': job3}]
 
-        zuul = Zuul(self.api, url='')
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         # Check that just the desired jobs where retrieved
         result = zuul.get_jobs(**kwargs).value
@@ -211,7 +160,7 @@ class TestZuulGetBuilds(TestCase):
         following the idea that requests should always try to provide
         information of the highest possible level.
         """
-        zuul = Zuul(self.api, url='')
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         result = zuul.get_builds()
 
@@ -241,7 +190,7 @@ class TestZuulGetBuilds(TestCase):
             {'uuid': build2, 'job_name': job2, 'result': 'success'}
         ]
 
-        zuul = Zuul(self.api, url='')
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         result = zuul.get_builds(**kwargs).value
 
@@ -277,7 +226,7 @@ class TestZuulGetBuilds(TestCase):
             {'uuid': build2, 'job_name': job2, 'result': 'success'}
         ]
 
-        zuul = Zuul(self.api, url='')
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
         result = zuul.get_builds(**kwargs).value
 

@@ -17,6 +17,7 @@ import logging
 import os
 from collections import UserDict
 
+from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.utils import yaml
 from cibyl.utils.colors import Colors
 from cibyl.utils.files import get_first_available_file
@@ -72,17 +73,17 @@ class Config(UserDict):
 
         return self._path
 
-    def load(self):
+    def load(self, skip_on_missing=False):
         """Loads the contents of the configuration file into this object.
         This will look for the first file available from the list of paths
         provided by :attr:`~path`.
 
-        :raises FileNotFoundError: If no configuration file could be found.
+        :raises ConfigurationNotFound: If no configuration file could be found.
         :raises YAMLError: If the configuration file could not be parsed.
         """
         file = get_first_available_file(self.path)
         if file:
             self.data = yaml.parse(file)
-        else:
-            raise FileNotFoundError(Colors.red(
-                f"Could not open file at: {self.path}"))
+        elif not skip_on_missing:
+            raise ConfigurationNotFound(Color.red(f"Could not find configuration file: \
+'{self.path}'"))

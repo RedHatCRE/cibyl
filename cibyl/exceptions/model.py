@@ -13,11 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.exceptions import CibylException
 
 from cibyl.utils.colors import Colors
 
 
-class NonSupportedModelType(Exception):
+class NonSupportedModelType(CibylException):
     """Exception for trying to populate non-supported model"""
 
     def __init__(self, model_type):
@@ -28,7 +29,7 @@ class NonSupportedModelType(Exception):
         super().__init__(self.message)
 
 
-class NoValidEnvironment(Exception):
+class NoValidEnvironment(CibylException):
     """Exception for a case when no valid environment is found."""
 
     def __init__(self):
@@ -39,7 +40,7 @@ are present in the configuration.
         super().__init__(self.message)
 
 
-class NoValidSystem(Exception):
+class NoValidSystem(CibylException):
     """Exception for a case when no valid system is found."""
 
     def __init__(self):

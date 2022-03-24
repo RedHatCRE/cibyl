@@ -35,9 +35,9 @@ class Pipeline(Model):
         'jobs': {
             'attr_type': Job,
             'attribute_value_class': AttributeDictValue,
-            'arguments': [Argument(name='--jobs', arg_type=str,
-                                   nargs='*',
-                                   description="Pipeline jobs")]
+            'arguments': [Argument(name='--jobs', arg_type=str, nargs='*',
+                                   description="System jobs",
+                                   func='get_jobs')]
         }
     }
 
