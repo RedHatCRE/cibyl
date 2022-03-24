@@ -16,6 +16,7 @@
 
 
 class Colors:
+    """This is an implementation of a color class"""
 
     BLUE = '\033[94m'
     GREEN = '\033[92m'
