@@ -16,8 +16,10 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.sources.zuul.apis.rest import (ZuulRESTClient, ZuulSession,
-                                          ZuulTenantRESTClient)
+from cibyl.sources.zuul.apis.rest import (ZuulRESTClient,
+                                          ZuulSession,
+                                          ZuulTenantRESTClient,
+                                          ZuulJobRESTClient)
 
 
 class TestZuulSession(TestCase):
@@ -63,6 +65,57 @@ class TestZuulSession(TestCase):
 
         request.raise_for_status.assert_called()
         request.json.assert_called()
+
+
+class TestZuulJobRESTClient(TestCase):
+    def test_equality(self):
+        job = {
+            'name': 'job'
+        }
+
+        session = Mock()
+        tenant = Mock()
+
+        client = ZuulJobRESTClient(session, tenant, job)
+
+        # Equality by type
+        self.assertNotEqual(Mock(), client)
+
+        # Equality by reference
+        self.assertEqual(client, client)
+
+        # Equality by contents
+        self.assertEqual(ZuulJobRESTClient(session, tenant, job), client)
+
+    def test_builds(self):
+        job = {
+            'name': 'job'
+        }
+
+        builds = [
+            {
+                'name': 'build_1'
+            },
+            {
+                'name': 'build_2'
+            }
+        ]
+
+        session = Mock()
+        session.get = Mock()
+
+        tenant = Mock()
+
+        tenant.name = 'tenant'
+        session.get.return_value = builds
+
+        client = ZuulJobRESTClient(session, tenant, job)
+
+        self.assertEqual(builds, client.builds())
+
+        session.get.assert_called_once_with(
+            f"tenant/{tenant.name}/builds?job_name={job['name']}"
+        )
 
 
 class TestZuulTenantRESTClient(TestCase):
@@ -150,7 +203,13 @@ class TestZuulTenantRESTClient(TestCase):
 
         client = ZuulTenantRESTClient(session, tenant)
 
-        self.assertEqual(jobs, client.jobs())
+        self.assertEqual(
+            [
+                ZuulJobRESTClient(session, client, jobs[0]),
+                ZuulJobRESTClient(session, client, jobs[1])
+            ],
+            client.jobs()
+        )
 
         session.get.assert_called_once_with(
             f"tenant/{tenant['name']}/jobs"

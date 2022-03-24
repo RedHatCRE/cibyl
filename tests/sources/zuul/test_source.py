@@ -69,6 +69,10 @@ class TestZuulGetJobs(TestCase):
         """Checks that the source is capable of retrieving all jobs on the
         remote alongside their appropriate data.
         """
+
+        def build_url(tenant, job):
+            return f"{url}/t/{tenant.name}/job/{job}"
+
         job1 = 'job_1'
         job2 = 'job_2'
 
@@ -77,9 +81,6 @@ class TestZuulGetJobs(TestCase):
         kwargs = {
             'jobs': Argument('name', list, '', value=[])
         }
-
-        def build_url(tenant, job):
-            return f"{url}/t/{tenant.name}/job/{job}"
 
         expected_jobs = {
             job1: Job(
@@ -92,11 +93,17 @@ class TestZuulGetJobs(TestCase):
             )
         }
 
+        client1 = Mock()
+        client2 = Mock()
+
+        client1.name = job1
+        client2.name = job2
+
         self.tenants[0].name = 'tenant1'
         self.tenants[1].name = 'tenant2'
 
-        self.tenants[0].jobs.return_value = [{'name': job1}]
-        self.tenants[1].jobs.return_value = [{'name': job2}]
+        self.tenants[0].jobs.return_value = [client1]
+        self.tenants[1].jobs.return_value = [client2]
 
         zuul = Zuul(self.api, 'zuul-ci', 'zuul', url)
 
@@ -118,11 +125,19 @@ class TestZuulGetJobs(TestCase):
             'jobs': Argument('name', list, '', value=[job1, job2])
         }
 
+        client1 = Mock()
+        client2 = Mock()
+        client3 = Mock()
+
+        client1.name = job1
+        client2.name = job2
+        client3.name = job3
+
         self.tenants[0].name.value = 'tenant1'
         self.tenants[1].name.value = 'tenant2'
 
-        self.tenants[0].jobs.return_value = [{'name': job1}]
-        self.tenants[1].jobs.return_value = [{'name': job2}, {'name': job3}]
+        self.tenants[0].jobs.return_value = [client1]
+        self.tenants[1].jobs.return_value = [client2, client3]
 
         zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
@@ -180,15 +195,33 @@ class TestZuulGetBuilds(TestCase):
             'jobs': Argument('name', list, '', value=[])
         }
 
-        self.tenants[0].jobs.return_value = [{'name': job1}]
-        self.tenants[1].jobs.return_value = [{'name': job2}]
+        client1 = Mock()
+        client2 = Mock()
 
-        self.tenants[0].builds.return_value = [
-            {'uuid': build1, 'job_name': job1, 'result': 'success'}
+        client1.name = job1
+        client2.name = job2
+
+        client1.builds = Mock()
+        client2.builds = Mock()
+
+        client1.builds.return_value = [
+            {
+                'uuid': build1,
+                'job_name': job1,
+                'result': 'success'
+            }
         ]
-        self.tenants[1].builds.return_value = [
-            {'uuid': build2, 'job_name': job2, 'result': 'success'}
+
+        client2.builds.return_value = [
+            {
+                'uuid': build2,
+                'job_name': job2,
+                'result': 'success'
+            }
         ]
+
+        self.tenants[0].jobs.return_value = [client1]
+        self.tenants[1].jobs.return_value = [client2]
 
         zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 
@@ -216,15 +249,33 @@ class TestZuulGetBuilds(TestCase):
             'jobs': Argument('name', list, '', value=[job1])
         }
 
-        self.tenants[0].jobs.return_value = [{'name': job1}]
-        self.tenants[1].jobs.return_value = [{'name': job2}]
+        client1 = Mock()
+        client2 = Mock()
 
-        self.tenants[0].builds.return_value = [
-            {'uuid': build1, 'job_name': job1, 'result': 'success'}
+        client1.name = job1
+        client2.name = job2
+
+        client1.builds = Mock()
+        client2.builds = Mock()
+
+        client1.builds.return_value = [
+            {
+                'uuid': build1,
+                'job_name': job1,
+                'result': 'success'
+            }
         ]
-        self.tenants[1].builds.return_value = [
-            {'uuid': build2, 'job_name': job2, 'result': 'success'}
+
+        client2.builds.return_value = [
+            {
+                'uuid': build2,
+                'job_name': job2,
+                'result': 'success'
+            }
         ]
+
+        self.tenants[0].jobs.return_value = [client1]
+        self.tenants[1].jobs.return_value = [client2]
 
         zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
 

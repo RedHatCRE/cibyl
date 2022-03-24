@@ -17,7 +17,10 @@ from urllib.parse import urljoin
 
 from requests import HTTPError, Session
 
-from cibyl.sources.zuul.api import ZuulAPI, ZuulAPIError, ZuulTenantAPI
+from cibyl.sources.zuul.api import (ZuulAPI,
+                                    ZuulAPIError,
+                                    ZuulTenantAPI,
+                                    ZuulJobAPI)
 
 
 class ZuulSession:
@@ -90,6 +93,27 @@ class ZuulSession:
             raise ZuulAPIError(f'Unknown error code {code}') from ex
 
 
+class ZuulJobRESTClient(ZuulJobAPI):
+    def __init__(self, session, tenant, job):
+        super().__init__(tenant, job)
+
+        self._session = session
+
+    def __eq__(self, other):
+        if not issubclass(type(other), ZuulJobAPI):
+            return False
+
+        if self is other:
+            return True
+
+        return self.tenant == other.tenant and self.name == other.name
+
+    def builds(self):
+        return self._session.get(
+            f'tenant/{self.tenant.name}/builds?job_name={self.name}'
+        )
+
+
 class ZuulTenantRESTClient(ZuulTenantAPI):
     """Implementation of a Zuul client through the use of Zuul's REST-API.
     """
@@ -111,7 +135,12 @@ class ZuulTenantRESTClient(ZuulTenantAPI):
         return self._session.get(f'tenant/{self.name}/buildsets')
 
     def jobs(self):
-        return self._session.get(f'tenant/{self.name}/jobs')
+        result = []
+
+        for job in self._session.get(f'tenant/{self.name}/jobs'):
+            result.append(ZuulJobRESTClient(self._session, self, job))
+
+        return result
 
 
 class ZuulRESTClient(ZuulAPI):
