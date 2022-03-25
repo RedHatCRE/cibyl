@@ -14,7 +14,6 @@
 #    under the License.
 """
 from cibyl.exceptions import CibylException
-from cibyl.utils.colors import Colors
 
 
 class NonSupportedModelType(CibylException):
@@ -22,8 +21,7 @@ class NonSupportedModelType(CibylException):
 
     def __init__(self, model_type):
         self.model_type = model_type
-        self.message = Colors
-        f"""Not supported type for model: {self.model_type}.
+        self.message = f"""Not supported type for model: {self.model_type}.
             Unable to populate system with pulled data"""
         super().__init__(self.message)
 
@@ -32,8 +30,9 @@ class NoValidEnvironment(CibylException):
     """Exception for a case when no valid environment is found."""
 
     def __init__(self):
-        self.message = """No valid environments are defined.
-Please set at least one environment in the configuration file.
+        self.message = """No valid environment defined.
+ Please ensure the specified environments with --env-name argument
+are present in the configuration.
 """
         super().__init__(self.message)
 
@@ -42,8 +41,8 @@ class NoValidSystem(CibylException):
     """Exception for a case when no valid system is found."""
 
     def __init__(self):
-        self.message = """
-No valid system defined.
-Please ensure the specified systems are present in the configuration.
-"""
+        self.message = str("""No valid system defined.
+ Please ensure the specified environments with --systems, --system-name or
+ --system-type arguments are present in the configuration.
+""")
         super().__init__(self.message)

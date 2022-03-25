@@ -176,7 +176,6 @@ class PipelineSystem(System):
 
     def add_toplevel_model(self, model: Pipeline):
         """Add a top-level model to the system.
-
         :param pipeline: Pipeline to add to the system
         :type pipeline: Pipeline
         """
@@ -195,9 +194,9 @@ class PipelineSystem(System):
             self.pipelines[pipeline_name] = pipeline
 
     def __str__(self, indent=0, verbosity=0):
-        string = indent*' ' + f"System: {self.name.value}"
+        string = indent*' ' + Colors.blue("System: ") + f"{self.name.value}"
         if verbosity > 0:
-            string += f" (type: {self.system_type.value})"
+            string += Colors.blue("Type: ") + f"{self.system_type.value}"
         for pipeline in self.pipelines.values():
             string += f"\n{pipeline.__str__(indent+2, verbosity)}"
         return string
