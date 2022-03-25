@@ -133,3 +133,7 @@ dmypy.json
 
 # Pylint
 pylint.report.txt
+
+# vscode
+.vscode
+.swp

@@ -1,5 +1,5 @@
 Parser
-------
+======
 
 Cibyl provides two sources of user input, the configuration file and the command
 line arguments. The configuration file details the ci environment that the user
