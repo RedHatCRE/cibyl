@@ -13,11 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 import sys
 
 from cibyl.exceptions import CibylException
+from cibyl.models.ci.environment import Environment
 from cibyl.orchestrator import Orchestrator
 from cibyl.utils.logger import configure_logging
+
+LOG = logging.getLogger(__name__)
 
 
 def raw_parsing(arguments):
@@ -41,7 +45,31 @@ def raw_parsing(arguments):
             args["log_mode"] = arguments[i+2]
         elif item == "--debug":
             args["debug"] = True
+        elif item in ('-p', '--plugin'):
+            if hasattr(args, 'plugins'):
+                args["plugins"].append(arguments[i + 2])
+            else:
+                args["plugins"] = [arguments[i + 2]]
     return args
+
+
+def load_plugins(arguments):
+    """
+    :param arguments: A list of string respresenting the arguments and their
+                      values, defaults to None
+    """
+    plugin_name = ['openstack']
+    loaded_plugins = []
+    for plugin in plugin_name:
+        try:
+            LOG.info("Loading plugin: {}".format(plugin))
+            loaded_plugin = __import__(f"cibyl.plugins.{plugin}",
+                                       fromlist=[''])
+            loaded_plugin.ExtendPlugin()._extend_model(Environment.API)
+        except (ImportError, ModuleNotFoundError) as error:
+            LOG.error("Failed to load plugin: {}".format(plugin))
+            raise ImportError(f"Failed to import: {plugin}") from error
+    return loaded_plugins
 
 
 def main():
@@ -50,10 +78,10 @@ def main():
     # We parse it from sys.argv instead of argparse parser because we want
     # to run the app parser only once, after we update it with the loaded
     # arguments from the CI models based on the loaded configuration file
-
     arguments = raw_parsing(sys.argv)
     CibylException.setup_quiet_exceptions()
     configure_logging(arguments)
+    load_plugins(arguments)
 
     orchestrator = Orchestrator(arguments.get('config_file_path'))
     orchestrator.load_configuration(
@@ -62,6 +90,7 @@ def main():
     # Add arguments from CI & product models to the parser of the app
     for env in orchestrator.environments:
         orchestrator.extend_parser(attributes=env.API)
+
     # We can parse user's arguments only after we have loaded the
     # configuration and extended based on it the parser with arguments
     # from the CI models

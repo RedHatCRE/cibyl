@@ -25,7 +25,9 @@ class Model:
         for attribute_name, attribute_dict in self.API.items():
             attribute_class = attribute_dict.get('attribute_value_class',
                                                  AttributeValue)
-            setattr(self, attribute_name, attribute_class(
-                name=attribute_name, value=attributes[attribute_name],
-                arguments=attribute_dict.get('arguments', []),
-                attr_type=attribute_dict.get('attr_type')))
+            setattr(self, attribute_name,
+                    attribute_class(
+                        name=attribute_name,
+                        value=attributes[attribute_name],
+                        arguments=attribute_dict.get('arguments', []),
+                        attr_type=attribute_dict.get('attr_type')))
