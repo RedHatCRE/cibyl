@@ -26,6 +26,77 @@ class Zuul(Source):
     """Source implementation for a Zuul host.
     """
 
+    class Jobs:
+        """Extends actions that the source can do with regard to jobs.
+        """
+
+        def __init__(self, parent):
+            """Constructor.
+
+            :param parent: Source this extends.
+            :type parent: :class:`Zuul`
+            """
+            self._parent = parent
+
+        @property
+        def api(self):
+            """
+            :return: Link this uses to perform queries with.
+            :rtype: :class:`cibyl.sources.zuul.api.ZuulAPI`
+            """
+            return self._parent.api
+
+        @staticmethod
+        def is_job_a_target(job, **kwargs):
+            """
+            :return: Whether the query is asking for this job or not.
+            :rtype: bool
+            """
+            # Check if user wants to filter jobs
+            if 'jobs' not in kwargs:
+                return True
+
+            targets = kwargs.get('jobs').value
+
+            if not targets:
+                return True
+
+            if not isinstance(targets, Iterable):
+                return True
+
+            # Check if this job is desired by user
+            if job.name in targets:
+                return True
+
+            return False
+
+        def build_job_url(self, tenant, job):
+            """Builds the URL where the job can be found at. Do not confuse
+            this URL with the job's REST end-point.
+
+            :return: The address where the job can be found at.
+            :rtype: str
+            """
+            return f"{self._parent.url}/t/{tenant.name}/job/{job.name}"
+
+        def get_jobs_in_zuul(self, **kwargs):
+            """Provides a link to the jobs present on the host that meet
+            the filters described on the keyed arguments.
+
+            :key jobs: Name of the desired jobs. Type: list[str].
+                Default: None.
+            :return: The jobs.
+            :rtype: list[:class:`sources.zuul.api.ZuulJobAPI`]
+            """
+            result = []
+
+            for tenant in self.api.tenants():
+                for job in tenant.jobs():
+                    if self.is_job_a_target(job, **kwargs):
+                        result.append(job)
+
+            return result
+
     def __init__(self, api, name, driver, url, **kwargs):
         """Constructor.
 
@@ -47,6 +118,15 @@ class Zuul(Source):
         super().__init__(name, driver, url=url, **kwargs)
 
         self._api = api
+        self._jobs = Zuul.Jobs(self)
+
+    @property
+    def api(self):
+        """
+        :return: Link this uses to perform queries with.
+        :rtype: :class:`cibyl.sources.zuul.api.ZuulAPI`
+        """
+        return self._api
 
     @staticmethod
     def new_source(url, cert=None, **kwargs):
@@ -56,11 +136,13 @@ class Zuul(Source):
         :type url: str
         :param cert: See :meth:`ZuulRESTClient.from_url`
         :type cert: str or None
-        :param kwargs:
-        :type kwargs: Any
+        :key name: Name of the source. Type: str. Default: 'zuul-ci'.
+        :key driver: Driver for this source. Type: str. Default: 'zuul'.
+        :key priority: Priority of the source. Type: int. Default: 0.
+        :key enabled: Whether this source is to be used.
+            Type: bool. Default: True.
         :return: The instance.
         """
-
         kwargs.setdefault('name', 'zuul-ci')
         kwargs.setdefault('driver', 'zuul')
 
@@ -78,69 +160,18 @@ class Zuul(Source):
             attribute.
         :rtype: :class:`AttributeDictValue`
         """
+        jobs = {}
 
-        def is_job_a_target(job):
-            """
-            :param job: Name of the job to check.
-            :type job: str
-            :return: Whether the query is asking for this job or not.
-            :rtype: bool
-            """
-            # Check if user wants to filter jobs
-            if 'jobs' not in kwargs:
-                return True
+        for job in self._jobs.get_jobs_in_zuul(**kwargs):
+            name = job.name
+            tenant = job.tenant
 
-            targets = kwargs.get('jobs').value
+            jobs[name] = Job(
+                name,
+                self._jobs.build_job_url(tenant, job)
+            )
 
-            if not targets:
-                return True
-
-            if not isinstance(targets, Iterable):
-                return True
-
-            # Check if this job is desired by user
-            if job in targets:
-                return True
-
-            return False
-
-        def build_job_url(tenant, job):
-            """Builds the URL where the job can be found at. Do not confuse
-            this URL with the job's REST end-point.
-
-            :param tenant: Tenant to which the job belongs to.
-            :type tenant: :class:`ZuulTenantAPI`
-            :param job: The JSON obtained from the remote which represents
-                the job.
-            :type job: dict
-            :return: The address where the job can be found at.
-            :rtype: str
-            """
-            return f"{self.url}/t/{tenant.name}/job/{job['name']}"
-
-        def get_jobs_in_zuul():
-            """Performs the query, retrieving all jobs as described
-            by the delimiting inputs.
-
-            :return: The jobs, indexed by their name.
-            :rtype: dict[str, :class:`Job`]
-            """
-            zuul_jobs = {}
-
-            for tenant in self._api.tenants():
-                for job in tenant.jobs():
-                    name = job['name']
-
-                    if is_job_a_target(name):
-                        zuul_jobs[name] = Job(name, build_job_url(tenant, job))
-
-            return zuul_jobs
-
-        return AttributeDictValue(
-            'jobs',
-            attr_type=Job,
-            value=get_jobs_in_zuul()
-        )
+        return AttributeDictValue('jobs', attr_type=Job, value=jobs)
 
     def get_builds(self, **kwargs):
         """Retrieves builds present on the host.
@@ -154,21 +185,23 @@ class Zuul(Source):
             attribute. Builds can be found inside each of the jobs listed here.
         :rtype: :class:`AttributeDictValue`
         """
-        result = self.get_jobs(**kwargs)
+        jobs = {}
 
-        jobs = result.value
+        for job in self._jobs.get_jobs_in_zuul(**kwargs):
+            name = job.name
+            tenant = job.tenant
 
-        for tenant in self._api.tenants():
-            for build in tenant.builds():
-                # The job the build belongs to
-                build_job = build['job_name']
+            builds = {}
 
-                # Check if build is desired
-                if build_job not in jobs.keys():
-                    continue
+            for build in job.builds():
+                uuid = build['uuid']
 
-                # Add build to job
-                job = jobs.get(build_job)
-                job.add_build(Build(build['uuid'], build['result']))
+                builds[uuid] = Build(build['uuid'], build['result'])
 
-        return result
+            jobs[name] = Job(
+                name,
+                self._jobs.build_job_url(tenant, job),
+                builds
+            )
+
+        return AttributeDictValue('jobs', attr_type=Job, value=jobs)
