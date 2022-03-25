@@ -28,6 +28,6 @@ class Model:
             setattr(self, attribute_name,
                     attribute_class(
                         name=attribute_name,
-                        value=attributes[attribute_name],
+                        value=attributes.get(attribute_name),
                         arguments=attribute_dict.get('arguments', []),
                         attr_type=attribute_dict.get('attr_type')))
