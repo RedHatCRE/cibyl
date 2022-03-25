@@ -17,14 +17,14 @@ from unittest import TestCase
 
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.zuul.source import Zuul
-from cibyl.utils.query_cache import QueriesCache
+from cibyl.utils.source_methods_store import SourceMethodsStore
 
 
-class TestQueriesCache(TestCase):
-    """Test QueriesCache class."""
+class TestSourceMethodsStore(TestCase):
+    """Test SourceMethodsStore class."""
 
     def setUp(self):
-        self.cache = QueriesCache()
+        self.cache = SourceMethodsStore()
         self.jenkins = Jenkins(url="", name="jenkins_source")
         self.zuul = Zuul(api=None, name="zuul_source", driver="zuul", url="")
 
