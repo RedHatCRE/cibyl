@@ -286,3 +286,70 @@ class TestZuulGetBuilds(TestCase):
         self.assertEqual([build1], list(result[job1].builds.keys()))
 
         self.assertEqual(build1, result[job1].builds[build1].build_id.value)
+
+
+class TestGetLastBuild(TestCase):
+    """Tests the 'get_last_build' method on :class:`Zuul`.
+    """
+
+    def setUp(self):
+        def new_mocked_tenant():
+            tenant = Mock()
+            tenant.jobs = Mock()
+            tenant.jobs.return_value = []
+            tenant.builds = Mock()
+            tenant.builds.return_value = []
+
+            return tenant
+
+        self.tenants = [
+            new_mocked_tenant(),
+            new_mocked_tenant()
+        ]
+
+        self.api = Mock()
+        self.api.tenants = Mock()
+        self.api.tenants.return_value = self.tenants
+
+    def test_gets_only_the_most_recent_build(self):
+        """Checks that only the latest build is returned for the
+        '--last-build' flag.
+        """
+        build1 = '1'
+        build2 = '2'
+
+        job1 = 'job1'
+        job2 = 'job2'
+
+        kwargs = {
+            'jobs': Argument('name', list, '', value=[]),
+            'last_build': None
+        }
+
+        client1 = Mock()
+        client1.name = job1
+        client1.builds = Mock()
+        client1.builds.return_value = [
+            {
+                'uuid': build1,
+                'job_name': job1,
+                'result': 'success'
+            },
+            {
+                'uuid': build2,
+                'job_name': job2,
+                'result': 'success'
+            }
+        ]
+
+        self.tenants[0].jobs.return_value = [client1]
+
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
+
+        result = zuul.get_builds(**kwargs).value
+
+        self.assertEqual([job1], list(result.keys()))
+
+        self.assertEqual([build1], list(result[job1].builds.keys()))
+
+        self.assertEqual(build1, result[job1].builds[build1].build_id.value)
