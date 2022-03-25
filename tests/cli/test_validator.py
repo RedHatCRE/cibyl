@@ -40,7 +40,13 @@ class TestValidator(TestCase):
                 },
                 'env1': {
                     'system1': {
-                        'system_type': 'zuul'}
+                        'system_type': 'zuul',
+                        'sources': {
+                            'zuul': {
+                                'driver': 'zuul',
+                                'url': ''
+                                }
+                            }}
                 }
             }
         }
@@ -143,3 +149,19 @@ class TestValidator(TestCase):
         self.assertRaises(InvalidSystem,
                           validator.validate_environments,
                           original_envs)
+
+    def test_validtor_validate_sources(self):
+        """Test Validator validate_environments with sources."""
+        self.orchestrator.config.data = self.config
+        self.orchestrator.create_ci_environments()
+        self.ci_args["sources"] = Mock()
+        self.ci_args["sources"].value = ["zuul"]
+
+        validator = Validator(self.ci_args)
+        original_envs = self.orchestrator.environments
+        envs, systems = validator.validate_environments(original_envs)
+        self.assertEqual(1, len(envs))
+        self.assertEqual(1, len(systems))
+        self.assertEqual("system1", systems[0].name.value)
+        self.assertEqual("zuul", systems[0].system_type.value)
+        self.assertEqual("env1", envs[0].name.value)
