@@ -290,6 +290,8 @@ class Jenkins(Source):
             :rtype: :class:`AttributeDictValue`
         """
 
+        if kwargs.get('last_build'):
+            return self.get_last_build(**kwargs)
         jobs_found = self.get_jobs(**kwargs)
         if kwargs.get('verbosity', 0) > 0 and len(jobs_found) > 80:
             LOG.warning("This might take a couple of minutes...\
