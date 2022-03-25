@@ -13,6 +13,8 @@
 #    under the License.
 import sys
 
+from cibyl.utils.colors import Colors
+
 
 class CibylException(Exception):
 
@@ -23,7 +25,7 @@ class CibylException(Exception):
         """
         def quiet_hook(kind, message, traceback):
             if CibylException in kind.__bases__:
-                print(f'{message}')
+                print(Colors.red(f'{message}'))
             else:
                 sys.__excepthook__(kind, message, traceback)
         sys.excepthook = quiet_hook

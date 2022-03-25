@@ -124,7 +124,8 @@ class JobsSystem(System):
         for job in self.jobs.values():
             string += f"\n{job.__str__(indent+2, verbosity)}"
         if verbosity > 1:
-            string += "\n" + indent*' ' + f"Total jobs: {len(self.jobs)}"
+            string += "\n" + indent*' ' + \
+                Colors.blue("Total jobs: ") + f"{len(self.jobs)}"
         return string
 
     def add_toplevel_model(self, model: Job):
@@ -193,14 +194,10 @@ class PipelineSystem(System):
         else:
             self.pipelines[pipeline_name] = pipeline
 
-
-class JenkinsSystem(System):
-    """Model a Jenkins CI system."""
-
-    def __init__(self, name: str):
-        super().__init__(name, "jenkins")
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        return self.name.value == other.name.value
+    def __str__(self, indent=0, verbosity=0):
+        string = indent*' ' + f"System: {self.name.value}"
+        if verbosity > 0:
+            string += f" (type: {self.system_type.value})"
+        for pipeline in self.pipelines.values():
+            string += f"\n{pipeline.__str__(indent+2, verbosity)}"
+        return string

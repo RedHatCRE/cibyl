@@ -14,7 +14,6 @@
 #    under the License.
 """
 from cibyl.exceptions import CibylException
-
 from cibyl.utils.colors import Colors
 
 

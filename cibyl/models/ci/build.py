@@ -58,8 +58,8 @@ class Build(Model):
                 Colors.red(f"{self.status.value}")
         if verbosity > 0 and self.duration.value:
             duration_in_min = self.duration.value / 60000
-        build_str += Colors.blue(f"\n{indent_space}  Duration: ") + \
-            f"{duration_in_min}m"
+            build_str += Colors.blue(f"\n{indent_space}  Duration: ") + \
+                f"{duration_in_min}m"
         return build_str
 
     def __eq__(self, other):

@@ -59,6 +59,5 @@ def get_first_available_file(filenames, file_check=_is_file_available):
             return filename
 
         LOG.debug('%s: %s', 'file not found', filename)
-        # raise NoFileFound()
     # None of the files exist
     return None

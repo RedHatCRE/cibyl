@@ -61,7 +61,7 @@ class Job(Model):
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
-        job_str = Colors.green(f"{indent_space}Job: ") + f"{self.name.value}"
+        job_str = Colors.blue(f"{indent_space}Job: ") + f"{self.name.value}"
         if verbosity > 0 and self.url.value:
             job_str += Colors.green(f"\n{indent_space}  URL: ") + \
                 f"{self.url.value}"

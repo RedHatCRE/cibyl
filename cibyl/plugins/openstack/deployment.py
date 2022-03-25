@@ -18,14 +18,9 @@ from typing import List
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeListValue
 from cibyl.models.model import Model
-<<<<<<< HEAD:cibyl/plugins/openstack/deployment.py
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.service import Service
-=======
-from cibyl.models.openstack.node import Node
-from cibyl.models.openstack.service import Service
 from cibyl.utils.colors import Colors
->>>>>>> 9139f0e... Updated color implementation and tests to reflect color change:cibyl/models/openstack/deployment.py
 
 # pylint: disable=no-member
 

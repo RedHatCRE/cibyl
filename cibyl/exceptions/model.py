@@ -14,7 +14,6 @@
 #    under the License.
 """
 from cibyl.exceptions import CibylException
-
 from cibyl.utils.colors import Colors
 
 
@@ -23,9 +22,9 @@ class NonSupportedModelType(CibylException):
 
     def __init__(self, model_type):
         self.model_type = model_type
-        self.message = Colors.red(
-            f"""Not supported type for model: {self.model_type}.
-            Unable to populate system with pulled data""")
+        self.message = Colors
+        f"""Not supported type for model: {self.model_type}.
+            Unable to populate system with pulled data"""
         super().__init__(self.message)
 
 
