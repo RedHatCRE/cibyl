@@ -16,7 +16,8 @@
 
 import logging
 
-from cibyl.exceptions.model import NoValidEnvironment, NoValidSystem
+from cibyl.exceptions.model import (InvalidEnvironment, InvalidSystem,
+                                    NoValidSystem)
 
 LOG = logging.getLogger(__name__)
 
@@ -28,6 +29,24 @@ class Validator:
 
     def __init__(self, ci_args: dict):
         self.ci_args = ci_args
+
+    def _check_input_environments(self, all_envs, argument,
+                                  exception_to_raise):
+        """Check if the user input environments exist in the configuration.
+
+        :param all_envs: Environments defined in the configuration
+        :type all_envs: list
+        :param argument: Name of the cli argument to check
+        :type argument: str
+        :raises: InvalidEnvironment
+        """
+
+        env_user_input = self.ci_args.get(argument)
+        if env_user_input:
+            # check if user input environment name exists
+            for env_name in env_user_input.value:
+                if env_name not in all_envs:
+                    raise exception_to_raise(env_name, all_envs)
 
     def _consistent_environment(self, env):
         """Check if an environment should be used according to user input.
@@ -72,21 +91,27 @@ class Validator:
         """
         user_systems = []
         user_envs = []
+        all_envs = []
+        all_systems = []
         for env in environments:
+            all_envs.append(env.name.value)
             if not self._consistent_environment(env):
                 LOG.debug("Environment %s is not consistent with user input",
                           env.name.value)
                 continue
             user_envs.append(env)
             for system in env.systems:
+                all_systems.append(system.name.value)
                 if not self._consistent_system(system):
                     LOG.debug("System %s is not consistent with user input",
                               system.name.value)
                     continue
                 user_systems.append(system)
 
-        if not user_envs:
-            raise NoValidEnvironment()
+        self._check_input_environments(all_envs, "env_name",
+                                       InvalidEnvironment)
+        self._check_input_environments(all_systems, "systems", InvalidSystem)
+
         if not user_systems:
-            raise NoValidSystem()
+            raise NoValidSystem(all_systems)
         return user_envs, user_systems

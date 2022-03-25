@@ -17,7 +17,8 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.cli.validator import Validator
-from cibyl.exceptions.model import NoValidEnvironment, NoValidSystem
+from cibyl.exceptions.model import (InvalidEnvironment, InvalidSystem,
+                                    NoValidSystem)
 from cibyl.orchestrator import Orchestrator
 
 
@@ -97,6 +98,22 @@ class TestValidator(TestCase):
         self.assertEqual("system3", systems[0].name.value)
         self.assertEqual("jenkins", systems[0].system_type.value)
 
+    def tests_validator_validate_environments_system_type_no_systems(self):
+        """Testing Validator validate_environment method."""
+        self.orchestrator.config.data = self.config
+        self.orchestrator.create_ci_environments()
+        self.ci_args["env_name"] = Mock()
+        self.ci_args["env_name"].value = ["env"]
+        self.ci_args["system_type"] = Mock()
+        self.ci_args["system_type"].value = ["unk"]
+
+        validator = Validator(self.ci_args)
+        original_envs = self.orchestrator.environments
+
+        self.assertRaises(NoValidSystem,
+                          validator.validate_environments,
+                          original_envs)
+
     def tests_validator_validate_environments_no_envs(self):
         """Testing Validator validate_environment method."""
         self.orchestrator.config.data = self.config
@@ -109,7 +126,7 @@ class TestValidator(TestCase):
         validator = Validator(self.ci_args)
         original_envs = self.orchestrator.environments
 
-        self.assertRaises(NoValidEnvironment,
+        self.assertRaises(InvalidEnvironment,
                           validator.validate_environments,
                           original_envs)
 
@@ -123,6 +140,6 @@ class TestValidator(TestCase):
         validator = Validator(self.ci_args)
         original_envs = self.orchestrator.environments
 
-        self.assertRaises(NoValidSystem,
+        self.assertRaises(InvalidSystem,
                           validator.validate_environments,
                           original_envs)

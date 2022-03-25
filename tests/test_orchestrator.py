@@ -18,7 +18,6 @@ from unittest.mock import Mock, patch
 
 from cibyl.config import Config
 from cibyl.exceptions.config import InvalidConfiguration
-from cibyl.exceptions.model import NoValidEnvironment
 from cibyl.exceptions.source import NoValidSources
 from cibyl.orchestrator import Orchestrator
 
@@ -79,10 +78,6 @@ class TestOrchestrator(TestCase):
         self.orchestrator.load_configuration()
 
         self.orchestrator.config.load.assert_called()
-
-    def test_orchestrator_query_empty(self):
-        """Testing Orchestrator query method"""
-        self.assertRaises(NoValidEnvironment, self.orchestrator.run_query)
 
     def test_orchestrator_create_ci_environments(self):
         """Testing Orchestartor query method"""
