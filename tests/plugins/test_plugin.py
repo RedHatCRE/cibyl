@@ -13,23 +13,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import logging
+from unittest import TestCase
 
 from cibyl.exceptions.plugin import MissingPlugin
-from cibyl.models.ci.environment import Environment
-
-LOG = logging.getLogger(__name__)
-
-# TODO(abregman): Remove in the future and rely solely on
-#                 CLI or configuration
-DEFAULT_PLUGIN = 'openstack'
+from cibyl.plugins import DEFAULT_PLUGIN, extend_models
 
 
-def extend_models(plugin_name):
-    try:
-        LOG.info("Loading plugin: {}".format(plugin_name))
-        loaded_plugin = __import__(f"cibyl.plugins.{plugin_name}",
-                                   fromlist=[''])
-        loaded_plugin.Plugin()._extend(Environment.API)
-    except (ImportError, ModuleNotFoundError):
-        raise MissingPlugin(plugin_name)
+class TestPlugin(TestCase):
+    """Test Plugins mechanism"""
+
+    def test_extend_models(self):
+        """Test extend_models method"""
+        self.assertIsNone(extend_models(DEFAULT_PLUGIN))
+
+    def test_missing_plugin(self):
+        """Test extend_models method with a non-existing plugin."""
+        self.assertRaises(MissingPlugin,
+                          extend_models,
+                          "nonExistingPlugin")

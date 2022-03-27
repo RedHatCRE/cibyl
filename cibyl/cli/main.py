@@ -17,8 +17,8 @@ import logging
 import sys
 
 from cibyl.exceptions import CibylException
-from cibyl.models.ci.environment import Environment
 from cibyl.orchestrator import Orchestrator
+from cibyl.plugins import DEFAULT_PLUGIN, extend_models
 from cibyl.utils.logger import configure_logging
 
 LOG = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ def raw_parsing(arguments):
     """
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
-            "debug": False}
+            "debug": False, "plugins": [DEFAULT_PLUGIN]}
     for i, item in enumerate(arguments[1:]):
         if item == "--config":
             args['config_file_path'] = arguments[i + 2]
@@ -42,34 +42,17 @@ def raw_parsing(arguments):
         if item == "--log-file":
             args["log_file"] = arguments[i + 2]
         elif item == "--log-mode":
-            args["log_mode"] = arguments[i+2]
+            args["log_mode"] = arguments[i + 2]
         elif item == "--debug":
             args["debug"] = True
         elif item in ('-p', '--plugin'):
-            if hasattr(args, 'plugins'):
-                args["plugins"].append(arguments[i + 2])
-            else:
-                args["plugins"] = [arguments[i + 2]]
+            plugins = []
+            for argument in arguments[(i + 2):]:
+                if argument.startswith("-"):
+                    break
+                plugins.append(argument)
+            args["plugins"] = plugins
     return args
-
-
-def load_plugins(arguments):
-    """
-    :param arguments: A list of string respresenting the arguments and their
-                      values, defaults to None
-    """
-    plugin_name = ['openstack']
-    loaded_plugins = []
-    for plugin in plugin_name:
-        try:
-            LOG.info("Loading plugin: {}".format(plugin))
-            loaded_plugin = __import__(f"cibyl.plugins.{plugin}",
-                                       fromlist=[''])
-            loaded_plugin.ExtendPlugin()._extend_model(Environment.API)
-        except (ImportError, ModuleNotFoundError) as error:
-            LOG.error("Failed to load plugin: {}".format(plugin))
-            raise ImportError(f"Failed to import: {plugin}") from error
-    return loaded_plugins
 
 
 def main():
@@ -81,7 +64,11 @@ def main():
     arguments = raw_parsing(sys.argv)
     CibylException.setup_quiet_exceptions()
     configure_logging(arguments)
-    load_plugins(arguments)
+
+    plugins = arguments.get('plugins')
+    if plugins:
+        for plugin in plugins:
+            extend_models(plugin)
 
     orchestrator = Orchestrator(arguments.get('config_file_path'))
     orchestrator.load_configuration(
