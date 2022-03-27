@@ -34,7 +34,7 @@ class TestJenkins(TestCase):
         sys.argv = [
             '',
             '--config',
-            'e2e/configs/jenkins.yaml',
+            'tests/e2e/configs/jenkins.yaml',
             '--jobs',
             '-vv'
         ]
