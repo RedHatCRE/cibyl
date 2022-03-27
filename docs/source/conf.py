@@ -26,6 +26,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.intersphinx',
               'sphinx.ext.todo',
               'sphinx.ext.viewcode',
+              'sphinxemoji.sphinxemoji',
               'reno.sphinxext']
 
 # Add any paths that contain templates here, relative to this directory.
