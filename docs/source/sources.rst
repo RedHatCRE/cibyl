@@ -49,7 +49,7 @@ Arguments Matrix
      - Zuul.d
    * - --jobs
      - |:ballot_box_with_check:|
-     - |:x:|
+     - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:x:|
@@ -67,13 +67,13 @@ Arguments Matrix
      - |:x:|
    * - --builds
      - |:ballot_box_with_check:|
-     - |:x:|
+     - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --last-build
      - |:ballot_box_with_check:|
-     - |:x:|
+     - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
      - |:x:|
