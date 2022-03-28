@@ -14,7 +14,6 @@
 #    under the License.
 """
 from itertools import chain
-from typing import Iterable
 
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
@@ -33,77 +32,72 @@ class Zuul(Source):
             self._parent = parent
             self._api = api
 
-        def get_jobs(self, **kwargs):
-            def retrieve_jobs():
-                def is_job_a_target(job):
-                    # Check if user wants to filter jobs
-                    if 'jobs' not in kwargs:
-                        return True
-
-                    targets = kwargs.get('jobs').value
-
-                    if not isinstance(targets, Iterable):
-                        return True
-
-                    # Check if this job is desired by user
-                    if job.name in targets:
-                        return True
-
-                    return False
-
-                return apply_filters(
-                    chain.from_iterable(
-                        tenant.jobs() for tenant in self._api.tenants()
-                    ),
-                    lambda job: is_job_a_target(job)
+        def get_jobs(self, fetch_builds=False, **kwargs):
+            def get_model_for(job):
+                model = Job(
+                    name=job.name,
+                    url=self._get_url_for(job)
                 )
 
-            def build_job_model(job):
-                def make_job_url():
-                    """Builds the URL where the job can be found at. Do not
-                    confuse this URL with the job's REST end-point.
+                if fetch_builds:
+                    builds = self._get_builds_for(job, **kwargs)
 
-                    :return: The address where the job can be found at.
-                    :rtype: str
-                    """
-                    base = self._parent.url
-                    tenant = job.tenant
+                    model.builds = {
+                        build['uuid']: Build(build['uuid'], build['result'])
+                        for build in builds
+                    }
 
-                    return f"{base}/t/{tenant.name}/job/{job.name}"
+                return model
 
-                builds = None
+            def get_targets():
+                if 'jobs' not in kwargs:
+                    return []
 
-                if 'builds_at' in kwargs:
-                    builds = kwargs['builds_at'](job)
+                return kwargs['jobs'].value
 
-                return Job(name=job.name, url=make_job_url(), builds=builds)
+            jobs = apply_filters(
+                chain.from_iterable(
+                    tenant.jobs() for tenant in self._api.tenants()
+                ),
+                lambda job: self._is_job_a_target(get_targets(), job)
+            )
 
             return AttributeDictValue(
                 name='jobs',
                 attr_type=Job,
                 value={
-                    job.name: build_job_model(job)
-                    for job in retrieve_jobs()
+                    job.name: get_model_for(job)
+                    for job in jobs
                 }
             )
 
-        def get_builds(self, **kwargs):
-            def retrieve_builds(job):
-                def last_build_filter(build):
-                    if 'last_build' not in kwargs:
-                        return True
+        @staticmethod
+        def _get_builds_for(job, **kwargs):
+            def apply_last_build_filter(build):
+                if 'last_build' not in kwargs:
+                    return True
 
-                    return build == builds[0]
+                return build == builds[0]
 
-                builds = job.builds()
-                builds = apply_filters(builds, last_build_filter)
+            builds = job.builds()
 
-                return {
-                    build['uuid']: Build(build['uuid'], build['result'])
-                    for build in builds
-                }
+            return apply_filters(
+                builds,
+                lambda build: apply_last_build_filter(build)
+            )
 
-            return self.get_jobs(builds_at=retrieve_builds, **kwargs)
+        @staticmethod
+        def _is_job_a_target(targets, job):
+            if not targets:
+                return True
+
+            return job.name in targets
+
+        def _get_url_for(self, job):
+            base = self._parent.url
+            tenant = job.tenant
+
+            return f"{base}/t/{tenant.name}/job/{job.name}"
 
     def __init__(self, api, name, driver, url, **kwargs):
         """Constructor.
@@ -155,7 +149,7 @@ class Zuul(Source):
             attribute.
         :rtype: :class:`AttributeDictValue`
         """
-        return self._api.get_jobs(**kwargs)
+        return self._api.get_jobs(fetch_builds=False, **kwargs)
 
     def get_builds(self, **kwargs):
         """Retrieves builds present on the host.
@@ -169,4 +163,4 @@ class Zuul(Source):
             attribute. Builds can be found inside each of the jobs listed here.
         :rtype: :class:`AttributeDictValue`
         """
-        return self._api.get_builds(**kwargs)
+        return self._api.get_jobs(fetch_builds=True, **kwargs)
