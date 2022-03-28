@@ -18,18 +18,20 @@ import json
 import logging
 import re
 from functools import partial
-from typing import Dict, List, Pattern
+from typing import Dict, List
 from urllib.parse import urlparse
 
 import requests
 import urllib3
 
-from cibyl.cli.argument import Argument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.sources.source import Source, safe_request_generic
+from cibyl.utils.filtering import (apply_filters,
+                                   satisfy_case_insensitive_match,
+                                   satisfy_exact_match, satisfy_regex_match)
 
 LOG = logging.getLogger(__name__)
 
@@ -37,66 +39,19 @@ safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def satisfy_regex_match(model: Dict[str, str], pattern: Pattern,
-                        field_to_check: str):
-    """Check whether model (job or build) should be included according to
-    the user input.
-    The model should be added if the information provided field_to_check
-    (the model name or url for example) is matches the regex pattern.
+def is_job(job):
+    """Check if a given job representation corresponds to a job and not
+    a folder or a view.
 
-    :param model: model information obtained from jenkins
-    :type model: str
-    :param pattern: regex patter that the model name should match
-    :type pattern: :class:`re.Pattern`
-    :param field_to_check: model field to perform the check
-    :param field_to_check: str
-    :returns: Whether the model satisfies user input
-    :rtype: bool
+    :param job: Jenkins Job representation as a dictionary
+    :type job: dict
     """
-    return re.search(pattern, model[field_to_check]) is not None
-
-
-def satisfy_exact_match(model: Dict[str, str], user_input: Argument,
-                        field_to_check: str):
-    """Check whether model should be included according to the user input. The
-    model should be added if the information provided field_to_check
-    (the model name or url for example) is present in the user_input values.
-
-    :param model: model information obtained from jenkins
-    :type model: str
-    :param user_input: input argument specified by the user
-    :type model_urls: :class:`.Argument`
-    :param field_to_check: Job field to perform the check
-    :param field_to_check: str
-    :returns: Whether the model satisfies user input
-    :rtype: bool
-    """
-    return model[field_to_check] in user_input.value
-
-
-def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
-                                   field_to_check: str):
-    """Check whether model should be included according to the user input. The
-    model should be added if the information provided field_to_check
-    (the model name or url for example) is an exact case-insensitive match to
-    the information in the user_input values.
-
-    :param model: model information obtained from jenkins
-    :type model: str
-    :param user_input: input argument specified by the user
-    :type model_urls: :class:`.Argument`
-    :param field_to_check: Job field to perform the check
-    :param field_to_check: str
-    :returns: Whether the model satisfies user input
-    :rtype: bool
-    """
-    lowercase_input = [status.lower() for status in user_input.value]
-    return model[field_to_check].lower() in lowercase_input
+    return "job" in job["_class"]
 
 
 def filter_jobs(jobs_found: List[Dict], **kwargs):
     """Filter the result from the Jenkins API according to user input"""
-    checks_to_apply = []
+    checks_to_apply = [is_job]
 
     jobs_arg = kwargs.get('jobs')
     if jobs_arg:
@@ -116,24 +71,7 @@ def filter_jobs(jobs_found: List[Dict], **kwargs):
                                        user_input=job_urls,
                                        field_to_check="url"))
 
-    jobs_filtered = []
-    for job in jobs_found:
-        if "job" not in job["_class"]:
-            # jenkins may return folders as job objects
-            continue
-
-        is_valid_job = True
-        # we build the list of checks to apply dynamically depending on the
-        # user input, to avoid repeating the same checks for every job
-        for check in checks_to_apply:
-            if not check(model=job):
-                is_valid_job = False
-                break
-
-        if is_valid_job:
-            jobs_filtered.append(job)
-
-    return jobs_filtered
+    return apply_filters(jobs_found, *checks_to_apply)
 
 
 def filter_builds(builds_found: List[Dict], **kwargs):
@@ -158,23 +96,12 @@ def filter_builds(builds_found: List[Dict], **kwargs):
                                        user_input=build_status,
                                        field_to_check="result"))
 
-    builds_filtered = []
     for build in builds_found:
-        is_valid_build = True
         # ensure that the build number is passed as a string, Jenkins usually
         # sends it as an int
         build["number"] = str(build["number"])
-        # we build the list of checks to apply dynamically depending on the
-        # user input, to avoid repeating the same checks for every build
-        for check in checks_to_apply:
-            if not check(model=build):
-                is_valid_build = False
-                break
 
-        if is_valid_build:
-            builds_filtered.append(build)
-
-    return builds_filtered
+    return apply_filters(builds_found, *checks_to_apply)
 
 
 # pylint: disable=no-member
