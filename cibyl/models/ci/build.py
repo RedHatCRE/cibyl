@@ -51,7 +51,7 @@ class Build(Model):
             build_str += f"\n{indent_space}  Status: {self.status.value}"
         if verbosity > 0 and self.duration.value:
             duration_in_min = self.duration.value / 60000
-            build_str += f"\n{indent_space}  Duration: {duration_in_min}m"
+            build_str += f"\n{indent_space}  Duration: {duration_in_min:.2f}m"
         return build_str
 
     def __eq__(self, other):
