@@ -129,18 +129,19 @@ class ElasticSearchOSP(Source):
                 job.add_build(Build(str(build['_source']['build_id']),
                                     build["_source"]['build_result']))
 
+        if 'last_build' in kwargs:
+            return self.get_last_build(jobs_found)
+
         return jobs_found
 
-    def get_last_build(self: object, **kwargs: Argument):
+    def get_last_build(self: object, builds_jobs: AttributeDictValue):
         """
-            Get last build for jobs from elasticsearch server.
-            It uses the `method:get_builds` implemented in this class
+            Get last build from builds. It's determinated
+            by the build_id
 
             :returns: container of jobs with last build information
             :rtype: :class:`AttributeDictValue`
         """
-        builds_jobs = self.get_builds(**kwargs)
-
         job_object = {}
         for job_name, build_info in builds_jobs.items():
             builds = build_info.builds

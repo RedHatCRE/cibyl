@@ -26,6 +26,7 @@ from cibyl.models.ci.environment import Environment
 from cibyl.publisher import Publisher
 from cibyl.sources.source import get_source_method
 from cibyl.sources.source_factory import SourceFactory
+from cibyl.utils.source_methods_store import SourceMethodsStore
 
 LOG = logging.getLogger(__name__)
 
@@ -132,6 +133,7 @@ class Orchestrator:
         """Execute query based on provided arguments."""
         last_level = -1
         validator = Validator(self.parser.ci_args)
+        source_methods_store = SourceMethodsStore()
         # we keep only the environments consistent with the user input, this
         # should be helpful for the publisher to avoid showing unnecessary
         # information
@@ -150,6 +152,12 @@ class Orchestrator:
                 # point forward
                 for system in valid_systems:
                     source_method = self.select_source_method(system, arg)
+                    if source_methods_store.has_been_called(source_method):
+                        # we want to avoid repeating calls to the same source
+                        # method if several argument with that method are
+                        # provided
+                        continue
+                    source_methods_store.add_call(source_method)
                     start_time = time.time()
                     model_instances_dict = source_method(
                         **self.parser.ci_args, **self.parser.app_args)

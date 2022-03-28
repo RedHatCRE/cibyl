@@ -13,32 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import sys
-from io import StringIO
-from unittest import TestCase
-
-from cibyl.cli.main import main
+from cibyl.exceptions import CibylException
 
 
-class TestJenkins(TestCase):
-    def setUp(self) -> None:
-        self._output = StringIO()
+class MissingPlugin(CibylException):
+    """Missing plugin exception"""
 
-        sys.stdout = self._output
-
-    @property
-    def output(self):
-        return self._output.getvalue()
-
-    def test_get_jobs(self):
-        sys.argv = [
-            '',
-            '--config',
-            'e2e/configs/jenkins.yaml',
-            '--jobs',
-            '-vv'
-        ]
-
-        main()
-
-        self.assertIn('Total jobs: 0', self.output)
+    def __init__(self, plugin_name):
+        self.plugin_name = plugin_name
+        self.message = f"""Unable to locate the plugin {plugin_name}.
+Make sure the plugin is defined in cibyl.plugins directory
+"""
+        super().__init__(self.message)

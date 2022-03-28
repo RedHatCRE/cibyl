@@ -16,24 +16,19 @@
 from cibyl.cli.argument import Argument
 from cibyl.plugins.openstack.deployment import Deployment
 
-API_CLASS = {
-    "deployment": Deployment
-}
 
-
-class ExtendPlugin:
-    def _extend_model(self, model_name):
+class Plugin:
+    def _extend(self, model_name):
         for attr_type, attr_value in model_name.items():
             if 'attr_type' in attr_value.keys() and \
                attr_value['attr_type'].__name__ == "Job":
-                for key, values in API_CLASS.items():
-                    attr_value['attr_type'].API[key] = {
-                        'attr_type': values,
-                        'arguments': [Argument(
-                            name="--deployment",
-                            arg_type=str,
-                            nargs="*",
-                            description="Openstack deployment")]}
+                attr_value['attr_type'].API['deployment'] = {
+                    'attr_type': Deployment,
+                    'arguments': [Argument(
+                        name="--deployment",
+                        arg_type=str,
+                        nargs="*",
+                        description="Openstack deployment")]}
 
             if hasattr(attr_value['attr_type'], 'API'):
-                self._extend_model(attr_value['attr_type'].API)
+                self._extend(attr_value['attr_type'].API)

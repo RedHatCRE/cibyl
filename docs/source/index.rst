@@ -44,10 +44,9 @@ Welcome to Cibyl's documentation!
    :maxdepth: 2
    :caption: Core
 
-   configuration
-   terminology
    parser
    plugins
+   sources
 
 .. toctree::
    :maxdepth: 2
