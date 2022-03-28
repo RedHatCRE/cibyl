@@ -1,0 +1,9 @@
+---
+environments:
+  env_1:
+    zuul_system:
+      system_type: zuul
+      sources:
+        osp_zuul:
+          driver: zuul
+          url: 'http://localhost:9000/'

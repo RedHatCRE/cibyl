@@ -16,15 +16,15 @@
 import sys
 
 from cibyl.cli.main import main
-from tests.e2e.fixture import JenkinsTest
+from tests.e2e.fixture import ZuulTest
 
 
-class TestJenkins(JenkinsTest):
-    def test_get_jobs(self):
+class TestZuul(ZuulTest):
+    def test_zuul(self):
         sys.argv = [
             '',
             '--config',
-            'tests/e2e/configs/jenkins.yaml',
+            'tests/e2e/configs/zuul.yaml',
             '--jobs',
             '-vv'
         ]
