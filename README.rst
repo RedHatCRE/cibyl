@@ -1,13 +1,12 @@
 CIbyl
 =====
 
-Command line interface for querying CI environments
-
+Cibyl is a command-line interface and REST API for querying CI environments and systems.
 
 Installation
 ************
 
-`pip install cibyl`
+``pip install cibyl``
 
 Next, set up `configuration <http://cibyl.readthedocs.org/>`_
 
