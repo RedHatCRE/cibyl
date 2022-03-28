@@ -16,6 +16,13 @@
 
 
 def apply_filters(iterable, *filters):
+    """Applies a set of filters to a collection.
+
+    :param iterable: The collection to filter.
+    :param filters: List of filters to apply.
+    :return: The collection post-filtering.
+    :rtype: list
+    """
     result = list(iterable)
 
     for check in filters:

@@ -28,11 +28,35 @@ class Zuul(Source):
     """
 
     class API:
+        """The meat of the source. Provides its capabilities without being
+        restricted by the interface definition.
+        """
+
         def __init__(self, parent, api):
+            """Constructor.
+
+            :param parent: The source this gives capabilities to.
+            :type parent: :class:`Zuul`
+            :param api: Low-Level Zuul client.
+            :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+            """
             self._parent = parent
             self._api = api
 
         def get_jobs(self, fetch_builds=False, **kwargs):
+            """Gets a set of jobs from the host formatted with the job model.
+
+            :param fetch_builds: Whether to also download the jobs builds.
+            :type fetch_builds: bool
+            :key jobs: List of jobs to be fetched. Type: Argument[list[str]].
+                Default: None.
+            :key last_build: Fetch only the latest build of each job. Does
+                nothing if build fetching is not requested. Type: bool.
+                Default: False.
+            :return: The jobs in the format of an attribute.
+            :rtype: :class:`AttributeDictValue`
+            """
+
             def get_model_for(job):
                 model = Job(
                     name=job.name,
@@ -73,6 +97,17 @@ class Zuul(Source):
 
         @staticmethod
         def _get_builds_for(job, **kwargs):
+            """Gets the builds of a job formatted as raw data.
+
+            :param job: The job to get the build for.
+            :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
+            :key last_build: Fetch only the latest build of each job. Does
+                nothing if build fetching is not requested. Type: bool.
+                Default: False.
+            :return: Information about the job's builds.
+            :rtype: list[dict]
+            """
+
             def apply_last_build_filter(build):
                 if 'last_build' not in kwargs:
                     return True
@@ -88,12 +123,31 @@ class Zuul(Source):
 
         @staticmethod
         def _is_job_a_target(targets, job):
+            """Implements the '--jobs job1 job2 ...' filter.
+
+            :param targets: Name of the jobs that are considered targets.
+                All jobs will be considered a target if this is empty.
+            :type targets: list[str]
+            :param job: The job to check.
+            :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
+            :return: Whether it is or not.
+            :rtype: bool
+            """
             if not targets:
                 return True
 
             return job.name in targets
 
         def _get_url_for(self, job):
+            """Builds the URL where the job is located at. This URL is meant
+            to be seen on a browser, do not confuse it with the API
+            counterpart.
+
+            :param job: The job to build the URL for.
+            :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
+            :return: The URL.
+            :rtype: str
+            """
             base = self._parent.url
             tenant = job.tenant
 
