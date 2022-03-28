@@ -21,7 +21,6 @@ import subprocess
 import xml.etree.ElementTree as ET
 from functools import partial
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 from cibyl.exceptions.jenkins_job_builder import JenkinsJobBuilderError
 from cibyl.models.attribute import AttributeDictValue
@@ -57,18 +56,42 @@ class JenkinsJobBuilder(Source):
                          enabled=enabled, priority=priority)
         self.dest = dest
         self.branch = branch
-        if dest is None:
-            # store the TemporaryDirectory directory, so that the contents live
-            # until the instance of self is destroyed
-            # pylint: disable=consider-using-with
-            self.tmp_folder = TemporaryDirectory()
-            self.dest = self.tmp_folder.name
+        self.cloned = False
+        if self.dest is None and self.url is None:
+            message = f"Source {self.name} needs a url or a destination path."
+            raise JenkinsJobBuilderError(message)
 
+        if dest is None:
+            repo_name = os.path.split(self.url)[-1]
+            project_name = os.path.splitext(repo_name)[0]
+            self.dest = os.path.join(os.path.expanduser('~'), '.cibyl',
+                                     project_name)
+            os.makedirs(self.dest, exist_ok=True)
+
+    def ensure_repo_present(self):
+        """Ensure that the repository with job definitions is present."""
+        if self.cloned:
+            return
+        self.cloned = True
         if not os.path.exists(os.path.join(self.dest, ".git")):
-            LOG.debug("cloning repository to %s", self.dest)
+            LOG.debug("cloning repository %s to %s", self.url, self.dest)
             self.get_repo()
         else:
-            LOG.debug("repository already present in %s", self.dest)
+            LOG.debug("Repository %s found in %s, pulling latest changes",
+                      self.url, self.dest)
+            self.pull_latest_changes()
+
+    @safe_request
+    def pull_latest_changes(self):
+        """Ensure that the repo is up to date."""
+        branch = []
+        if self.branch:
+            subprocess.run(["git", "checkout", self.branch], check=True,
+                           cwd=self.dest)
+            branch.append(self.branch)
+
+        subprocess.run(["git", "pull", "origin"]+branch, check=True,
+                       cwd=self.dest)
 
     @safe_request
     def get_repo(self):
@@ -90,6 +113,7 @@ class JenkinsJobBuilder(Source):
         name, fullname, url, color
         :rtype: list
         """
+        self.ensure_repo_present()
         self._generate_xml()
         jobs_available = {}
         jobs_arg = kwargs.get('jobs')
