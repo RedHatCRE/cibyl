@@ -17,9 +17,23 @@ from cibyl.cli.argument import Argument
 from cibyl.plugins.openstack.deployment import Deployment
 
 
+def add_deployment(self, deployment: Deployment):
+    """Add a deployment to the job.
+
+    :param deployment: Deployment to add to the job
+    :type deployment: :class:`.Deployment`
+    """
+    self.deployment.value = deployment
+
+
 class Plugin:
+    """Extend a CI model with Openstack specific models and methods."""
+    plugin_attributes_to_add = {
+        'deployment': {'add_method': 'add_deployment'}
+        }
+
     def _extend(self, model_name):
-        for attr_type, attr_value in model_name.items():
+        for _, attr_value in model_name.items():
             if 'attr_type' in attr_value.keys() and \
                attr_value['attr_type'].__name__ == "Job":
                 attr_value['attr_type'].API['deployment'] = {
@@ -29,6 +43,10 @@ class Plugin:
                         arg_type=str,
                         nargs="*",
                         description="Openstack deployment")]}
+                attr_value['attr_type'].plugin_attributes.update(
+                        self.plugin_attributes_to_add)
+                setattr(attr_value['attr_type'], 'add_deployment',
+                        add_deployment)
 
             if hasattr(attr_value['attr_type'], 'API'):
                 self._extend(attr_value['attr_type'].API)
