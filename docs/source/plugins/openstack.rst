@@ -4,14 +4,21 @@ OpenStack Plugin
 OpenStack is an open source cloud software. The OpenStack plugin associates CI
 job model with OpenStack deployment model.
 
-OpenStack Models
-^^^^^^^^^^^^^^^^
+Models
+^^^^^^
 
 * Deployment: An entire OpenStack cluster
 * Node: A single node in an OpenStack deployment/cluster associated with a single deployment
 * Container: A container associated with a single node
 * Package: An RPM associated with either a single node or a single container
 * Service: A service associated with a single deployment
+
+    Deployment
+    ├── Node
+    │   └── Container
+    │       └── Package
+    │   └── Package
+    ├── Service
 
 Usage
 ^^^^^
