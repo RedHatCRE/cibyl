@@ -17,11 +17,18 @@ import os.path
 import sys
 from io import StringIO
 from tempfile import TemporaryDirectory
-from time import sleep
 from unittest import TestCase
 
+import requests
 from git import Repo
 from testcontainers.compose import DockerCompose
+from testcontainers.core.waiting_utils import wait_container_is_ready
+
+
+@wait_container_is_ready()
+def wait_for(url):
+    response = requests.get(url)
+    response.raise_for_status()
 
 
 class EndToEndTest(TestCase):
@@ -48,8 +55,8 @@ class JenkinsTest(EndToEndTest):
         # Launch the container
         cls.jenkins.start()
 
-        # Wait for container to start
-        sleep(10)
+        # Wait for Jenkins to be ready
+        wait_for('http://localhost:8080/api/json')
 
     @classmethod
     def tearDownClass(cls):
@@ -75,8 +82,8 @@ class ZuulTest(EndToEndTest):
         # Launch the container
         cls.zuul.start()
 
-        # Wait for container to start
-        sleep(10)
+        # Wait for Zuul to be ready
+        wait_for('http://localhost:9000/api')
 
     @classmethod
     def tearDownClass(cls):
