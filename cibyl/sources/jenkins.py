@@ -30,7 +30,7 @@ from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
-from cibyl.sources.source import Source, safe_request_generic
+from cibyl.sources.source import Source, safe_request_generic, speed_index
 from cibyl.utils.filtering import (IP_PATTERN, PROPERTY_PATTERN,
                                    RELEASE_PATTERN, TOPOLOGY_PATTERN,
                                    apply_filters,
@@ -221,6 +221,7 @@ class Jenkins(Source):
 
         return json.loads(response.text)
 
+    @speed_index({'jobs': 2, 'job_url': 2, 'builds': 1})
     def get_jobs(self, **kwargs):
         """
             Get jobs from jenkins server.

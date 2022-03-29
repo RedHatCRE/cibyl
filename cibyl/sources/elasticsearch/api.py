@@ -24,7 +24,7 @@ from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
-from cibyl.sources.source import Source
+from cibyl.sources.source import Source, speed_index
 from cibyl.utils.filtering import IP_PATTERN
 
 LOG = logging.getLogger(__name__)
@@ -51,6 +51,7 @@ class ElasticSearchOSP(Source):
                       from exception
             self.es_client = ElasticSearchClient(host, port)
 
+    @speed_index({'jobs': 3})
     def get_jobs(self: object, **kwargs: Argument) -> list:
         """Get jobs from elasticsearch
 

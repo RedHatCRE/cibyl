@@ -17,8 +17,7 @@ import logging
 
 import requests
 
-from cibyl.exceptions.source import (NoSupportedSourcesFound,
-                                     TooManyValidSources)
+from cibyl.exceptions.source import NoSupportedSourcesFound
 from cibyl.utils.attrdict import AttrDict
 
 LOG = logging.getLogger(__name__)
@@ -87,7 +86,15 @@ def is_source_valid(source: Source, desired_attr: str):
     return True
 
 
-def get_source_method(system_name: str, sources: list, func_name: str):
+def get_source_speed_score(source, func_name, args):
+    speed = -1
+    for arg in args:
+        speed += getattr(source, func_name)._speed_index.get(arg, 0)
+    return speed
+
+
+def get_source_method(system_name: str, sources: list, func_name: str,
+                      args):
     """Returns a method of a single source given all the sources
     of the system and the name of function.
 
@@ -102,21 +109,27 @@ def get_source_method(system_name: str, sources: list, func_name: str):
     :type func_name: str
     """
 
-    def get_valid_sources():
-        result = []
+    speed_score = -1
+    source_method = None
 
-        for source in sources:
-            if is_source_valid(source, func_name):
-                result.append(source)
+    for source in sources:
+        if is_source_valid(source, func_name):
+            source_speed_score = get_source_speed_score(source,
+                                                        func_name, args)
+            if source_speed_score > speed_score:
+                source_method = getattr(source, func_name)
+                speed_score = source_speed_score
 
-        return result
-
-    valid_sources = get_valid_sources()
-
-    if len(valid_sources) == 0:
+    if not source_method:
         raise NoSupportedSourcesFound(system_name, func_name)
+    LOG.debug(f"chose source {source_method.__self__.get('driver')} \
+with speed score {speed_score}")
 
-    if len(valid_sources) > 1:
-        raise TooManyValidSources(system_name)
+    return source_method
 
-    return getattr(valid_sources[0], func_name)
+
+def speed_index(speed):
+    def decorator(func):
+        setattr(func, '_speed_index', speed)
+        return func
+    return decorator

@@ -59,23 +59,17 @@ def configure_file_logging(log_file, level):
     logger.addHandler(file_handler)
 
 
-def configure_logging(log_config, level=logging.INFO):
+def configure_logging(log_mode, log_file, level=logging.INFO):
     """Configure logging format and level.
 
     :param log_config: Configuration for the logger
     :type log_config: dict
-    :param level: Logging level, default DEBUG
-    :type level: int
     """
-    if log_config.get("debug", False):
-        level = logging.DEBUG
     # configure a top-level cibyl logger instead of the root logger,
     # to suppress logging coming from other libraries
     logger = logging.getLogger('cibyl')
     logger.setLevel(level)
 
-    log_mode = log_config["log_mode"]
-    log_file = log_config["log_file"]
     if log_mode == "terminal":
         configure_terminal_logging(level)
     elif log_mode == "file":

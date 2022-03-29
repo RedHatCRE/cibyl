@@ -16,28 +16,6 @@
 from cibyl.exceptions import CibylException
 
 
-class TooManyValidSources(CibylException):
-    """Exception for trying to use multiple supported sources."""
-
-    def __init__(self, system):
-        self.system = system
-        self.message = f"""You have more than one source defined for the system
- {self.system}.
-Please either specify one source with --source argument or set higher
-priority for the source
-in the configuration, this way:
-
-environments:
-    env_1:
-        jenkins_system:
-            system_type: jenkins
-                 sources:
-                   jenkins:
-                     priority: 1
-"""
-        super().__init__(self.message)
-
-
 class NoSupportedSourcesFound(CibylException):
     """Exception for a case where non of the sources of a single system is
        implementing the function of the argument the user is interested in
