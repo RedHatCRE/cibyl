@@ -50,8 +50,11 @@ class Build(Model):
         build_str = Colors.blue(
             f"{indent_space}Build: ") + f"{self.build_id.value}"
         if self.status.value:
-            build_str += Colors.blue(f"\n{indent_space}  Status: ") + \
-                f"{self.status.value}"
+            build_str += Colors.blue(f"\n{indent_space}  Status: ")
+            if self.status.value == "SUCCESS":
+                build_str += Colors.green(f"{self.status.value}")
+            if self.status.value == "FAILURE":
+                build_str += Colors.red(f"{self.status.value}")
         if verbosity > 0 and self.duration.value:
             duration_in_min = self.duration.value / 60000
             build_str += Colors.blue(f"\n{indent_space}  Duration: ") + \

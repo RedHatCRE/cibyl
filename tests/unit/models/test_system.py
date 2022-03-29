@@ -144,6 +144,8 @@ class TestPipelineSystem(unittest.TestCase):
         """Test PipelineSystem __str__ method."""
         self.assertIn("System: ", str(self.system))
         self.assertIn("System: ", str(self.other_system))
+        self.assertIn(self.name, str(self.system))
+        self.assertIn(self.name, str(self.other_system))
 
     def test_add_pipeline(self):
         """Test PipelineSystem add pipeline method."""

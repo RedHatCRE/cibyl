@@ -57,8 +57,8 @@ instead of {self.name}")
 
     def test_str_environment(self):
         """Testing environment str method"""
-        self.assertIn("Environment: ",
-                      str(self.env))
+        self.assertIn("Environment: ", str(self.env))
+        self.assertIn(self.name, str(self.env))
 
     def test_add_systems_constructor(self):
         """Testing passing systems to environment constructor"""

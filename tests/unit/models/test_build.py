@@ -78,19 +78,14 @@ str")
     def test_build_str(self):
         """Test Build __str__ method."""
         self.assertIn('Build: ', str(self.build))
-
-        self.assertIn(
-            'Build: ',
-            str(self.second_build))
+        self.assertIn(self.build_id, str(self.build))
+        self.assertIn('Build: ', str(self.second_build))
 
         self.second_build.status.value = self.build_status
 
-        self.assertIn(
-            'Build: ',
-            str(self.second_build))
-        self.assertIn(
-            'Status: ',
-            str(self.second_build))
+        self.assertIn('Build: ', str(self.second_build))
+        self.assertIn('Status: ', str(self.second_build))
+        self.assertIn(self.build_id, str(self.second_build))
 
     def test_build_merge(self):
         """Test Build merge method."""

@@ -56,6 +56,9 @@ from str")
         """Test Pipeline __str__ method."""
         self.assertIn('Pipeline: ', str(self.pipeline))
         self.assertIn('Pipeline: ', str(self.second_pipeline))
+        self.assertIn(self.pipeline.name.value, str(self.pipeline))
+        self.assertIn(self.second_pipeline.name.value,
+                      str(self.second_pipeline))
 
     def test_pipeline_add_job(self):
         """Test Pipeline add_jobs method."""

@@ -95,13 +95,14 @@ Should be {self.job_url}")
     def test_job_str(self):
         """Testing Job __str__ method."""
         self.assertIn('Job: ', str(self.job))
-        self.assertIn(
-            'Job: ',
-            str(self.second_job))
+        self.assertIn('Job: ', str(self.second_job))
+        self.assertIn(self.job.name.value, str(self.job))
+        self.assertIn(self.job_name, str(self.second_job))
 
         self.second_job.url.value = self.job_url
 
         self.assertIn('Job: ', str(self.second_job))
+        self.assertIn(self.job_name, str(self.second_job))
 
     def test_jobs_add_build(self):
         """Testing Job add_build method."""
