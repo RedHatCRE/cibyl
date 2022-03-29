@@ -60,11 +60,16 @@ class Deployment(Model):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services})
 
-    def __str__(self):
-        info = Colors.blue("Release: ") + f"{self.release.value}"
-        info += Colors.blue("Infra type: ") + f"{self.infra_type.value} \n"
+    def __str__(self, indent=0, verbosity=0):
+        indent_space = indent*' '
+        info = f'{indent_space}' + Colors.blue("Release: ")
+        info += f'{self.release.value}'
+
+        info += f'\n{indent_space}' + Colors.blue('Infra type: ')
+        info += f'{self.infra_type.value}'
         for node in self.nodes:
-            info += node.__str__()
-        if self.service:
-            info += Colors.blue("\n Service: ") + f'{self.service.value}'
+            info += f'\n{indent_space}  {node.__str__()}'
+        if self.services:
+            info += f'\n{indent_space}  ' + Colors.blue('Service: ')
+            info += f'{self.services.value}'
         return info
