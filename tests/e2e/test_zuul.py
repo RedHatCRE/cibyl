@@ -16,20 +16,21 @@
 import sys
 
 from cibyl.cli.main import main
-from tests.e2e.fixture import JenkinsTest
+from tests.e2e.fixture import ZuulTest
 
 
-class TestJenkins(JenkinsTest):
-    """Tests queries regarding the Jenkins source.
+class TestZuul(ZuulTest):
+    """Tests queries regarding the Zuul source.
     """
 
     def test_get_jobs(self):
         """Checks that jobs are retrieved with the "--jobs" flag.
         """
+
         sys.argv = [
             '',
             '--config',
-            'tests/e2e/configs/jenkins.yaml',
+            'tests/e2e/configs/zuul.yaml',
             '--jobs',
             '-vv'
         ]

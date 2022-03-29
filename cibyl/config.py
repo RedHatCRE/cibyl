@@ -30,9 +30,6 @@ class Config(UserDict):
     from an external yaml file. No post-processing is performed on the read
     data, as this class acts as a direct interface between the system's file
     and the app.
-
-    :ivar _path: Path, or collection of paths, to the configuration file
-        this represents.
     """
 
     DEFAULT_FILE_PATHS = (
