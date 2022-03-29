@@ -20,6 +20,7 @@ from cibyl.models.attribute import AttributeListValue
 from cibyl.models.model import Model
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.service import Service
+from cibyl.utils.colors import Colors
 
 # pylint: disable=no-member
 
@@ -60,10 +61,10 @@ class Deployment(Model):
                           'nodes': nodes, 'services': services})
 
     def __str__(self):
-        info = f'Release: {self.release.value}'
-        info += f'Infra type: {self.infra_type.value} \n'
+        info = Colors.blue("Release: ") + f"{self.release.value}"
+        info += Colors.blue("Infra type: ") + f"{self.infra_type.value} \n"
         for node in self.nodes:
             info += node.__str__()
         if self.service:
-            info += f'\n Service: {self.service.value}'
+            info += Colors.blue("\n Service: ") + f'{self.service.value}'
         return info
