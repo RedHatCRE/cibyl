@@ -23,6 +23,7 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.model import Model
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.package import Package
+from cibyl.utils.colors import Colors
 
 # pylint: disable=no-member
 
@@ -64,16 +65,15 @@ class Node(Model):
                           'packages': packages})
 
     def __str__(self, indent=2, verbosity=0):
-        info = f'Node name: {self.name.value}'
+        info = Colors.blue('Node name: ') + f'{self.name.value}'
         if self.role.value and verbosity > 0:
-            info += f'\n Role: {self.role.value.__str__(indent)}'
+            info += Colors.blue('\n Role: ') + \
+                f'{self.role.value.__str__(indent)}'
         if self.containers.value:
             for container in self.containers:
-                info += f'Container: {container.__str__(indent)}'
+                info += Colors.blue('Container: ') + \
+                    f'{container.__str__(indent)}'
         if self.packages.value:
             for package in self.packages:
-                info += f'Package: {package.__str__(indent)}'
-        if self.packages.value:
-            for package in self.packages:
-                info += f'Package: {self.package.value}'
+                info += Colors.blue('Package: ') + f'{package.__str__(indent)}'
         return info
