@@ -20,7 +20,13 @@ from tests.e2e.fixture import ZuulTest
 
 
 class TestZuul(ZuulTest):
+    """Tests queries regarding the Zuul source.
+    """
+
     def test_get_jobs(self):
+        """Checks that jobs are retrieved with the "--jobs" flag.
+        """
+
         sys.argv = [
             '',
             '--config',

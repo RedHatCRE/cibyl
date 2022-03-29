@@ -32,21 +32,36 @@ def wait_for(url):
 
 
 class EndToEndTest(TestCase):
-    def setUp(self):
-        self.buffer = StringIO()
+    """Base fixture for e2e tests. Redirects stdout to a buffer to help
+    assert the app's output.
+    """
 
-        sys.stdout = self.buffer
+    def setUp(self):
+        self._buffer = StringIO()
+
+        sys.stdout = self._buffer
 
     @property
     def output(self):
-        return self.buffer.getvalue()
+        """
+        :return: What the app wrote to stdout.
+        :rtype: str
+        """
+        return self._buffer.getvalue()
 
 
 class JenkinsTest(EndToEndTest):
+    """Spawns a container with a simple Jenkins installation for tests to
+    work over.
+
+    :ivar jenkins: The Jenkins' container driver.
+    """
+
     jenkins = None
 
     @classmethod
     def setUpClass(cls):
+        # Define the image
         cls.jenkins = DockerCompose(
             filepath='tests/e2e/images/jenkins',
             pull=True
@@ -64,15 +79,26 @@ class JenkinsTest(EndToEndTest):
 
 
 class ZuulTest(EndToEndTest):
+    """Spawns a container with a simple Zuul installation for tests to
+    work over. The installation follows the guide described here:
+    `Zuul Quick-Start
+    <https://zuul-ci.org/docs/zuul/latest/tutorials/quick-start.html>`_.
+
+    :ivar dir: A directory where zuul's repository is cloned into.
+    :ivar zuul: The Zuul' container driver.
+    """
+
     dir = None
     zuul = None
 
     @classmethod
     def setUpClass(cls):
+        # Download Zuul example's docker description
         cls.dir = TemporaryDirectory()
 
         Repo.clone_from('https://opendev.org/zuul/zuul', cls.dir.name)
 
+        # Define the image
         cls.zuul = DockerCompose(
             filepath=os.path.join(cls.dir.name, 'doc/source/examples'),
             compose_file_name=['docker-compose.yaml'],

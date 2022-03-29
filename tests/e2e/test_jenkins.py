@@ -20,7 +20,12 @@ from tests.e2e.fixture import JenkinsTest
 
 
 class TestJenkins(JenkinsTest):
+    """Tests queries regarding the Jenkins source.
+    """
+
     def test_get_jobs(self):
+        """Checks that jobs are retrieved with the "--jobs" flag.
+        """
         sys.argv = [
             '',
             '--config',
