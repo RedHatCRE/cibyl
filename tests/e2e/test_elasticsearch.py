@@ -20,7 +20,12 @@ from tests.e2e.fixture import ElasticSearchTest
 
 
 class TestElasticSearch(ElasticSearchTest):
+    """Tests queries regarding the ElasticSearch source.
+    """
+
     def test_jobs(self):
+        """Checks that jobs are retrieved with the "--jobs" flag.
+        """
         sys.argv = [
             '',
             '--config',

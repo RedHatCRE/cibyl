@@ -52,10 +52,9 @@ class EndToEndTest(TestCase):
 
 
 class JenkinsTest(EndToEndTest):
-    """Spawns a container with a simple Jenkins installation for tests to
-    work over.
+    """Spawns a container with a simple installation for tests to work over.
 
-    :ivar jenkins: The Jenkins' container driver.
+    :ivar jenkins: The container's driver.
     """
 
     jenkins = None
@@ -80,13 +79,13 @@ class JenkinsTest(EndToEndTest):
 
 
 class ZuulTest(EndToEndTest):
-    """Spawns a container with a simple Zuul installation for tests to
-    work over. The installation follows the guide described here:
+    """Spawns a container with a simple installation for tests to work
+    over. The installation follows the guide described here:
     `Zuul Quick-Start
     <https://zuul-ci.org/docs/zuul/latest/tutorials/quick-start.html>`_.
 
     :ivar dir: A directory where zuul's repository is cloned into.
-    :ivar zuul: The Zuul' container driver.
+    :ivar zuul: The container's driver.
     """
 
     dir = None
@@ -119,6 +118,11 @@ class ZuulTest(EndToEndTest):
 
 
 class ElasticSearchTest(EndToEndTest):
+    """Spawns a container with a simple installation for tests to work over.
+
+    :ivar elasticsearch: The container's driver.
+    """
+
     elasticsearch = None
 
     @classmethod
@@ -138,7 +142,7 @@ class ElasticSearchTest(EndToEndTest):
         # Prepare database
         jenkins_mapping = 'tests/e2e/images/elasticsearch/jenkins.mapping.json'
 
-        with open(jenkins_mapping, 'r') as mapping:
+        with open(jenkins_mapping, 'r', encoding='utf-8') as mapping:
             # Create the index
             requests.put(
                 'http://localhost:9200/jenkins'
