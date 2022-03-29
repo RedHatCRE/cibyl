@@ -20,7 +20,7 @@ from tests.e2e.fixture import ZuulTest
 
 
 class TestZuul(ZuulTest):
-    def test_zuul(self):
+    def test_get_jobs(self):
         sys.argv = [
             '',
             '--config',
