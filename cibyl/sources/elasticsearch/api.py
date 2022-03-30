@@ -55,7 +55,10 @@ class ElasticSearchOSP(Source):
             :returns: Job objects queried from elasticserach
             :rtype: :class:`AttributeDictValue`
         """
-        jobs_provided = kwargs.get('jobs').value
+        if 'job_name' in kwargs:
+            jobs_provided = kwargs.get('job_name').value
+        else:
+            jobs_provided = kwargs.get('jobs').value
 
         query_body = QueryTemplate('jobName', jobs_provided).get
 
