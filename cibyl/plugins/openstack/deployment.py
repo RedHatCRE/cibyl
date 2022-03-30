@@ -52,13 +52,22 @@ class Deployment(Model):
             'arguments': [Argument(name='--services', arg_type=str,
                                    nargs='*',
                                    description="Services in the deployment")]
-        }
+        },
+        'ip_version': {
+            'attr_type': str,
+            'arguments': [Argument(name='--ip-version', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Ip version used in the "
+                                   "deployment")]
+            }
     }
 
     def __init__(self, release: float, infra_type: str,
-                 nodes: List[Node], services: List[Service]):
+                 nodes: List[Node], services: List[Service],
+                 ip_version: str = None):
         super().__init__({'release': release, 'infra_type': infra_type,
-                          'nodes': nodes, 'services': services})
+                          'nodes': nodes, 'services': services,
+                          'ip_version': ip_version})
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
@@ -68,8 +77,12 @@ class Deployment(Model):
         info += f'\n{indent_space}' + Colors.blue('Infra type: ')
         info += f'{self.infra_type.value}'
         for node in self.nodes:
-            info += f'\n{indent_space}  {node.__str__()}'
+            info += f'\n{indent_space}  '
+            info += f'{node.__str__(indent=indent+2, verbosity=verbosity)}'
         if self.services:
-            info += f'\n{indent_space}  ' + Colors.blue('Service: ')
+            info += f'\n{indent_space}' + Colors.blue('Service: ')
             info += f'{self.services.value}'
+        if self.ip_version:
+            info += f'\n{indent_space}' + Colors.blue('IP version: ')
+            info += f'{self.ip_version}'
         return info
