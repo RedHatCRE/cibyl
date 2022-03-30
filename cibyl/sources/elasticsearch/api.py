@@ -46,9 +46,10 @@ class ElasticSearchOSP(Source):
             except Exception as exception:
                 raise ElasticSearchError('The URL given is not valid') \
                       from exception
-            self.es_client = ElasticSearchClient(host, port).connect()
+            self.es_client = ElasticSearchClient(host, port)
 
     def get_jobs(self: object, **kwargs: Argument) -> list:
+        self.es_connection = self.es_client.connect()
         """Get jobs from elasticsearch
 
             :returns: Job objects queried from elasticserach
@@ -81,7 +82,7 @@ class ElasticSearchOSP(Source):
         :return: List of hits.
         """
         try:
-            response = self.es_client.search(
+            response = self.es_connection.search(
                 index=index,
                 body=query,
                 size=1000
@@ -150,7 +151,7 @@ class ElasticSearchOSP(Source):
             # Now we need to consturct the Job object
             # with the last build object in this one
             build_object = Build(str(last_build_info.build_id),
-                                 last_build_info.status)
+                                 str(last_build_info.status))
             job_object[job_name] = Job(name=job_name)
             job_object[job_name].add_build(build_object)
 
