@@ -1,0 +1,9 @@
+---
+environments:
+  osp_phases:
+    osp_jenkins:
+      system_type: jenkins
+      sources:
+        elasticsearch:
+          driver: elasticsearch
+          url: 'http://localhost:9200'

@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import json
 import os.path
 import sys
 from io import StringIO
@@ -51,10 +52,9 @@ class EndToEndTest(TestCase):
 
 
 class JenkinsTest(EndToEndTest):
-    """Spawns a container with a simple Jenkins installation for tests to
-    work over.
+    """Spawns a container with a simple installation for tests to work over.
 
-    :ivar jenkins: The Jenkins' container driver.
+    :ivar jenkins: The container's driver.
     """
 
     jenkins = None
@@ -79,13 +79,13 @@ class JenkinsTest(EndToEndTest):
 
 
 class ZuulTest(EndToEndTest):
-    """Spawns a container with a simple Zuul installation for tests to
-    work over. The installation follows the guide described here:
+    """Spawns a container with a simple installation for tests to work
+    over. The installation follows the guide described here:
     `Zuul Quick-Start
     <https://zuul-ci.org/docs/zuul/latest/tutorials/quick-start.html>`_.
 
     :ivar dir: A directory where zuul's repository is cloned into.
-    :ivar zuul: The Zuul' container driver.
+    :ivar zuul: The container's driver.
     """
 
     dir = None
@@ -115,3 +115,53 @@ class ZuulTest(EndToEndTest):
     def tearDownClass(cls):
         cls.zuul.stop()
         cls.dir.cleanup()
+
+
+class ElasticSearchTest(EndToEndTest):
+    """Spawns a container with a simple installation for tests to work over.
+
+    :ivar elasticsearch: The container's driver.
+    """
+
+    elasticsearch = None
+
+    @classmethod
+    def setUpClass(cls):
+        # Define the image
+        cls.elasticsearch = DockerCompose(
+            filepath='tests/e2e/images/elasticsearch',
+            pull=True
+        )
+
+        # Launch the container
+        cls.elasticsearch.start()
+
+        # Wait for ElasticSearch to be ready
+        wait_for('http://localhost:9200')
+
+        # Prepare database
+        jenkins_mapping = 'tests/e2e/images/elasticsearch/jenkins.mapping.json'
+
+        with open(jenkins_mapping, 'r', encoding='utf-8') as mapping:
+            # Create the index
+            requests.put(
+                'http://localhost:9200/jenkins'
+            )
+
+            # It is a big mapping, increase the number of possible fields
+            requests.put(
+                'http://localhost:9200/jenkins/_settings',
+                json={
+                    'index.mapping.total_fields.limit': 2000
+                }
+            )
+
+            # Load the mapping
+            requests.put(
+                'http://localhost:9200/jenkins/_mapping',
+                json=json.load(mapping)
+            )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.elasticsearch.stop()
