@@ -17,9 +17,13 @@ import logging
 import os
 from collections import UserDict
 
+import rfc3987
+
+from cibyl.exceptions.cli import AbortedByUserError
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.utils import yaml
-from cibyl.utils.files import get_first_available_file
+from cibyl.utils.files import get_first_available_file, is_file_available
+from cibyl.utils.net import download_file, DownloadError
 
 LOG = logging.getLogger(__name__)
 
@@ -32,54 +36,96 @@ class Config(UserDict):
     and the app.
     """
 
-    DEFAULT_FILE_PATHS = (
-        os.path.join(os.path.expanduser('~'), '.config/cibyl.yaml'),
-        '/etc/cibyl/cibyl.yaml'
+    def load(self, file):
+        """Loads the contents of a file into this object. Any contents this
+        may beforehand have are lost and replaced by the data from the file.
+        In case of error, the contents are left untouched though.
+
+        :raises YAMLError: If the file could not be parsed.
+        """
+        self.data = yaml.parse(file)
+
+
+class ConfigFactory:
+    DEFAULT_USER_PATH = os.path.join(
+        os.path.expanduser('~'), '.config/cibyl.yaml'
     )
-    """Collection of paths where the configuration file for the app is
-    expected to be found by default.
-    """
 
-    def __init__(self, path=None):
-        """Constructor.
+    DEFAULT_FILE_PATHS = (
+        DEFAULT_USER_PATH, '/etc/cibyl/cibyl.yaml'
+    )
 
-        :param path: Paths to the configuration file to be read. If 'None' is
-            provided, this will search for the file in a collection of well
-            known paths.
-        :type path: None or str or :class:`typing.Iterable[str]`
-        """
-        super().__init__()
+    @staticmethod
+    def from_args(**kwargs):
+        arg = kwargs.get('file_path')
 
-        self._path = path
+        if not arg:
+            return ConfigFactory.from_search()
 
-    @property
-    def path(self):
-        """Getter for the paths where this searches through.
+        if rfc3987.match(arg, 'URI'):
+            return ConfigFactory.from_url(arg)
 
-        :return: A list of paths.
-        :rtype: :class:`typing.Iterable[str]`
-        """
-        if not self._path:
-            # User provided nothing, use default paths then
-            return self.DEFAULT_FILE_PATHS
+        return ConfigFactory.from_file(arg)
 
-        # Returned value must be a list
-        if isinstance(self._path, str):
-            return [self._path]
+    @staticmethod
+    def from_file(file):
+        if not is_file_available(file):
+            raise ConfigurationNotFound(f'No file at: {file}')
 
-        return self._path
+        config = Config()
+        config.load(file)
 
-    def load(self, skip_on_missing=False):
-        """Loads the contents of the configuration file into this object.
-        This will look for the first file available from the list of paths
-        provided by :attr:`~path`.
+        return config
 
-        :raises ConfigurationNotFound: If no configuration file could be found.
-        :raises YAMLError: If the configuration file could not be parsed.
-        """
-        file = get_first_available_file(self.path)
-        if file:
-            self.data = yaml.parse(file)
-        elif not skip_on_missing:
-            raise ConfigurationNotFound(f"Could not find configuration file: \
-'{self.path}'")
+    @staticmethod
+    def from_search():
+        paths = ConfigFactory.DEFAULT_FILE_PATHS
+        file = get_first_available_file(paths)
+
+        if not file:
+            msg = f'Could not find configuration file at: {paths}'
+
+            raise ConfigurationNotFound(msg)
+
+        return ConfigFactory.from_file(file)
+
+    @staticmethod
+    def from_url(url):
+        LOG.info(f"Trying to obtain configuration file from: '{url}'.")
+
+        dest = ConfigFactory.DEFAULT_USER_PATH
+
+        # Is there something on the download path?
+        if is_file_available(dest):
+            # Ask user if they want to overwrite it then
+            user_answer = ''
+
+            while user_answer not in ('y', 'n'):
+                print(f'Configuration file already found at: {dest}')
+                print('Overwrite file? [y/n](n):')
+                user_answer = input()
+                user_answer.lower()
+
+                if not user_answer:
+                    user_answer = 'n'
+
+            if user_answer == 'n':
+                raise AbortedByUserError
+
+            if user_answer == 'y':
+                LOG.info(f'Deleting file at: {dest}')
+                os.remove(dest)
+
+        # Download the file
+        LOG.info(f"Downloading file into: '{dest}'.")
+
+        try:
+            download_file(url, dest)
+        except DownloadError as ex:
+            msg = f'Configuration could not be retrieved from: {url}'
+
+            raise ConfigurationNotFound(msg) from ex
+
+        LOG.info('Download completed successfully.')
+
+        return ConfigFactory.from_file(dest)
