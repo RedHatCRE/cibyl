@@ -19,6 +19,7 @@ from cibyl.models.ci.environment import Environment
 from cibyl.models.ci.job import Job
 from cibyl.plugins import extend_models
 from cibyl.plugins.openstack.deployment import Deployment
+from cibyl.plugins.openstack.utils import translate_topology_string
 
 
 class TestOpenstackPlugin(TestCase):
@@ -69,3 +70,28 @@ class TestJobWithPlugin(TestCase):
         job_str = self.job.__str__(indent=2, verbosity=2)
         self.assertNotIn("Release: ", job_str)
         self.assertNotIn("Infra type: ", job_str)
+
+
+class TestOpenstackPluginUtils(TestCase):
+    """Test openstack plugin utils module."""
+    def test_translate_toplogy_string(self):
+        """Test normal usage of translate_topology_string function."""
+        input_str = "1comp_2cont_2ceph_3freeipa_5net_1novactl"
+        expected = "compute:1,controller:2,ceph:2,freeipa:3,networker:5,"
+        expected += "novacontrol:1"
+        output = translate_topology_string(input_str)
+        self.assertEqual(expected, output)
+
+    def test_translate_toplogy_string_non_existing(self):
+        """Test test_translate_toplogy_string with an unknown type."""
+        input_str = "1comp_2cont_2ceph_3freeipa_1unk"
+        expected = "compute:1,controller:2,ceph:2,freeipa:3,unk:1"
+        output = translate_topology_string(input_str)
+        self.assertEqual(expected, output)
+
+    def test_translate_toplogy_string_malformed_component(self):
+        """Test test_translate_toplogy_string with an malformed comonent."""
+        input_str = "1comp_2cont_2ceph_3freeipa_unk"
+        expected = "compute:1,controller:2,ceph:2,freeipa:3"
+        output = translate_topology_string(input_str)
+        self.assertEqual(expected, output)

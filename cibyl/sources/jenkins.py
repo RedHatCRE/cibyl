@@ -29,6 +29,7 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
+from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.source import Source, safe_request_generic
 from cibyl.utils.filtering import (apply_filters,
                                    satisfy_case_insensitive_match,
@@ -39,10 +40,12 @@ LOG = logging.getLogger(__name__)
 safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# some of these pattern might be usefule for more than one source, in the
+# some of these pattern might be useful for more than one source, in the
 # future we may move them somewhere to reuse
 IP_PATTERN = re.compile("ipv(.)")
 RELEASE_PATTERN = re.compile(r"\d\d\.?\d?")
+TOPOLOGY_PATTERN = re.compile(r"(\d([a-zA-Z])+_?)+")
+PROPERTY_PATTERN = re.compile(r"=(.*)")
 
 
 def detect_job_info_regex(job_name, pattern, group_index=0, default=""):
@@ -164,7 +167,8 @@ class Jenkins(Source):
         self.cert = cert
 
     @safe_request
-    def send_request(self, query, timeout=None, item=""):
+    def send_request(self, query, timeout=None, item="",
+                     api_entrypoint="/api/json", raw_response=False):
         """
             Send a request to the jenkins instance and parse its json response.
 
@@ -176,6 +180,12 @@ class Jenkins(Source):
             :type timeout: float
             :param item: item to get information about
             :type item: str
+            :param api_entrypoint: API entrypoint to use, by default use
+            api/json
+            :type api_entrypoint: str
+            :param raw_response: Whether to return the text of the response
+            without any processing
+            :type raw_response: bool
             :returns: Information from the jenkins instance
             :rtype: dict
         """
@@ -202,7 +212,7 @@ class Jenkins(Source):
             if item:
                 url += f'/{item}'
 
-            url += f'/api/json{query}'
+            url += f'{api_entrypoint}{query}'
 
             return url
 
@@ -211,6 +221,8 @@ class Jenkins(Source):
         )
 
         response.raise_for_status()
+        if raw_response:
+            return response.text
 
         return json.loads(response.text)
 
@@ -291,38 +303,107 @@ try reducing verbosity for quicker query")
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
     def get_deployment(self, **kwargs):
-        """Get ip version for jobs from jenkins server.
+        """Get deployment information for jobs from jenkins server.
 
-        :returns: container of jobs with ip version information from
+        :returns: container of jobs with deployment information from
         jenkins server
         :rtype: :class:`AttributeDictValue`
         """
-        jobs_found = self.get_jobs(**kwargs)
-        input_ip_version = kwargs.get('ip_version')
+        jobs_found = self.send_request(self.jobs_last_build_query)["jobs"]
+        jobs_found = filter_jobs(jobs_found, **kwargs)
+
+        use_artifacts = True
+        if len(jobs_found) > 12:
+            LOG.warning("Requesting deployment information for %d jobs \
+will be based on the job name and approximate, restrict the query for more \
+accurate results", len(jobs_found))
+            use_artifacts = False
+
         job_deployment_info = []
-        for job_name in jobs_found:
-            job = {"name": job_name}
+        for job in jobs_found:
+            job_name = job['name']
             job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
                                                       group_index=1,
                                                       default="unknown")
-            job["release_version"] = detect_job_info_regex(job_name,
-                                                           RELEASE_PATTERN)
+            last_build = job.get("lastBuild")
+            if use_artifacts and last_build is not None:
+                # if we have a lastBuild, we will have artifacts to pull
+                self.add_job_info_from_artifacts(job)
+            else:
+                self.add_job_info_from_name(job)
             job_deployment_info.append(job)
 
+        checks_to_apply = []
+        input_ip_version = kwargs.get('ip_version')
         if input_ip_version and input_ip_version.value:
-            # filter jobs according to the user input
-            ip_check = partial(satisfy_exact_match,
-                               user_input=input_ip_version,
-                               field_to_check="ip_version")
-            job_deployment_info = apply_filters(job_deployment_info, ip_check)
+            checks_to_apply.append(partial(satisfy_exact_match,
+                                   user_input=input_ip_version,
+                                   field_to_check="ip_version"))
+
+        input_topology = kwargs.get('topology')
+        if input_topology and input_topology.value:
+            checks_to_apply.append(partial(satisfy_exact_match,
+                                   user_input=input_topology,
+                                   field_to_check="topology"))
+
+        job_deployment_info = apply_filters(job_deployment_info,
+                                            *checks_to_apply)
 
         job_objects = {}
         for job in job_deployment_info:
             name = job.get('name')
-            job_objects[name] = jobs_found[name]
+            job_objects[name] = Job(name=name, url=job.get('url'))
             # TODO: (jgilaber) query for infra_type, nodes and services
             deployment = Deployment(job["release_version"], "unknown",
-                                    [], [], ip_version=job["ip_version"])
+                                    [], [], ip_version=job["ip_version"],
+                                    topology=job["topology"])
             job_objects[name].add_deployment(deployment)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
+
+    def add_job_info_from_artifacts(self, job: Dict[str, str]):
+        """Add information to the job by querying the last build artifacts.
+
+        :param job: Dictionary representation of a jenkins job
+        :type job: dict
+        """
+        possible_artifacts = [".envrc", "artifacts/jp.env"]
+        job_name = job['name']
+        artifact = None
+        for artifact_path in possible_artifacts:
+            artifact_url = f"job/{job_name}/lastBuild/artifact/{artifact_path}"
+            try:
+                artifact = self.send_request(item=artifact_url, query="",
+                                             api_entrypoint="",
+                                             raw_response=True)
+                break
+            except JenkinsError:
+                LOG.debug("Found no artifact %s for job %s", artifact_path,
+                          job_name)
+                continue
+        if artifact is None:
+            self.add_job_info_from_name(job)
+            return
+        for line in artifact.split("\n"):
+            if "TOPOLOGY" in line:
+                topology_str = detect_job_info_regex(line, PROPERTY_PATTERN,
+                                                     group_index=1)
+                topology_str = topology_str.replace('"', '')
+                topology_str = topology_str.replace("'", '')
+                job["topology"] = topology_str
+            elif "PRODUCT_VERSION" in line:
+                job["release_version"] = detect_job_info_regex(job_name,
+                                                               RELEASE_PATTERN)
+
+    def add_job_info_from_name(self, job:  Dict[str, str]):
+        """Add information to the job by using regex on the job name.
+
+        :param job: Dictionary representation of a jenkins job
+        :type job: dict
+        """
+        job_name = job['name']
+        short_topology = detect_job_info_regex(job_name,
+                                               TOPOLOGY_PATTERN)
+        job["topology"] = translate_topology_string(short_topology)
+        job["release_version"] = detect_job_info_regex(job_name,
+                                                       RELEASE_PATTERN)

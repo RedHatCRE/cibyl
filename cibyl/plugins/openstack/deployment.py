@@ -59,15 +59,22 @@ class Deployment(Model):
                                    func='get_deployment', nargs='*',
                                    description="Ip version used in the "
                                    "deployment")]
+            },
+        'topology': {
+            'attr_type': str,
+            'arguments': [Argument(name='--topology', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Topology used in the "
+                                   "deployment")]
             }
     }
 
     def __init__(self, release: float, infra_type: str,
                  nodes: List[Node], services: List[Service],
-                 ip_version: str = None):
+                 ip_version: str = None, topology: str = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
-                          'ip_version': ip_version})
+                          'ip_version': ip_version, 'topology': topology})
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
@@ -79,10 +86,13 @@ class Deployment(Model):
         for node in self.nodes:
             info += f'\n{indent_space}  '
             info += f'{node.__str__(indent=indent+2, verbosity=verbosity)}'
-        if self.services:
+        if self.services.value:
             info += f'\n{indent_space}' + Colors.blue('Service: ')
             info += f'{self.services.value}'
-        if self.ip_version:
+        if self.ip_version.value:
             info += f'\n{indent_space}' + Colors.blue('IP version: ')
             info += f'{self.ip_version}'
+        if self.topology.value:
+            info += f'\n{indent_space}' + Colors.blue('Topology: ')
+            info += f'{self.topology}'
         return info
