@@ -61,8 +61,7 @@ class Orchestrator:
     :type config_file_path: str, optional
     """
 
-    def __init__(self, config_file_path: str = None,
-                 environments: list = None):
+    def __init__(self, environments: list = None):
         """Orchestrator constructor method"""
         self.config = Config()
         self.parser = Parser()

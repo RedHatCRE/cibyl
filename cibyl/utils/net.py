@@ -22,11 +22,35 @@ LOG = logging.getLogger(__name__)
 
 
 class DownloadError(Exception):
-    pass
+    """Represents an error during the download of a file.
+    """
 
 
 def download_file(url, dest):
-    LOG.debug(f'Creating path to: {dest}')
+    """Downloads a file from a remote host into the local filesystem.
+
+    Supported protocols are:
+        * HTTP
+        * HTTPS
+
+    Examples
+    --------
+    >>> download_file(
+            'http://localhost/file.txt', '/home/user/my-file.txt'
+        )
+    >>> download_file(
+            'https://user@pass:localhost/file.txt, '/home/user/my-file.txt'
+        )
+
+    :param url: The URL where the file is at.
+    :type url: str
+    :param dest: Path where the file is going to be downloaded at. Must
+        contain name of the file.
+    :type dest: str
+    :raise DownloadError: If the download failed.
+    """
+    LOG.debug('Creating path to: %s', dest)
+
     os.makedirs(dest, exist_ok=True)
 
     with requests.get(url, stream=True) as request:
@@ -36,7 +60,7 @@ def download_file(url, dest):
                 f'{request.text}'
             )
 
-        LOG.debug(f'Saving to: {dest}')
+        LOG.debug('Saving to: %s', dest)
 
         with open(dest, 'wb', encoding='utf8') as file:
             for chunk in request.iter_content(chunk_size=8 * 1024):

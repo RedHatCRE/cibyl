@@ -26,17 +26,22 @@ class Colors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+    @staticmethod
     def red(text):
         return f"{Colors.RED}{Colors.BOLD}{text}{Colors.CLOSE}"
 
+    @staticmethod
     def green(text):
         return f"{Colors.GREEN}{Colors.BOLD}{text}{Colors.CLOSE}"
 
+    @staticmethod
     def blue(text):
         return f"{Colors.BLUE}{Colors.BOLD}{text}{Colors.CLOSE}"
 
+    @staticmethod
     def yellow(text):
         return f"{Colors.YELLOW}{text}{Colors.CLOSE}"
 
+    @staticmethod
     def underline(text):
         return f"{Colors.UNDERLINE}{text}{Colors.CLOSE}"

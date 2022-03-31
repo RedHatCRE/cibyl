@@ -17,5 +17,10 @@ from cibyl.exceptions import CibylException
 
 
 class AbortedByUserError(CibylException):
+    """Represents an action that was interrupted by the user.
+    """
+
     def __init__(self, message='Operation aborted by user.'):
+        """Constructor.
+        """
         super().__init__(message)

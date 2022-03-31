@@ -39,7 +39,7 @@ class Config(UserDict):
     def load(self, file):
         """Loads the contents of a file into this object. Any contents this
         may beforehand have are lost and replaced by the data from the file.
-        In case of error, the contents are left untouched though.
+        In case of error, the contents are left untouched.
 
         :raises YAMLError: If the file could not be parsed.
         """
@@ -47,16 +47,38 @@ class Config(UserDict):
 
 
 class ConfigFactory:
+    """Factory that generates already loaded configurations from different
+    sources.
+    """
+
     DEFAULT_USER_PATH = os.path.join(
         os.path.expanduser('~'), '.config/cibyl.yaml'
     )
+    """Default location on the user's filesystem where the configuration 
+    file is expected.
+    """
 
     DEFAULT_FILE_PATHS = (
-        DEFAULT_USER_PATH, '/etc/cibyl/cibyl.yaml'
+        DEFAULT_USER_PATH,
+        '/etc/cibyl/cibyl.yaml'
     )
+    """List of locations where the configuration should be by defaults. 
+    Ordered from user scope to system scope.
+    """
 
     @staticmethod
     def from_path(path):
+        """Build a configuration from a random path. This path may be a URL,
+        a file path or any other. If the path is 'None', then this will look
+        for the first definition available among the default paths.
+
+        :param path: The path to get the definition from.
+        :type path: str or None
+        :return: The configuration instance.
+        :rtype: :class:`Config`
+        :raise ConfigurationNotFound: If no definition could be
+            retrieved.
+        """
         if not path:
             return ConfigFactory.from_search()
 
@@ -67,6 +89,14 @@ class ConfigFactory:
 
     @staticmethod
     def from_file(file):
+        """Builds a configuration from a file located on the local filesystem.
+
+        :param file: Path to the configuration definition.
+        :type file: str
+        :return: The configuration instance
+        :rtype: :class:`Config`
+        :raise ConfigurationNotFound: If the file does not exist.
+        """
         if not is_file_available(file):
             raise ConfigurationNotFound(f'No file at: {file}')
 
@@ -77,6 +107,13 @@ class ConfigFactory:
 
     @staticmethod
     def from_search():
+        """Builds a configuration from the first available definition found
+        between the default paths.
+
+        :return: The configuration instance
+        :rtype: :class:`Config`
+        :raise ConfigurationNotFound: If no definition could be found.
+        """
         paths = ConfigFactory.DEFAULT_FILE_PATHS
         file = get_first_available_file(paths)
 
@@ -88,10 +125,36 @@ class ConfigFactory:
         return ConfigFactory.from_file(file)
 
     @staticmethod
-    def from_url(url):
-        LOG.info(f"Trying to obtain configuration file from: '{url}'.")
+    def from_url(url, dest=DEFAULT_USER_PATH):
+        """Builds a configuration from a definition located on a remote
+        host. The definition is accessed and downloaded into the provided path.
 
-        dest = ConfigFactory.DEFAULT_USER_PATH
+        Supported protocols are defined by
+        :func:`cibyl.utils.net.download_file`.
+
+        Warnings
+        -------
+        In case that a file already exists at the destination, this will ask
+        the user whether they want to overwrite it or not. This requires
+        interaction with the CLI and can block callers.
+
+        Examples
+        --------
+        >>> ConfigFactory.from_url(
+                'http://localhost/my-file.yaml', '/var/cibyl/config.yaml'
+            )
+
+        :param url: The URL where the file is located at.
+        :type url: str
+        :param dest: Path where the definition will be downloaded
+            into. Must contain name of the file.
+        :type dest: str
+        :return: The configuration instance
+        :rtype: :class:`Config`
+        :raise ConfigurationNotFound: If the definition could not
+            be downloaded.
+        """
+        LOG.info("Trying to obtain configuration file from: %s", url)
 
         # Is there something on the download path?
         if is_file_available(dest):
@@ -111,11 +174,11 @@ class ConfigFactory:
                 raise AbortedByUserError
 
             if user_answer == 'y':
-                LOG.info(f'Deleting file at: {dest}')
+                LOG.info('Deleting file at: %s', dest)
                 os.remove(dest)
 
         # Download the file
-        LOG.info(f"Downloading file into: '{dest}'.")
+        LOG.info("Downloading file into: %s", dest)
 
         try:
             download_file(url, dest)
