@@ -33,8 +33,9 @@ class ElasticSearchOSP(Source):
 
     def __init__(self: object, driver: str = 'elasticsearch',
                  name: str = "elasticsearch", priority: int = 0,
-                 **kwargs) -> None:
-        super().__init__(name=name, driver=driver, priority=priority)
+                 enabled: bool = True, **kwargs) -> None:
+        super().__init__(name=name, driver=driver, priority=priority,
+                         enabled=enabled)
 
         if 'elastic_client' in kwargs:
             self.es_client = kwargs.get('elastic_client')
