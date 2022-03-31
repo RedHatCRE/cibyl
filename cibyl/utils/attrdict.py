@@ -19,5 +19,13 @@ class AttrDict(dict):
     """A dictionary that allows you to access its items as attributes, meaning
     that the following: "dict['item']" can also be written as "dict.item".
     """
-    __getattr__ = dict.__getitem__
     __setattr__ = dict.__setattr__
+
+    def __getattr__(self, attribute):
+        """Define __getattr__ to reuse __getitem__ but raise AttributeError
+        instead of KeyError, so we can use hasattr with child classes.
+        """
+        try:
+            return self.__getitem__(attribute)
+        except KeyError:
+            raise AttributeError
