@@ -41,14 +41,16 @@ class TestElasticsearchOSP(TestCase):
         self.build_hits = [
                     {
                         '_source': {
-                            'build_result': 'SUCCESS',
-                            'build_id': '1',
+                            'buildResult': 'SUCCESS',
+                            'buildID': '1',
+                            'runDuration': 20
                         }
                     },
                     {
                         '_source': {
-                            'build_result': 'FAIL',
-                            'build_id': '2',
+                            'buildResult': 'FAIL',
+                            'buildID': '2',
+                            'runDuration': 10
                         }
                     }
         ]
@@ -159,6 +161,16 @@ class TestQueryTemplate(TestCase):
                 }
         }
 
+        self.all_elements_template = {
+            'query':
+                {
+                    'exists':
+                    {
+                        'field': 'search_key'
+                    }
+                }
+        }
+
     def test_constructor(self: object) -> None:
         """Test :class:`QueryTemplate` exceptions and
            if it returns valid templates
@@ -168,7 +180,8 @@ class TestQueryTemplate(TestCase):
 
         # These are simple tests, but if we change something in
         # :class:`QueryTemplate` tests will fail
-        self.assertEqual(QueryTemplate('search_key', []).get, '')
+        self.assertEqual(QueryTemplate('search_key', []).get,
+                         self.all_elements_template)
         self.assertEqual(
             QueryTemplate('search_key', ['test']).get,
             self.one_element_template
