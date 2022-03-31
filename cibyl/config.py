@@ -54,7 +54,7 @@ class ConfigFactory:
     DEFAULT_USER_PATH = os.path.join(
         os.path.expanduser('~'), '.config/cibyl.yaml'
     )
-    """Default location on the user's filesystem where the configuration 
+    """Default location on the user's filesystem where the configuration
     file is expected.
     """
 
@@ -62,7 +62,7 @@ class ConfigFactory:
         DEFAULT_USER_PATH,
         '/etc/cibyl/cibyl.yaml'
     )
-    """List of locations where the configuration should be by defaults. 
+    """List of locations where the configuration should be by defaults.
     Ordered from user scope to system scope.
     """
 
