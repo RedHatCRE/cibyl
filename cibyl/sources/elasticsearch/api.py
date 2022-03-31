@@ -33,8 +33,9 @@ class ElasticSearchOSP(Source):
 
     def __init__(self: object, driver: str = 'elasticsearch',
                  name: str = "elasticsearch", priority: int = 0,
-                 **kwargs) -> None:
-        super().__init__(name=name, driver=driver, priority=priority)
+                 enabled: bool = True, **kwargs) -> None:
+        super().__init__(name=name, driver=driver, priority=priority,
+                         enabled=enabled)
 
         if 'elastic_client' in kwargs:
             self.es_client = kwargs.get('elastic_client')
@@ -56,14 +57,13 @@ class ElasticSearchOSP(Source):
             :rtype: :class:`AttributeDictValue`
         """
         if 'job_name' in kwargs:
-            jobs_provided = kwargs.get('job_name').value
+            jobs_to_search = kwargs.get('job_name').value
         else:
-            jobs_provided = kwargs.get('jobs').value
+            jobs_to_search = kwargs.get('jobs').value
 
-        query_body = QueryTemplate('jobName', jobs_provided).get
+        query_body = QueryTemplate('jobName', jobs_to_search).get
 
         hits = self.__query_get_hits(
-            index='jenkins',
             query=query_body
         )
 
@@ -74,7 +74,7 @@ class ElasticSearchOSP(Source):
             job_objects[job_name] = Job(name=job_name, url=url)
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
-    def __query_get_hits(self: object, query: dict, index: str = '') -> list:
+    def __query_get_hits(self: object, query: dict, index: str = '*') -> list:
         """Perform the search query to ElasticSearch
         and return all the hits
 
@@ -106,12 +106,11 @@ class ElasticSearchOSP(Source):
         jobs_found = self.get_jobs(**kwargs)
 
         for job_name, job in jobs_found.items():
-            query_body = QueryTemplate('job_name',
+            query_body = QueryTemplate('jobName',
                                        [job_name],
                                        query_type='match').get
 
             builds = self.__query_get_hits(
-                index='jenkins_builds',
                 query=query_body
             )
 
@@ -123,15 +122,20 @@ class ElasticSearchOSP(Source):
 
             for build in builds:
 
-                if not build['_source']['build_result']:
-                    continue
+                build_result = None
+                if not build['_source']['buildResult'] and \
+                        build['_source']['currentBuildResult']:
+                    build_result = build['_source']['currentBuildResult']
+                else:
+                    build_result = build["_source"]['buildResult']
 
                 if 'build_status' in kwargs and \
-                        build['_source']['build_result'] not in build_statuses:
+                        build['_source']['buildResult'] not in build_statuses:
                     continue
 
-                job.add_build(Build(str(build['_source']['build_id']),
-                                    build["_source"]['build_result']))
+                job.add_build(Build(str(build['_source']['buildID']),
+                                    build_result,
+                                    build['_source']['runDuration']))
 
         if 'last_build' in kwargs:
             return self.get_last_build(jobs_found)
@@ -175,7 +179,13 @@ class QueryTemplate():
 
         # Empty query for all hits or elements
         if not search_values:
-            self.query_body = ''
+            self.query_body = {
+                "query": {
+                    "exists": {
+                        "field": search_key
+                    }
+                }
+            }
         # Just one element that start with string
         # is better to use 'match_phrase_prefix'
         elif len(search_values) == 1:

@@ -17,7 +17,7 @@ from cibyl.utils.colors import Colors
 
 
 class CibylException(Exception):
-    def __init__(self, message):
+    def __init__(self, message=''):
         """Constructor.
         """
         super().__init__(*[message])
