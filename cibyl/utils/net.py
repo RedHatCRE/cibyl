@@ -51,7 +51,7 @@ def download_file(url, dest):
     """
     LOG.debug('Creating path to: %s', dest)
 
-    os.makedirs(dest, exist_ok=True)
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
 
     with requests.get(url, stream=True) as request:
         if not request.ok:
@@ -62,6 +62,6 @@ def download_file(url, dest):
 
         LOG.debug('Saving to: %s', dest)
 
-        with open(dest, 'wb', encoding='utf8') as file:
+        with open(dest, 'wb') as file:
             for chunk in request.iter_content(chunk_size=8 * 1024):
                 file.write(chunk)

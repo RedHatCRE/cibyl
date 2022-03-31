@@ -165,7 +165,6 @@ class ConfigFactory:
                 print(f'Configuration file already found at: {dest}')
                 print('Overwrite file? [y/n](n):')
                 user_answer = input()
-                user_answer.lower()
 
                 if not user_answer:
                     user_answer = 'n'
