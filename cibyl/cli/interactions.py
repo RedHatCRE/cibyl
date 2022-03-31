@@ -1,0 +1,39 @@
+"""
+#    Copyright 2022 Red Hat
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+"""
+
+
+def ask_yes_no_question(question):
+    """Prints a question on the CLI that the user must respond with yes or no.
+
+    :param question: Text of the question to be performed.
+    :type question: str
+    :return: Whether the user said 'y' (True) or 'n' (False).
+    :rtype: bool
+    """
+    answer = ''
+
+    while answer not in ('y', 'n'):
+        print(f'{question} [y/n](n):')
+
+        answer = input()
+
+        if not answer:
+            answer = 'n'
+
+    if answer == 'y':
+        return True
+
+    return False

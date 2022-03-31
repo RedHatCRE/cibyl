@@ -19,6 +19,7 @@ from collections import UserDict
 
 import rfc3987
 
+from cibyl.cli.interactions import ask_yes_no_question
 from cibyl.exceptions.cli import AbortedByUserError
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.utils import yaml
@@ -158,23 +159,14 @@ class ConfigFactory:
 
         # Is there something on the download path?
         if is_file_available(dest):
-            # Ask user if they want to overwrite it then
-            user_answer = ''
+            # Overwrite it then?
+            print(f'Configuration file already found at: {dest}')
 
-            while user_answer not in ('y', 'n'):
-                print(f'Configuration file already found at: {dest}')
-                print('Overwrite file? [y/n](n):')
-                user_answer = input()
-
-                if not user_answer:
-                    user_answer = 'n'
-
-            if user_answer == 'n':
-                raise AbortedByUserError
-
-            if user_answer == 'y':
+            if ask_yes_no_question('Overwrite file?'):
                 LOG.info('Deleting file at: %s', dest)
                 os.remove(dest)
+            else:
+                raise AbortedByUserError
 
         # Download the file
         LOG.info("Downloading file into: %s", dest)
