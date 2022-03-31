@@ -17,7 +17,10 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 import cibyl.config
-from cibyl.config import Config
+from cibyl.config import Config, ConfigFactory
+from cibyl.exceptions.cli import AbortedByUserError
+from cibyl.exceptions.config import ConfigurationNotFound
+from cibyl.utils.net import DownloadError
 
 
 class TestConfig(TestCase):
@@ -45,3 +48,120 @@ class TestConfig(TestCase):
         cibyl.config.yaml.parse.assert_called_with(file)
 
         self.assertEqual(config, yaml)
+
+
+class TestConfigFromSearch(TestCase):
+    """Tests for :meth:`cibyl.config.ConfigFactory.from_search`.
+    """
+
+    def test_error_on_nothing_found(self):
+        """Checks that :class:`ConfigurationNotFound` is thrown if there is
+        no file among the default paths.
+        """
+        available_call = cibyl.config.get_first_available_file = Mock()
+
+        available_call.return_value = None
+
+        with self.assertRaises(ConfigurationNotFound):
+            ConfigFactory.from_search()
+
+    def test_config_from_file(self):
+        """Checks that the configuration file is created from the found file.
+        """
+        file = 'some/file'
+
+        available_call = cibyl.config.get_first_available_file = Mock()
+        from_file_call = cibyl.config.ConfigFactory.from_file = Mock()
+
+        available_call.return_value = file
+
+        ConfigFactory.from_search()
+
+        from_file_call.assert_called_once_with(file)
+
+
+class TestConfigFromURL(TestCase):
+    """Tests for :meth:`cibyl.config.ConfigFactory.from_url`.
+    """
+
+    def test_download_error(self):
+        """Checks that :class:`ConfigurationNotFound` is thrown if download
+        fails.
+        """
+
+        def raise_error(*_):
+            raise DownloadError
+
+        url = 'some-url'
+        file = 'some/file'
+
+        available_call = cibyl.config.is_file_available = Mock()
+        download_call = cibyl.config.download_file = Mock()
+
+        available_call.return_value = False
+        download_call.side_effect = raise_error
+
+        with self.assertRaises(ConfigurationNotFound):
+            ConfigFactory.from_url(url, file)
+
+        download_call.assert_called_with(url, file)
+
+    def test_file_not_on_system(self):
+        """Checks that the file is downloaded if it is not on the system.
+        """
+        url = 'some-url'
+        file = 'some/file'
+
+        available_call = cibyl.config.is_file_available = Mock()
+        download_call = cibyl.config.download_file = Mock()
+        from_file_call = cibyl.config.ConfigFactory.from_file = Mock()
+
+        available_call.return_value = False
+        from_file_call.return_value = Mock()
+
+        self.assertEqual(
+            from_file_call.return_value,
+            ConfigFactory.from_url(url, file)
+        )
+
+        download_call.assert_called_with(url, file)
+        from_file_call.assert_called_once_with(file)
+
+    def test_deletes_file_if_it_exists(self):
+        """Checks that the target file is deleted if it already exists.
+        """
+        url = 'some-url'
+        file = 'some/file'
+
+        overwrite_call = Mock()
+        available_call = cibyl.config.is_file_available = Mock()
+        delete_call = cibyl.config.os.remove = Mock()
+
+        cibyl.config.download_file = Mock()
+        cibyl.config.ConfigFactory.from_file = Mock()
+
+        available_call.return_value = True
+        overwrite_call.return_value = True
+
+        ConfigFactory.from_url(url, file, overwrite_call)
+
+        delete_call.assert_called_once_with(file)
+
+    def test_aborted_by_user(self):
+        """Checks that :class:`AbortedByUserError` is thrown if user says
+        not to overwrite.
+        """
+        url = 'some-url'
+        file = 'some/file'
+
+        overwrite_call = Mock()
+        available_call = cibyl.config.is_file_available = Mock()
+
+        cibyl.config.download_file = Mock()
+        cibyl.config.ConfigFactory.from_file = Mock()
+
+        available_call.return_value = True
+        overwrite_call.return_value = False
+
+        with self.assertRaises(AbortedByUserError):
+            ConfigFactory.from_url(url, file, overwrite_call)

@@ -126,7 +126,13 @@ class ConfigFactory:
         return ConfigFactory.from_file(file)
 
     @staticmethod
-    def from_url(url, dest=DEFAULT_USER_PATH):
+    def _ask_user_for_overwrite():
+        return ask_yes_no_question('Overwrite file?')
+
+    @staticmethod
+    def from_url(url,
+                 dest=DEFAULT_USER_PATH,
+                 overwrite_call=_ask_user_for_overwrite):
         """Builds a configuration from a definition located on a remote
         host. The definition is accessed and downloaded into the provided path.
 
@@ -135,9 +141,9 @@ class ConfigFactory:
 
         Warnings
         -------
-        In case a file already exists at the destination, this will ask
-        the user whether they want to overwrite it or not. This requires
-        interaction with the CLI and can block callers.
+        In case a file already exists at the destination, this will ask by
+        default if the user wants to overwrite it or not. This requires
+        interaction with the CLI and therefore is a blocker.
 
         Examples
         --------
@@ -150,6 +156,8 @@ class ConfigFactory:
         :param dest: Path where the definition will be downloaded
             into. Must contain name of the file.
         :type dest: str
+        :param overwrite_call: The function used to ask the user if they
+            may overwrite the file. Change to avoid blocker.
         :return: The configuration instance
         :rtype: :class:`Config`
         :raise ConfigurationNotFound: If the definition could not
@@ -162,7 +170,7 @@ class ConfigFactory:
             # Overwrite it then?
             print(f'Configuration file already found at: {dest}')
 
-            if ask_yes_no_question('Overwrite file?'):
+            if overwrite_call():
                 LOG.info('Deleting file at: %s', dest)
                 os.remove(dest)
             else:

@@ -22,7 +22,13 @@ from tests.e2e.fixture import HTTPDTest
 
 
 class TestConfig(HTTPDTest):
+    """Test for configuration loading.
+    """
+
     def test_config_on_url(self):
+        """Checks that a configuration file can be downloaded from a host.
+        """
+
         sys.argv = [
             '',
             '--config',
