@@ -23,7 +23,7 @@ from cibyl.exceptions.cli import AbortedByUserError
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.utils import yaml
 from cibyl.utils.files import get_first_available_file, is_file_available
-from cibyl.utils.net import download_file, DownloadError
+from cibyl.utils.net import DownloadError, download_file
 
 LOG = logging.getLogger(__name__)
 

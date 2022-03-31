@@ -16,6 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+import cibyl.orchestrator
 from cibyl.config import Config
 from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.exceptions.source import NoValidSources
@@ -74,10 +75,16 @@ class TestOrchestrator(TestCase):
         """Testing Orchestrator config attribute and method"""
         self.assertTrue(hasattr(self.orchestrator, 'config'))
 
-        self.orchestrator.config = Mock()
-        self.orchestrator.load_configuration()
+        path_to_config = 'some/path'
 
-        self.orchestrator.config.load.assert_called()
+        factory_call = cibyl.orchestrator.ConfigFactory.from_path = Mock()
+        factory_call.return_value = Mock()
+
+        self.orchestrator.load_configuration(path_to_config)
+
+        self.assertEqual(factory_call.return_value, self.orchestrator.config)
+
+        factory_call.assert_called_once_with(path_to_config)
 
     def test_orchestrator_create_ci_environments(self):
         """Testing Orchestartor query method"""

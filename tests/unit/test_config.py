@@ -18,23 +18,11 @@ from unittest.mock import Mock
 
 import cibyl.config
 from cibyl.config import Config
-from cibyl.exceptions.config import ConfigurationNotFound
 
 
 class TestConfig(TestCase):
     """Test cases for the 'Config' class.
     """
-
-    def test_error_when_file_not_found(self):
-        """Checks that 'load' raises a ConfigurationNotFound when the config
-        file does not exist.
-        """
-        cibyl.config.get_first_available_file = Mock()
-        cibyl.config.get_first_available_file.return_value = None
-
-        config = Config()
-
-        self.assertRaises(ConfigurationNotFound, config.load)
 
     def test_contents_are_loaded(self):
         """Checks that the contents of the loaded file are made available by
@@ -48,16 +36,12 @@ class TestConfig(TestCase):
             }
         }
 
-        cibyl.config.get_first_available_file = Mock()
-        cibyl.config.get_first_available_file.return_value = file
-
         cibyl.config.yaml.parse = Mock()
         cibyl.config.yaml.parse.return_value = yaml
 
-        config = Config(file)
-        config.load()
+        config = Config()
+        config.load(file)
 
-        cibyl.config.get_first_available_file.assert_called_with([file])
         cibyl.config.yaml.parse.assert_called_with(file)
 
         self.assertEqual(config, yaml)
