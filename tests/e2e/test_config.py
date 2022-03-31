@@ -13,9 +13,27 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import builtins
+import sys
+from unittest.mock import Mock
+
+from cibyl.cli.main import main
 from tests.e2e.fixture import HTTPDTest
 
 
 class TestConfig(HTTPDTest):
     def test_config_on_url(self):
-        pass
+        sys.argv = [
+            '',
+            '--config',
+            'http://localhost:8080/jenkins.yaml'
+        ]
+
+        builtins.input = Mock()
+        builtins.input.return_value = 'y'
+
+        main()
+
+        # Look for some keys that indicate that it is the desired file
+        self.assertIn('test_environment', self.output)
+        self.assertIn('test_system', self.output)

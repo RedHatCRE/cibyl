@@ -134,7 +134,7 @@ class ConfigFactory:
 
         Warnings
         -------
-        In case that a file already exists at the destination, this will ask
+        In case a file already exists at the destination, this will ask
         the user whether they want to overwrite it or not. This requires
         interaction with the CLI and can block callers.
 

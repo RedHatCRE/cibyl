@@ -1,7 +1,7 @@
 ---
 environments:
-  osp_phases:
-    osp_jenkins:
+  test_environment:
+    test_system:
       system_type: jenkins
       sources:
         jenkins:
