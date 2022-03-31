@@ -161,6 +161,29 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(build.build_id.value, "1")
         self.assertEqual(build.status.value, "SUCCESS")
 
+    def test_get_last_build_from_get_builds(self):
+        """
+        Test that get_last_build is called when calling get_builds with
+        --last-build option.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1',
+                              'lastBuild': {'number': 1, 'result': "SUCCESS"}
+                              }]}
+        self.jenkins.send_request = Mock(side_effect=[response])
+        arg = Mock()
+        arg.value = []
+
+        jobs = self.jenkins.get_builds(last_build=arg)
+        self.assertEqual(len(jobs), 1)
+        job = jobs["ansible"]
+        self.assertEqual(job.name.value, "ansible")
+        self.assertEqual(job.url.value, "url1")
+        self.assertEqual(len(job.builds.value), 1)
+        build = job.builds.value["1"]
+        self.assertEqual(build.build_id.value, "1")
+        self.assertEqual(build.status.value, "SUCCESS")
+
     def test_get_last_build_job_no_builds(self):
         """Test that get_last_build handles properly a job has no builds."""
 
@@ -191,6 +214,60 @@ class TestJenkinsSource(TestCase):
             f'://{self.jenkins.username}:{self.jenkins.token}@/api/jsontest',
             verify=self.jenkins.cert, timeout=None
         )
+
+    def test_get_deployment(self):
+        """ Test that get_deployment reads properly the information obtained
+        from jenkins.
+        """
+        job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
+        ip_versions = ['4', '6', 'unknown']
+        releases = ['17.3', '16', '']
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastBuild': None})
+
+        self.jenkins.send_request = Mock(side_effect=[response])
+        arg = Mock()
+        arg.value = []
+
+        jobs = self.jenkins.get_deployment(ip_version=arg)
+        self.assertEqual(len(jobs), 3)
+        for job_name, ip, release in zip(job_names, ip_versions, releases):
+            job = jobs[job_name]
+            deployment = job.deployment.value
+            self.assertEqual(job.name.value, job_name)
+            self.assertEqual(job.url.value, "url")
+            self.assertEqual(len(job.builds.value), 0)
+            self.assertEqual(deployment.release.value, release)
+            self.assertEqual(deployment.ip_version.value, ip)
+
+    def test_get_deployment_filter_ipv(self):
+        """Test that get_deployment filters by ip_version."""
+        job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastBuild': None})
+
+        self.jenkins.send_request = Mock(side_effect=[response])
+        arg = Mock()
+        arg.value = ["4"]
+
+        jobs = self.jenkins.get_deployment(ip_version=arg)
+        self.assertEqual(len(jobs), 1)
+        job_name = 'test_17.3_ipv4_job'
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "17.3")
+        self.assertEqual(deployment.ip_version.value, "4")
 
 
 class TestFilters(TestCase):

@@ -28,6 +28,7 @@ from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
+from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.sources.source import Source, safe_request_generic
 from cibyl.utils.filtering import (apply_filters,
                                    satisfy_case_insensitive_match,
@@ -38,6 +39,26 @@ LOG = logging.getLogger(__name__)
 safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+# some of these pattern might be usefule for more than one source, in the
+# future we may move them somewhere to reuse
+IP_PATTERN = re.compile("ipv(.)")
+RELEASE_PATTERN = re.compile(r"\d\d\.?\d?")
+
+
+def detect_job_info_regex(job_name, pattern, group_index=0, default=""):
+    """Extract information from a jenkins job name using regex, if not present,
+    set to a default value.
+
+    :param job: Jenkins Job representation as a dictionary
+    :type job: dict
+    :returns: The ip version used for the job if present, 'unknown' otherwise
+    :rtype: str
+    """
+    match_job = pattern.search(job_name)
+    if match_job:
+        return match_job.group(group_index)
+    return default
+
 
 def is_job(job):
     """Check if a given job representation corresponds to a job and not
@@ -45,6 +66,8 @@ def is_job(job):
 
     :param job: Jenkins Job representation as a dictionary
     :type job: dict
+    :returns: Whether the job representation actually corresponds to a job
+    :rtype: bool
     """
     return "job" in job["_class"]
 
@@ -264,5 +287,42 @@ try reducing verbosity for quicker query")
                                       duration=build.get('duration'))
                     job_object.add_build(build_obj)
             job_objects[name] = job_object
+
+        return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
+
+    def get_deployment(self, **kwargs):
+        """Get ip version for jobs from jenkins server.
+
+        :returns: container of jobs with ip version information from
+        jenkins server
+        :rtype: :class:`AttributeDictValue`
+        """
+        jobs_found = self.get_jobs(**kwargs)
+        input_ip_version = kwargs.get('ip_version')
+        job_deployment_info = []
+        for job_name in jobs_found:
+            job = {"name": job_name}
+            job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
+                                                      group_index=1,
+                                                      default="unknown")
+            job["release_version"] = detect_job_info_regex(job_name,
+                                                           RELEASE_PATTERN)
+            job_deployment_info.append(job)
+
+        if input_ip_version and input_ip_version.value:
+            # filter jobs according to the user input
+            ip_check = partial(satisfy_exact_match,
+                               user_input=input_ip_version,
+                               field_to_check="ip_version")
+            job_deployment_info = apply_filters(job_deployment_info, ip_check)
+
+        job_objects = {}
+        for job in job_deployment_info:
+            name = job.get('name')
+            job_objects[name] = jobs_found[name]
+            # TODO: (jgilaber) query for infra_type, nodes and services
+            deployment = Deployment(job["release_version"], "unknown",
+                                    [], [], ip_version=job["ip_version"])
+            job_objects[name].add_deployment(deployment)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
