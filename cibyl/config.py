@@ -56,16 +56,14 @@ class ConfigFactory:
     )
 
     @staticmethod
-    def from_args(**kwargs):
-        arg = kwargs.get('file_path')
-
-        if not arg:
+    def from_path(path):
+        if not path:
             return ConfigFactory.from_search()
 
-        if rfc3987.match(arg, 'URI'):
-            return ConfigFactory.from_url(arg)
+        if rfc3987.match(path, 'URI'):
+            return ConfigFactory.from_url(path)
 
-        return ConfigFactory.from_file(arg)
+        return ConfigFactory.from_file(path)
 
     @staticmethod
     def from_file(file):
