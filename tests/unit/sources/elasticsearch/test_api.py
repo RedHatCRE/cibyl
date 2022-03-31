@@ -161,6 +161,16 @@ class TestQueryTemplate(TestCase):
                 }
         }
 
+        self.all_elements_template = {
+            'query':
+                {
+                    'exists':
+                    {
+                        'field': 'search_key'
+                    }
+                }
+        }
+
     def test_constructor(self: object) -> None:
         """Test :class:`QueryTemplate` exceptions and
            if it returns valid templates
@@ -170,7 +180,8 @@ class TestQueryTemplate(TestCase):
 
         # These are simple tests, but if we change something in
         # :class:`QueryTemplate` tests will fail
-        self.assertEqual(QueryTemplate('search_key', []).get, '')
+        self.assertEqual(QueryTemplate('search_key', []).get,
+                         self.all_elements_template)
         self.assertEqual(
             QueryTemplate('search_key', ['test']).get,
             self.one_element_template

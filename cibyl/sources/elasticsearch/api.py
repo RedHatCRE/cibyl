@@ -55,12 +55,14 @@ class ElasticSearchOSP(Source):
             :returns: Job objects queried from elasticserach
             :rtype: :class:`AttributeDictValue`
         """
-        jobs_provided = kwargs.get('jobs').value
+        if 'job_name' in kwargs:
+            jobs_to_search = kwargs.get('job_name').value
+        else:
+            jobs_to_search = kwargs.get('jobs').value
 
-        query_body = QueryTemplate('jobName', jobs_provided).get
+        query_body = QueryTemplate('jobName', jobs_to_search).get
 
         hits = self.__query_get_hits(
-            index='jenkins',
             query=query_body
         )
 
@@ -71,7 +73,7 @@ class ElasticSearchOSP(Source):
             job_objects[job_name] = Job(name=job_name, url=url)
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
-    def __query_get_hits(self: object, query: dict, index: str = '') -> list:
+    def __query_get_hits(self: object, query: dict, index: str = '*') -> list:
         """Perform the search query to ElasticSearch
         and return all the hits
 
@@ -176,7 +178,13 @@ class QueryTemplate():
 
         # Empty query for all hits or elements
         if not search_values:
-            self.query_body = ''
+            self.query_body = {
+                "query": {
+                    "exists": {
+                        "field": search_key
+                    }
+                }
+            }
         # Just one element that start with string
         # is better to use 'match_phrase_prefix'
         elif len(search_values) == 1:
