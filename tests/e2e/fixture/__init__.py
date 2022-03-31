@@ -51,6 +51,28 @@ class EndToEndTest(TestCase):
         return self._buffer.getvalue()
 
 
+class HTTPDTest(EndToEndTest):
+    httpd = None
+
+    @classmethod
+    def setUpClass(cls):
+        # Define the image
+        cls.httpd = DockerCompose(
+            filepath='tests/e2e/images/httpd',
+            pull=True
+        )
+
+        # Launch the container
+        cls.httpd.start()
+
+        # Wait for HTTPD to be ready
+        wait_for('http://localhost:8080/')
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.httpd.stop()
+
+
 class JenkinsTest(EndToEndTest):
     """Spawns a container with a simple installation for tests to work over.
 
