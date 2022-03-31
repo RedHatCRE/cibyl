@@ -103,12 +103,11 @@ class ElasticSearchOSP(Source):
         jobs_found = self.get_jobs(**kwargs)
 
         for job_name, job in jobs_found.items():
-            query_body = QueryTemplate('job_name',
+            query_body = QueryTemplate('jobName',
                                        [job_name],
                                        query_type='match').get
 
             builds = self.__query_get_hits(
-                index='jenkins_builds',
                 query=query_body
             )
 
@@ -120,15 +119,20 @@ class ElasticSearchOSP(Source):
 
             for build in builds:
 
-                if not build['_source']['build_result']:
-                    continue
+                build_result = None
+                if not build['_source']['buildResult'] and \
+                        build['_source']['currentBuildResult']:
+                    build_result = build['_source']['currentBuildResult']
+                else:
+                    build_result = build["_source"]['buildResult']
 
                 if 'build_status' in kwargs and \
-                        build['_source']['build_result'] not in build_statuses:
+                        build['_source']['buildResult'] not in build_statuses:
                     continue
 
-                job.add_build(Build(str(build['_source']['build_id']),
-                                    build["_source"]['build_result']))
+                job.add_build(Build(str(build['_source']['buildID']),
+                                    build_result,
+                                    build['_source']['runDuration']))
 
         if 'last_build' in kwargs:
             return self.get_last_build(jobs_found)

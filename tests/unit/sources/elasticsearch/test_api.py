@@ -41,14 +41,16 @@ class TestElasticsearchOSP(TestCase):
         self.build_hits = [
                     {
                         '_source': {
-                            'build_result': 'SUCCESS',
-                            'build_id': '1',
+                            'buildResult': 'SUCCESS',
+                            'buildID': '1',
+                            'runDuration': 20
                         }
                     },
                     {
                         '_source': {
-                            'build_result': 'FAIL',
-                            'build_id': '2',
+                            'buildResult': 'FAIL',
+                            'buildID': '2',
+                            'runDuration': 10
                         }
                     }
         ]
