@@ -51,7 +51,7 @@ class ElasticSearchOSP(Source):
                       from exception
             self.es_client = ElasticSearchClient(host, port)
 
-    @speed_index({'jobs': 3})
+    @speed_index({'base': 1})
     def get_jobs(self: object, **kwargs: Argument) -> list:
         """Get jobs from elasticsearch
 
@@ -99,6 +99,7 @@ class ElasticSearchOSP(Source):
                   from exception
         return response['hits']['hits']
 
+    @speed_index({'base': 2})
     def get_builds(self: object, **kwargs: Argument):
         """
             Get builds from elasticsearch server.
@@ -168,6 +169,7 @@ class ElasticSearchOSP(Source):
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_object)
 
+    @speed_index({'base': 2})
     def get_deployment(self, **kwargs):
         """Get deployment information for jobs from elasticsearch server.
 

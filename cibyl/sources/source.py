@@ -14,9 +14,11 @@
 #    under the License.
 """
 import logging
+from typing import Dict
 
 import requests
 
+from cibyl.cli.argument import Argument
 from cibyl.exceptions.source import NoSupportedSourcesFound
 from cibyl.utils.attrdict import AttrDict
 
@@ -86,20 +88,27 @@ def is_source_valid(source: Source, desired_attr: str):
     return True
 
 
-def get_source_speed_score(source, func_name, args):
-    speed = -1
+def get_source_speed_score(source, func_name: str, args: Dict[str, Argument]):
+    """Get the speed index for a source's method according to user input.
+
+    :param source: Source to evaluate
+    :type source: :class:`.Source`
+    :param func_name: Source's method to evaluate
+    :type func_name: str
+    :param args: User input arguments
+    :type args: dict
+    """
+    source_method = getattr(source, func_name)
+    speed = source_method.speed_index.get('base', 0)
     for arg in args:
-        speed += getattr(source, func_name)._speed_index.get(arg, 0)
+        speed += source_method.speed_index.get(arg, 0)
     return speed
 
 
 def get_source_method(system_name: str, sources: list, func_name: str,
-                      args):
+                      args: Dict[str, Argument]):
     """Returns a method of a single source given all the sources
     of the system and the name of function.
-
-    An exception is raised if there are no sources with such function
-    name or if there are multiple sources that have this function.
 
     :param system_name: The name of system
     :type system_name: str
@@ -107,9 +116,13 @@ def get_source_method(system_name: str, sources: list, func_name: str,
     :type sources: list[Source]
     :param func_name: The name of the function to invoke
     :type func_name: str
+    :param args: User input arguments
+    :type args: dict
+    :raises: NoSupportedSourcesFound if no sources with the function name are
+    found
     """
 
-    speed_score = -1
+    speed_score = 0
     source_method = None
 
     for source in sources:
@@ -122,14 +135,17 @@ def get_source_method(system_name: str, sources: list, func_name: str,
 
     if not source_method:
         raise NoSupportedSourcesFound(system_name, func_name)
-    LOG.debug(f"chose source {source_method.__self__.get('driver')} \
-with speed score {speed_score}")
+    LOG.debug("chose source %s with speed score %d",
+              source_method.__self__.get('driver'), speed_score)
 
     return source_method
 
 
 def speed_index(speed):
+    """Add a speed index to sources methods to select the best one according to
+    user input.
+    """
     def decorator(func):
-        setattr(func, '_speed_index', speed)
+        setattr(func, 'speed_index', speed)
         return func
     return decorator

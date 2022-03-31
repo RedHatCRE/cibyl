@@ -106,7 +106,7 @@ class JenkinsJobBuilder(Source):
         """Use tox to generate jenkins job xml files."""
         subprocess.run(["tox",  "-e", "jobs"], check=True, cwd=self.dest)
 
-    @speed_index({'jobs': 1})
+    @speed_index({'base': 1})
     def get_jobs(self, **kwargs):
         """Get all jobs from jenkins server.
 

@@ -43,7 +43,6 @@ class Zuul(Source):
             self._parent = parent
             self._api = api
 
-        @speed_index({'jobs': 3})
         def get_jobs(self, fetch_builds=False, **kwargs):
             """Gets a set of jobs from the host formatted with the job model.
 
@@ -196,6 +195,7 @@ class Zuul(Source):
 
         return Zuul(api=ZuulRESTClient.from_url(url, cert), url=url, **kwargs)
 
+    @speed_index({'base': 3})
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 
@@ -206,6 +206,7 @@ class Zuul(Source):
         """
         return self._api.get_jobs(fetch_builds=False, **kwargs)
 
+    @speed_index({'base': 3})
     def get_builds(self, **kwargs):
         """Retrieves builds present on the host.
 

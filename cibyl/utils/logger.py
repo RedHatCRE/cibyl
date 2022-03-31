@@ -62,8 +62,12 @@ def configure_file_logging(log_file, level):
 def configure_logging(log_mode, log_file, level=logging.INFO):
     """Configure logging format and level.
 
-    :param log_config: Configuration for the logger
-    :type log_config: dict
+    :param log_mode: Where to send the logs, file, terminal or both
+    :type log_mode: str
+    :param log_file: Path to log file
+    :param log_file: str
+    :param level: Logging level, default DEBUG
+    :type level: int
     """
     # configure a top-level cibyl logger instead of the root logger,
     # to suppress logging coming from other libraries

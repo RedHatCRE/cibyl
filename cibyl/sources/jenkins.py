@@ -221,7 +221,7 @@ class Jenkins(Source):
 
         return json.loads(response.text)
 
-    @speed_index({'jobs': 2, 'job_url': 2, 'builds': 1})
+    @speed_index({'base': 2})
     def get_jobs(self, **kwargs):
         """
             Get jobs from jenkins server.
@@ -239,6 +239,7 @@ class Jenkins(Source):
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
+    @speed_index({'base': 1, 'last_build': 1})
     def get_builds(self, **kwargs):
         """
             Get builds from jenkins server.
@@ -298,6 +299,7 @@ try reducing verbosity for quicker query")
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
+    @speed_index({'base': 2})
     def get_deployment(self, **kwargs):
         """Get deployment information for jobs from jenkins server.
 
