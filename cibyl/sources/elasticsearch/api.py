@@ -15,6 +15,7 @@
 """
 
 import logging
+import re
 from urllib.parse import urlsplit
 
 from cibyl.cli.argument import Argument
@@ -185,6 +186,7 @@ class ElasticSearchOSP(Source):
             query=query_body
         )
 
+        IP_REGEX = re.compile("ipv(.)")
         job_objects = {}
         for hit in hits:
             job_name = hit['_source']['jobName']
@@ -192,10 +194,21 @@ class ElasticSearchOSP(Source):
             # If the key exists assign the value otherwise assign unknown
             topology = hit.get('_source', {}).get('envVars', {}).get(
                 "JP_IRVIRSH_TOPOLOGY_NODES", "unknown")
-            ip_version = hit.get('_source', {}).get('envVars', {}).get(
-                "JP_OSPD_NETWORK_PROTOCOL", "unknown")
             release = hit.get('_source', {}).get('envVars', {}).get(
                 "JP_OSPD_PRODUCT_VERSION", "unknown")
+            ip_version = hit.get('_source', {}).get('envVars', {}).get(
+                "JP_OSPD_NETWORK_PROTOCOL", "unknown")
+
+            if ip_version != 'unknown':
+                matches = IP_REGEX.search(ip_version)
+                ip_version = matches.group(1)
+
+            # Check if necessary filter by IP version:
+            if 'ip_version' in kwargs:
+                ip_version_argument = kwargs.get('ip_version').value
+                if ip_version_argument and \
+                        ip_version_argument[0] != ip_version:
+                    continue
 
             job_objects[job_name] = Job(name=job_name, url=url)
             deployment = Deployment(
