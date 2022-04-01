@@ -31,7 +31,9 @@ from cibyl.models.ci.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.source import Source, safe_request_generic
-from cibyl.utils.filtering import (apply_filters,
+from cibyl.utils.filtering import (IP_PATTERN, PROPERTY_PATTERN,
+                                   RELEASE_PATTERN, TOPOLOGY_PATTERN,
+                                   apply_filters,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
 
@@ -39,13 +41,6 @@ LOG = logging.getLogger(__name__)
 
 safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# some of these pattern might be useful for more than one source, in the
-# future we may move them somewhere to reuse
-IP_PATTERN = re.compile("ipv(.)")
-RELEASE_PATTERN = re.compile(r"\d\d\.?\d?")
-TOPOLOGY_PATTERN = re.compile(r"(\d([a-zA-Z])+_?)+")
-PROPERTY_PATTERN = re.compile(r"=(.*)")
 
 
 def detect_job_info_regex(job_name, pattern, group_index=0, default=""):

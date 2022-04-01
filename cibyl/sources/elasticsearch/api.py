@@ -15,7 +15,6 @@
 """
 
 import logging
-import re
 from urllib.parse import urlsplit
 
 from cibyl.cli.argument import Argument
@@ -26,6 +25,7 @@ from cibyl.models.ci.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
 from cibyl.sources.source import Source
+from cibyl.utils.filtering import IP_PATTERN
 
 LOG = logging.getLogger(__name__)
 
@@ -186,21 +186,20 @@ class ElasticSearchOSP(Source):
             query=query_body
         )
 
-        IP_REGEX = re.compile("ipv(.)")
         job_objects = {}
         for hit in hits:
             job_name = hit['_source']['jobName']
             url = hit['_source']['envVars']['JOB_URL']
             # If the key exists assign the value otherwise assign unknown
-            topology = hit.get('_source', {}).get('envVars', {}).get(
+            topology = hit['_source']['envVars'].get(
                 "JP_IRVIRSH_TOPOLOGY_NODES", "unknown")
-            release = hit.get('_source', {}).get('envVars', {}).get(
+            release = hit['_source']['envVars'].get(
                 "JP_OSPD_PRODUCT_VERSION", "unknown")
-            ip_version = hit.get('_source', {}).get('envVars', {}).get(
+            ip_version = hit['_source']['envVars'].get(
                 "JP_OSPD_NETWORK_PROTOCOL", "unknown")
 
             if ip_version != 'unknown':
-                matches = IP_REGEX.search(ip_version)
+                matches = IP_PATTERN.search(ip_version)
                 ip_version = matches.group(1)
 
             # Check if necessary filter by IP version:
