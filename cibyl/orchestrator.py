@@ -19,7 +19,7 @@ import time
 
 from cibyl.cli.parser import Parser
 from cibyl.cli.validator import Validator
-from cibyl.config import Config
+from cibyl.config import Config, ConfigFactory
 from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.exceptions.source import NoValidSources
 from cibyl.models.ci.environment import Environment
@@ -61,18 +61,17 @@ class Orchestrator:
     :type config_file_path: str, optional
     """
 
-    def __init__(self, config_file_path: str = None,
-                 environments: list = None):
+    def __init__(self, environments: list = None):
         """Orchestrator constructor method"""
-        self.config = Config(path=config_file_path)
+        self.config = Config()
         self.parser = Parser()
         self.publisher = Publisher()
         if not environments:
             self.environments = []
 
-    def load_configuration(self, skip_on_missing=False):
+    def load_configuration(self, path):
         """Loads the configuration of the application."""
-        self.config.load(skip_on_missing)
+        self.config = ConfigFactory.from_path(path)
 
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""

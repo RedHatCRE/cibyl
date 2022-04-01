@@ -118,7 +118,7 @@ class Zuul(Source):
 
             return apply_filters(
                 builds,
-                lambda build: apply_last_build_filter(build)
+                apply_last_build_filter
             )
 
         @staticmethod

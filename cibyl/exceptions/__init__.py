@@ -17,15 +17,21 @@ from cibyl.utils.colors import Colors
 
 
 class CibylException(Exception):
+    def __init__(self, message=''):
+        """Constructor.
+        """
+        super().__init__(*[message])
 
     @staticmethod
     def setup_quiet_exceptions():
         """Sets up quiet exceptions, without tracebacks, if they are
         of the type CibylException
         """
+
         def quiet_hook(kind, message, traceback):
             if CibylException in kind.__bases__:
                 print(Colors.red(f'{message}'))
             else:
                 sys.__excepthook__(kind, message, traceback)
+
         sys.excepthook = quiet_hook

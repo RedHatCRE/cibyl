@@ -13,24 +13,28 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.exceptions import CibylException
 
 
-class InvalidConfiguration(CibylException):
-    """Invalid configuration exception"""
+def ask_yes_no_question(question):
+    """Prints a question on the CLI that the user must respond
+    with a yes or no.
 
-    def __init__(self, message="""
-Invalid Configuration.
-A valid configuration should specify an environment, its system(s) and the
-system(s) details
+    :param question: Text of the question. Include question mark on it.
+    :type question: str
+    :return: Whether the user said 'y' (True) or 'n' (False).
+    :rtype: bool
+    """
+    answer = ''
 
-environments:
-    env_1:
-        jenkins_system:
-            system_type: jenkins"""):
-        self.message = message
-        super().__init__(self.message)
+    while answer not in ('y', 'n'):
+        print(f'{question} [y/n](n):')
 
+        answer = input()
 
-class ConfigurationNotFound(CibylException):
-    """Configuration file not found exception"""
+        if not answer:
+            answer = 'n'
+
+    if answer == 'y':
+        return True
+
+    return False

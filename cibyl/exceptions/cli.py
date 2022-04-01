@@ -16,21 +16,11 @@
 from cibyl.exceptions import CibylException
 
 
-class InvalidConfiguration(CibylException):
-    """Invalid configuration exception"""
+class AbortedByUserError(CibylException):
+    """Represents an action that was interrupted by the user.
+    """
 
-    def __init__(self, message="""
-Invalid Configuration.
-A valid configuration should specify an environment, its system(s) and the
-system(s) details
-
-environments:
-    env_1:
-        jenkins_system:
-            system_type: jenkins"""):
-        self.message = message
-        super().__init__(self.message)
-
-
-class ConfigurationNotFound(CibylException):
-    """Configuration file not found exception"""
+    def __init__(self, message='Operation aborted by user.'):
+        """Constructor.
+        """
+        super().__init__(message)
