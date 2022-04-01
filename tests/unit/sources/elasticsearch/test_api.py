@@ -81,7 +81,15 @@ class TestElasticsearchOSP(TestCase):
 
         jobs_argument = Mock()
         jobs_argument.value = ['test']
-        jobs = self.es_api.get_deployment(jobs=jobs_argument)
+
+        # We need to mock the Argument kwargs passed. In this case
+        # ip_address
+        ip_address_kwargs = MagicMock()
+        ip_adress_value = PropertyMock(return_value=[])
+        type(ip_address_kwargs).value = ip_adress_value
+
+        jobs = self.es_api.get_deployment(jobs=jobs_argument,
+                                          ip_version=ip_address_kwargs)
         deployment = jobs['test'].deployment.value
         self.assertEqual(deployment.release.value, '16')
         self.assertEqual(deployment.ip_version.value, 'unknown')
