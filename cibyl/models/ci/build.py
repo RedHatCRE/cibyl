@@ -14,7 +14,11 @@
 #    under the License.
 """
 # pylint: disable=no-member
+from typing import Dict
+
 from cibyl.cli.argument import Argument
+from cibyl.models.attribute import AttributeDictValue
+from cibyl.models.ci.test import Test
 from cibyl.models.model import Model
 from cibyl.utils.colors import Colors
 
@@ -38,12 +42,21 @@ class Build(Model):
             'attr_type': int,
             'arguments': [],
         },
+        'tests': {
+            'attr_type': Test,
+            'attribute_value_class': AttributeDictValue,
+            'arguments': [Argument(name='--tests', arg_type=str,
+                                   nargs='*', func='get_tests',
+                                   description="Job test")]
+        }
     }
 
     def __init__(self, build_id: str, status: str = None,
-                 duration: int = None):
+                 duration: int = None, tests: Dict[str, Test] = None):
+        if status is not None:
+            status = status.upper()
         super().__init__({'build_id': build_id, 'status': status,
-                          'duration': duration})
+                          'duration': duration, 'tests': tests})
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
@@ -61,12 +74,27 @@ class Build(Model):
             duration_in_min = self.duration.value / 60000
             build_str += Colors.blue(f"\n{indent_space}  Duration: ") + \
                 f"{duration_in_min:.2f}m"
+        if self.tests.value:
+            for test in self.tests.values():
+                build_str += f"\n{test.__str__(indent+2, verbosity)}"
         return build_str
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False
         return self.build_id.value == other.build_id.value
+
+    def add_test(self, test: Test):
+        """Add a test to the build.
+
+        :param test: Test to add to the build
+        :type test: Test
+        """
+        test_name = test.name.value
+        if test_name in self.tests:
+            self.tests[test_name].merge(test)
+        else:
+            self.tests[test_name] = test
 
     def merge(self, other):
         """Merge the information of two build objects representing the same
@@ -77,3 +105,5 @@ class Build(Model):
         """
         if not self.status.value:
             self.status.value = other.status.value
+        for test in other.tests.values():
+            self.add_test(test)
