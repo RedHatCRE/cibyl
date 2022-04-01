@@ -161,11 +161,12 @@ class Orchestrator:
                     model_instances_dict = source_method(
                         **self.parser.ci_args, **self.parser.app_args)
                     end_time = time.time()
-                    LOG.debug("Took %.2fs to query system %s using %s",
-                              end_time-start_time, system.name.value,
-                              source_information_from_method(source_method))
+                    LOG.info("Took %.2fs to query system %s using %s",
+                             end_time-start_time, system.name.value,
+                             source_information_from_method(source_method))
+                    # only update last_level if the query was successful
+                    last_level = arg.level
                     system.populate(model_instances_dict)
-            last_level = arg.level
 
     def extend_parser(self, attributes, group_name='Environment',
                       level=0):
