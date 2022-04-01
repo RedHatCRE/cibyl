@@ -404,6 +404,12 @@ accurate results", len(jobs_found))
         job_name = job['name']
         short_topology = detect_job_info_regex(job_name,
                                                TOPOLOGY_PATTERN)
-        job["topology"] = translate_topology_string(short_topology)
+        if short_topology:
+            # due to the regex used, short_topology may contain a trailing
+            # underscore that should be removed
+            short_topology = short_topology.rstrip("_")
+            job["topology"] = translate_topology_string(short_topology)
+        else:
+            job["topology"] = ""
         job["release_version"] = detect_job_info_regex(job_name,
                                                        RELEASE_PATTERN)
