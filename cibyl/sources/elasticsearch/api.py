@@ -22,6 +22,7 @@ from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
+from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
 from cibyl.sources.source import Source
 
@@ -50,7 +51,6 @@ class ElasticSearchOSP(Source):
             self.es_client = ElasticSearchClient(host, port)
 
     def get_jobs(self: object, **kwargs: Argument) -> list:
-        self.es_connection = self.es_client.connect()
         """Get jobs from elasticsearch
 
             :returns: Job objects queried from elasticserach
@@ -85,11 +85,13 @@ class ElasticSearchOSP(Source):
         :return: List of hits.
         """
         try:
-            response = self.es_connection.search(
-                index=index,
-                body=query,
-                size=1000
-            )
+            with self.es_client.connect() as es_connection:
+                response = es_connection.search(
+                    index=index,
+                    body=query,
+                    size=10000,
+                )
+            es_connection.transport.close()
         except Exception as exception:
             raise ElasticSearchError("Error getting the results") \
                   from exception
@@ -164,6 +166,50 @@ class ElasticSearchOSP(Source):
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_object)
 
+    def get_deployment(self, **kwargs):
+        """Get deployment information for jobs from elasticsearch server.
+
+        :returns: container of jobs with deployment information from
+        elasticsearch server
+        :rtype: :class:`AttributeDictValue`
+        """
+        jobs_to_search = []
+        if 'job_name' in kwargs:
+            jobs_to_search = kwargs.get('job_name').value
+        elif 'jobs' in kwargs:
+            jobs_to_search = kwargs.get('jobs').value
+
+        query_body = QueryTemplate('jobName', jobs_to_search).get
+
+        hits = self.__query_get_hits(
+            query=query_body
+        )
+
+        job_objects = {}
+        for hit in hits:
+            job_name = hit['_source']['jobName']
+            url = hit['_source']['envVars']['JOB_URL']
+            # If the key exists assign the value otherwise assign unknown
+            topology = hit.get('_source', {}).get('envVars', {}).get(
+                "JP_IRVIRSH_TOPOLOGY_NODES", "unknown")
+            ip_version = hit.get('_source', {}).get('envVars', {}).get(
+                "JP_OSPD_NETWORK_PROTOCOL", "unknown")
+            release = hit.get('_source', {}).get('envVars', {}).get(
+                "JP_OSPD_PRODUCT_VERSION", "unknown")
+
+            job_objects[job_name] = Job(name=job_name, url=url)
+            deployment = Deployment(
+                release,
+                "unknown",
+                [],
+                [],
+                ip_version=ip_version,
+                topology=topology
+            )
+            job_objects[job_name].add_deployment(deployment)
+
+        return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
+
 
 class QueryTemplate():
     """Used for template and substitutions according to the
@@ -227,4 +273,5 @@ class QueryTemplate():
     @property
     def get(self: object) -> dict:
         """Return DSL query in dictionary format"""
+        LOG.info(f"Using the following query: {self.query_body}")
         return self.query_body

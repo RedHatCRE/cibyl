@@ -33,7 +33,8 @@ class TestElasticsearchOSP(TestCase):
                 '_source': {
                     'jobName': 'test',
                     'envVars': {
-                        'JOB_URL': 'http://domain.tld/test'
+                        'JOB_URL': 'http://domain.tld/test',
+                        'JP_OSPD_PRODUCT_VERSION': '16',
                     }
                 }
             }
@@ -70,6 +71,21 @@ class TestElasticsearchOSP(TestCase):
         self.assertTrue('test' in jobs)
         self.assertEqual(jobs['test'].name.value, 'test')
         self.assertEqual(jobs['test'].url.value, "http://domain.tld/test")
+
+    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    def test_get_deployment(self: object, mock_query_hits: object) -> None:
+        """Tests that the internal logic from :meth:`ElasticSearchOSP.get_jobs`
+            is correct.
+        """
+        mock_query_hits.return_value = self.job_hit
+
+        jobs_argument = Mock()
+        jobs_argument.value = ['test']
+        jobs = self.es_api.get_deployment(jobs=jobs_argument)
+        deployment = jobs['test'].deployment.value
+        self.assertEqual(deployment.release.value, '16')
+        self.assertEqual(deployment.ip_version.value, 'unknown')
+        self.assertEqual(deployment.topology.value, 'unknown')
 
     @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
     def test_get_builds(self: object, mock_query_hits: object) -> None:
