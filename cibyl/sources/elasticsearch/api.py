@@ -173,10 +173,10 @@ class ElasticSearchOSP(Source):
         elasticsearch server
         :rtype: :class:`AttributeDictValue`
         """
-
+        jobs_to_search = []
         if 'job_name' in kwargs:
             jobs_to_search = kwargs.get('job_name').value
-        else:
+        elif 'jobs' in kwargs:
             jobs_to_search = kwargs.get('jobs').value
 
         query_body = QueryTemplate('jobName', jobs_to_search).get
@@ -230,7 +230,7 @@ class QueryTemplate():
                     "exists": {
                         "field": search_key
                     }
-                },
+                }
             }
         # Just one element that start with string
         # is better to use 'match_phrase_prefix'
