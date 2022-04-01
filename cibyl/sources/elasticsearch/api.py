@@ -85,13 +85,13 @@ class ElasticSearchOSP(Source):
         :return: List of hits.
         """
         try:
-            self.es_connection = self.es_client.connect()
-            response = self.es_connection.search(
-                index=index,
-                body=query,
-                size=10000,
-            )
-            self.es_connection.transport.close()
+            with self.es_client.connect() as es_connection:
+                response = es_connection.search(
+                    index=index,
+                    body=query,
+                    size=10000,
+                )
+            es_connection.transport.close()
         except Exception as exception:
             raise ElasticSearchError("Error getting the results") \
                   from exception

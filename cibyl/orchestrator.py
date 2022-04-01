@@ -162,7 +162,7 @@ class Orchestrator:
                     model_instances_dict = source_method(
                         **self.parser.ci_args, **self.parser.app_args)
                     end_time = time.time()
-                    LOG.info("Took %.2fs to query system %s using %s",
+                    LOG.debug("Took %.2fs to query system %s using %s",
                              end_time-start_time, system.name.value,
                              source_information_from_method(source_method))
                     system.populate(model_instances_dict)
