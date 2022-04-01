@@ -203,9 +203,9 @@ class ElasticSearchOSP(Source):
                 ip_version = matches.group(1)
 
             # Check if necessary filter by IP version:
-            ip_version_argument = kwargs.get('ip_version').value
-            if ip_version_argument and \
-                    ip_version not in ip_version_argument:
+            ip_version_argument = kwargs.get('ip_version')
+            if ip_version_argument.value and \
+                    ip_version not in ip_version_argument.value:
                 continue
 
             job_objects[job_name] = Job(name=job_name, url=url)
