@@ -28,6 +28,7 @@ from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
+from cibyl.models.ci.test import Test
 from cibyl.sources.source import Source, safe_request_generic
 from cibyl.utils.filtering import (apply_filters,
                                    satisfy_case_insensitive_match,
@@ -114,6 +115,7 @@ class Jenkins(Source):
                          2: "?tree=allBuilds[number,result,duration]",
                          3: "?tree=allBuilds[number,result,duration]"}
     jobs_last_build_query = "?tree=jobs[name,url,lastBuild[number,result]]"
+    build_tests_query = "?tree=suites[cases[name,status,duration,skipped]]"
 
     # pylint: disable=too-many-arguments
     def __init__(self, url: str, username: str = None, token: str = None,
@@ -266,3 +268,24 @@ try reducing verbosity for quicker query")
             job_objects[name] = job_object
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
+
+    def get_tests(self, **kwargs):
+        """
+            Get tests for a Jenkins job build.
+
+            :returns: container of Test objects queried from jenkins server
+            :rtype: :class:`AttributeDictValue`
+        """
+
+        tests_found = self.send_request(self.build_tests_query,
+                                        item='testReport')
+
+        test_objects = {}
+        for test in tests_found:
+            name = test.get('name')
+            test_objects[name] = Test(name=name,
+                                      status=test.get('status'),
+                                      duration=test.get('duration'),
+                                      skipped=test.get('skipped'))
+
+        return AttributeDictValue("tests", attr_type=Test, value=test_objects)
