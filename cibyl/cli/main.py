@@ -63,7 +63,8 @@ def main():
     # to run the app parser only once, after we update it with the loaded
     # arguments from the CI models based on the loaded configuration file
     arguments = raw_parsing(sys.argv)
-    CibylException.setup_quiet_exceptions()
+    if not arguments['debug']:
+        CibylException.setup_quiet_exceptions()
     configure_logging(arguments)
 
     plugins = arguments.get('plugins')
