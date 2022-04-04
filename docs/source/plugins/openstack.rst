@@ -13,6 +13,8 @@ Models
 * Package: An RPM associated with either a single node or a single container
 * Service: A service associated with a single deployment
 
+::
+
     Deployment
     ├── Node
     │   └── Container
@@ -39,19 +41,19 @@ Arguments Matrix
      - JJB
      - Zuul.d
    * - --ip-version
-     - |:x:|
+     - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
      - |:x:|
      - |:x:|
    * - --release
-     - |:x:|
+     - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
      - |:x:|
      - |:x:|
    * - --topology
-     - |:x:|
+     - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
      - |:x:|
