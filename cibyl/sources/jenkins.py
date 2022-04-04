@@ -341,6 +341,12 @@ accurate results", len(jobs_found))
                                    user_input=input_topology,
                                    field_to_check="topology"))
 
+        input_release = kwargs.get('release')
+        if input_release and input_release.value:
+            checks_to_apply.append(partial(satisfy_exact_match,
+                                   user_input=input_release,
+                                   field_to_check="release_version"))
+
         job_deployment_info = apply_filters(job_deployment_info,
                                             *checks_to_apply)
 
@@ -380,15 +386,17 @@ accurate results", len(jobs_found))
             self.add_job_info_from_name(job)
             return
         for line in artifact.split("\n"):
-            if "TOPOLOGY" in line:
+            if "TOPOLOGY=" in line:
                 topology_str = detect_job_info_regex(line, PROPERTY_PATTERN,
                                                      group_index=1)
                 topology_str = topology_str.replace('"', '')
                 topology_str = topology_str.replace("'", '')
                 job["topology"] = topology_str
             elif "PRODUCT_VERSION" in line:
-                job["release_version"] = detect_job_info_regex(job_name,
+                job["release_version"] = detect_job_info_regex(line,
                                                                RELEASE_PATTERN)
+        if "topology" not in job or "release_version" not in job:
+            self.add_job_info_from_name(job)
 
     def add_job_info_from_name(self, job:  Dict[str, str]):
         """Add information to the job by using regex on the job name.

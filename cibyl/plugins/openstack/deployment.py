@@ -30,8 +30,9 @@ class Deployment(Model):
 
     API = {
         'release': {
-            'attr_type': float,
-            'arguments': [Argument(name='--release', arg_type=float,
+            'attr_type': str,
+            'arguments': [Argument(name='--release', arg_type=str,
+                                   func='get_deployment', nargs='*',
                                    description="Deployment release version")]
         },
         'infra_type': {

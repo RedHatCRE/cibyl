@@ -13,6 +13,8 @@ Core models (aka CI/CD models) are built-in CI/CD Cibyl models:
 The way they are organized and associated one with each other, mainly depends on the type of the CI/CD system being used.
 For a Jenkins system for example, the hierarchy includes Job and Build models, while for Zuul system, the hierarchy includes Pipeline, Job and Build models.
 
+::
+
     Environment
     ├── System
     │   └── Job       # Jenkins
