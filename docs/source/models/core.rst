@@ -8,6 +8,7 @@ Core models (aka CI/CD models) are built-in CI/CD Cibyl models:
   * Pipeline: A specific Zuul concept which used for describing a workflow
   * Job: A particular task/automation in the CI/CD system
   * Build: An execution instance of a job
+  * Test: A test execution that is part of a build
 
 
 The way they are organized and associated one with each other, mainly depends on the type of the CI/CD system being used.
@@ -19,6 +20,8 @@ For a Jenkins system for example, the hierarchy includes Job and Build models, w
     ├── System
     │   └── Job       # Jenkins
     │       └── Build
+    │           └── Test
     │   └── Pipeline  # Zuul
     │       └── Job
     │           └── Build
+    │               └── Test
