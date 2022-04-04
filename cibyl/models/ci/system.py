@@ -123,9 +123,8 @@ class JobsSystem(System):
             string += f" (type: {self.system_type.value})"
         for job in self.jobs.values():
             string += f"\n{job.__str__(indent+2, verbosity)}"
-        if verbosity > 1:
-            string += "\n" + indent*' ' + \
-                Colors.blue("Total jobs: ") + f"{len(self.jobs)}"
+        string += "\n" + indent*' ' + \
+            Colors.blue("Total jobs: ") + f"{len(self.jobs)}"
         return string
 
     def add_toplevel_model(self, model: Job):
