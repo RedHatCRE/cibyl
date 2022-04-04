@@ -28,11 +28,11 @@ class Test(Model):
                                    func='get_tests',
                                    description="Test name")]
         },
-        'status': {
+        'result': {
             'attr_type': str,
-            'arguments': [Argument(name='--test-status', arg_type=str,
+            'arguments': [Argument(name='--test-result', arg_type=str,
                                    func='get_tests',
-                                   description="Test status")]
+                                   description="Test result")]
         },
         'duration': {
             'attr_type': int,
@@ -40,33 +40,42 @@ class Test(Model):
                                    func='get_tests',
                                    description="Test duration")]
         },
+        'class_name': {
+            'attr_type': int,
+            'arguments': [Argument(name='--test-class-name', arg_type=str,
+                                   func='get_tests',
+                                   description="Test class name")]
+        }
     }
 
-    def __init__(self, name: str, status: str = None,
-                 duration: int = None):
-        if status:
-            status = status.upper()
-        super().__init__({'name': name, 'status': status,
-                          'duration': duration})
+    def __init__(self, name: str, result: str = None,
+                 duration: int = None, class_name: str = None):
+        if result:
+            result = result.upper()
+        super().__init__({'name': name, 'result': result,
+                          'duration': duration, 'class_name': class_name})
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
-        test_str = Colors.blue(
-            f"{indent_space}Test: ") + f"{self.name.value}"
-        if self.status.value:
-            test_str += Colors.blue(f"\n{indent_space}  Status: ")
-            if self.status.value == "SUCCESS":
-                test_str += Colors.green(f"{self.status.value}")
-            elif self.status.value == "FAILURE":
-                test_str += Colors.red(f"{self.status.value}")
-            elif self.status.value == "UNSTABLE":
-                test_str += Colors.yellow(f"{self.status.value}")
-            elif self.status.value == "SKIPPED":
-                test_str += Colors.blue(f"{self.status.value}")
+        test_str = f"{indent_space}{Colors.blue('Test: ')}{self.name.value}"
+        if self.result.value:
+            test_str += f"\n{indent_space}  {Colors.blue('Result: ')}"
+            if self.result.value == "SUCCESS":
+                test_str += Colors.green(f"{self.result.value}")
+            elif self.result.value == "FAILURE":
+                test_str += Colors.red(f"{self.result.value}")
+            elif self.result.value == "UNSTABLE":
+                test_str += Colors.yellow(f"{self.result.value}")
+            elif self.result.value == "SKIPPED":
+                test_str += Colors.blue(f"{self.result.value}")
+
+        if self.class_name.value:
+            test_str += f"\n{indent_space}  Colors.blue('Class name: ')"
+            test_str += f"{self.class_name.value}"
 
         if verbosity > 0 and self.duration.value:
             duration_in_min = self.duration.value / 60000
-            test_str += Colors.blue(f"\n{indent_space}  Duration: ") + \
+            test_str += f"\n{indent_space}  {Colors.blue('Duration: ')}" + \
                 f"{duration_in_min:.2f}m"
         return test_str
 
@@ -82,7 +91,9 @@ class Test(Model):
         :param other: The Test object to merge
         :type other: :class:`.Test`
         """
-        if not self.status.value:
-            self.status.value = other.status.value
+        if not self.result.value:
+            self.result.value = other.result.value
         if not self.duration.value:
             self.duration.value = other.duration.value
+        if not self.class_name.value:
+            self.class_name.value = other.class_name.value

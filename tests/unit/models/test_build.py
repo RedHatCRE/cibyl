@@ -98,7 +98,7 @@ str")
         self.assertEqual(len(self.second_build.tests), 1)
         test_obj = self.second_build.tests["test_name"]
         self.assertEqual(test_obj.name.value, "test_name")
-        self.assertEqual(test_obj.status.value, "FAILURE")
+        self.assertEqual(test_obj.result.value, "FAILURE")
 
     def test_build_str_complete(self):
         """Test Build __str__ method."""
@@ -130,4 +130,4 @@ str")
         self.build.add_test(test2)
         test_obj = self.build.tests["test_name"]
         self.assertEqual(test_obj.name.value, "test_name")
-        self.assertEqual(test_obj.status.value, "FAILURE")
+        self.assertEqual(test_obj.result.value, "FAILURE")
