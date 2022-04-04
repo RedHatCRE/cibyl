@@ -203,10 +203,18 @@ class ElasticSearchOSP(Source):
                 ip_version = matches.group(1)
 
             # Check if necessary filter by IP version:
-            ip_version_argument = kwargs.get('ip_version').value
-            if ip_version_argument and \
-                    ip_version not in ip_version_argument:
-                continue
+            if 'ip_version' in kwargs:
+                ip_version_argument = kwargs.get('ip_version').value
+                if ip_version_argument and \
+                        ip_version not in ip_version_argument:
+                    continue
+
+            # Check if necessary filter by release version:
+            if 'release' in kwargs:
+                release_argument = kwargs.get('release').value
+                if release_argument and \
+                        release not in release_argument:
+                    continue
 
             job_objects[job_name] = Job(name=job_name, url=url)
             deployment = Deployment(
