@@ -37,4 +37,4 @@ class TestZuul(ZuulTest):
 
         main()
 
-        self.assertIn('Total jobs: 0', self.output)
+        self.assertIn('Total jobs: 65', self.output)
