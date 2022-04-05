@@ -30,8 +30,9 @@ class Deployment(Model):
 
     API = {
         'release': {
-            'attr_type': float,
-            'arguments': [Argument(name='--release', arg_type=float,
+            'attr_type': str,
+            'arguments': [Argument(name='--release', arg_type=str,
+                                   func='get_deployment', nargs='*',
                                    description="Deployment release version")]
         },
         'infra_type': {
@@ -66,15 +67,24 @@ class Deployment(Model):
                                    func='get_deployment', nargs='*',
                                    description="Topology used in the "
                                    "deployment")]
-            }
+            },
+        'network_backend': {
+            'attr_type': str,
+            'arguments': [Argument(name='--network-backend', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Network backend used in the "
+                                   "deployment")]
+            },
     }
 
     def __init__(self, release: float, infra_type: str,
                  nodes: List[Node], services: List[Service],
-                 ip_version: str = None, topology: str = None):
+                 ip_version: str = None, topology: str = None,
+                 network_backend: str = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
-                          'ip_version': ip_version, 'topology': topology})
+                          'ip_version': ip_version, 'topology': topology,
+                          'network_backend': network_backend})
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
@@ -95,4 +105,8 @@ class Deployment(Model):
         if self.topology.value:
             info += f'\n{indent_space}' + Colors.blue('Topology: ')
             info += f'{self.topology}'
+        if self.network_backend.value:
+            info += f'\n{indent_space}' + Colors.blue('Nework backend: ')
+            info += f'{self.network_backend}'
+
         return info

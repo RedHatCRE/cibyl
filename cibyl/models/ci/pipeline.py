@@ -51,6 +51,8 @@ class Pipeline(Model):
             f"{indent_space}Pipeline: ") + f"{self.name.value}"
         for job in self.jobs:
             string += f"\n{job.__str__(indent=indent+2)}"
+        string += f"\n{indent_space}" + \
+            Colors.blue("Total jobs: ") + f"{len(self.jobs)}"
         return string
 
     def __eq__(self, other):
