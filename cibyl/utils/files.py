@@ -20,7 +20,7 @@ from os import PathLike
 LOG = logging.getLogger(__name__)
 
 
-def _is_file_available(filename):
+def is_file_available(filename):
     """Checks if a file is present on the filesystem.
 
     :param filename: A path pointing to the file to be checked.
@@ -31,7 +31,7 @@ def _is_file_available(filename):
     return os.path.isfile(filename)
 
 
-def get_first_available_file(filenames, file_check=_is_file_available):
+def get_first_available_file(filenames, file_check=is_file_available):
     """Searches for the first file out of the provided paths that exists
     on the host's drive.
 

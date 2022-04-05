@@ -47,6 +47,15 @@ def safe_request_generic(request, custom_error):
             raise custom_error(
                 "Please set certificates in order to connect to the system"
             ) from ex
+        except requests.exceptions.ConnectionError as ex:
+            raise custom_error(
+                "Could not connect to target host, please ensure connection "
+                "details are correct."
+            ) from ex
+        except requests.exceptions.HTTPError as ex:
+            raise custom_error(
+                 f"Got response {ex.response.status_code} from target host."
+            ) from ex
         except Exception as ex:
             raise custom_error('Failure on request to target host.') from ex
 

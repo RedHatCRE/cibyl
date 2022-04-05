@@ -56,7 +56,7 @@ Arguments Matrix
    * - --job-name
      - |:ballot_box_with_check:|
      - |:x:|
-     - |:x:|
+     - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --job-url
@@ -74,13 +74,13 @@ Arguments Matrix
    * - --last-build
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
-     - |:x:|
+     - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --build-status
      - |:ballot_box_with_check:|
      - |:x:|
-     - |:x:|
+     - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --build-number

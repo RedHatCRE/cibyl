@@ -29,8 +29,12 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.test import Test
+from cibyl.plugins.openstack.deployment import Deployment
+from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.source import Source, safe_request_generic
-from cibyl.utils.filtering import (apply_filters,
+from cibyl.utils.filtering import (IP_PATTERN, PROPERTY_PATTERN,
+                                   RELEASE_PATTERN, TOPOLOGY_PATTERN,
+                                   apply_filters,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
 
@@ -40,12 +44,29 @@ safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
+def detect_job_info_regex(job_name, pattern, group_index=0, default=""):
+    """Extract information from a jenkins job name using regex, if not present,
+    set to a default value.
+
+    :param job: Jenkins Job representation as a dictionary
+    :type job: dict
+    :returns: The ip version used for the job if present, 'unknown' otherwise
+    :rtype: str
+    """
+    match_job = pattern.search(job_name)
+    if match_job:
+        return match_job.group(group_index)
+    return default
+
+
 def is_job(job):
     """Check if a given job representation corresponds to a job and not
     a folder or a view.
 
     :param job: Jenkins Job representation as a dictionary
     :type job: dict
+    :returns: Whether the job representation actually corresponds to a job
+    :rtype: bool
     """
     return "job" in job["_class"]
 
@@ -143,7 +164,8 @@ class Jenkins(Source):
         self.cert = cert
 
     @safe_request
-    def send_request(self, query, timeout=None, item=""):
+    def send_request(self, query, timeout=None, item="",
+                     api_entrypoint="/api/json", raw_response=False):
         """
             Send a request to the jenkins instance and parse its json response.
 
@@ -155,6 +177,12 @@ class Jenkins(Source):
             :type timeout: float
             :param item: item to get information about
             :type item: str
+            :param api_entrypoint: API entrypoint to use, by default use
+            api/json
+            :type api_entrypoint: str
+            :param raw_response: Whether to return the text of the response
+            without any processing
+            :type raw_response: bool
             :returns: Information from the jenkins instance
             :rtype: dict
         """
@@ -181,7 +209,7 @@ class Jenkins(Source):
             if item:
                 url += f'/{item}'
 
-            url += f'/api/json{query}'
+            url += f'{api_entrypoint}{query}'
 
             return url
 
@@ -190,6 +218,8 @@ class Jenkins(Source):
         )
 
         response.raise_for_status()
+        if raw_response:
+            return response.text
 
         return json.loads(response.text)
 
@@ -289,3 +319,123 @@ try reducing verbosity for quicker query")
                                       skipped=test.get('skipped'))
 
         return AttributeDictValue("tests", attr_type=Test, value=test_objects)
+
+    def get_deployment(self, **kwargs):
+        """Get deployment information for jobs from jenkins server.
+
+        :returns: container of jobs with deployment information from
+        jenkins server
+        :rtype: :class:`AttributeDictValue`
+        """
+        jobs_found = self.send_request(self.jobs_last_build_query)["jobs"]
+        jobs_found = filter_jobs(jobs_found, **kwargs)
+
+        use_artifacts = True
+        if len(jobs_found) > 12:
+            LOG.warning("Requesting deployment information for %d jobs \
+will be based on the job name and approximate, restrict the query for more \
+accurate results", len(jobs_found))
+            use_artifacts = False
+
+        job_deployment_info = []
+        for job in jobs_found:
+            job_name = job['name']
+            job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
+                                                      group_index=1,
+                                                      default="unknown")
+            last_build = job.get("lastBuild")
+            if use_artifacts and last_build is not None:
+                # if we have a lastBuild, we will have artifacts to pull
+                self.add_job_info_from_artifacts(job)
+            else:
+                self.add_job_info_from_name(job)
+            job_deployment_info.append(job)
+
+        checks_to_apply = []
+        input_ip_version = kwargs.get('ip_version')
+        if input_ip_version and input_ip_version.value:
+            checks_to_apply.append(partial(satisfy_exact_match,
+                                   user_input=input_ip_version,
+                                   field_to_check="ip_version"))
+
+        input_topology = kwargs.get('topology')
+        if input_topology and input_topology.value:
+            checks_to_apply.append(partial(satisfy_exact_match,
+                                   user_input=input_topology,
+                                   field_to_check="topology"))
+
+        input_release = kwargs.get('release')
+        if input_release and input_release.value:
+            checks_to_apply.append(partial(satisfy_exact_match,
+                                   user_input=input_release,
+                                   field_to_check="release_version"))
+
+        job_deployment_info = apply_filters(job_deployment_info,
+                                            *checks_to_apply)
+
+        job_objects = {}
+        for job in job_deployment_info:
+            name = job.get('name')
+            job_objects[name] = Job(name=name, url=job.get('url'))
+            # TODO: (jgilaber) query for infra_type, nodes and services
+            deployment = Deployment(job["release_version"], "unknown",
+                                    [], [], ip_version=job["ip_version"],
+                                    topology=job["topology"])
+            job_objects[name].add_deployment(deployment)
+
+        return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
+
+    def add_job_info_from_artifacts(self, job: Dict[str, str]):
+        """Add information to the job by querying the last build artifacts.
+
+        :param job: Dictionary representation of a jenkins job
+        :type job: dict
+        """
+        possible_artifacts = [".envrc", "artifacts/jp.env"]
+        job_name = job['name']
+        artifact = None
+        for artifact_path in possible_artifacts:
+            artifact_url = f"job/{job_name}/lastBuild/artifact/{artifact_path}"
+            try:
+                artifact = self.send_request(item=artifact_url, query="",
+                                             api_entrypoint="",
+                                             raw_response=True)
+                break
+            except JenkinsError:
+                LOG.debug("Found no artifact %s for job %s", artifact_path,
+                          job_name)
+                continue
+        if artifact is None:
+            self.add_job_info_from_name(job)
+            return
+        for line in artifact.split("\n"):
+            if "TOPOLOGY=" in line:
+                topology_str = detect_job_info_regex(line, PROPERTY_PATTERN,
+                                                     group_index=1)
+                topology_str = topology_str.replace('"', '')
+                topology_str = topology_str.replace("'", '')
+                job["topology"] = topology_str
+            elif "PRODUCT_VERSION" in line:
+                job["release_version"] = detect_job_info_regex(line,
+                                                               RELEASE_PATTERN)
+        if "topology" not in job or "release_version" not in job:
+            self.add_job_info_from_name(job)
+
+    def add_job_info_from_name(self, job:  Dict[str, str]):
+        """Add information to the job by using regex on the job name.
+
+        :param job: Dictionary representation of a jenkins job
+        :type job: dict
+        """
+        job_name = job['name']
+        short_topology = detect_job_info_regex(job_name,
+                                               TOPOLOGY_PATTERN)
+        if short_topology:
+            # due to the regex used, short_topology may contain a trailing
+            # underscore that should be removed
+            short_topology = short_topology.rstrip("_")
+            job["topology"] = translate_topology_string(short_topology)
+        else:
+            job["topology"] = ""
+        job["release_version"] = detect_job_info_regex(job_name,
+                                                       RELEASE_PATTERN)

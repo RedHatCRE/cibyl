@@ -1,0 +1,9 @@
+---
+environments:
+  test_environment:
+    test_system:
+      system_type: jenkins
+      sources:
+        jenkins:
+          driver: jenkins
+          url: 'http://localhost:8080/'

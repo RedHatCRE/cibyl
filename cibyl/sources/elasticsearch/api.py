@@ -22,8 +22,10 @@ from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
+from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
 from cibyl.sources.source import Source
+from cibyl.utils.filtering import IP_PATTERN
 
 LOG = logging.getLogger(__name__)
 
@@ -33,8 +35,9 @@ class ElasticSearchOSP(Source):
 
     def __init__(self: object, driver: str = 'elasticsearch',
                  name: str = "elasticsearch", priority: int = 0,
-                 **kwargs) -> None:
-        super().__init__(name=name, driver=driver, priority=priority)
+                 enabled: bool = True, **kwargs) -> None:
+        super().__init__(name=name, driver=driver, priority=priority,
+                         enabled=enabled)
 
         if 'elastic_client' in kwargs:
             self.es_client = kwargs.get('elastic_client')
@@ -46,7 +49,7 @@ class ElasticSearchOSP(Source):
             except Exception as exception:
                 raise ElasticSearchError('The URL given is not valid') \
                       from exception
-            self.es_client = ElasticSearchClient(host, port).connect()
+            self.es_client = ElasticSearchClient(host, port)
 
     def get_jobs(self: object, **kwargs: Argument) -> list:
         """Get jobs from elasticsearch
@@ -54,12 +57,14 @@ class ElasticSearchOSP(Source):
             :returns: Job objects queried from elasticserach
             :rtype: :class:`AttributeDictValue`
         """
-        jobs_provided = kwargs.get('jobs').value
+        if 'job_name' in kwargs:
+            jobs_to_search = kwargs.get('job_name').value
+        else:
+            jobs_to_search = kwargs.get('jobs').value
 
-        query_body = QueryTemplate('jobName', jobs_provided).get
+        query_body = QueryTemplate('jobName', jobs_to_search).get
 
         hits = self.__query_get_hits(
-            index='jenkins',
             query=query_body
         )
 
@@ -70,7 +75,7 @@ class ElasticSearchOSP(Source):
             job_objects[job_name] = Job(name=job_name, url=url)
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
-    def __query_get_hits(self: object, query: dict, index: str = '') -> list:
+    def __query_get_hits(self: object, query: dict, index: str = '*') -> list:
         """Perform the search query to ElasticSearch
         and return all the hits
 
@@ -81,11 +86,13 @@ class ElasticSearchOSP(Source):
         :return: List of hits.
         """
         try:
-            response = self.es_client.search(
-                index=index,
-                body=query,
-                size=1000
-            )
+            with self.es_client.connect() as es_connection:
+                response = es_connection.search(
+                    index=index,
+                    body=query,
+                    size=10000,
+                )
+            es_connection.transport.close()
         except Exception as exception:
             raise ElasticSearchError("Error getting the results") \
                   from exception
@@ -102,12 +109,11 @@ class ElasticSearchOSP(Source):
         jobs_found = self.get_jobs(**kwargs)
 
         for job_name, job in jobs_found.items():
-            query_body = QueryTemplate('job_name',
+            query_body = QueryTemplate('jobName',
                                        [job_name],
                                        query_type='match').get
 
             builds = self.__query_get_hits(
-                index='jenkins_builds',
                 query=query_body
             )
 
@@ -119,15 +125,20 @@ class ElasticSearchOSP(Source):
 
             for build in builds:
 
-                if not build['_source']['build_result']:
-                    continue
+                build_result = None
+                if not build['_source']['buildResult'] and \
+                        build['_source']['currentBuildResult']:
+                    build_result = build['_source']['currentBuildResult']
+                else:
+                    build_result = build["_source"]['buildResult']
 
                 if 'build_status' in kwargs and \
-                        build['_source']['build_result'] not in build_statuses:
+                        build['_source']['buildResult'] not in build_statuses:
                     continue
 
-                job.add_build(Build(str(build['_source']['build_id']),
-                                    build["_source"]['build_result']))
+                job.add_build(Build(str(build['_source']['buildID']),
+                                    build_result,
+                                    build['_source']['runDuration']))
 
         if 'last_build' in kwargs:
             return self.get_last_build(jobs_found)
@@ -150,11 +161,75 @@ class ElasticSearchOSP(Source):
             # Now we need to consturct the Job object
             # with the last build object in this one
             build_object = Build(str(last_build_info.build_id),
-                                 last_build_info.status)
+                                 str(last_build_info.status))
             job_object[job_name] = Job(name=job_name)
             job_object[job_name].add_build(build_object)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_object)
+
+    def get_deployment(self, **kwargs):
+        """Get deployment information for jobs from elasticsearch server.
+
+        :returns: container of jobs with deployment information from
+        elasticsearch server
+        :rtype: :class:`AttributeDictValue`
+        """
+        jobs_to_search = []
+        if 'job_name' in kwargs:
+            jobs_to_search = kwargs.get('job_name').value
+        elif 'jobs' in kwargs:
+            jobs_to_search = kwargs.get('jobs').value
+
+        query_body = QueryTemplate('jobName', jobs_to_search).get
+
+        hits = self.__query_get_hits(
+            query=query_body
+        )
+
+        ip_version_argument = None
+        if 'ip_version' in kwargs:
+            ip_version_argument = kwargs.get('ip_version').value
+        release_argument = None
+        if 'release' in kwargs:
+            release_argument = kwargs.get('release').value
+        job_objects = {}
+        for hit in hits:
+            job_name = hit['_source']['jobName']
+            url = hit['_source']['envVars']['JOB_URL']
+            # If the key exists assign the value otherwise assign unknown
+            topology = hit['_source']['envVars'].get(
+                "JP_IRVIRSH_TOPOLOGY_NODES", "unknown")
+            release = hit['_source']['envVars'].get(
+                "JP_OSPD_PRODUCT_VERSION", "unknown")
+            ip_version = hit['_source']['envVars'].get(
+                "JP_OSPD_NETWORK_PROTOCOL", "unknown")
+
+            if ip_version != 'unknown':
+                matches = IP_PATTERN.search(ip_version)
+                ip_version = matches.group(1)
+
+            # Check if necessary filter by IP version:
+            if ip_version_argument and \
+                    ip_version not in ip_version_argument:
+                continue
+
+            # Check if necessary filter by release version:
+            if release_argument and \
+                    release not in release_argument:
+                continue
+
+            job_objects[job_name] = Job(name=job_name, url=url)
+            deployment = Deployment(
+                release,
+                "unknown",
+                [],
+                [],
+                ip_version=ip_version,
+                topology=topology
+            )
+            job_objects[job_name].add_deployment(deployment)
+
+        return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
 
 class QueryTemplate():
@@ -171,7 +246,13 @@ class QueryTemplate():
 
         # Empty query for all hits or elements
         if not search_values:
-            self.query_body = ''
+            self.query_body = {
+                "query": {
+                    "exists": {
+                        "field": search_key
+                    }
+                }
+            }
         # Just one element that start with string
         # is better to use 'match_phrase_prefix'
         elif len(search_values) == 1:
@@ -213,4 +294,5 @@ class QueryTemplate():
     @property
     def get(self: object) -> dict:
         """Return DSL query in dictionary format"""
+        LOG.info(f"Using the following query: {self.query_body}")
         return self.query_body

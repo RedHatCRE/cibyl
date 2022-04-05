@@ -20,6 +20,7 @@ from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.job import Job
 from cibyl.models.model import Model
+from cibyl.utils.colors import Colors
 
 
 class Pipeline(Model):
@@ -46,9 +47,12 @@ class Pipeline(Model):
 
     def __str__(self, indent=0):
         indent_space = indent*' '
-        string = f"{indent_space}Pipeline: {self.name.value}"
+        string = Colors.blue(
+            f"{indent_space}Pipeline: ") + f"{self.name.value}"
         for job in self.jobs:
             string += f"\n{job.__str__(indent=indent+2)}"
+        string += f"\n{indent_space}" + \
+            Colors.blue("Total jobs: ") + f"{len(self.jobs)}"
         return string
 
     def __eq__(self, other):

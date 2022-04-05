@@ -17,9 +17,14 @@ import logging
 import os
 from collections import UserDict
 
+import rfc3987
+
+from cibyl.cli.interactions import ask_yes_no_question
+from cibyl.exceptions.cli import AbortedByUserError
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.utils import yaml
-from cibyl.utils.files import get_first_available_file
+from cibyl.utils.files import get_first_available_file, is_file_available
+from cibyl.utils.net import DownloadError, download_file
 
 LOG = logging.getLogger(__name__)
 
@@ -30,59 +35,157 @@ class Config(UserDict):
     from an external yaml file. No post-processing is performed on the read
     data, as this class acts as a direct interface between the system's file
     and the app.
+    """
 
-    :ivar _path: Path, or collection of paths, to the configuration file
-        this represents.
+    def load(self, file):
+        """Loads the contents of a file into this object. Any contents this
+        may beforehand have are lost and replaced by the data from the file.
+        In case of error, the contents are left untouched.
+
+        :raises YAMLError: If the file could not be parsed.
+        """
+        self.data = yaml.parse(file)
+
+
+class ConfigFactory:
+    """Factory that generates already loaded configurations from different
+    sources.
+    """
+
+    DEFAULT_USER_PATH = os.path.join(
+        os.path.expanduser('~'), '.config/cibyl.yaml'
+    )
+    """Default location on the user's filesystem where the configuration
+    file is expected.
     """
 
     DEFAULT_FILE_PATHS = (
-        os.path.join(os.path.expanduser('~'), '.config/cibyl.yaml'),
+        DEFAULT_USER_PATH,
         '/etc/cibyl/cibyl.yaml'
     )
-    """Collection of paths where the configuration file for the app is
-    expected to be found by default.
+    """List of locations where the configuration should be by defaults.
+    Ordered from user scope to system scope.
     """
 
-    def __init__(self, path=None):
-        """Constructor.
+    @staticmethod
+    def from_path(path):
+        """Build a configuration from a random path. This path may be a URL,
+        a file path or any other. If the path is 'None', then this will look
+        for the first definition available among the default paths.
 
-        :param path: Paths to the configuration file to be read. If 'None' is
-            provided, this will search for the file in a collection of well
-            known paths.
-        :type path: None or str or :class:`typing.Iterable[str]`
+        :param path: The path to get the definition from.
+        :type path: str or None
+        :return: The configuration instance.
+        :rtype: :class:`Config`
+        :raise ConfigurationNotFound: If no definition could be
+            retrieved.
         """
-        super().__init__()
+        if not path:
+            return ConfigFactory.from_search()
 
-        self._path = path
+        if rfc3987.match(path, 'URI'):
+            return ConfigFactory.from_url(path)
 
-    @property
-    def path(self):
-        """Getter for the paths where this searches through.
+        return ConfigFactory.from_file(path)
 
-        :return: A list of paths.
-        :rtype: :class:`typing.Iterable[str]`
+    @staticmethod
+    def from_file(file):
+        """Builds a configuration from a file located on the local filesystem.
+
+        :param file: Path to the configuration definition.
+        :type file: str
+        :return: The configuration instance
+        :rtype: :class:`Config`
+        :raise ConfigurationNotFound: If the file does not exist.
         """
-        if not self._path:
-            # User provided nothing, use default paths then
-            return self.DEFAULT_FILE_PATHS
+        if not is_file_available(file):
+            raise ConfigurationNotFound(f'No file at: {file}')
 
-        # Returned value must be a list
-        if isinstance(self._path, str):
-            return [self._path]
+        config = Config()
+        config.load(file)
 
-        return self._path
+        return config
 
-    def load(self, skip_on_missing=False):
-        """Loads the contents of the configuration file into this object.
-        This will look for the first file available from the list of paths
-        provided by :attr:`~path`.
+    @staticmethod
+    def from_search():
+        """Builds a configuration from the first available definition found
+        between the default paths.
 
-        :raises ConfigurationNotFound: If no configuration file could be found.
-        :raises YAMLError: If the configuration file could not be parsed.
+        :return: The configuration instance
+        :rtype: :class:`Config`
+        :raise ConfigurationNotFound: If no definition could be found.
         """
-        file = get_first_available_file(self.path)
-        if file:
-            self.data = yaml.parse(file)
-        elif not skip_on_missing:
-            raise ConfigurationNotFound(f"Could not find configuration file: \
-'{self.path}'")
+        paths = ConfigFactory.DEFAULT_FILE_PATHS
+        file = get_first_available_file(paths)
+
+        if not file:
+            msg = f'Could not find configuration file at: {paths}'
+
+            raise ConfigurationNotFound(msg)
+
+        return ConfigFactory.from_file(file)
+
+    @staticmethod
+    def _ask_user_for_overwrite():
+        return ask_yes_no_question('Overwrite file?')
+
+    @staticmethod
+    def from_url(url,
+                 dest=DEFAULT_USER_PATH,
+                 overwrite_call=_ask_user_for_overwrite):
+        """Builds a configuration from a definition located on a remote
+        host. The definition is accessed and downloaded into the provided path.
+
+        Supported protocols are defined by
+        :func:`cibyl.utils.net.download_file`.
+
+        Warnings
+        -------
+        In case a file already exists at the destination, this will ask by
+        default if the user wants to overwrite it or not. This requires
+        interaction with the CLI and therefore is a blocker.
+
+        Examples
+        --------
+        >>> ConfigFactory.from_url(
+                'http://localhost/my-file.yaml', '/var/cibyl/config.yaml'
+            )
+
+        :param url: The URL where the file is located at.
+        :type url: str
+        :param dest: Path where the definition will be downloaded
+            into. Must contain name of the file.
+        :type dest: str
+        :param overwrite_call: The function used to ask the user if they
+            may overwrite the file. Change to avoid blocker.
+        :return: The configuration instance
+        :rtype: :class:`Config`
+        :raise ConfigurationNotFound: If the definition could not
+            be downloaded.
+        """
+        LOG.info("Trying to obtain configuration file from: %s", url)
+
+        # Is there something on the download path?
+        if is_file_available(dest):
+            # Overwrite it then?
+            print(f'Configuration file already found at: {dest}')
+
+            if overwrite_call():
+                LOG.info('Deleting file at: %s', dest)
+                os.remove(dest)
+            else:
+                raise AbortedByUserError
+
+        # Download the file
+        LOG.info("Downloading file into: %s", dest)
+
+        try:
+            download_file(url, dest)
+        except DownloadError as ex:
+            msg = f'Configuration could not be retrieved from: {url}'
+
+            raise ConfigurationNotFound(msg) from ex
+
+        LOG.info('Download completed successfully.')
+
+        return ConfigFactory.from_file(dest)

@@ -17,6 +17,7 @@
 import unittest
 
 from cibyl.models.ci.build import Build
+from cibyl.models.ci.test import Test
 
 
 class TestBuild(unittest.TestCase):
@@ -77,20 +78,56 @@ str")
 
     def test_build_str(self):
         """Test Build __str__ method."""
-        self.assertEqual(str(self.build), f'Build: {self.build_id}')
-
-        self.assertEqual(
-            str(self.second_build),
-            f'Build: {self.build_id}')
+        self.assertIn('Build: ', str(self.build))
+        self.assertIn(self.build_id, str(self.build))
+        self.assertIn('Build: ', str(self.second_build))
 
         self.second_build.status.value = self.build_status
 
-        self.assertEqual(
-                str(self.second_build),
-                f'Build: {self.build_id}\n  Status: {self.build_status}')
+        self.assertIn('Build: ', str(self.second_build))
+        self.assertIn('Status: ', str(self.second_build))
+        self.assertIn(self.build_id, str(self.second_build))
 
     def test_build_merge(self):
         """Test Build merge method."""
+        test = Test("test_name", "failure")
         self.build.status.value = "SUCCESS"
+        self.build.add_test(test)
         self.second_build.merge(self.build)
         self.assertEqual(self.second_build.status.value, "SUCCESS")
+        self.assertEqual(len(self.second_build.tests), 1)
+        test_obj = self.second_build.tests["test_name"]
+        self.assertEqual(test_obj.name.value, "test_name")
+        self.assertEqual(test_obj.result.value, "FAILURE")
+
+    def test_build_str_complete(self):
+        """Test Build __str__ method."""
+        test = Test("test_name", "failure")
+        self.build.add_test(test)
+        self.build.status.value = "SUCCESS"
+        self.build.duration.value = 60000
+        build_str = self.build.__str__(verbosity=2)
+        self.assertIn('Build: ', build_str)
+        self.assertIn(self.build_id, build_str)
+        self.assertIn('Duration:', build_str)
+        self.assertIn('1.00m', build_str)
+        self.assertIn('Test:', build_str)
+
+    def test_build_str_all_status(self):
+        """Test Build str for various status strings."""
+        statuses = ["SUCCESS", "FAILURE", "UNSTABLE"]
+        for status in statuses:
+            self.build.status.value = status
+            test_str = str(self.build)
+            self.assertIn('Status: ', test_str)
+            self.assertIn(status, test_str)
+
+    def test_build_add_existing_test(self):
+        """Test Build add_test method with existing Test."""
+        test = Test("test_name")
+        test2 = Test("test_name", "failure")
+        self.build.add_test(test)
+        self.build.add_test(test2)
+        test_obj = self.build.tests["test_name"]
+        self.assertEqual(test_obj.name.value, "test_name")
+        self.assertEqual(test_obj.result.value, "FAILURE")

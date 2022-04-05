@@ -18,6 +18,11 @@ from typing import Dict, Pattern
 
 from cibyl.cli.argument import Argument
 
+IP_PATTERN = re.compile("ipv(.)")
+RELEASE_PATTERN = re.compile(r"\d\d\.?\d?")
+TOPOLOGY_PATTERN = re.compile(r"(\d([a-zA-Z])+_?)+")
+PROPERTY_PATTERN = re.compile(r"=(.*)")
+
 
 def satisfy_regex_match(model: Dict[str, str], pattern: Pattern,
                         field_to_check: str):

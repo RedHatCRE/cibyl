@@ -34,7 +34,3 @@ environments:
 
 class ConfigurationNotFound(CibylException):
     """Configuration file not found exception"""
-    def __init__(self, message="Could not find configuration file:"
-                 "('~/.config/cibyl.yaml', '/etc/cibyl/cibyl.yaml')"):
-        self.message = message
-        super().__init__(self.message)

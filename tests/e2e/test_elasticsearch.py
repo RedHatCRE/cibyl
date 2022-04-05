@@ -16,20 +16,20 @@
 import sys
 
 from cibyl.cli.main import main
-from tests.e2e.fixture import JenkinsTest
+from tests.e2e.fixture import ElasticSearchTest
 
 
-class TestJenkins(JenkinsTest):
-    """Tests queries regarding the Jenkins source.
+class TestElasticSearch(ElasticSearchTest):
+    """Tests queries regarding the ElasticSearch source.
     """
 
-    def test_get_jobs(self):
+    def test_jobs(self):
         """Checks that jobs are retrieved with the "--jobs" flag.
         """
         sys.argv = [
             '',
             '--config',
-            'tests/e2e/configs/jenkins.yaml',
+            'tests/e2e/configs/elasticsearch.yaml',
             '--jobs',
             '-vv'
         ]

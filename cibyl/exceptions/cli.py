@@ -13,27 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import sys
-
-from cibyl.cli.main import main
-from tests.e2e.fixture import JenkinsTest
+from cibyl.exceptions import CibylException
 
 
-class TestJenkins(JenkinsTest):
-    """Tests queries regarding the Jenkins source.
+class AbortedByUserError(CibylException):
+    """Represents an action that was interrupted by the user.
     """
 
-    def test_get_jobs(self):
-        """Checks that jobs are retrieved with the "--jobs" flag.
+    def __init__(self, message='Operation aborted by user.'):
+        """Constructor.
         """
-        sys.argv = [
-            '',
-            '--config',
-            'tests/e2e/configs/jenkins.yaml',
-            '--jobs',
-            '-vv'
-        ]
-
-        main()
-
-        self.assertIn('Total jobs: 0', self.output)
+        super().__init__(message)

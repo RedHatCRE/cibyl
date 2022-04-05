@@ -25,30 +25,56 @@ class TestElasticsearchOSP(TestCase):
 
     def setUp(self) -> None:
         self.es_api = ElasticSearchOSP(elastic_client=Mock())
-        self.job_hit = [
-            {
-                '_index': 'test',
-                '_id': 'random',
-                '_score': 1.0,
-                '_source': {
-                    'jobName': 'test',
-                    'envVars': {
-                        'JOB_URL': 'http://domain.tld/test'
+        self.job_hits = [
+                    {
+                        '_id': 'random',
+                        '_score': 1.0,
+                        '_source': {
+                            'jobName': 'test',
+                            'envVars': {
+                                'JOB_URL': 'http://domain.tld/test',
+                                'JP_OSPD_PRODUCT_VERSION': '16',
+                            }
+                        }
+                    },
+                    {
+                        '_id': 'random',
+                        '_score': 1.0,
+                        '_source': {
+                            'jobName': 'test2',
+                            'envVars': {
+                                'JOB_URL': 'http://domain.tld/test2',
+                                'JP_OSPD_PRODUCT_VERSION': '17.2',
+                            }
+                        }
+                    },
+                    {
+                        '_id': 'random',
+                        '_score': 1.0,
+                        '_source': {
+                            'jobName': 'test3',
+                            'envVars': {
+                                'JOB_URL': 'http://domain.tld/test3',
+                                'JP_OSPD_PRODUCT_VERSION': '17.0',
+                                'JP_OSPD_NETWORK_PROTOCOL': 'ipv4',
+                            }
+                        }
                     }
-                }
-            }
         ]
+
         self.build_hits = [
                     {
                         '_source': {
-                            'build_result': 'SUCCESS',
-                            'build_id': '1',
+                            'buildResult': 'SUCCESS',
+                            'buildID': '1',
+                            'runDuration': 20
                         }
                     },
                     {
                         '_source': {
-                            'build_result': 'FAIL',
-                            'build_id': '2',
+                            'buildResult': 'FAIL',
+                            'buildID': '2',
+                            'runDuration': 10
                         }
                     }
         ]
@@ -58,28 +84,86 @@ class TestElasticsearchOSP(TestCase):
         """Tests that the internal logic from :meth:`ElasticSearchOSP.get_jobs`
             is correct.
         """
-        mock_query_hits.return_value = self.job_hit
+        mock_query_hits.return_value = self.job_hits
 
         jobs_argument = Mock()
         jobs_argument.value = ['test']
         jobs = self.es_api.get_jobs(jobs=jobs_argument)
 
-        self.assertEqual(len(jobs), 1)
+        self.assertEqual(len(jobs), 3)
         self.assertTrue('test' in jobs)
         self.assertEqual(jobs['test'].name.value, 'test')
         self.assertEqual(jobs['test'].url.value, "http://domain.tld/test")
+
+    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    def test_get_deployment(self: object, mock_query_hits: object) -> None:
+        """Tests that the internal logic from :meth:`ElasticSearchOSP.get_deployment`
+            is correct.
+        """
+        mock_query_hits.return_value = self.job_hits
+
+        jobs_argument = Mock()
+        jobs_argument.value = ['test']
+
+        # We need to mock the Argument kwargs passed. In this case
+        # ip_address
+        ip_address_kwargs = MagicMock()
+        ip_adress_value = PropertyMock(return_value=[])
+        type(ip_address_kwargs).value = ip_adress_value
+
+        jobs = self.es_api.get_deployment(jobs=jobs_argument,
+                                          ip_version=ip_address_kwargs)
+        deployment = jobs['test'].deployment.value
+        self.assertEqual(deployment.release.value, '16')
+        self.assertEqual(deployment.ip_version.value, 'unknown')
+        self.assertEqual(deployment.topology.value, 'unknown')
+
+    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    def test_deployment_filtering(self: object,
+                                  mock_query_hits: object) -> None:
+        """Tests that the internal logic from :meth:`ElasticSearchOSP.get_jobs`
+            is correct.
+        """
+        mock_query_hits.return_value = self.job_hits
+
+        jobs_argument = Mock()
+        jobs_argument.value = ['test']
+
+        # We need to mock the Argument kwargs passed. In this case
+        # ip_address
+        ip_address_kwargs = MagicMock()
+        ip_adress_value = PropertyMock(return_value=['4'])
+        type(ip_address_kwargs).value = ip_adress_value
+
+        jobs = self.es_api.get_deployment(jobs=jobs_argument,
+                                          ip_version=ip_address_kwargs)
+        deployment = jobs['test3'].deployment.value
+        self.assertEqual(deployment.release.value, '17.0')
+        self.assertEqual(deployment.ip_version.value, '4')
+        self.assertEqual(deployment.topology.value, 'unknown')
+
+        release_kwargs = MagicMock()
+        release_value = PropertyMock(return_value=['17.2'])
+        type(release_kwargs).value = release_value
+
+        jobs = self.es_api.get_deployment(jobs=jobs_argument,
+                                          release=release_kwargs)
+        deployment = jobs['test2'].deployment.value
+        self.assertEqual(deployment.release.value, '17.2')
+        self.assertEqual(deployment.ip_version.value, 'unknown')
+        self.assertEqual(deployment.topology.value, 'unknown')
 
     @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
     def test_get_builds(self: object, mock_query_hits: object) -> None:
         """Tests that the internal logic from
            :meth:`ElasticSearchOSP.get_builds` is correct.
         """
-        mock_query_hits.return_value = self.job_hit
+        mock_query_hits.return_value = self.job_hits
 
         jobs_argument = Mock()
         jobs_argument.value = ['test']
         jobs = self.es_api.get_jobs(jobs=jobs_argument)
-        self.assertEqual(len(jobs), 1)
+        self.assertEqual(len(jobs), 3)
 
         self.es_api.get_jobs = Mock()
         self.es_api.get_jobs.return_value = jobs
@@ -98,7 +182,7 @@ class TestElasticsearchOSP(TestCase):
         """Tests filtering by status in :meth:`ElasticSearchOSP.get_builds`
             is correct.
         """
-        mock_query_hits.return_value = self.job_hit
+        mock_query_hits.return_value = self.job_hits
 
         jobs_argument = Mock()
         jobs_argument.value = ['test']
@@ -159,6 +243,16 @@ class TestQueryTemplate(TestCase):
                 }
         }
 
+        self.all_elements_template = {
+            'query':
+                {
+                    'exists':
+                    {
+                        'field': 'search_key'
+                    }
+                }
+        }
+
     def test_constructor(self: object) -> None:
         """Test :class:`QueryTemplate` exceptions and
            if it returns valid templates
@@ -168,7 +262,8 @@ class TestQueryTemplate(TestCase):
 
         # These are simple tests, but if we change something in
         # :class:`QueryTemplate` tests will fail
-        self.assertEqual(QueryTemplate('search_key', []).get, '')
+        self.assertEqual(QueryTemplate('search_key', []).get,
+                         self.all_elements_template)
         self.assertEqual(
             QueryTemplate('search_key', ['test']).get,
             self.one_element_template

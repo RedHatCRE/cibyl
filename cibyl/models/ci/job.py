@@ -17,9 +17,10 @@
 from typing import Dict
 
 from cibyl.cli.argument import Argument
-from cibyl.models.attribute import AttributeDictValue
+from cibyl.models.attribute import AttributeDictValue, AttributeValue
 from cibyl.models.ci.build import Build
 from cibyl.models.model import Model
+from cibyl.utils.colors import Colors
 
 
 class Job(Model):
@@ -60,12 +61,23 @@ class Job(Model):
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
-        job_str = f"{indent_space}Job: {self.name.value}"
+        job_str = Colors.blue(f"{indent_space}Job: ") + f"{self.name.value}"
         if verbosity > 0 and self.url.value:
-            job_str += f"\n{indent_space}  URL: {self.url.value}"
+            job_str += Colors.blue(f"\n{indent_space}  URL: ") + \
+                f"{self.url.value}"
         if self.builds.value:
             for build in self.builds.values():
                 job_str += f"\n{build.__str__(indent+2, verbosity)}"
+        for attribute_name in self.plugin_attributes:
+            attribute = getattr(self, attribute_name)
+            if not attribute.value:
+                continue
+            if isinstance(attribute, AttributeValue):
+                job_str += f"\n{attribute.value.__str__(indent+2, verbosity)}"
+            else:
+                for attr_value in attribute.value:
+                    job_str += f"\n{attr_value.__str__(indent+2, verbosity)}"
+
         return job_str
 
     def __eq__(self, other):
@@ -96,3 +108,13 @@ class Job(Model):
             self.url.value = other.url.value
         for build in other.builds.values():
             self.add_build(build)
+        for attr_name, attr_info in self.plugin_attributes.items():
+            attribute = getattr(self, attr_name)
+            other_attribute = getattr(other, attr_name)
+            add_method = getattr(self, attr_info["add_method"])
+            if isinstance(attribute, AttributeValue):
+                if not attribute.value:
+                    add_method(other_attribute.value)
+            else:
+                for attr_value in attribute.value:
+                    add_method(attr_value.value)

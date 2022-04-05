@@ -13,27 +13,33 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import builtins
 import sys
+from unittest.mock import Mock
 
 from cibyl.cli.main import main
-from tests.e2e.fixture import JenkinsTest
+from tests.e2e.fixture import HTTPDTest
 
 
-class TestJenkins(JenkinsTest):
-    """Tests queries regarding the Jenkins source.
+class TestConfig(HTTPDTest):
+    """Test for configuration loading.
     """
 
-    def test_get_jobs(self):
-        """Checks that jobs are retrieved with the "--jobs" flag.
+    def test_config_on_url(self):
+        """Checks that a configuration file can be downloaded from a host.
         """
+
         sys.argv = [
             '',
             '--config',
-            'tests/e2e/configs/jenkins.yaml',
-            '--jobs',
-            '-vv'
+            'http://localhost:8080/jenkins.yaml'
         ]
+
+        builtins.input = Mock()
+        builtins.input.return_value = 'y'
 
         main()
 
-        self.assertIn('Total jobs: 0', self.output)
+        # Look for some keys that indicate that it is the desired file
+        self.assertIn('test_environment', self.output)
+        self.assertIn('test_system', self.output)

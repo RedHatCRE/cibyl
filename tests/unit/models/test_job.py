@@ -94,15 +94,15 @@ Should be {self.job_url}")
 
     def test_job_str(self):
         """Testing Job __str__ method."""
-        self.assertEqual(str(self.job), f'Job: {self.job.name.value}')
-
-        self.assertEqual(
-            str(self.second_job),
-            f'Job: {self.job_name}')
+        self.assertIn('Job: ', str(self.job))
+        self.assertIn('Job: ', str(self.second_job))
+        self.assertIn(self.job.name.value, str(self.job))
+        self.assertIn(self.job_name, str(self.second_job))
 
         self.second_job.url.value = self.job_url
 
-        self.assertEqual(str(self.second_job), f'Job: {self.job_name}')
+        self.assertIn('Job: ', str(self.second_job))
+        self.assertIn(self.job_name, str(self.second_job))
 
     def test_jobs_add_build(self):
         """Testing Job add_build method."""
@@ -123,6 +123,11 @@ Should be {self.job_url}")
 
     def test_jobs_merge(self):
         """Testing Job merge method."""
+        build = Build("2", "SUCCESS")
+        self.second_job.add_build(build)
         self.second_job.url.value = self.job_url
         self.job.merge(self.second_job)
         self.assertEqual(self.job.url.value, self.job_url)
+        self.assertEqual(1, len(self.job.builds.value))
+        build_obj = self.job.builds.value["2"]
+        self.assertEqual(build_obj.status.value, build.status.value)

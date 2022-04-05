@@ -17,6 +17,7 @@ import logging
 import sys
 
 from cibyl.exceptions import CibylException
+from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.orchestrator import Orchestrator
 from cibyl.plugins import DEFAULT_PLUGIN, extend_models
 from cibyl.utils.logger import configure_logging
@@ -62,7 +63,8 @@ def main():
     # to run the app parser only once, after we update it with the loaded
     # arguments from the CI models based on the loaded configuration file
     arguments = raw_parsing(sys.argv)
-    CibylException.setup_quiet_exceptions()
+    if not arguments['debug']:
+        CibylException.setup_quiet_exceptions()
     configure_logging(arguments)
 
     plugins = arguments.get('plugins')
@@ -70,9 +72,17 @@ def main():
         for plugin in plugins:
             extend_models(plugin)
 
-    orchestrator = Orchestrator(arguments.get('config_file_path'))
-    orchestrator.load_configuration(
-        skip_on_missing=arguments.get('help', False))
+    orchestrator = Orchestrator()
+
+    try:
+        orchestrator.load_configuration(arguments.get('config_file_path'))
+    except ConfigurationNotFound as ex:
+        # Check if the error is to be ignored
+        skip = arguments.get('help', False)
+
+        if not skip:
+            raise ex
+
     orchestrator.create_ci_environments()
     # Add arguments from CI & product models to the parser of the app
     for env in orchestrator.environments:

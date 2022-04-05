@@ -20,6 +20,7 @@ class Model:
     """Represents a base class inherited by CI and product models."""
 
     API = {}
+    plugin_attributes = {}
 
     def __init__(self, attributes):
         for attribute_name, attribute_dict in self.API.items():

@@ -13,27 +13,28 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import sys
-
-from cibyl.cli.main import main
-from tests.e2e.fixture import JenkinsTest
 
 
-class TestJenkins(JenkinsTest):
-    """Tests queries regarding the Jenkins source.
+def ask_yes_no_question(question):
+    """Prints a question on the CLI that the user must respond
+    with a yes or no.
+
+    :param question: Text of the question. Include question mark on it.
+    :type question: str
+    :return: Whether the user said 'y' (True) or 'n' (False).
+    :rtype: bool
     """
+    answer = ''
 
-    def test_get_jobs(self):
-        """Checks that jobs are retrieved with the "--jobs" flag.
-        """
-        sys.argv = [
-            '',
-            '--config',
-            'tests/e2e/configs/jenkins.yaml',
-            '--jobs',
-            '-vv'
-        ]
+    while answer not in ('y', 'n'):
+        print(f'{question} [y/n](n):')
 
-        main()
+        answer = input()
 
-        self.assertIn('Total jobs: 0', self.output)
+        if not answer:
+            answer = 'n'
+
+    if answer == 'y':
+        return True
+
+    return False

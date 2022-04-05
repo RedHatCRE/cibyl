@@ -16,7 +16,10 @@
 from unittest import TestCase
 
 from cibyl.models.ci.environment import Environment
+from cibyl.models.ci.job import Job
 from cibyl.plugins import extend_models
+from cibyl.plugins.openstack.deployment import Deployment
+from cibyl.plugins.openstack.utils import translate_topology_string
 
 
 class TestOpenstackPlugin(TestCase):
@@ -30,3 +33,65 @@ class TestOpenstackPlugin(TestCase):
         self.assertIn(
             'deployment',
             environment.systems[0].jobs.attr_type.API)
+
+
+class TestJobWithPlugin(TestCase):
+    """Testing Job CI model with openstack plugin"""
+
+    def setUp(self):
+        extend_models("openstack")
+        self.deployment = Deployment(17.0, "test", [], [])
+        self.deployment2 = Deployment(17.1, "test", [], [])
+        self.job = Job("job1", "url1")
+        self.job2 = Job("job2", "url2")
+
+    def test_add_deployment(self):
+        """Test add_deployment method of Job."""
+        self.job.add_deployment(self.deployment)
+        self.assertEqual(self.job.deployment.value.release,
+                         self.deployment.release)
+
+    def test_merge(self):
+        """Test merge method of Job with deployment."""
+        self.job2.add_deployment(self.deployment2)
+        self.job.merge(self.job2)
+        self.assertEqual(self.job.deployment.value.release.value,
+                         self.deployment2.release.value)
+
+    def test_str(self):
+        """Test string representation of Job with deployment."""
+        self.job.add_deployment(self.deployment)
+        job_str = self.job.__str__(indent=2, verbosity=2)
+        self.assertIn("Release: ", job_str)
+        self.assertIn("Infra type: ", job_str)
+
+    def test_str_no_deployment(self):
+        """Test string representation of Job without deployment."""
+        job_str = self.job.__str__(indent=2, verbosity=2)
+        self.assertNotIn("Release: ", job_str)
+        self.assertNotIn("Infra type: ", job_str)
+
+
+class TestOpenstackPluginUtils(TestCase):
+    """Test openstack plugin utils module."""
+    def test_translate_toplogy_string(self):
+        """Test normal usage of translate_topology_string function."""
+        input_str = "1comp_2cont_2ceph_3freeipa_5net_1novactl"
+        expected = "compute:1,controller:2,ceph:2,freeipa:3,networker:5,"
+        expected += "novacontrol:1"
+        output = translate_topology_string(input_str)
+        self.assertEqual(expected, output)
+
+    def test_translate_toplogy_string_non_existing(self):
+        """Test test_translate_toplogy_string with an unknown type."""
+        input_str = "1comp_2cont_2ceph_3freeipa_1unk"
+        expected = "compute:1,controller:2,ceph:2,freeipa:3,unk:1"
+        output = translate_topology_string(input_str)
+        self.assertEqual(expected, output)
+
+    def test_translate_toplogy_string_malformed_component(self):
+        """Test test_translate_toplogy_string with an malformed comonent."""
+        input_str = "1comp_2cont_2ceph_3freeipa_unk"
+        expected = "compute:1,controller:2,ceph:2,freeipa:3"
+        output = translate_topology_string(input_str)
+        self.assertEqual(expected, output)
