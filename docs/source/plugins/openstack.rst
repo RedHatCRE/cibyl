@@ -77,7 +77,7 @@ Arguments Matrix
      - |:x:|
      - |:x:|
    * - --network-backend
-     - |:x:|
+     - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
      - |:x:|
