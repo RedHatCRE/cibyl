@@ -31,9 +31,9 @@ from cibyl.models.ci.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.source import Source, safe_request_generic
-from cibyl.utils.filtering import (IP_PATTERN, PROPERTY_PATTERN,
-                                   RELEASE_PATTERN, TOPOLOGY_PATTERN,
-                                   apply_filters,
+from cibyl.utils.filtering import (IP_PATTERN, NETWORK_BACKEND_PATTERN,
+                                   PROPERTY_PATTERN, RELEASE_PATTERN,
+                                   TOPOLOGY_PATTERN, apply_filters,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
 
@@ -320,6 +320,9 @@ accurate results", len(jobs_found))
             job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
                                                       group_index=1,
                                                       default="unknown")
+            network_backend = detect_job_info_regex(job_name,
+                                                    NETWORK_BACKEND_PATTERN)
+            job["network_backend"] = network_backend
             last_build = job.get("lastBuild")
             if use_artifacts and last_build is not None:
                 # if we have a lastBuild, we will have artifacts to pull
@@ -347,6 +350,12 @@ accurate results", len(jobs_found))
                                    user_input=input_release,
                                    field_to_check="release_version"))
 
+        input_network_backend = kwargs.get('network_backend')
+        if input_network_backend and input_network_backend.value:
+            checks_to_apply.append(partial(satisfy_exact_match,
+                                           user_input=input_network_backend,
+                                           field_to_check="network_backend"))
+
         job_deployment_info = apply_filters(job_deployment_info,
                                             *checks_to_apply)
 
@@ -357,7 +366,8 @@ accurate results", len(jobs_found))
             # TODO: (jgilaber) query for infra_type, nodes and services
             deployment = Deployment(job["release_version"], "unknown",
                                     [], [], ip_version=job["ip_version"],
-                                    topology=job["topology"])
+                                    topology=job["topology"],
+                                    network_backend=job["network_backend"])
             job_objects[name].add_deployment(deployment)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
