@@ -15,7 +15,7 @@
 """
 from enum import Enum
 
-from cibyl.models.ci.system import JobsSystem, PipelineSystem
+from cibyl.models.ci.system import JobsSystem
 
 
 class SystemType(str, Enum):
