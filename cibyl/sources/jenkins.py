@@ -136,6 +136,8 @@ class Jenkins(Source):
                          2: "?tree=allBuilds[number,result,duration]",
                          3: "?tree=allBuilds[number,result,duration]"}
     jobs_last_build_query = "?tree=jobs[name,url,lastBuild[number,result]]"
+    jobs_last_completed_build_query = \
+        "?tree=jobs[name,url,lastCompletedBuild[number,result,duration]]"
     build_tests_query = "?tree=suites[cases[name,status,duration,skipped]]"
 
     # pylint: disable=too-many-arguments
@@ -307,18 +309,46 @@ try reducing verbosity for quicker query")
             :rtype: :class:`AttributeDictValue`
         """
 
-        tests_found = self.send_request(self.build_tests_query,
-                                        item='testReport')
+        # Get the jobs
+        jobs_found = self.send_request(
+            self.jobs_last_completed_build_query)["jobs"]
+        jobs_filtered = filter_jobs(jobs_found, **kwargs)
 
-        test_objects = {}
-        for test in tests_found:
-            name = test.get('name')
-            test_objects[name] = Test(name=name,
-                                      status=test.get('status'),
-                                      duration=test.get('duration'),
-                                      skipped=test.get('skipped'))
+        job_objects = {}
 
-        return AttributeDictValue("tests", attr_type=Test, value=test_objects)
+        for job in jobs_filtered:
+            name = job.get('name')
+            job_object = Job(name=name, url=job.get('url'))
+
+            if job["lastCompletedBuild"]:
+                build_to_add = filter_builds([job["lastCompletedBuild"]],
+                                             **kwargs)
+            else:
+                LOG.debug("Found no completed build for job %s", name)
+                job_objects[name] = job_object
+                continue
+
+            build_object = Build(
+                build_id=build_to_add[0]['number'],
+                status=build_to_add[0]['result'],
+                duration=build_to_add[0]['duration'])
+
+            # Get the tests for that last completed build
+            tests_found = self.send_request(
+                item=f"job/{name}/lastCompletedBuild/testReport",
+                query=self.build_tests_query)
+
+            for test in tests_found['suites'][0]['cases']:
+                build_object.add_test(Test(
+                    name=test.get('name'),
+                    class_name=test.get('className'),
+                    result=test.get('status'),
+                    duration=test.get('duration')))
+
+            job_object.add_build(build_object)
+            job_objects[name] = job_object
+
+        return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
     def get_deployment(self, **kwargs):
         """Get deployment information for jobs from jenkins server.

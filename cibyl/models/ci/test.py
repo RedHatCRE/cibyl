@@ -60,7 +60,8 @@ class Test(Model):
         test_str = f"{indent_space}{Colors.blue('Test: ')}{self.name.value}"
         if self.result.value:
             test_str += f"\n{indent_space}  {Colors.blue('Result: ')}"
-            if self.result.value == "SUCCESS":
+            success_values = ['SUCCESS', 'PASSED']
+            if self.result.value in success_values:
                 test_str += Colors.green(f"{self.result.value}")
             elif self.result.value == "FAILURE":
                 test_str += Colors.red(f"{self.result.value}")
