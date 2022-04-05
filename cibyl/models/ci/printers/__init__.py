@@ -18,10 +18,10 @@ from abc import ABC, abstractmethod
 
 class Printer(ABC):
     def __init__(self, verbosity=0):
-        self.verbosity = verbosity
+        self._verbosity = verbosity
 
     @property
-    def _verbosity(self):
+    def verbosity(self):
         return self._verbosity
 
     @abstractmethod

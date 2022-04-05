@@ -20,7 +20,7 @@ from cibyl.utils.strings import IndentedTextBuilder
 
 class TestIndentedTextBuilder(TestCase):
     def test_add_multiple_levels(self):
-        builder = IndentedTextBuilder(2)
+        builder = IndentedTextBuilder()
 
         builder \
             .add('Header', 0) \

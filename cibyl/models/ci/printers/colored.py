@@ -16,8 +16,8 @@
 import logging
 from abc import ABC, abstractmethod
 
-from cibyl.models.attribute import AttributeValue, AttributeListValue, \
-    AttributeDictValue
+from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
+                                    AttributeValue)
 from cibyl.models.ci.printers import Printer
 from cibyl.models.ci.system import JobsSystem
 from cibyl.utils.colors import Colors
@@ -121,7 +121,7 @@ class ColoredPrinter(Printer):
             # Check if the plugin is installed
             if not attribute.value:
                 LOG.debug(
-                    f'Could not retrieve value for %s on %s.',
+                    'Could not retrieve value for %s on %s.',
                     plugin, job.name.value
                 )
                 continue

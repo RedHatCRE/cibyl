@@ -37,10 +37,10 @@ class IndentedTextBuilder:
 
     def __init__(self, spaces_per_tab=2):
         self._lines = []
-        self._spaces_per_tab = 2
+        self._spaces_per_tab = spaces_per_tab
 
-    def __getitem__(self, key):
-        return self._lines[key]
+    def __getitem__(self, index):
+        return self._lines[index]
 
     @property
     def spaces_per_tab(self):
@@ -57,10 +57,11 @@ class IndentedTextBuilder:
             indentation = line.level * self.spaces_per_tab * ' '
 
             # Some texts may contain more that one line inside. Those lines
-            # must all be indented to keep the desired structured.
+            # must all be indented to keep the structure.
             for chunk in line.text.split('\n'):
                 result += f'{indentation}{chunk}\n'
 
+        # Remove excess of symbols
         result = result.strip('\n')
 
         return result
