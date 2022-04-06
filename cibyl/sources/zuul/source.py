@@ -64,12 +64,8 @@ class Zuul(Source):
                 )
 
                 if fetch_builds:
-                    builds = self._get_builds_for(job, **kwargs)
-
-                    model.builds = {
-                        build['uuid']: Build(build['uuid'], build['result'])
-                        for build in builds
-                    }
+                    for build in self._get_builds_for(job, **kwargs):
+                        model.add_build(Build(build['uuid'], build['result']))
 
                 return model
 
