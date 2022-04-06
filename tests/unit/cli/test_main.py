@@ -18,7 +18,7 @@ from unittest.mock import Mock
 
 import cibyl
 from cibyl.cli.main import raw_parsing
-from cibyl.cli.output import OutputFormat
+from cibyl.cli.output import OutputStyle
 from cibyl.exceptions.cli import InvalidArgument
 
 
@@ -26,29 +26,29 @@ class TestRawParsing(TestCase):
     def test_default_output(self):
         args = raw_parsing([])
 
-        self.assertTrue(OutputFormat.COLORED, args['output_format'])
+        self.assertTrue(OutputStyle.COLORED, args['output_style'])
 
     def test_o_arg(self):
         output = 'raw'
 
-        parse_call = cibyl.cli.main.OutputFormat.from_str = Mock()
-        parse_call.return_value = OutputFormat.RAW
+        parse_call = cibyl.cli.main.OutputStyle.from_str = Mock()
+        parse_call.return_value = OutputStyle.RAW
 
         args = raw_parsing(['', '-o', output])
 
-        self.assertTrue(OutputFormat.RAW, args['output_format'])
+        self.assertTrue(OutputStyle.RAW, args['output_style'])
 
         parse_call.assert_called_once_with(output)
 
     def test_output_arg(self):
         output = 'raw'
 
-        parse_call = cibyl.cli.main.OutputFormat.from_str = Mock()
-        parse_call.return_value = OutputFormat.RAW
+        parse_call = cibyl.cli.main.OutputStyle.from_str = Mock()
+        parse_call.return_value = OutputStyle.RAW
 
         args = raw_parsing(['', '--output', output])
 
-        self.assertTrue(OutputFormat.RAW, args['output_format'])
+        self.assertTrue(OutputStyle.RAW, args['output_style'])
 
         parse_call.assert_called_once_with(output)
 
@@ -58,7 +58,7 @@ class TestRawParsing(TestCase):
 
         output = 'invalid'
 
-        parse_call = cibyl.cli.main.OutputFormat.from_str = Mock()
+        parse_call = cibyl.cli.main.OutputStyle.from_str = Mock()
         parse_call.side_effect = raise_error
 
         with self.assertRaises(InvalidArgument):

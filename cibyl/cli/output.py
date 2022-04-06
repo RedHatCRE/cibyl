@@ -16,15 +16,15 @@
 from enum import Enum
 
 
-class OutputFormat(Enum):
+class OutputStyle(Enum):
     RAW = 0
     COLORED = 1
 
     @staticmethod
     def from_str(label):
         if label == 'raw':
-            return OutputFormat.RAW
+            return OutputStyle.RAW
         elif label == 'colored':
-            return OutputFormat.COLORED
+            return OutputStyle.COLORED
         else:
             raise NotImplementedError(f'Unknown format: {label}')

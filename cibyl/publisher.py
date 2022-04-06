@@ -15,7 +15,33 @@
 """
 import logging
 
+from cibyl.cli.output import OutputStyle
+from cibyl.models.ci.printers.colored import ColoredPrinter
+from cibyl.models.ci.printers.raw import RawPrinter
+
 LOG = logging.getLogger(__name__)
+
+
+class PrinterFactory:
+    @staticmethod
+    def from_style(style, verbosity):
+        """
+
+        :param style:
+        :type style: :class:`OutputStyle`
+        :param verbosity:
+        :type verbosity: int
+        :return:
+        :rtype: :class:`cibyl.models.ci.printers.Printer`
+        :raise NotImplementedError: If there is not printer for the desired
+            style.
+        """
+        if style == OutputStyle.RAW:
+            return RawPrinter(verbosity)
+        elif style == OutputStyle.COLORED:
+            return ColoredPrinter(verbosity)
+        else:
+            raise NotImplementedError(f'Unknown output style: {style}')
 
 
 class Publisher:
@@ -25,10 +51,12 @@ class Publisher:
     """
 
     @staticmethod
-    def publish(environments, dest="terminal", verbosity=0):
+    def publish(environments, output_style, dest="terminal", verbosity=0):
         """Publishes the data of the given environments to the
         chosen destination.
         """
         if dest == "terminal":
             for env in environments:
-                print(env.__str__(verbosity=verbosity))
+                printer = PrinterFactory.from_style(output_style, verbosity)
+
+                print(printer.print_environment(env))
