@@ -17,10 +17,12 @@ import logging
 import sys
 
 from cibyl.exceptions import CibylException
+from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.orchestrator import Orchestrator
 from cibyl.plugins import DEFAULT_PLUGIN, extend_models
 from cibyl.utils.logger import configure_logging
+from cibyl.cli.output import OutputFormat
 
 LOG = logging.getLogger(__name__)
 
@@ -35,7 +37,7 @@ def raw_parsing(arguments):
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
             "logging": logging.INFO, "plugins": [DEFAULT_PLUGIN],
-            "debug": False}
+            "debug": False, "output_format": OutputFormat.COLORED}
     for i, item in enumerate(arguments[1:]):
         if item == "--config":
             args['config_file_path'] = arguments[i + 2]
@@ -57,6 +59,14 @@ def raw_parsing(arguments):
                     break
                 plugins.append(argument)
             args["plugins"] = plugins
+        elif item in ('-o', '--output'):
+            arg = arguments[i + 2]
+
+            try:
+                args["output_format"] = OutputFormat.from_str(arg)
+            except NotImplementedError:
+                raise InvalidArgument(f'Unknown format type: {arg}')
+
     return args
 
 
