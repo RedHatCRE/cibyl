@@ -195,6 +195,9 @@ class ElasticSearchOSP(Source):
         release_argument = None
         if 'release' in kwargs:
             release_argument = kwargs.get('release').value
+        network_argument = None
+        if 'network_backend' in kwargs:
+            network_argument = kwargs.get('network_backend').value
         job_objects = {}
         for hit in hits:
             job_name = hit['_source']['jobName']
@@ -204,6 +207,8 @@ class ElasticSearchOSP(Source):
                 "JP_IRVIRSH_TOPOLOGY_NODES", "unknown")
             release = hit['_source']['envVars'].get(
                 "JP_OSPD_PRODUCT_VERSION", "unknown")
+            network_backend = hit['_source']['envVars'].get(
+                "JP_OSPD_NETWORK_BACKEND", "unknown")
             ip_version = hit['_source']['envVars'].get(
                 "JP_OSPD_NETWORK_PROTOCOL", "unknown")
 
@@ -221,6 +226,11 @@ class ElasticSearchOSP(Source):
                     release not in release_argument:
                 continue
 
+            # Check if necessary filter by network backend:
+            if network_argument and \
+                    network_backend not in network_argument:
+                continue
+
             job_objects[job_name] = Job(name=job_name, url=url)
             deployment = Deployment(
                 release,
@@ -228,7 +238,8 @@ class ElasticSearchOSP(Source):
                 [],
                 [],
                 ip_version=ip_version,
-                topology=topology
+                topology=topology,
+                network_backend=network_backend
             )
             job_objects[job_name].add_deployment(deployment)
 
