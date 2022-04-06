@@ -62,7 +62,7 @@ Arguments Matrix
    * - --job-url
      - |:ballot_box_with_check:|
      - |:x:|
-     - |:x:|
+     - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --builds
