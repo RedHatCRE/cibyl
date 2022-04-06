@@ -35,3 +35,7 @@ class Printer(ABC):
     @abstractmethod
     def print_job(self, job):
         raise NotImplementedError
+
+    @abstractmethod
+    def print_build(self, build):
+        raise NotImplementedError
