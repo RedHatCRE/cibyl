@@ -73,8 +73,18 @@ class Deployment(Model):
             'arguments': [Argument(name='--network-backend', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    description="Network backend used in the "
-                                   "deployment")]
-            },
+                                   "deployment"),
+                          Argument(name='--controllers', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   ranged=True,
+                                   description="Number of controllers used "
+                                   "in the deployment"),
+                          Argument(name='--computes', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   ranged=True,
+                                   description="Number of computes used "
+                                   "in the deployment")]
+            }
     }
 
     def __init__(self, release: float, infra_type: str,

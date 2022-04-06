@@ -140,7 +140,8 @@ class TestOrchestrator(TestCase):
         argument = Mock()
         argument.func = None
         self.orchestrator.select_source_method(system, argument)
-        patched_method.assert_called_with("system", [source], None)
+        patched_method.assert_called_with(
+            "system", [source], None, args=self.orchestrator.parser.ci_args)
 
     def test_orchestrator_select_source_invalid_source(self):
         """Testing Orchestrator select_source_method method with no valid

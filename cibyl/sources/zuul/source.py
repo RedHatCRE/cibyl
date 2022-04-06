@@ -18,7 +18,7 @@ from itertools import chain
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
-from cibyl.sources.source import Source
+from cibyl.sources.source import Source, speed_index
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
 from cibyl.utils.filtering import apply_filters
 
@@ -195,6 +195,7 @@ class Zuul(Source):
 
         return Zuul(api=ZuulRESTClient.from_url(url, cert), url=url, **kwargs)
 
+    @speed_index({'base': 3})
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 
@@ -205,6 +206,7 @@ class Zuul(Source):
         """
         return self._api.get_jobs(fetch_builds=False, **kwargs)
 
+    @speed_index({'base': 3})
     def get_builds(self, **kwargs):
         """Retrieves builds present on the host.
 

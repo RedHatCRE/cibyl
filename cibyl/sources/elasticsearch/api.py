@@ -24,7 +24,7 @@ from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
-from cibyl.sources.source import Source
+from cibyl.sources.source import Source, speed_index
 from cibyl.utils.filtering import IP_PATTERN
 
 LOG = logging.getLogger(__name__)
@@ -51,6 +51,7 @@ class ElasticSearchOSP(Source):
                       from exception
             self.es_client = ElasticSearchClient(host, port)
 
+    @speed_index({'base': 1})
     def get_jobs(self: object, **kwargs: Argument) -> list:
         """Get jobs from elasticsearch
 
@@ -104,6 +105,7 @@ class ElasticSearchOSP(Source):
                   from exception
         return response['hits']['hits']
 
+    @speed_index({'base': 2})
     def get_builds(self: object, **kwargs: Argument):
         """
             Get builds from elasticsearch server.
@@ -173,6 +175,7 @@ class ElasticSearchOSP(Source):
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_object)
 
+    @speed_index({'base': 2})
     def get_deployment(self, **kwargs):
         """Get deployment information for jobs from elasticsearch server.
 
@@ -198,6 +201,9 @@ class ElasticSearchOSP(Source):
         release_argument = None
         if 'release' in kwargs:
             release_argument = kwargs.get('release').value
+        network_argument = None
+        if 'network_backend' in kwargs:
+            network_argument = kwargs.get('network_backend').value
         job_objects = {}
         for hit in hits:
             job_name = hit['_source']['jobName']
@@ -207,6 +213,8 @@ class ElasticSearchOSP(Source):
                 "JP_IRVIRSH_TOPOLOGY_NODES", "unknown")
             release = hit['_source']['envVars'].get(
                 "JP_OSPD_PRODUCT_VERSION", "unknown")
+            network_backend = hit['_source']['envVars'].get(
+                "JP_OSPD_NETWORK_BACKEND", "unknown")
             ip_version = hit['_source']['envVars'].get(
                 "JP_OSPD_NETWORK_PROTOCOL", "unknown")
 
@@ -224,6 +232,11 @@ class ElasticSearchOSP(Source):
                     release not in release_argument:
                 continue
 
+            # Check if necessary filter by network backend:
+            if network_argument and \
+                    network_backend not in network_argument:
+                continue
+
             job_objects[job_name] = Job(name=job_name, url=url)
             deployment = Deployment(
                 release,
@@ -231,7 +244,8 @@ class ElasticSearchOSP(Source):
                 [],
                 [],
                 ip_version=ip_version,
-                topology=topology
+                topology=topology,
+                network_backend=network_backend
             )
             job_objects[job_name].add_deployment(deployment)
 

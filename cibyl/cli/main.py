@@ -34,7 +34,8 @@ def raw_parsing(arguments):
     """
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
-            "debug": False, "plugins": [DEFAULT_PLUGIN]}
+            "logging": logging.INFO, "plugins": [DEFAULT_PLUGIN],
+            "debug": False}
     for i, item in enumerate(arguments[1:]):
         if item == "--config":
             args['config_file_path'] = arguments[i + 2]
@@ -44,7 +45,10 @@ def raw_parsing(arguments):
             args["log_file"] = arguments[i + 2]
         elif item == "--log-mode":
             args["log_mode"] = arguments[i + 2]
-        elif item == "--debug":
+        elif item in ('-d', '--debug'):
+            args["logging"] = logging.DEBUG
+            # add both arguments so that the checking code to enable the
+            # exception traceback is clearer
             args["debug"] = True
         elif item in ('-p', '--plugin'):
             plugins = []
@@ -65,7 +69,9 @@ def main():
     arguments = raw_parsing(sys.argv)
     if not arguments['debug']:
         CibylException.setup_quiet_exceptions()
-    configure_logging(arguments)
+    configure_logging(arguments.get('log_mode'),
+                      arguments.get('log_file'),
+                      arguments.get('logging'))
 
     plugins = arguments.get('plugins')
     if plugins:
