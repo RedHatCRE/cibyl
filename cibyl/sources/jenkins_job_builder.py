@@ -25,7 +25,7 @@ from pathlib import Path
 from cibyl.exceptions.jenkins_job_builder import JenkinsJobBuilderError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.job import Job
-from cibyl.sources.source import Source, safe_request_generic
+from cibyl.sources.source import Source, safe_request_generic, speed_index
 
 LOG = logging.getLogger(__name__)
 
@@ -106,6 +106,7 @@ class JenkinsJobBuilder(Source):
         """Use tox to generate jenkins job xml files."""
         subprocess.run(["tox",  "-e", "jobs"], check=True, cwd=self.dest)
 
+    @speed_index({'base': 1})
     def get_jobs(self, **kwargs):
         """Get all jobs from jenkins server.
 

@@ -30,7 +30,7 @@ from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
-from cibyl.sources.source import Source, safe_request_generic
+from cibyl.sources.source import Source, safe_request_generic, speed_index
 from cibyl.utils.filtering import (IP_PATTERN, NETWORK_BACKEND_PATTERN,
                                    PROPERTY_PATTERN, RELEASE_PATTERN,
                                    TOPOLOGY_PATTERN, apply_filters,
@@ -221,6 +221,7 @@ class Jenkins(Source):
 
         return json.loads(response.text)
 
+    @speed_index({'base': 2})
     def get_jobs(self, **kwargs):
         """
             Get jobs from jenkins server.
@@ -238,6 +239,7 @@ class Jenkins(Source):
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
+    @speed_index({'base': 1, 'last_build': 1})
     def get_builds(self, **kwargs):
         """
             Get builds from jenkins server.
@@ -297,6 +299,7 @@ try reducing verbosity for quicker query")
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
+    @speed_index({'base': 2})
     def get_deployment(self, **kwargs):
         """Get deployment information for jobs from jenkins server.
 

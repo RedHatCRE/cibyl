@@ -126,7 +126,7 @@ class Orchestrator:
         if not system_sources:
             raise NoValidSources(system)
         return get_source_method(system.name.value, system_sources,
-                                 argument.func)
+                                 argument.func, args=self.parser.ci_args)
 
     def run_query(self, start_level=1):
         """Execute query based on provided arguments."""
@@ -158,6 +158,8 @@ class Orchestrator:
                         continue
                     source_methods_store.add_call(source_method)
                     start_time = time.time()
+                    LOG.debug(f"Running {source_method.__name__} method \
+from {source_method.__self__.get('driver')}")
                     model_instances_dict = source_method(
                         **self.parser.ci_args, **self.parser.app_args)
                     end_time = time.time()
