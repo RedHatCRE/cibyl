@@ -131,6 +131,10 @@ class ElasticSearchOSP(Source):
                                   for status in
                                   kwargs.get('build_status').value]
 
+            build_id_argument = None
+            if 'build_id' in kwargs:
+                build_id_argument = kwargs.get('build_id').value
+
             for build in builds:
 
                 build_result = None
@@ -144,7 +148,13 @@ class ElasticSearchOSP(Source):
                         build['_source']['buildResult'] not in build_statuses:
                     continue
 
-                job.add_build(Build(str(build['_source']['buildID']),
+                build_id = str(build['_source']['buildID'])
+
+                if build_id_argument and \
+                        build_id not in build_id_argument:
+                    continue
+
+                job.add_build(Build(build_id,
                                     build_result,
                                     build['_source']['runDuration']))
 
