@@ -63,6 +63,7 @@ class TestParser(TestCase):
         self.parser.parse()
         self.assertEqual(self.parser.app_args, {'debug': False,
                                                 'plugin': 'openstack',
+                                                'output_style': 'colorized',
                                                 'verbosity': 0})
         self.assertEqual(self.parser.ci_args, {})
 
@@ -70,6 +71,7 @@ class TestParser(TestCase):
         self.parser.parse(['--env-name', 'env1', '--plugin', 'openshift'])
         self.assertEqual(self.parser.app_args, {'plugin': 'openshift',
                                                 'verbosity': 0,
+                                                'output_style': 'colorized',
                                                 'debug': False})
         self.assertEqual(self.parser.ci_args,
                          {'env_name': Argument(

@@ -80,6 +80,11 @@ class Parser:
             choices=("terminal", "file", "both"),
             help='Where to write the output, default is both')
         self.argument_parser.add_argument(
+            '--output-format', '-f', choices=("text", "colorized"),
+            dest="output_style", default="colorized",
+            help="Sets the output format."
+        )
+        self.argument_parser.add_argument(
             '--plugin', '-p', dest="plugin", default="openstack")
         self.argument_parser.add_argument(
             '-v', '--verbose', dest="verbosity", default=0, action="count",

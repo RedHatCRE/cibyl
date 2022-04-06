@@ -37,7 +37,7 @@ def raw_parsing(arguments):
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
             "logging": logging.INFO, "plugins": [DEFAULT_PLUGIN],
-            "debug": False, "output_style": OutputStyle.COLORED}
+            "debug": False, "output_style": OutputStyle.COLORIZED}
     for i, item in enumerate(arguments[1:]):
         if item == "--config":
             args['config_file_path'] = arguments[i + 2]
@@ -59,13 +59,13 @@ def raw_parsing(arguments):
                     break
                 plugins.append(argument)
             args["plugins"] = plugins
-        elif item in ('-o', '--output'):
+        elif item in ('-f', '--output-format'):
             arg = arguments[i + 2]
 
             try:
                 args["output_style"] = OutputStyle.from_str(arg)
             except NotImplementedError:
-                raise InvalidArgument(f'Unknown format type: {arg}')
+                raise InvalidArgument(f'Unknown format: {arg}')
 
     return args
 

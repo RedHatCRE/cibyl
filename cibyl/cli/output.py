@@ -17,14 +17,14 @@ from enum import Enum
 
 
 class OutputStyle(Enum):
-    RAW = 0
-    COLORED = 1
+    TEXT = 0
+    COLORIZED = 1
 
     @staticmethod
     def from_str(label):
-        if label == 'raw':
-            return OutputStyle.RAW
-        elif label == 'colored':
-            return OutputStyle.COLORED
+        if label == 'text':
+            return OutputStyle.TEXT
+        elif label == 'colorized':
+            return OutputStyle.COLORIZED
         else:
             raise NotImplementedError(f'Unknown format: {label}')

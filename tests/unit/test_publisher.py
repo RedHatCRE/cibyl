@@ -33,7 +33,7 @@ class TestOrchestrator(TestCase):
     @patch('builtins.print')
     def test_publisher_publish(self, mock_print, mock_printer_factory):
         """Testing Publisher publish method"""
-        style = OutputStyle.RAW
+        style = OutputStyle.TEXT
         text = 'output-text'
 
         printer = Mock()

@@ -36,9 +36,9 @@ class PrinterFactory:
         :raise NotImplementedError: If there is not printer for the desired
             style.
         """
-        if style == OutputStyle.RAW:
+        if style == OutputStyle.TEXT:
             return RawPrinter(verbosity)
-        elif style == OutputStyle.COLORED:
+        elif style == OutputStyle.COLORIZED:
             return ColoredPrinter(verbosity)
         else:
             raise NotImplementedError(f'Unknown output style: {style}')

@@ -26,29 +26,29 @@ class TestRawParsing(TestCase):
     def test_default_output(self):
         args = raw_parsing([])
 
-        self.assertTrue(OutputStyle.COLORED, args['output_style'])
+        self.assertTrue(OutputStyle.COLORIZED, args['output_style'])
 
-    def test_o_arg(self):
-        output = 'raw'
+    def test_f_arg(self):
+        style = 'raw'
 
         parse_call = cibyl.cli.main.OutputStyle.from_str = Mock()
-        parse_call.return_value = OutputStyle.RAW
+        parse_call.return_value = OutputStyle.TEXT
 
-        args = raw_parsing(['', '-o', output])
+        args = raw_parsing(['', '-f', style])
 
-        self.assertTrue(OutputStyle.RAW, args['output_style'])
+        self.assertTrue(OutputStyle.TEXT, args['output_style'])
 
-        parse_call.assert_called_once_with(output)
+        parse_call.assert_called_once_with(style)
 
     def test_output_arg(self):
         output = 'raw'
 
         parse_call = cibyl.cli.main.OutputStyle.from_str = Mock()
-        parse_call.return_value = OutputStyle.RAW
+        parse_call.return_value = OutputStyle.TEXT
 
-        args = raw_parsing(['', '--output', output])
+        args = raw_parsing(['', '--output-format', output])
 
-        self.assertTrue(OutputStyle.RAW, args['output_style'])
+        self.assertTrue(OutputStyle.TEXT, args['output_style'])
 
         parse_call.assert_called_once_with(output)
 
@@ -62,6 +62,6 @@ class TestRawParsing(TestCase):
         parse_call.side_effect = raise_error
 
         with self.assertRaises(InvalidArgument):
-            raw_parsing(['', '--output', output])
+            raw_parsing(['', '--output-format', output])
 
         parse_call.assert_called_once_with(output)
