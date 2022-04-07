@@ -18,28 +18,28 @@ import sys
 from unittest.mock import Mock
 
 from cibyl.cli.main import main
-from tests.e2e.fixtures import HTTPDTest
+from tests.e2e.containers.httpd import HTTPDContainer
+from tests.e2e.fixtures import EndToEndTest
 
 
-class TestConfig(HTTPDTest):
+class TestConfig(EndToEndTest):
     """Test for configuration loading.
     """
 
     def test_config_on_url(self):
         """Checks that a configuration file can be downloaded from a host.
         """
+        with HTTPDContainer() as httpd:
+            sys.argv = [
+                '',
+                '--config', f'{httpd.url}/jenkins.yaml'
+            ]
 
-        sys.argv = [
-            '',
-            '--config',
-            'http://localhost:8080/jenkins.yaml'
-        ]
+            builtins.input = Mock()
+            builtins.input.return_value = 'y'
 
-        builtins.input = Mock()
-        builtins.input.return_value = 'y'
+            main()
 
-        main()
-
-        # Look for some keys that indicate that it is the desired file
-        self.assertIn('test_environment', self.output)
-        self.assertIn('test_system', self.output)
+            # Look for some keys that indicate that it is the desired file
+            self.assertIn('test_environment', self.output)
+            self.assertIn('test_system', self.output)

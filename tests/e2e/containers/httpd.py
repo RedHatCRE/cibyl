@@ -13,25 +13,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import sys
-from io import StringIO
-from unittest import TestCase
+from overrides import overrides
+
+from tests.e2e.containers import ComposedContainer, wait_for
 
 
-class EndToEndTest(TestCase):
-    """Base fixture for e2e tests. Redirects stdout to a buffer to help
-    assert the app's output.
-    """
-
-    def setUp(self):
-        self._buffer = StringIO()
-
-        sys.stdout = self._buffer
+class HTTPDContainer(ComposedContainer):
+    def __init__(self):
+        super().__init__('tests/e2e/data/images/httpd')
 
     @property
-    def output(self):
-        """
-        :return: What the app wrote to stdout.
-        :rtype: str
-        """
-        return self._buffer.getvalue()
+    def url(self):
+        return 'http://localhost:8080/'
+
+    @overrides
+    def _wait_until_ready(self):
+        wait_for(f'{self.url}')
