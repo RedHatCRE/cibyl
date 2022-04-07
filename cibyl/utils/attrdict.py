@@ -27,5 +27,5 @@ class AttrDict(dict):
         """
         try:
             return self.__getitem__(attribute)
-        except KeyError:
-            raise AttributeError
+        except KeyError as ex:
+            raise AttributeError from ex

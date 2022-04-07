@@ -358,6 +358,9 @@ class TestGetLastBuild(TestCase):
 
 
 class TestBuildFilters(TestCase):
+    """Tests for all filters that apply to builds.
+    """
+
     def setUp(self):
         def new_mocked_tenant():
             tenant = Mock()
@@ -378,8 +381,8 @@ class TestBuildFilters(TestCase):
         self.api.tenants.return_value = self.tenants
 
     def test_filters_by_build_status(self):
-        """Checks that only those builds with status marked by
-        '--build-status' are returned.
+        """Checks that only those builds which status is among the ones
+        entered in '--build-status' are returned.
         """
         build1 = '1'
         build2 = '2'

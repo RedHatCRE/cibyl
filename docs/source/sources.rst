@@ -79,7 +79,7 @@ Arguments Matrix
      - |:x:|
    * - --build-status
      - |:ballot_box_with_check:|
-     - |:x:|
+     - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
