@@ -27,7 +27,7 @@ class TestElasticsearchOSP(TestCase):
         self.es_api = ElasticSearchOSP(elastic_client=Mock())
         self.job_hits = [
                     {
-                        '_id': 'random',
+                        '_id': 1,
                         '_score': 1.0,
                         '_source': {
                             'jobName': 'test',
@@ -38,7 +38,7 @@ class TestElasticsearchOSP(TestCase):
                         }
                     },
                     {
-                        '_id': 'random',
+                        '_id': 2,
                         '_score': 1.0,
                         '_source': {
                             'jobName': 'test2',
@@ -49,7 +49,7 @@ class TestElasticsearchOSP(TestCase):
                         }
                     },
                     {
-                        '_id': 'random',
+                        '_id': 3,
                         '_score': 1.0,
                         '_source': {
                             'jobName': 'test3',
@@ -57,6 +57,19 @@ class TestElasticsearchOSP(TestCase):
                                 'JOB_URL': 'http://domain.tld/test3',
                                 'JP_OSPD_PRODUCT_VERSION': '17.0',
                                 'JP_OSPD_NETWORK_PROTOCOL': 'ipv4',
+                            }
+                        }
+                    },
+                    {
+                        '_id': 4,
+                        '_score': 1.0,
+                        '_source': {
+                            'jobName': 'test4',
+                            'envVars': {
+                                'JOB_URL': 'http://domain.tld/test4',
+                                'JP_OSPD_PRODUCT_VERSION': '17.0',
+                                'JP_OSPD_NETWORK_PROTOCOL': 'ipv4',
+                                'JP_OSPD_NETWORK_BACKEND': 'local_area_n',
                             }
                         }
                     }
@@ -90,7 +103,7 @@ class TestElasticsearchOSP(TestCase):
         jobs_argument.value = ['test']
         jobs = self.es_api.get_jobs(jobs=jobs_argument)
 
-        self.assertEqual(len(jobs), 3)
+        self.assertEqual(len(jobs), 4)
         self.assertTrue('test' in jobs)
         self.assertEqual(jobs['test'].name.value, 'test')
         self.assertEqual(jobs['test'].url.value, "http://domain.tld/test")
@@ -153,6 +166,17 @@ class TestElasticsearchOSP(TestCase):
         self.assertEqual(deployment.ip_version.value, 'unknown')
         self.assertEqual(deployment.topology.value, 'unknown')
 
+        network_kwargs = MagicMock()
+        network_value = PropertyMock(return_value=['local_area_n'])
+        type(network_kwargs).value = network_value
+
+        jobs = self.es_api.get_deployment(jobs=jobs_argument,
+                                          network_backend=network_kwargs)
+        deployment = jobs['test4'].deployment.value
+        self.assertEqual(deployment.release.value, '17.0')
+        self.assertEqual(deployment.ip_version.value, '4')
+        self.assertEqual(deployment.network_backend.value, 'local_area_n')
+
     @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
     def test_get_builds(self: object, mock_query_hits: object) -> None:
         """Tests that the internal logic from
@@ -163,7 +187,7 @@ class TestElasticsearchOSP(TestCase):
         jobs_argument = Mock()
         jobs_argument.value = ['test']
         jobs = self.es_api.get_jobs(jobs=jobs_argument)
-        self.assertEqual(len(jobs), 3)
+        self.assertEqual(len(jobs), 4)
 
         self.es_api.get_jobs = Mock()
         self.es_api.get_jobs.return_value = jobs

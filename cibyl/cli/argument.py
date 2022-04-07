@@ -15,6 +15,10 @@
 """
 from typing import Union
 
+from cibyl.cli.ranged_argument import (EXPRESSION_PATTERN, RANGE_OPERATORS,
+                                       VALID_OPS, Range)
+from cibyl.exceptions.cli import InvalidArgument
+
 
 class Argument():
     """Represents Parser's argument"""
@@ -23,6 +27,7 @@ class Argument():
     def __init__(self, name: str, arg_type: object, description: str,
                  nargs: Union[str, int] = 1, func: str = None,
                  populated: bool = False, level: int = 0,
+                 ranged: bool = False,
                  value: object = None, default: object = None):
         self.name = name
         self.arg_type = arg_type
@@ -31,8 +36,33 @@ class Argument():
         self.func = func
         self.populated = populated
         self.level = level
-        self.value = value
+        self.ranged = ranged
+        if self.ranged and value:
+            self.value = self.parse_ranges(value)
+        else:
+            self.value = value
         self.default = default
+
+    def parse_ranges(self, expressions):
+        parsed_expressions = []
+        if not isinstance(expressions, list):
+            raise InvalidArgument(f"Argument '{self.name}' should accept "
+                                  "multiple values")
+        for expression in expressions:
+            parsed_expression = EXPRESSION_PATTERN.search(expression)
+            if not parsed_expression:
+                raise InvalidArgument(f"Expression '{expression}' in argument "
+                                      f"'{self.name}' is not valid")
+            operator = parsed_expression.group(1)
+            if not operator:
+                operator = "=="
+            if operator not in RANGE_OPERATORS:
+                raise InvalidArgument(f"Operator '{operator}' in argument "
+                                      f"'{self.name}' is not valid. Valid "
+                                      f"operators include: {VALID_OPS}")
+            operand = parsed_expression.group(2)
+            parsed_expressions.append(Range(operator, operand))
+        return parsed_expressions
 
     def __eq__(self, other):
         return self.name == other.name and self.value == other.value

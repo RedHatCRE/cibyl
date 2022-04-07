@@ -42,67 +42,67 @@ Arguments Matrix
      - Zuul.d
    * - --ip-version
      - |:ballot_box_with_check:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
    * - --release
      - |:ballot_box_with_check:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
    * - --topology
      - |:ballot_box_with_check:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
    * - --controllers
-     - |:x:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:ballot_box_with_check:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
    * - --computes
-     - |:x:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:ballot_box_with_check:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
    * - --dvr
-     - |:x:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
    * - --network-backend
      - |:ballot_box_with_check:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
    * - --storage-backend
-     - |:x:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
    * - --packages
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
      - |:x:|
      - |:x:|
    * - --tls-everywhere
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
      - |:x:|
      - |:x:|
    * - --containers
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
      - |:x:|
      - |:x:|

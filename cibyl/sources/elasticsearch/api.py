@@ -58,12 +58,18 @@ class ElasticSearchOSP(Source):
             :returns: Job objects queried from elasticserach
             :rtype: :class:`AttributeDictValue`
         """
+        key_filter = None
+        if 'jobs' in kwargs:
+            jobs_to_search = kwargs.get('jobs').value
+            key_filter = 'jobName'
         if 'job_name' in kwargs:
             jobs_to_search = kwargs.get('job_name').value
-        else:
-            jobs_to_search = kwargs.get('jobs').value
+            key_filter = 'jobName'
+        if 'job_url' in kwargs:
+            jobs_to_search = kwargs.get('job_url').value
+            key_filter = 'envVars.JOB_URL'
 
-        query_body = QueryTemplate('jobName', jobs_to_search).get
+        query_body = QueryTemplate(key_filter, jobs_to_search).get
 
         hits = self.__query_get_hits(
             query=query_body
@@ -125,6 +131,10 @@ class ElasticSearchOSP(Source):
                                   for status in
                                   kwargs.get('build_status').value]
 
+            build_id_argument = None
+            if 'build_id' in kwargs:
+                build_id_argument = kwargs.get('build_id').value
+
             for build in builds:
 
                 build_result = None
@@ -138,7 +148,13 @@ class ElasticSearchOSP(Source):
                         build['_source']['buildResult'] not in build_statuses:
                     continue
 
-                job.add_build(Build(str(build['_source']['buildID']),
+                build_id = str(build['_source']['buildID'])
+
+                if build_id_argument and \
+                        build_id not in build_id_argument:
+                    continue
+
+                job.add_build(Build(build_id,
                                     build_result,
                                     build['_source']['runDuration']))
 
@@ -195,6 +211,9 @@ class ElasticSearchOSP(Source):
         release_argument = None
         if 'release' in kwargs:
             release_argument = kwargs.get('release').value
+        network_argument = None
+        if 'network_backend' in kwargs:
+            network_argument = kwargs.get('network_backend').value
         job_objects = {}
         for hit in hits:
             job_name = hit['_source']['jobName']
@@ -204,6 +223,8 @@ class ElasticSearchOSP(Source):
                 "JP_IRVIRSH_TOPOLOGY_NODES", "unknown")
             release = hit['_source']['envVars'].get(
                 "JP_OSPD_PRODUCT_VERSION", "unknown")
+            network_backend = hit['_source']['envVars'].get(
+                "JP_OSPD_NETWORK_BACKEND", "unknown")
             ip_version = hit['_source']['envVars'].get(
                 "JP_OSPD_NETWORK_PROTOCOL", "unknown")
 
@@ -221,6 +242,11 @@ class ElasticSearchOSP(Source):
                     release not in release_argument:
                 continue
 
+            # Check if necessary filter by network backend:
+            if network_argument and \
+                    network_backend not in network_argument:
+                continue
+
             job_objects[job_name] = Job(name=job_name, url=url)
             deployment = Deployment(
                 release,
@@ -228,7 +254,8 @@ class ElasticSearchOSP(Source):
                 [],
                 [],
                 ip_version=ip_version,
-                topology=topology
+                topology=topology,
+                network_backend=network_backend
             )
             job_objects[job_name].add_deployment(deployment)
 

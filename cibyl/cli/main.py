@@ -37,7 +37,7 @@ def raw_parsing(arguments):
             "logging": logging.INFO, "plugins": [DEFAULT_PLUGIN],
             "debug": False}
     for i, item in enumerate(arguments[1:]):
-        if item == "--config":
+        if item in ('-c', '--config'):
             args['config_file_path'] = arguments[i + 2]
         if item in ('-h', '--help'):
             args['help'] = True

@@ -176,9 +176,11 @@ from {source_method.__self__.get('driver')}")
         for attr_dict in attributes.values():
             arguments = attr_dict.get('arguments')
             if arguments:
-                self.parser.extend(arguments, group_name, level=level)
                 class_type = attr_dict.get('attr_type')
                 if class_type not in [str, list, dict, int] and \
                    hasattr(class_type, 'API'):
+                    self.parser.extend(arguments, group_name, level=level+1)
                     self.extend_parser(class_type.API, class_type.__name__,
                                        level=level+1)
+                else:
+                    self.parser.extend(arguments, group_name, level=level)

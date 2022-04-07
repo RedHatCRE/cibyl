@@ -17,6 +17,7 @@ import re
 from typing import Dict, Pattern
 
 from cibyl.cli.argument import Argument
+from cibyl.cli.ranged_argument import RANGE_OPERATORS
 
 IP_PATTERN = re.compile("ipv(.)")
 RELEASE_PATTERN = re.compile(r"\d\d\.?\d?")
@@ -80,6 +81,31 @@ def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
     """
     lowercase_input = [status.lower() for status in user_input.value]
     return model[field_to_check].lower() in lowercase_input
+
+
+def filter_topology(model: Dict[str, str], operator: str, value: str,
+                    component: str):
+    """Check whether model should be included according to the user input. The
+    model should be added if the its topology is consistent with the components
+    requested by the user (number of controller or compute nodes).
+
+    :param model: model information obtained from jenkins
+    :type model: str
+    :param operator: operator to filter the topology with
+    :type operator: str
+    :param value: Value to use in the comparison
+    :param value: str
+    :param component: Component of the topology to filter
+    :param component: str
+    :returns: Whether the model satisfies user input
+    :rtype: bool
+    """
+    topology = model["topology"]
+    for part in topology.split(","):
+        if component in part:
+            _, amount = part.split(":")
+            return RANGE_OPERATORS[operator](float(amount), float(value))
+    return False
 
 
 def apply_filters(iterable, *filters):

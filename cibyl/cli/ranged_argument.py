@@ -13,24 +13,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.exceptions import CibylException
+import operator
+import re
+from collections import namedtuple
 
+EXPRESSION_PATTERN = re.compile(r"([<>=!]*)(\d)+")
 
-class AbortedByUserError(CibylException):
-    """Represents an action that was interrupted by the user.
-    """
+Range = namedtuple('Range', 'operator operand')
 
-    def __init__(self, message='Operation aborted by user.'):
-        """Constructor.
-        """
-        super().__init__(message)
+RANGE_OPERATORS = {"==": operator.eq, "=": operator.eq, "<": operator.lt,
+                   ">": operator.gt, "<=": operator.le, ">=": operator.ge,
+                   "!=": operator.ne}
 
-
-class InvalidArgument(CibylException):
-    """Represents an argument with invalid format.
-    """
-
-    def __init__(self, message='Invalid argument provided.'):
-        """Constructor.
-        """
-        super().__init__(message)
+VALID_OPS = ",".join(RANGE_OPERATORS.keys())

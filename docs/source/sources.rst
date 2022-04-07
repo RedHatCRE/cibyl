@@ -55,14 +55,14 @@ Arguments Matrix
      - |:x:|
    * - --job-name
      - |:ballot_box_with_check:|
-     - |:x:|
+     - |:black_square_button:|
      - |:ballot_box_with_check:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
    * - --job-url
      - |:ballot_box_with_check:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --builds
@@ -85,31 +85,31 @@ Arguments Matrix
      - |:x:|
    * - --build-number
      - |:ballot_box_with_check:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --tests
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
      - |:x:|
      - |:x:|
    * - --test-name
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
      - |:x:|
      - |:x:|
    * - --test-class-name
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
      - |:x:|
      - |:x:|
    * - --test-result
-     - |:x:|
-     - |:x:|
-     - |:x:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
      - |:x:|
      - |:x:|
