@@ -213,6 +213,7 @@ class Jenkins(Source):
 
             url += f'{api_entrypoint}{query}'
 
+            LOG.debug("URL: %s", url)
             return url
 
         response = requests.get(
@@ -303,13 +304,14 @@ try reducing verbosity for quicker query")
 
     def get_tests(self, **kwargs):
         """
-            Get tests for a Jenkins job build.
+            Get tests for a Jenkins job.
 
-            :returns: container of Test objects queried from jenkins server
+            :returns: container of jobs with the last completed build
+            (if any) and the tests
             :rtype: :class:`AttributeDictValue`
         """
 
-        # Get the jobs
+        # Get the jobs with the last completed build (default behavior)
         jobs_found = self.send_request(
             self.jobs_last_completed_build_query)["jobs"]
         jobs_filtered = filter_jobs(jobs_found, **kwargs)
@@ -317,36 +319,49 @@ try reducing verbosity for quicker query")
         job_objects = {}
 
         for job in jobs_filtered:
-            name = job.get('name')
-            job_object = Job(name=name, url=job.get('url'))
+            job_name = job.get('name')
+            job_object = Job(name=job_name, url=job.get('url'))
+            job_objects[job_name] = job_object
 
-            if job["lastCompletedBuild"]:
-                build_to_add = filter_builds([job["lastCompletedBuild"]],
-                                             **kwargs)
+            if kwargs.get('build_id'):
+                # For specific build ids we have to fetch them
+                builds = self.send_request(item=f"job/{job_name}",
+                                           query=self.jobs_builds_query.get(
+                                               kwargs.get('verbosity'), 0))
+                builds_to_add = filter_builds(builds["allBuilds"],
+                                              **kwargs)
             else:
-                LOG.debug("Found no completed build for job %s", name)
-                job_objects[name] = job_object
+                builds_to_add = filter_builds([job["lastCompletedBuild"]],
+                                              **kwargs)
+
+            if not builds_to_add:
+                LOG.debug("No builds found for job %s", job_name)
                 continue
 
-            build_object = Build(
-                build_id=build_to_add[0]['number'],
-                status=build_to_add[0]['result'],
-                duration=build_to_add[0]['duration'])
+            for build in builds_to_add:
+                if build['result'] != 'SUCCESS':
+                    LOG.debug("Selected build '%s' for job '%s' was not "
+                              "completed", build['number'], job_name)
+                    continue
 
-            # Get the tests for that last completed build
-            tests_found = self.send_request(
-                item=f"job/{name}/lastCompletedBuild/testReport",
-                query=self.build_tests_query)
+                build_object = Build(
+                    build_id=build['number'],
+                    status=build['result'])
 
-            for test in tests_found['suites'][0]['cases']:
-                build_object.add_test(Test(
-                    name=test.get('name'),
-                    class_name=test.get('className'),
-                    result=test.get('status'),
-                    duration=test.get('duration')))
+                # Get the tests for this build
+                tests_found = self.send_request(
+                    item=f"job/{job_name}/{build['number']}/testReport",
+                    query=self.build_tests_query)
 
-            job_object.add_build(build_object)
-            job_objects[name] = job_object
+                for suit in tests_found['suites']:
+                    for test in suit['cases']:
+                        build_object.add_test(Test(
+                            name=test.get('name'),
+                            class_name=test.get('className'),
+                            result=test.get('status'),
+                            duration=test.get('duration')))
+
+                job_objects[job_name].add_build(build_object)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
