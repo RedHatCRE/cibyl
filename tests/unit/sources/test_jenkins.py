@@ -106,7 +106,7 @@ class TestJenkinsSource(TestCase):
                               'name': "ansible", 'url': 'url1'},
                     {'_class': 'org..job.WorkflowRun', 'name': "job2",
                      'url': 'url2'},
-                    {'_class': 'empty', 'name': 'ansible-empty'}]}
+                    {'_class': 'folder', 'name': 'ansible-empty'}]}
         self.jenkins.send_request = Mock(return_value=response)
         jobs_arg = Mock()
         jobs_arg.value = ["ansible"]
@@ -599,6 +599,32 @@ class TestFilters(TestCase):
                      'name': "ansible", 'url': 'url1',
                      'lastBuild': {'number': 1, 'result': "SUCCESS"}},
                     {'_class': 'org..job.WorkflowRun',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}},
+                    ]
+        self.assertEqual(jobs_filtered, expected)
+
+    def test_filter_jobs_class(self):
+        """
+            Test that filter_jobs filters the jobs given the job _class.
+        """
+        response = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}},
+                    {'_class': 'jenkins.branch.OrganizationFolder',
+                     'name': "test_jobs", 'url': 'url2',
+                     'lastBuild': {'number': 2, 'result': "FAILURE"}},
+                    {'_class': 'com.cloudbees.hudson.plugins.folder.Folder',
+                     'name': "test_jobs", 'url': 'url2',
+                     'lastBuild': {'number': 2, 'result': "FAILURE"}},
+                    {'_class': 'hudson.model.FreeStyleProject',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}}]
+        jobs_filtered = filter_jobs(response)
+        expected = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}},
+                    {'_class': 'hudson.model.FreeStyleProject',
                      'name': "ans2", 'url': 'url3',
                      'lastBuild': {'number': 0, 'result': "FAILURE"}},
                     ]
