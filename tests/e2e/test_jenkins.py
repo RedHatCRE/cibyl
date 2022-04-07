@@ -28,10 +28,10 @@ class TestJenkins(JenkinsTest):
         """
         sys.argv = [
             '',
-            '--config',
-            'tests/e2e/configs/jenkins.yaml',
-            '--jobs',
-            '-vv'
+            '--config', 'tests/e2e/configs/jenkins.yaml',
+            '-f', 'text',
+            '-vv',
+            '--jobs'
         ]
 
         main()

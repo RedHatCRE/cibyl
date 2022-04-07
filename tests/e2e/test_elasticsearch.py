@@ -28,10 +28,10 @@ class TestElasticSearch(ElasticSearchTest):
         """
         sys.argv = [
             '',
-            '--config',
-            'tests/e2e/configs/elasticsearch.yaml',
-            '--jobs',
-            '-vv'
+            '--config', 'tests/e2e/configs/elasticsearch.yaml',
+            '-f', 'text',
+            '-vv',
+            '--jobs'
         ]
 
         main()

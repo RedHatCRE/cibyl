@@ -31,8 +31,8 @@ class TestConfig(HTTPDTest):
 
         sys.argv = [
             '',
-            '--config',
-            'http://localhost:8080/jenkins.yaml'
+            '--config', 'http://localhost:8080/jenkins.yaml',
+            '-f', 'text'
         ]
 
         builtins.input = Mock()
