@@ -30,7 +30,7 @@ class TestZuul(ZuulTest):
         sys.argv = [
             '',
             '--config',
-            'tests/e2e/configs/zuul.yaml',
+            'tests/e2e/data/configs/zuul.yaml',
             '--jobs',
             '-vv'
         ]

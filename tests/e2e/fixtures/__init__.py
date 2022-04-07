@@ -58,7 +58,7 @@ class HTTPDTest(EndToEndTest):
     def setUpClass(cls):
         # Define the image
         cls.httpd = DockerCompose(
-            filepath='tests/e2e/images/httpd',
+            filepath='tests/e2e/data/images/httpd',
             pull=True
         )
 
@@ -85,7 +85,7 @@ class JenkinsTest(EndToEndTest):
     def setUpClass(cls):
         # Define the image
         cls.jenkins = DockerCompose(
-            filepath='tests/e2e/images/jenkins',
+            filepath='tests/e2e/data/images/jenkins',
             pull=True
         )
 
@@ -106,12 +106,12 @@ class JenkinsTest(EndToEndTest):
         :param name: Name of the job
         :type name: str
         :param job_def: Path to the job's XML description file. By default:
-            'tests/e2e/images/jenkins/jobs/basic-job-config.xml'.
+            'tests/e2e/data/images/jenkins/jobs/basic-job-config.xml'.
         :type job_def: str or None
         :raise HTTPError: If the request failed.
         """
         if not job_def:
-            job_def = 'tests/e2e/images/jenkins/jobs/basic-job-config.xml'
+            job_def = 'tests/e2e/data/images/jenkins/jobs/basic-job-config.xml'
 
         with open(job_def, 'r', encoding='utf-8') as config:
             response = requests.post(
@@ -175,7 +175,7 @@ class ElasticSearchTest(EndToEndTest):
     def setUpClass(cls):
         # Define the image
         cls.elasticsearch = DockerCompose(
-            filepath='tests/e2e/images/elasticsearch',
+            filepath='tests/e2e/data/images/elasticsearch',
             pull=True
         )
 
@@ -186,7 +186,7 @@ class ElasticSearchTest(EndToEndTest):
         wait_for('http://localhost:9200')
 
         # Prepare database
-        jenkins_mapping = 'tests/e2e/images/elasticsearch/jenkins.mapping.json'
+        jenkins_mapping = 'tests/e2e/data/images/elasticsearch/jenkins.mapping.json'
 
         with open(jenkins_mapping, 'r', encoding='utf-8') as mapping:
             # Create the index

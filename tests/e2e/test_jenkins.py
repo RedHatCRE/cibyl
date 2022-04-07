@@ -36,7 +36,7 @@ class TestJenkins(JenkinsTest):
         sys.argv = [
             '',
             '--config',
-            'tests/e2e/configs/jenkins.yaml',
+            'tests/e2e/data/configs/jenkins.yaml',
             '--jobs',
             '-vv'
         ]
