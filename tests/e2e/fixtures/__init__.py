@@ -100,10 +100,20 @@ class JenkinsTest(EndToEndTest):
         cls.jenkins.stop()
 
     @staticmethod
-    def add_job(name):
-        config_file = 'tests/e2e/images/jenkins/jobs/basic-job-config.xml'
+    def add_job(name, job_def=None):
+        """Adds a new job on the Jenkins host.
 
-        with open(config_file, 'r', encoding='utf-8') as config:
+        :param name: Name of the job
+        :type name: str
+        :param job_def: Path to the job's XML description file. By default:
+            'tests/e2e/images/jenkins/jobs/basic-job-config.xml'.
+        :type job_def: str or None
+        :raise HTTPError: If the request failed.
+        """
+        if not job_def:
+            job_def = 'tests/e2e/images/jenkins/jobs/basic-job-config.xml'
+
+        with open(job_def, 'r', encoding='utf-8') as config:
             response = requests.post(
                 url=f'http://localhost:8080/createItem?name={name}',
                 auth=('admin', 'passw'),
