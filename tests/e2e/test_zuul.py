@@ -38,19 +38,3 @@ class TestZuul(ZuulTest):
         main()
 
         self.assertIn('Total jobs: 65', self.output)
-
-    def test_get_builds(self):
-        """Checks that builds are retrieved with the "--builds" flag.
-        """
-
-        sys.argv = [
-            '',
-            '--config',
-            'tests/e2e/configs/zuul.yaml',
-            '--builds',
-            '-vv'
-        ]
-
-        main()
-
-        self.assertIn('Total jobs: 65', self.output)
