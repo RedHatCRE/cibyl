@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from pathlib import Path
+
 import requests
 from overrides import overrides
 
@@ -34,24 +36,23 @@ class JenkinsContainer(ComposedContainer):
 
     def add_job(
         self, name,
-        job_def='tests/e2e/data/images/jenkins/jobs/basic-job-config.xml',
-        credentials=('admin', 'passwd')
+        config='tests/e2e/data/images/jenkins/jobs/basic-job-config.xml',
+        credentials=None
     ):
         """Adds a new job on the Jenkins host.
 
         :param name: Name of the job.
         :type name: str
-        :param job_def: Path to the job's XML description file.
-        :type job_def: str
+        :param config: Path to the job's XML description file.
+        :type config: str
         :param credentials: User and password used to perform the action.
-        :type credentials: (str, str)
+        :type credentials: Any or None
         :raise FileNotFoundError: If the definition file does not exists.
         :raise HTTPError: If the request failed.
         """
-        with open(job_def, 'r', encoding='utf-8') as config:
-            requests.post(
-                url=f'{self.url}/createItem?name={name}',
-                auth=credentials,
-                headers={'Content-Type': 'application/xml'},
-                data=config.read()
-            ).raise_for_status()
+        requests.post(
+            url=f'{self.url}/createItem?name={name}',
+            auth=credentials,
+            headers={'Content-Type': 'application/xml'},
+            data=Path(config).read_text('utf-8')
+        ).raise_for_status()
