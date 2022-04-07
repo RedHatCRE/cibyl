@@ -323,6 +323,10 @@ try reducing verbosity for quicker query")
             job_object = Job(name=job_name, url=job.get('url'))
             job_objects[job_name] = job_object
 
+            if job["lastCompletedBuild"] is None:
+                LOG.warning("No completed builds found for job %s", job_name)
+                continue
+
             if kwargs.get('build_id'):
                 # For specific build ids we have to fetch them
                 builds = self.send_request(item=f"job/{job_name}",
@@ -335,13 +339,13 @@ try reducing verbosity for quicker query")
                                               **kwargs)
 
             if not builds_to_add:
-                LOG.debug("No builds found for job %s", job_name)
+                LOG.warning("No builds found for job %s", job_name)
                 continue
 
             for build in builds_to_add:
                 if build['result'] != 'SUCCESS':
-                    LOG.debug("Selected build '%s' for job '%s' was not "
-                              "completed", build['number'], job_name)
+                    LOG.warning("Selected build '%s' for job '%s' was not "
+                                "completed", build['number'], job_name)
                     continue
 
                 build_object = Build(
