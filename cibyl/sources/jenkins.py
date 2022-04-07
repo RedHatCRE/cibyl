@@ -68,7 +68,8 @@ def is_job(job):
     :returns: Whether the job representation actually corresponds to a job
     :rtype: bool
     """
-    return "job" in job["_class"]
+    job_class = job["_class"].lower()
+    return not ("view" in job_class or "folder" in job_class)
 
 
 def filter_jobs(jobs_found: List[Dict], **kwargs):
