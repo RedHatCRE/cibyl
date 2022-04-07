@@ -16,12 +16,19 @@
 import sys
 
 from cibyl.cli.main import main
-from tests.e2e.fixture import JenkinsTest
+from tests.e2e.fixtures import JenkinsTest
 
 
 class TestJenkins(JenkinsTest):
     """Tests queries regarding the Jenkins source.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.add_job('test_1')
+        cls.add_job('test_2')
 
     def test_get_jobs(self):
         """Checks that jobs are retrieved with the "--jobs" flag.
@@ -36,4 +43,4 @@ class TestJenkins(JenkinsTest):
 
         main()
 
-        self.assertIn('Total jobs: 0', self.output)
+        self.assertIn('Total jobs: 2', self.output)

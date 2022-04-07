@@ -1,7 +1,11 @@
 FROM jenkins/jenkins:lts-jdk11
 
-# Avoid GUI setup wizard
-ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false
+# Define environmental conditions
+ENV JAVA_OPTS \
+    # Avoid GUI setup wizard
+    -Djenkins.install.runSetupWizard=false \
+    # Allow unsecure POST commands
+    -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true
 
 # Indicate path to configuration file
 ENV CASC_JENKINS_CONFIG /var/jenkins_home/casc.yaml

@@ -18,7 +18,7 @@ import sys
 from unittest.mock import Mock
 
 from cibyl.cli.main import main
-from tests.e2e.fixture import HTTPDTest
+from tests.e2e.fixtures import HTTPDTest
 
 
 class TestConfig(HTTPDTest):

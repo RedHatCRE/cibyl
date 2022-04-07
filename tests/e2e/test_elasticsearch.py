@@ -16,7 +16,7 @@
 import sys
 
 from cibyl.cli.main import main
-from tests.e2e.fixture import ElasticSearchTest
+from tests.e2e.fixtures import ElasticSearchTest
 
 
 class TestElasticSearch(ElasticSearchTest):

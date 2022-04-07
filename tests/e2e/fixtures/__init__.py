@@ -99,6 +99,20 @@ class JenkinsTest(EndToEndTest):
     def tearDownClass(cls):
         cls.jenkins.stop()
 
+    @staticmethod
+    def add_job(name):
+        config_file = 'tests/e2e/images/jenkins/jobs/basic-job-config.xml'
+
+        with open(config_file, 'r', encoding='utf-8') as config:
+            response = requests.post(
+                url=f'http://localhost:8080/createItem?name={name}',
+                auth=('admin', 'passw'),
+                headers={'Content-Type': 'application/xml'},
+                data=config.read()
+            )
+
+            response.raise_for_status()
+
 
 class ZuulTest(EndToEndTest):
     """Spawns a container with a simple installation for tests to work
