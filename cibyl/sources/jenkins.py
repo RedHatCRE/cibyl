@@ -34,6 +34,7 @@ from cibyl.sources.source import Source, safe_request_generic, speed_index
 from cibyl.utils.filtering import (IP_PATTERN, NETWORK_BACKEND_PATTERN,
                                    PROPERTY_PATTERN, RELEASE_PATTERN,
                                    TOPOLOGY_PATTERN, apply_filters,
+                                   filter_topology,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
 
@@ -67,7 +68,8 @@ def is_job(job):
     :returns: Whether the job representation actually corresponds to a job
     :rtype: bool
     """
-    return "job" in job["_class"]
+    job_class = job["_class"].lower()
+    return not ("view" in job_class or "folder" in job_class)
 
 
 def filter_jobs(jobs_found: List[Dict], **kwargs):
@@ -358,6 +360,24 @@ accurate results", len(jobs_found))
             checks_to_apply.append(partial(satisfy_exact_match,
                                            user_input=input_network_backend,
                                            field_to_check="network_backend"))
+
+        input_controllers = kwargs.get('controllers')
+        if input_controllers and input_controllers.value:
+            for range_arg in input_controllers.value:
+                operator, value = range_arg
+                checks_to_apply.append(partial(filter_topology,
+                                       operator=operator,
+                                       value=value,
+                                       component='controller'))
+
+        input_computes = kwargs.get('computes')
+        if input_computes and input_computes.value:
+            for range_arg in input_computes.value:
+                operator, value = range_arg
+                checks_to_apply.append(partial(filter_topology,
+                                       operator=operator,
+                                       value=value,
+                                       component='compute'))
 
         job_deployment_info = apply_filters(job_deployment_info,
                                             *checks_to_apply)

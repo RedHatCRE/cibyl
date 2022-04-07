@@ -29,7 +29,7 @@ class Build(Model):
         'build_id': {
             'attr_type': str,
             'arguments': [Argument(name='--build-id', arg_type=str,
-                                   func='get_builds',
+                                   nargs='*', func='get_builds',
                                    description="Build ID")]
         },
         'status': {

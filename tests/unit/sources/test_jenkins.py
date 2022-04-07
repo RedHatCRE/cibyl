@@ -18,6 +18,7 @@ import json
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+from cibyl.cli.argument import Argument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.sources.jenkins import (Jenkins, filter_builds, filter_jobs,
                                    safe_request)
@@ -105,7 +106,7 @@ class TestJenkinsSource(TestCase):
                               'name': "ansible", 'url': 'url1'},
                     {'_class': 'org..job.WorkflowRun', 'name': "job2",
                      'url': 'url2'},
-                    {'_class': 'empty', 'name': 'ansible-empty'}]}
+                    {'_class': 'folder', 'name': 'ansible-empty'}]}
         self.jenkins.send_request = Mock(return_value=response)
         jobs_arg = Mock()
         jobs_arg.value = ["ansible"]
@@ -521,6 +522,60 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(deployment.topology.value, topology_value)
         self.assertEqual(deployment.network_backend.value, "geneve")
 
+    def test_get_deployment_filter_controller(self):
+        """Test that get_deployment filters by controller."""
+        job_names = ['test_17.3_ipv4_job_2comp_1cont',
+                     'test_16_ipv6_job_1comp_2cont', 'test_job']
+        topology_value = "compute:2,controller:1"
+        response = {'jobs': [{'_class': 'folder'}]}
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastBuild': None})
+
+        self.jenkins.send_request = Mock(side_effect=[response])
+        arg = Argument("compute", arg_type=str, description="", value=["<2"],
+                       ranged=True)
+
+        jobs = self.jenkins.get_deployment(controllers=arg)
+        self.assertEqual(len(jobs), 1)
+        job_name = 'test_17.3_ipv4_job_2comp_1cont'
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "17.3")
+        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(deployment.topology.value, topology_value)
+
+    def test_get_deployment_filter_computes(self):
+        """Test that get_deployment filters by computes."""
+        job_names = ['test_17.3_ipv4_job_2comp_1cont',
+                     'test_16_ipv6_job_1comp_2cont', 'test_job']
+        topology_value = "compute:2,controller:1"
+        response = {'jobs': [{'_class': 'folder'}]}
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastBuild': None})
+
+        self.jenkins.send_request = Mock(side_effect=[response])
+        arg = Argument("compute", arg_type=str, description="", value=["2"],
+                       ranged=True)
+
+        jobs = self.jenkins.get_deployment(computes=arg)
+        self.assertEqual(len(jobs), 1)
+        job_name = 'test_17.3_ipv4_job_2comp_1cont'
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "17.3")
+        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(deployment.topology.value, topology_value)
+
 
 class TestFilters(TestCase):
     """Tests for filter functions in jenkins source module."""
@@ -544,6 +599,32 @@ class TestFilters(TestCase):
                      'name': "ansible", 'url': 'url1',
                      'lastBuild': {'number': 1, 'result': "SUCCESS"}},
                     {'_class': 'org..job.WorkflowRun',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}},
+                    ]
+        self.assertEqual(jobs_filtered, expected)
+
+    def test_filter_jobs_class(self):
+        """
+            Test that filter_jobs filters the jobs given the job _class.
+        """
+        response = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}},
+                    {'_class': 'jenkins.branch.OrganizationFolder',
+                     'name': "test_jobs", 'url': 'url2',
+                     'lastBuild': {'number': 2, 'result': "FAILURE"}},
+                    {'_class': 'com.cloudbees.hudson.plugins.folder.Folder',
+                     'name': "test_jobs", 'url': 'url2',
+                     'lastBuild': {'number': 2, 'result': "FAILURE"}},
+                    {'_class': 'hudson.model.FreeStyleProject',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}}]
+        jobs_filtered = filter_jobs(response)
+        expected = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}},
+                    {'_class': 'hudson.model.FreeStyleProject',
                      'name': "ans2", 'url': 'url3',
                      'lastBuild': {'number': 0, 'result': "FAILURE"}},
                     ]
