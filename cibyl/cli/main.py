@@ -101,7 +101,8 @@ def main():
     orchestrator.run_query()
     orchestrator.publisher.publish(
         orchestrator.environments,
-        verbosity=orchestrator.parser.app_args.get('verbosity'))
+        verbosity=orchestrator.parser.app_args.get('verbosity'),
+        user_arguments=len(orchestrator.parser.ci_args))
 
 
 if __name__ == "__main__":

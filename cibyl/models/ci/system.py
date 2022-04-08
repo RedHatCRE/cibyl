@@ -117,14 +117,16 @@ class JobsSystem(System):
                          pipelines=None, jobs_scope=jobs_scope,
                          sources=sources, jobs=jobs)
 
-    def __str__(self, indent=0, verbosity=0):
+    def __str__(self, indent=0, verbosity=0, simple_representation=False):
         string = indent*' ' + Colors.blue("System: ") + f"{self.name.value}"
         if verbosity > 0:
             string += f" (type: {self.system_type.value})"
         for job in self.jobs.values():
             string += f"\n{job.__str__(indent+2, verbosity)}"
-        string += "\n" + indent*' ' + \
-            Colors.blue("Total jobs: ") + f"{len(self.jobs)}"
+        if not simple_representation:
+            string += "\n" + indent*' '
+            string += Colors.blue("Total jobs found in query: ")
+            string += f"{len(self.jobs)}"
         return string
 
     def add_toplevel_model(self, model: Job):

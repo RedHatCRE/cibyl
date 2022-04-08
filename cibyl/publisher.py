@@ -25,10 +25,14 @@ class Publisher:
     """
 
     @staticmethod
-    def publish(environments, dest="terminal", verbosity=0):
+    def publish(environments, dest="terminal", verbosity=0, user_arguments=0):
         """Publishes the data of the given environments to the
         chosen destination.
         """
+        # if the user did not pass any query argument (--jobs, --builds, ...)
+        # print only a simple representation of the environment
+        simple_representation = user_arguments == 0
         if dest == "terminal":
             for env in environments:
-                print(env.__str__(verbosity=verbosity))
+                print(env.__str__(verbosity=verbosity,
+                                  simple_representation=simple_representation))
