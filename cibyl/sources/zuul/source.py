@@ -64,12 +64,8 @@ class Zuul(Source):
                 )
 
                 if fetch_builds:
-                    builds = self._get_builds_for(job, **kwargs)
-
-                    model.builds = {
-                        build['uuid']: Build(build['uuid'], build['result'])
-                        for build in builds
-                    }
+                    for build in self._get_builds_for(job, **kwargs):
+                        model.add_build(Build(build['uuid'], build['result']))
 
                 return model
 
@@ -108,17 +104,24 @@ class Zuul(Source):
             :rtype: list[dict]
             """
 
-            def apply_last_build_filter(build):
+            def last_build_filter(build):
                 if 'last_build' not in kwargs:
                     return True
 
                 return build == builds[0]
 
+            def build_status_filter(build):
+                if 'build_status' not in kwargs:
+                    return True
+
+                return build['result'] in kwargs['build_status'].value
+
             builds = job.builds()
 
             return apply_filters(
                 builds,
-                apply_last_build_filter
+                last_build_filter,
+                build_status_filter
             )
 
         @staticmethod
