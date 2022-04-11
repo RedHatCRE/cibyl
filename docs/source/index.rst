@@ -76,6 +76,7 @@ Welcome to Cibyl's documentation!
    :caption: Developers
 
    development/tests
+   development/sources
    development/contribute
 
 
