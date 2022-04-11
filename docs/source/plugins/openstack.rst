@@ -83,7 +83,7 @@ Arguments Matrix
      - |:black_square_button:|
      - |:black_square_button:|
    * - --storage-backend
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|

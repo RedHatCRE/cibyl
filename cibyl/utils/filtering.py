@@ -24,6 +24,7 @@ RELEASE_PATTERN = re.compile(r"\d\d\.?\d?")
 TOPOLOGY_PATTERN = re.compile(r"(\d([a-zA-Z])+_?)+")
 PROPERTY_PATTERN = re.compile(r"=(.*)")
 NETWORK_BACKEND_PATTERN = re.compile("geneve|gre|vlan|vxlan")
+STORAGE_BACKEND_PATTERN = re.compile("ceph|lvm|netapp-iscsi|netapp-nfs|swift")
 
 
 def satisfy_regex_match(model: Dict[str, str], pattern: Pattern,

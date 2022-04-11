@@ -339,7 +339,7 @@ class TestJenkinsSource(TestCase):
                                      'lastBuild': {}})
         # each job triggers 2 artifacts requests, if both fail, fallback to
         # search the name
-        artifacts_fail = [JenkinsError for _ in range(6)]
+        artifacts_fail = [JenkinsError for _ in range(3*len(job_names))]
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts_fail)
         self.jenkins.add_job_info_from_name = Mock(
                 side_effect=self.jenkins.add_job_info_from_name)
@@ -368,6 +368,43 @@ class TestJenkinsSource(TestCase):
         topologies = ["compute:2,controller:3", "compute:1,controller:2",
                       "compute:2,controller:2"]
 
+        response = {'jobs': [{'_class': 'folder'}]}
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastBuild': {}})
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        fill = "STORAGE_BACKEND\nNETWORK_BACKEND\nnNETWORK_PROTOCOL"
+        artifacts = [
+           f"bla\nJP_TOPOLOGY='{topologies[0]}'\nPRODUCT_VERSION=17.3\n{fill}",
+           f"bla\nJP_TOPOLOGY='{topologies[1]}'\nPRODUCT_VERSION=16\n{fill}",
+           f"bla\nJP_TOPOLOGY='{topologies[2]}'\nPRODUCT_VERSION=\n{fill}",
+            ]
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        jobs = self.jenkins.get_deployment()
+        self.assertEqual(len(jobs), 3)
+        for job_name, ip, release, topology in zip(job_names, ip_versions,
+                                                   releases, topologies):
+            job = jobs[job_name]
+            deployment = job.deployment.value
+            self.assertEqual(job.name.value, job_name)
+            self.assertEqual(job.url.value, "url")
+            self.assertEqual(len(job.builds.value), 0)
+            self.assertEqual(deployment.release.value, release)
+            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(deployment.topology.value, topology)
+
+    def test_get_deployment_artifacts_missing_property(self):
+        """ Test that get_deployment detects missing information from
+        jenkins artifacts.
+        """
+        job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
+        ip_versions = ['4', '6', 'unknown']
+        releases = ['17.3', '16', '']
+        topologies = ["", "", ""]
         response = {'jobs': [{'_class': 'folder'}]}
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
@@ -495,7 +532,7 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(len(jobs), 0)
 
     def test_get_deployment_filter_network_backend(self):
-        """Test that get_deployment filters by topology and ip version."""
+        """Test that get_deployment filters by network backend."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont_geneve',
                      'test_16_ipv6_job_1comp_2cont_vxlan', 'test_job']
         topology_value = "compute:2,controller:1"
@@ -520,6 +557,35 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(deployment.release.value, "17.3")
         self.assertEqual(deployment.ip_version.value, "4")
         self.assertEqual(deployment.topology.value, topology_value)
+        self.assertEqual(deployment.network_backend.value, "geneve")
+
+    def test_get_deployment_filter_storage_backend(self):
+        """Test that get_deployment filters by storage backend."""
+        job_names = ['test_17.3_ipv4_job_2comp_1cont_geneve_swift',
+                     'test_16_ipv6_job_1comp_2cont_lvm', 'test_job']
+        topology_value = "compute:2,controller:1"
+        response = {'jobs': [{'_class': 'folder'}]}
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastBuild': None})
+
+        self.jenkins.send_request = Mock(side_effect=[response])
+        arg = Mock()
+        arg.value = ["swift"]
+
+        jobs = self.jenkins.get_deployment(storage_backend=arg)
+        self.assertEqual(len(jobs), 1)
+        job_name = 'test_17.3_ipv4_job_2comp_1cont_geneve_swift'
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "17.3")
+        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(deployment.topology.value, topology_value)
+        self.assertEqual(deployment.storage_backend.value, "swift")
         self.assertEqual(deployment.network_backend.value, "geneve")
 
     def test_get_deployment_filter_controller(self):
