@@ -33,8 +33,8 @@ from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.source import Source, safe_request_generic, speed_index
 from cibyl.utils.filtering import (IP_PATTERN, NETWORK_BACKEND_PATTERN,
                                    PROPERTY_PATTERN, RELEASE_PATTERN,
-                                   TOPOLOGY_PATTERN, apply_filters,
-                                   filter_topology,
+                                   STORAGE_BACKEND_PATTERN, TOPOLOGY_PATTERN,
+                                   apply_filters, filter_topology,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
 
@@ -42,6 +42,22 @@ LOG = logging.getLogger(__name__)
 
 safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+def job_missing_deployment_info(job: Dict[str, str]):
+    """Check if a given Jenkins job has all deployment attributes.
+
+    :param job: Dictionary representation of a jenkins job
+    :type job: dict
+    :returns: Whether all deployment attributes are found in the job
+    :rtype bool:
+    """
+    deployment_attr = ["topology", "release_version", "network_backend",
+                       "storage_backend"]
+    for attr in deployment_attr:
+        if attr not in job:
+            return True
+    return False
 
 
 def detect_job_info_regex(job_name, pattern, group_index=0, default=""):
@@ -321,13 +337,6 @@ accurate results", len(jobs_found))
 
         job_deployment_info = []
         for job in jobs_found:
-            job_name = job['name']
-            job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
-                                                      group_index=1,
-                                                      default="unknown")
-            network_backend = detect_job_info_regex(job_name,
-                                                    NETWORK_BACKEND_PATTERN)
-            job["network_backend"] = network_backend
             last_build = job.get("lastBuild")
             if use_artifacts and last_build is not None:
                 # if we have a lastBuild, we will have artifacts to pull
@@ -361,6 +370,12 @@ accurate results", len(jobs_found))
                                            user_input=input_network_backend,
                                            field_to_check="network_backend"))
 
+        input_storage_backend = kwargs.get('storage_backend')
+        if input_storage_backend and input_storage_backend.value:
+            checks_to_apply.append(partial(satisfy_exact_match,
+                                           user_input=input_storage_backend,
+                                           field_to_check="storage_backend"))
+
         input_controllers = kwargs.get('controllers')
         if input_controllers and input_controllers.value:
             for range_arg in input_controllers.value:
@@ -390,7 +405,8 @@ accurate results", len(jobs_found))
             deployment = Deployment(job["release_version"], "unknown",
                                     [], [], ip_version=job["ip_version"],
                                     topology=job["topology"],
-                                    network_backend=job["network_backend"])
+                                    network_backend=job["network_backend"],
+                                    storage_backend=job["storage_backend"])
             job_objects[name].add_deployment(deployment)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
@@ -401,7 +417,7 @@ accurate results", len(jobs_found))
         :param job: Dictionary representation of a jenkins job
         :type job: dict
         """
-        possible_artifacts = [".envrc", "artifacts/jp.env"]
+        possible_artifacts = ["artifacts/jp.env", ".sh/run.sh", ".envrc"]
         job_name = job['name']
         artifact = None
         for artifact_path in possible_artifacts:
@@ -415,9 +431,13 @@ accurate results", len(jobs_found))
                 LOG.debug("Found no artifact %s for job %s", artifact_path,
                           job_name)
                 continue
+
         if artifact is None:
+            LOG.debug("Resorting to get deployment information from job name"
+                      " for job %s", job_name)
             self.add_job_info_from_name(job)
             return
+
         for line in artifact.split("\n"):
             if "TOPOLOGY=" in line:
                 topology_str = detect_job_info_regex(line, PROPERTY_PATTERN,
@@ -425,10 +445,25 @@ accurate results", len(jobs_found))
                 topology_str = topology_str.replace('"', '')
                 topology_str = topology_str.replace("'", '')
                 job["topology"] = topology_str
-            elif "PRODUCT_VERSION" in line:
+            elif "--version" in line or "PRODUCT_VERSION" in line:
                 job["release_version"] = detect_job_info_regex(line,
                                                                RELEASE_PATTERN)
-        if "topology" not in job or "release_version" not in job:
+            elif "--storage-backend" in line or "STORAGE_BACKEND" in line:
+                storage = detect_job_info_regex(line, STORAGE_BACKEND_PATTERN)
+                job["storage_backend"] = storage
+
+            elif "--network-backend" in line or "NETWORK_BACKEND" in line:
+                network = detect_job_info_regex(line, NETWORK_BACKEND_PATTERN)
+                job["network_backend"] = network
+
+            elif "--network-protocol" in line or "NETWORK_PROTOCOL" in line:
+                job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
+                                                          group_index=1,
+                                                          default="unknown")
+
+        if job_missing_deployment_info(job):
+            LOG.debug("Resorting to get deployment information from job name"
+                      " for job %s", job_name)
             self.add_job_info_from_name(job)
 
     def add_job_info_from_name(self, job:  Dict[str, str]):
@@ -447,5 +482,15 @@ accurate results", len(jobs_found))
             job["topology"] = translate_topology_string(short_topology)
         else:
             job["topology"] = ""
+
         job["release_version"] = detect_job_info_regex(job_name,
                                                        RELEASE_PATTERN)
+        network_backend = detect_job_info_regex(job_name,
+                                                NETWORK_BACKEND_PATTERN)
+        job["network_backend"] = network_backend
+        storage_backend = detect_job_info_regex(job_name,
+                                                STORAGE_BACKEND_PATTERN)
+        job["storage_backend"] = storage_backend
+        job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
+                                                  group_index=1,
+                                                  default="unknown")

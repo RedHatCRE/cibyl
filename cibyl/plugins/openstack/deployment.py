@@ -84,17 +84,25 @@ class Deployment(Model):
                                    ranged=True,
                                    description="Number of computes used "
                                    "in the deployment")]
+            },
+        'storage_backend': {
+            'attr_type': str,
+            'arguments': [Argument(name='--storage-backend', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Storage backend used in the "
+                                   "deployment")]
             }
     }
 
     def __init__(self, release: float, infra_type: str,
                  nodes: List[Node], services: List[Service],
                  ip_version: str = None, topology: str = None,
-                 network_backend: str = None):
+                 network_backend: str = None, storage_backend: str = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
                           'ip_version': ip_version, 'topology': topology,
-                          'network_backend': network_backend})
+                          'network_backend': network_backend,
+                          'storage_backend': storage_backend})
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
@@ -116,7 +124,10 @@ class Deployment(Model):
             info += f'\n{indent_space}' + Colors.blue('Topology: ')
             info += f'{self.topology}'
         if self.network_backend.value:
-            info += f'\n{indent_space}' + Colors.blue('Nework backend: ')
+            info += f'\n{indent_space}' + Colors.blue('Network backend: ')
             info += f'{self.network_backend}'
+        if self.storage_backend.value:
+            info += f'\n{indent_space}' + Colors.blue('Storage backend: ')
+            info += f'{self.storage_backend}'
 
         return info
