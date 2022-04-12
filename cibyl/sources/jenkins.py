@@ -29,6 +29,7 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
+from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.source import Source, safe_request_generic, speed_index
 from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, IP_PATTERN,
@@ -408,11 +409,19 @@ accurate results", len(jobs_found))
         for job in job_deployment_info:
             name = job.get('name')
             job_objects[name] = Job(name=name, url=job.get('url'))
-            # TODO: (jgilaber) query for nodes and services
+            topology = job["topology"]
+            nodes = []
+            if topology:
+                for component in topology.split(","):
+                    role, amount = component.split(":")
+                    for i in range(int(amount)):
+                        nodes.append(Node(role+f"-{i}", role=role))
+
+            # TODO: (jgilaber) query for services
             deployment = Deployment(job["release_version"],
                                     job["deployment_type"],
-                                    [], [], ip_version=job["ip_version"],
-                                    topology=job["topology"],
+                                    nodes, [], ip_version=job["ip_version"],
+                                    topology=topology,
                                     network_backend=job["network_backend"],
                                     storage_backend=job["storage_backend"])
             job_objects[name].add_deployment(deployment)

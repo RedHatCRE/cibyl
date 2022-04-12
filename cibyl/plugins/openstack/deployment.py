@@ -113,12 +113,6 @@ class Deployment(Model):
         if self.infra_type.value:
             info += f'\n{indent_space}' + Colors.blue('Infra type: ')
             info += f'{self.infra_type.value}'
-        for node in self.nodes:
-            info += f'\n{indent_space}  '
-            info += f'{node.__str__(indent=indent+2, verbosity=verbosity)}'
-        if self.services.value:
-            info += f'\n{indent_space}' + Colors.blue('Service: ')
-            info += f'{self.services.value}'
         if self.ip_version.value:
             info += f'\n{indent_space}' + Colors.blue('IP version: ')
             info += f'{self.ip_version}'
@@ -131,5 +125,11 @@ class Deployment(Model):
         if self.storage_backend.value:
             info += f'\n{indent_space}' + Colors.blue('Storage backend: ')
             info += f'{self.storage_backend}'
+        for node in self.nodes:
+            info += f'\n{indent_space}  '
+            info += f'{node.__str__(indent=indent+2, verbosity=verbosity)}'
+        if self.services.value:
+            info += f'\n{indent_space}' + Colors.blue('Service: ')
+            info += f'{self.services.value}'
 
         return info
