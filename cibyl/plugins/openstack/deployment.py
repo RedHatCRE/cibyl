@@ -38,6 +38,7 @@ class Deployment(Model):
         'infra_type': {
             'attr_type': str,
             'arguments': [Argument(name='--infra-type', arg_type=str,
+                                   func='get_deployment', nargs='*',
                                    description="Infra type")]
         },
         'nodes': {
@@ -109,8 +110,9 @@ class Deployment(Model):
         info = f'{indent_space}' + Colors.blue("Release: ")
         info += f'{self.release.value}'
 
-        info += f'\n{indent_space}' + Colors.blue('Infra type: ')
-        info += f'{self.infra_type.value}'
+        if self.infra_type.value:
+            info += f'\n{indent_space}' + Colors.blue('Infra type: ')
+            info += f'{self.infra_type.value}'
         for node in self.nodes:
             info += f'\n{indent_space}  '
             info += f'{node.__str__(indent=indent+2, verbosity=verbosity)}'
