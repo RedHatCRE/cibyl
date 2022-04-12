@@ -259,6 +259,8 @@ class TestJenkinsSource(TestCase):
         ip_versions = ['4', '6', 'unknown']
         releases = ['17.3', '16', '']
         topologies = ["compute:2,controller:1", "compute:1,controller:2", ""]
+        nodes = [["compute-0", "compute-1", "controller-0"],
+                 ["compute-0", "controller-0", "controller-1"]]
 
         response = {'jobs': [{'_class': 'folder'}]}
         for job_name in job_names:
@@ -272,8 +274,11 @@ class TestJenkinsSource(TestCase):
 
         jobs = self.jenkins.get_deployment(ip_version=arg)
         self.assertEqual(len(jobs), 3)
-        for job_name, ip, release, topology in zip(job_names, ip_versions,
-                                                   releases, topologies):
+        for job_name, ip, release, topology, node_list in zip(job_names,
+                                                              ip_versions,
+                                                              releases,
+                                                              topologies,
+                                                              nodes):
             job = jobs[job_name]
             deployment = job.deployment.value
             self.assertEqual(job.name.value, job_name)
@@ -282,6 +287,9 @@ class TestJenkinsSource(TestCase):
             self.assertEqual(deployment.release.value, release)
             self.assertEqual(deployment.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
+            for node, node_name in zip(deployment.nodes, node_list):
+                self.assertEqual(node.name.value, node_name)
+                self.assertEqual(node.role.value, node_name.split("-")[0])
 
     def test_get_deployment_many_jobs(self):
         """ Test that get_deployment reads properly the information obtained
