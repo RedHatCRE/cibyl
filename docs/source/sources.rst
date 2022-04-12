@@ -4,11 +4,11 @@ Sources
 Sources in Cibyl are responsible for performing the queries and getting the data the user is interested in.
 A source can be anything: a CI system, repository, database, etc. Cibyl supports the following sources out-of-the-box:
 
-  * Jenkins
-  * Jenkins Job Builder
-  * Zuul
-  * Elasticsearch
-  * Zuul Job Definitions
+  * `Jenkins <sources/jenkins.html>`_
+  * `Jenkins Job Builder <sources/jenkins-job-builder.html>`_
+  * `Zuul <sources/zuul.html>`_
+  * `Elasticsearch <sources/elasticsearch.html>`_
+  * `Zuul Job Definitions <sources/zuul.d.html>`_
 
 Configuring Sources
 -------------------
@@ -38,70 +38,87 @@ Arguments Matrix
 ----------------
 
 .. list-table:: The supported arguments in the different built-in sources
-   :widths: 25 25 25 25 25 25
+   :widths: 20 40 10 10 10 10 10
    :header-rows: 1
 
    * - Argument / Source
+     - Description
      - Jenkins
-     - Zuul API
-     - Elasticsearch
+     - Zuul
+     - ES
      - JJB
      - Zuul.d
    * - --jobs
-     - |:ballot_box_with_check:|
+     - | Jobs names or pattern
+       | Deafult: all jobs
+     - |:black_square_button:|
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:x:|
    * - --job-url
+     - Job URL
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --builds
+     - | Build numbers
+       | Default: all builds
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --last-build
+     - | The last build of a job
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --build-status
+     - | Build status (default: all)
+       | failure, success,
+       | abandoned, unstable
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --build-number
+     - Build number
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --tests
+     - | Test names or pattern
+       | Default: all tests
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:x:|
      - |:x:|
    * - --test-name
+     - Test name
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:x:|
      - |:x:|
    * - --test-class-name
+     - Test class name
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:x:|
      - |:x:|
    * - --test-result
+     - | Test result (default: all)
+       | success, failed, skipped
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
