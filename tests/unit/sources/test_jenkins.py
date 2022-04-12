@@ -642,6 +642,34 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(deployment.ip_version.value, "4")
         self.assertEqual(deployment.topology.value, topology_value)
 
+    def test_get_deployment_filter_infra_type(self):
+        """Test that get_deployment filters by infra type."""
+        job_names = ['test_17.3_ipv4_job_2comp_1cont_ovb',
+                     'test_16_ipv6_job_1comp_2cont_virt', 'test_job']
+        topology_value = "compute:2,controller:1"
+        response = {'jobs': [{'_class': 'folder'}]}
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastBuild': None})
+
+        self.jenkins.send_request = Mock(side_effect=[response])
+        arg = Argument("infra_type", arg_type=str, description="",
+                       value=["ovb"])
+
+        jobs = self.jenkins.get_deployment(infra_type=arg)
+        self.assertEqual(len(jobs), 1)
+        job_name = 'test_17.3_ipv4_job_2comp_1cont_ovb'
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "17.3")
+        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(deployment.topology.value, topology_value)
+        self.assertEqual(deployment.infra_type.value, "ovb")
+
 
 class TestFilters(TestCase):
     """Tests for filter functions in jenkins source module."""

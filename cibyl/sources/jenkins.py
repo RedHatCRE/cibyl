@@ -31,10 +31,11 @@ from cibyl.models.ci.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.source import Source, safe_request_generic, speed_index
-from cibyl.utils.filtering import (IP_PATTERN, NETWORK_BACKEND_PATTERN,
-                                   PROPERTY_PATTERN, RELEASE_PATTERN,
-                                   STORAGE_BACKEND_PATTERN, TOPOLOGY_PATTERN,
-                                   apply_filters, filter_topology,
+from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, IP_PATTERN,
+                                   NETWORK_BACKEND_PATTERN, PROPERTY_PATTERN,
+                                   RELEASE_PATTERN, STORAGE_BACKEND_PATTERN,
+                                   TOPOLOGY_PATTERN, apply_filters,
+                                   filter_topology,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
 
@@ -53,7 +54,7 @@ def job_missing_deployment_info(job: Dict[str, str]):
     :rtype bool:
     """
     deployment_attr = ["topology", "release_version", "network_backend",
-                       "storage_backend"]
+                       "storage_backend", "deployment_type"]
     for attr in deployment_attr:
         if attr not in job:
             return True
@@ -364,6 +365,12 @@ accurate results", len(jobs_found))
                                    user_input=input_release,
                                    field_to_check="release_version"))
 
+        input_infra_type = kwargs.get('infra_type')
+        if input_infra_type and input_infra_type.value:
+            checks_to_apply.append(partial(satisfy_exact_match,
+                                   user_input=input_infra_type,
+                                   field_to_check="deployment_type"))
+
         input_network_backend = kwargs.get('network_backend')
         if input_network_backend and input_network_backend.value:
             checks_to_apply.append(partial(satisfy_exact_match,
@@ -401,8 +408,9 @@ accurate results", len(jobs_found))
         for job in job_deployment_info:
             name = job.get('name')
             job_objects[name] = Job(name=name, url=job.get('url'))
-            # TODO: (jgilaber) query for infra_type, nodes and services
-            deployment = Deployment(job["release_version"], "unknown",
+            # TODO: (jgilaber) query for nodes and services
+            deployment = Deployment(job["release_version"],
+                                    job["deployment_type"],
                                     [], [], ip_version=job["ip_version"],
                                     topology=job["topology"],
                                     network_backend=job["network_backend"],
@@ -467,30 +475,47 @@ accurate results", len(jobs_found))
             self.add_job_info_from_name(job)
 
     def add_job_info_from_name(self, job:  Dict[str, str]):
-        """Add information to the job by using regex on the job name.
+        """Add information to the job by using regex on the job name. Check if
+        properties exist before adding them in case it's used as fallback when
+        artifacts do not contain all the necessary information.
 
         :param job: Dictionary representation of a jenkins job
         :type job: dict
         """
         job_name = job['name']
-        short_topology = detect_job_info_regex(job_name,
-                                               TOPOLOGY_PATTERN)
-        if short_topology:
-            # due to the regex used, short_topology may contain a trailing
-            # underscore that should be removed
-            short_topology = short_topology.rstrip("_")
-            job["topology"] = translate_topology_string(short_topology)
-        else:
-            job["topology"] = ""
+        if "topology" not in job or not job["topology"]:
+            short_topology = detect_job_info_regex(job_name,
+                                                   TOPOLOGY_PATTERN)
+            if short_topology:
+                # due to the regex used, short_topology may contain a trailing
+                # underscore that should be removed
+                short_topology = short_topology.rstrip("_")
+                job["topology"] = translate_topology_string(short_topology)
+            else:
+                job["topology"] = ""
 
-        job["release_version"] = detect_job_info_regex(job_name,
-                                                       RELEASE_PATTERN)
-        network_backend = detect_job_info_regex(job_name,
-                                                NETWORK_BACKEND_PATTERN)
-        job["network_backend"] = network_backend
-        storage_backend = detect_job_info_regex(job_name,
-                                                STORAGE_BACKEND_PATTERN)
-        job["storage_backend"] = storage_backend
-        job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
-                                                  group_index=1,
-                                                  default="unknown")
+        if "release_version" not in job or not job["release_version"]:
+            job["release_version"] = detect_job_info_regex(job_name,
+                                                           RELEASE_PATTERN)
+
+        if "deployment_type" not in job or not job["deployment_type"]:
+            deployment_type = detect_job_info_regex(job_name,
+                                                    DEPLOYMENT_PATTERN)
+            if not deployment_type and "virt" in job_name:
+                deployment_type = "virt"
+            job["deployment_type"] = deployment_type
+
+        if "network_backend" not in job or not job["network_backend"]:
+            network_backend = detect_job_info_regex(job_name,
+                                                    NETWORK_BACKEND_PATTERN)
+            job["network_backend"] = network_backend
+
+        if "storage_backend" not in job or not job["storage_backend"]:
+            storage_backend = detect_job_info_regex(job_name,
+                                                    STORAGE_BACKEND_PATTERN)
+            job["storage_backend"] = storage_backend
+
+        if "ip_version" not in job or not job["ip_version"]:
+            job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
+                                                      group_index=1,
+                                                      default="unknown")
