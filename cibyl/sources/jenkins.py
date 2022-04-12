@@ -138,7 +138,7 @@ class Jenkins(Source):
     jobs_last_build_query = "?tree=jobs[name,url,lastBuild[number,result]]"
     jobs_last_completed_build_query = \
         "?tree=jobs[name,url,lastCompletedBuild[number,result,duration]]"
-    build_tests_query = "?tree=suites[cases[name,status,duration,skipped]]"
+    build_tests_query = "?tree=suites[cases[name,status,duration,className]]"
 
     # pylint: disable=too-many-arguments
     def __init__(self, url: str, username: str = None, token: str = None,
@@ -320,20 +320,19 @@ try reducing verbosity for quicker query")
 
         for job in jobs_filtered:
             job_name = job.get('name')
-            job_object = Job(name=job_name, url=job.get('url'))
-            job_objects[job_name] = job_object
-
             if job["lastCompletedBuild"] is None:
                 LOG.warning("No completed builds found for job %s", job_name)
                 continue
+
+            job_object = Job(name=job_name, url=job.get('url'))
+            job_objects[job_name] = job_object
 
             if kwargs.get('build_id'):
                 # For specific build ids we have to fetch them
                 builds = self.send_request(item=f"job/{job_name}",
                                            query=self.jobs_builds_query.get(
                                                kwargs.get('verbosity'), 0))
-                builds_to_add = filter_builds(builds["allBuilds"],
-                                              **kwargs)
+                builds_to_add = filter_builds(builds["allBuilds"], **kwargs)
             else:
                 builds_to_add = filter_builds([job["lastCompletedBuild"]],
                                               **kwargs)
@@ -343,14 +342,14 @@ try reducing verbosity for quicker query")
                 continue
 
             for build in builds_to_add:
-                if build['result'] != 'SUCCESS':
-                    LOG.warning("Selected build '%s' for job '%s' was not "
-                                "completed", build['number'], job_name)
-                    continue
-
                 build_object = Build(
                     build_id=build['number'],
                     status=build['result'])
+
+                if build['result'] == 'FAILURE':
+                    LOG.warning("Build %s for job %s failed. No tests to "
+                                "fetch", build['number'], job_name)
+                    continue
 
                 # Get the tests for this build
                 tests_found = self.send_request(
@@ -359,6 +358,9 @@ try reducing verbosity for quicker query")
 
                 for suit in tests_found['suites']:
                     for test in suit['cases']:
+                        if not test['className']:
+                            continue
+
                         build_object.add_test(Test(
                             name=test.get('name'),
                             class_name=test.get('className'),

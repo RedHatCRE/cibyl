@@ -61,9 +61,10 @@ class Test(Model):
         if self.result.value:
             test_str += f"\n{indent_space}  {Colors.blue('Result: ')}"
             success_values = ['SUCCESS', 'PASSED']
+            failure_values = ['FAILURE', 'FAILED']
             if self.result.value in success_values:
                 test_str += Colors.green(f"{self.result.value}")
-            elif self.result.value == "FAILURE":
+            elif self.result.value in failure_values:
                 test_str += Colors.red(f"{self.result.value}")
             elif self.result.value == "UNSTABLE":
                 test_str += Colors.yellow(f"{self.result.value}")
@@ -71,7 +72,7 @@ class Test(Model):
                 test_str += Colors.blue(f"{self.result.value}")
 
         if self.class_name.value:
-            test_str += f"\n{indent_space}  Colors.blue('Class name: ')"
+            test_str += f"\n{indent_space}  {Colors.blue('Class name: ')}"
             test_str += f"{self.class_name.value}"
 
         if verbosity > 0 and self.duration.value:

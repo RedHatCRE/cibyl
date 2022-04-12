@@ -16,7 +16,7 @@
 # pylint: disable=no-member
 import json
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.sources.jenkins import (Jenkins, filter_builds, filter_jobs,
@@ -200,6 +200,114 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(job.name.value, "ansible-nfv-branch")
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
+
+    def test_get_tests(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_tests` is
+            correct.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': 'ansible', 'url': 'url1',
+                              'lastCompletedBuild': {
+                                  'number': 1, 'result': 'SUCCESS',
+                                  'duration': 3.5
+                              }}]}
+        tests = {'_class': '_empty',
+                 'suites': [
+                    {'cases': [
+                        {'className': 'class1', 'duration': 1,
+                         'name': 'test1', 'status': 'PASSED'},
+                        {'className': 'class2', 'duration': 0,
+                         'name': 'test2', 'status': 'SKIPPED'},
+                        {'className': 'class2', 'duration': 2.4,
+                         'name': 'test3', 'status': 'FAILED'}]}]}
+
+        self.jenkins.send_request = Mock(side_effect=[response, tests])
+
+        jobs = self.jenkins.get_tests()
+        self.assertEqual(len(jobs), 1)
+        job = jobs['ansible']
+        self.assertEqual(job.name.value, 'ansible')
+        self.assertEqual(job.url.value, 'url1')
+
+        builds_found = job.builds.value
+        self.assertEqual(len(builds_found), 1)
+        self.assertEqual(builds_found['1'].build_id.value, '1')
+        self.assertEqual(builds_found['1'].status.value, 'SUCCESS')
+
+        tests_found = job.builds.value['1'].tests
+        self.assertEqual(len(tests_found), 3)
+        self.assertEqual(tests_found['test1'].result.value, 'PASSED')
+        self.assertEqual(tests_found['test1'].class_name.value, 'class1')
+        self.assertEqual(tests_found['test1'].duration.value, 1)
+        self.assertEqual(tests_found['test2'].result.value, 'SKIPPED')
+        self.assertEqual(tests_found['test2'].class_name.value, 'class2')
+        self.assertEqual(tests_found['test2'].duration.value, 0)
+        self.assertEqual(tests_found['test3'].result.value, 'FAILED')
+        self.assertEqual(tests_found['test3'].class_name.value, 'class2')
+        self.assertEqual(tests_found['test3'].duration.value, 2.4)
+
+    def test_get_tests_no_completed_build(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_tests` is
+            correct when there is no completed build.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': 'ansible', 'url': 'url1',
+                              'lastCompletedBuild': None}]}
+
+        self.jenkins.send_request = Mock(side_effect=[response])
+
+        jobs = self.jenkins.get_tests()
+        self.assertEqual(len(jobs), 0)
+
+    def test_get_tests_for_specific_build(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_tests` is
+            correct when a specific build is set.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': 'ansible', 'url': 'url1',
+                              'lastCompletedBuild': {
+                                  'number': 2, 'result': 'SUCCESS',
+                                  'duration': 6.8
+                              }}]}
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': 'SUCCESS'},
+                                {'number': 2, 'result': 'SUCCESS'}]}
+        tests = {'_class': '_empty',
+                 'suites': [
+                    {'cases': [
+                        {'className': 'class1', 'duration': 1.1,
+                         'name': 'test1', 'status': 'PASSED'},
+                        {'className': 'class2', 'duration': 7.2,
+                         'name': 'test2', 'status': 'PASSED'}]}]}
+
+        self.jenkins.send_request = Mock(side_effect=[response, builds, tests])
+
+        # Mock the --build-id command line argument
+        build_id_kwargs = MagicMock()
+        type(build_id_kwargs).value = PropertyMock(return_value=['1'])
+
+        jobs = self.jenkins.get_tests(build_id=build_id_kwargs)
+        self.assertEqual(len(jobs), 1)
+        job = jobs['ansible']
+        self.assertEqual(job.name.value, 'ansible')
+        self.assertEqual(job.url.value, 'url1')
+
+        builds_found = job.builds.value
+        self.assertEqual(len(builds_found), 1)
+        self.assertEqual(builds_found['1'].build_id.value, '1')
+        self.assertEqual(builds_found['1'].status.value, 'SUCCESS')
+
+        tests_found = job.builds.value['1'].tests
+        self.assertEqual(len(tests_found), 2)
+        self.assertEqual(tests_found['test1'].result.value, 'PASSED')
+        self.assertEqual(tests_found['test1'].class_name.value, 'class1')
+        self.assertEqual(tests_found['test1'].duration.value, 1.1)
+        self.assertEqual(tests_found['test2'].result.value, 'PASSED')
+        self.assertEqual(tests_found['test2'].class_name.value, 'class2')
+        self.assertEqual(tests_found['test2'].duration.value, 7.2)
 
     @patch("requests.get")
     def test_send_request(self, patched_get):
