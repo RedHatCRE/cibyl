@@ -32,11 +32,12 @@ from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.source import Source, safe_request_generic, speed_index
-from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, IP_PATTERN,
-                                   NETWORK_BACKEND_PATTERN, PROPERTY_PATTERN,
-                                   RELEASE_PATTERN, STORAGE_BACKEND_PATTERN,
-                                   TOPOLOGY_PATTERN, apply_filters,
-                                   filter_topology,
+from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_OPTIONS,
+                                   DVR_PATTERN_NAME, DVR_PATTERN_RUN,
+                                   IP_PATTERN, NETWORK_BACKEND_PATTERN,
+                                   PROPERTY_PATTERN, RELEASE_PATTERN,
+                                   STORAGE_BACKEND_PATTERN, TOPOLOGY_PATTERN,
+                                   apply_filters, filter_topology,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
 
@@ -44,22 +45,6 @@ LOG = logging.getLogger(__name__)
 
 safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
-def job_missing_deployment_info(job: Dict[str, str]):
-    """Check if a given Jenkins job has all deployment attributes.
-
-    :param job: Dictionary representation of a jenkins job
-    :type job: dict
-    :returns: Whether all deployment attributes are found in the job
-    :rtype bool:
-    """
-    deployment_attr = ["topology", "release_version", "network_backend",
-                       "storage_backend", "deployment_type"]
-    for attr in deployment_attr:
-        if attr not in job:
-            return True
-    return False
 
 
 def detect_job_info_regex(job_name, pattern, group_index=0, default=""):
@@ -180,6 +165,9 @@ class Jenkins(Source):
         self.username = username
         self.token = token
         self.cert = cert
+        self.deployment_attr = ["topology", "release",
+                                "network_backend", "storage_backend",
+                                "infra_type", "dvr", "ip_version"]
 
     @safe_request
     def send_request(self, query, timeout=None, item="",
@@ -319,6 +307,19 @@ try reducing verbosity for quicker query")
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
+    def job_missing_deployment_info(self, job: Dict[str, str]):
+        """Check if a given Jenkins job has all deployment attributes.
+
+        :param job: Dictionary representation of a jenkins job
+        :type job: dict
+        :returns: Whether all deployment attributes are found in the job
+        :rtype bool:
+        """
+        for attr in self.deployment_attr:
+            if attr not in job:
+                return True
+        return False
+
     @speed_index({'base': 2})
     def get_deployment(self, **kwargs):
         """Get deployment information for jobs from jenkins server.
@@ -348,41 +349,13 @@ accurate results", len(jobs_found))
             job_deployment_info.append(job)
 
         checks_to_apply = []
-        input_ip_version = kwargs.get('ip_version')
-        if input_ip_version and input_ip_version.value:
-            checks_to_apply.append(partial(satisfy_exact_match,
-                                   user_input=input_ip_version,
-                                   field_to_check="ip_version"))
-
-        input_topology = kwargs.get('topology')
-        if input_topology and input_topology.value:
-            checks_to_apply.append(partial(satisfy_exact_match,
-                                   user_input=input_topology,
-                                   field_to_check="topology"))
-
-        input_release = kwargs.get('release')
-        if input_release and input_release.value:
-            checks_to_apply.append(partial(satisfy_exact_match,
-                                   user_input=input_release,
-                                   field_to_check="release_version"))
-
-        input_infra_type = kwargs.get('infra_type')
-        if input_infra_type and input_infra_type.value:
-            checks_to_apply.append(partial(satisfy_exact_match,
-                                   user_input=input_infra_type,
-                                   field_to_check="deployment_type"))
-
-        input_network_backend = kwargs.get('network_backend')
-        if input_network_backend and input_network_backend.value:
-            checks_to_apply.append(partial(satisfy_exact_match,
-                                           user_input=input_network_backend,
-                                           field_to_check="network_backend"))
-
-        input_storage_backend = kwargs.get('storage_backend')
-        if input_storage_backend and input_storage_backend.value:
-            checks_to_apply.append(partial(satisfy_exact_match,
-                                           user_input=input_storage_backend,
-                                           field_to_check="storage_backend"))
+        for attribute in self.deployment_attr:
+            # check for user provided that should have an exact match
+            input_attr = kwargs.get(attribute)
+            if input_attr and input_attr.value:
+                checks_to_apply.append(partial(satisfy_exact_match,
+                                       user_input=input_attr,
+                                       field_to_check=attribute))
 
         input_controllers = kwargs.get('controllers')
         if input_controllers and input_controllers.value:
@@ -418,12 +391,13 @@ accurate results", len(jobs_found))
                         nodes.append(Node(role+f"-{i}", role=role))
 
             # TODO: (jgilaber) query for services
-            deployment = Deployment(job["release_version"],
-                                    job["deployment_type"],
+            deployment = Deployment(job["release"],
+                                    job["infra_type"],
                                     nodes, [], ip_version=job["ip_version"],
                                     topology=topology,
                                     network_backend=job["network_backend"],
-                                    storage_backend=job["storage_backend"])
+                                    storage_backend=job["storage_backend"],
+                                    dvr=job["dvr"])
             job_objects[name].add_deployment(deployment)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
@@ -462,23 +436,35 @@ accurate results", len(jobs_found))
                 topology_str = topology_str.replace('"', '')
                 topology_str = topology_str.replace("'", '')
                 job["topology"] = topology_str
-            elif "--version" in line or "PRODUCT_VERSION" in line:
-                job["release_version"] = detect_job_info_regex(line,
-                                                               RELEASE_PATTERN)
-            elif "--storage-backend" in line or "STORAGE_BACKEND" in line:
+            if "--version" in line or "PRODUCT_VERSION" in line:
+                job["release"] = detect_job_info_regex(line,
+                                                       RELEASE_PATTERN)
+            if "--storage-backend" in line or "STORAGE_BACKEND" in line:
                 storage = detect_job_info_regex(line, STORAGE_BACKEND_PATTERN)
                 job["storage_backend"] = storage
 
-            elif "--network-backend" in line or "NETWORK_BACKEND" in line:
+            if "--network-backend" in line or "NETWORK_BACKEND" in line:
                 network = detect_job_info_regex(line, NETWORK_BACKEND_PATTERN)
                 job["network_backend"] = network
 
-            elif "--network-protocol" in line or "NETWORK_PROTOCOL" in line:
+            if "--network-protocol" in line or "NETWORK_PROTOCOL" in line:
                 job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
                                                           group_index=1,
                                                           default="unknown")
+            if "--network-dvr" in line:
+                dvr_option = detect_job_info_regex(line, DVR_PATTERN_RUN,
+                                                   group_index=1)
+                job["dvr"] = ""
+                if dvr_option:
+                    job["dvr"] = str(dvr_option in ('true', 'yes'))
 
-        if job_missing_deployment_info(job):
+            if "NETWORK_DVR" in line:
+                dvr_option = detect_job_info_regex(line, DVR_OPTIONS)
+                job["dvr"] = ""
+                if dvr_option:
+                    job["dvr"] = str(dvr_option in ('true', 'yes'))
+
+        if self.job_missing_deployment_info(job):
             LOG.debug("Resorting to get deployment information from job name"
                       " for job %s", job_name)
             self.add_job_info_from_name(job)
@@ -503,16 +489,16 @@ accurate results", len(jobs_found))
             else:
                 job["topology"] = ""
 
-        if "release_version" not in job or not job["release_version"]:
-            job["release_version"] = detect_job_info_regex(job_name,
-                                                           RELEASE_PATTERN)
+        if "release" not in job or not job["release"]:
+            job["release"] = detect_job_info_regex(job_name,
+                                                   RELEASE_PATTERN)
 
-        if "deployment_type" not in job or not job["deployment_type"]:
-            deployment_type = detect_job_info_regex(job_name,
-                                                    DEPLOYMENT_PATTERN)
-            if not deployment_type and "virt" in job_name:
-                deployment_type = "virt"
-            job["deployment_type"] = deployment_type
+        if "infra_type" not in job or not job["infra_type"]:
+            infra_type = detect_job_info_regex(job_name,
+                                               DEPLOYMENT_PATTERN)
+            if not infra_type and "virt" in job_name:
+                infra_type = "virt"
+            job["infra_type"] = infra_type
 
         if "network_backend" not in job or not job["network_backend"]:
             network_backend = detect_job_info_regex(job_name,
@@ -528,3 +514,8 @@ accurate results", len(jobs_found))
             job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
                                                       group_index=1,
                                                       default="unknown")
+        if "dvr" not in job or not job["dvr"]:
+            dvr = detect_job_info_regex(job_name, DVR_PATTERN_NAME)
+            job["dvr"] = ""
+            if dvr:
+                job["dvr"] = str(dvr == "dvr")
