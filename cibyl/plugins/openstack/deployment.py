@@ -69,6 +69,13 @@ class Deployment(Model):
                                    description="Topology used in the "
                                    "deployment")]
             },
+        'dvr': {
+            'attr_type': str,
+            'arguments': [Argument(name='--dvr', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Whether dvr is used in the "
+                                   "deployment")]
+            },
         'network_backend': {
             'attr_type': str,
             'arguments': [Argument(name='--network-backend', arg_type=str,
@@ -98,12 +105,14 @@ class Deployment(Model):
     def __init__(self, release: float, infra_type: str,
                  nodes: List[Node], services: List[Service],
                  ip_version: str = None, topology: str = None,
-                 network_backend: str = None, storage_backend: str = None):
+                 network_backend: str = None, storage_backend: str = None,
+                 dvr: str = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
                           'ip_version': ip_version, 'topology': topology,
                           'network_backend': network_backend,
-                          'storage_backend': storage_backend})
+                          'storage_backend': storage_backend,
+                          'dvr': dvr})
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
@@ -125,6 +134,9 @@ class Deployment(Model):
         if self.storage_backend.value:
             info += f'\n{indent_space}' + Colors.blue('Storage backend: ')
             info += f'{self.storage_backend}'
+        if self.dvr.value:
+            info += f'\n{indent_space}' + Colors.blue('DVR: ')
+            info += f'{self.dvr}'
         for node in self.nodes:
             info += f'\n{indent_space}  '
             info += f'{node.__str__(indent=indent+2, verbosity=verbosity)}'
