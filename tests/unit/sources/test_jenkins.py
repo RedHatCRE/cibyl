@@ -754,6 +754,78 @@ class TestJenkinsSource(TestCase):
             self.assertEqual(deployment.topology.value, topology)
             self.assertEqual(deployment.dvr.value, dvr)
 
+    def test_get_deployment_filter_tls(self):
+        """Test that get_deployment filters by tls_everywhere."""
+        job_names = ['test_17.3_ipv4_job_2comp_1cont_tls',
+                     'test_16_ipv6_job_1comp_2cont', 'test_job']
+        topology_value = "compute:2,controller:1"
+        response = {'jobs': [{'_class': 'folder'}]}
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastBuild': None})
+
+        self.jenkins.send_request = Mock(side_effect=[response])
+        arg = Argument("tls-everywhere", arg_type=str, description="",
+                       value=["True"])
+
+        jobs = self.jenkins.get_deployment(tls_everywhere=arg)
+        self.assertEqual(len(jobs), 1)
+        job_name = 'test_17.3_ipv4_job_2comp_1cont_tls'
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "17.3")
+        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(deployment.topology.value, topology_value)
+        self.assertEqual(deployment.tls_everywhere.value, "True")
+
+    def test_get_deployment_artifacts_tls(self):
+        """ Test that get_deployment reads properly the information obtained
+        from jenkins using artifacts.
+        """
+        job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
+        ip_versions = ['4', '6', 'unknown']
+        releases = ['17.3', '16', '']
+        tls_status = ['True', 'True', '']
+        topologies = ["compute:2,controller:3", "compute:1,controller:2",
+                      "compute:2,controller:2"]
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastBuild': {}})
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        fill = "STORAGE_BACKEND\nNETWORK_BACKEND\nNETWORK_PROTOCOL"
+        artifacts = [
+           f"bl\nJP_TOPOLOGY='{topologies[0]}'\nPRODUCT_VERSION=17.3\n{fill}" +
+           "\nTLS_EVERYWHERE='yes'",
+           f"bl\nJP_TOPOLOGY='{topologies[1]}'\nPRODUCT_VERSION=16\n{fill}" +
+           "\n--tls-everywhere true",
+           f"bla\nJP_TOPOLOGY='{topologies[2]}'\nPRODUCT_VERSION=\n{fill}",
+            ]
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        jobs = self.jenkins.get_deployment()
+        self.assertEqual(len(jobs), 3)
+        for job_name, ip, release, topology, tls in zip(job_names, ip_versions,
+                                                        releases, topologies,
+                                                        tls_status):
+            job = jobs[job_name]
+            deployment = job.deployment.value
+            self.assertEqual(job.name.value, job_name)
+            self.assertEqual(job.url.value, "url")
+            self.assertEqual(len(job.builds.value), 0)
+            self.assertEqual(deployment.release.value, release)
+            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(deployment.topology.value, topology)
+            self.assertEqual(deployment.tls_everywhere.value, tls)
+
 
 class TestFilters(TestCase):
     """Tests for filter functions in jenkins source module."""

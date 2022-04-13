@@ -32,12 +32,13 @@ from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.source import Source, safe_request_generic, speed_index
-from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_OPTIONS,
-                                   DVR_PATTERN_NAME, DVR_PATTERN_RUN,
-                                   IP_PATTERN, NETWORK_BACKEND_PATTERN,
+from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
+                                   DVR_PATTERN_RUN, IP_PATTERN,
+                                   NETWORK_BACKEND_PATTERN, OPTIONS,
                                    PROPERTY_PATTERN, RELEASE_PATTERN,
-                                   STORAGE_BACKEND_PATTERN, TOPOLOGY_PATTERN,
-                                   apply_filters, filter_topology,
+                                   STORAGE_BACKEND_PATTERN, TLS_PATTERN_RUN,
+                                   TOPOLOGY_PATTERN, apply_filters,
+                                   filter_topology,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
 
@@ -167,7 +168,8 @@ class Jenkins(Source):
         self.cert = cert
         self.deployment_attr = ["topology", "release",
                                 "network_backend", "storage_backend",
-                                "infra_type", "dvr", "ip_version"]
+                                "infra_type", "dvr", "ip_version",
+                                "tls_everywhere"]
 
     @safe_request
     def send_request(self, query, timeout=None, item="",
@@ -397,7 +399,8 @@ accurate results", len(jobs_found))
                                     topology=topology,
                                     network_backend=job["network_backend"],
                                     storage_backend=job["storage_backend"],
-                                    dvr=job["dvr"])
+                                    dvr=job["dvr"],
+                                    tls_everywhere=job["tls_everywhere"])
             job_objects[name].add_deployment(deployment)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
@@ -459,10 +462,23 @@ accurate results", len(jobs_found))
                     job["dvr"] = str(dvr_option in ('true', 'yes'))
 
             if "NETWORK_DVR" in line:
-                dvr_option = detect_job_info_regex(line, DVR_OPTIONS)
+                dvr_option = detect_job_info_regex(line, OPTIONS)
                 job["dvr"] = ""
                 if dvr_option:
                     job["dvr"] = str(dvr_option in ('true', 'yes'))
+
+            if "--tls-everywhere" in line:
+                tls_option = detect_job_info_regex(line, TLS_PATTERN_RUN,
+                                                   group_index=1)
+                job["tls_everywhere"] = ""
+                if tls_option:
+                    job["tls_everywhere"] = str(tls_option in ('true', 'yes'))
+
+            if "TLS_EVERYWHERE" in line:
+                tls_option = detect_job_info_regex(line, OPTIONS)
+                job["tls_everywhere"] = ""
+                if tls_option:
+                    job["tls_everywhere"] = str(tls_option in ('true', 'yes'))
 
         if self.job_missing_deployment_info(job):
             LOG.debug("Resorting to get deployment information from job name"
@@ -519,3 +535,9 @@ accurate results", len(jobs_found))
             job["dvr"] = ""
             if dvr:
                 job["dvr"] = str(dvr == "dvr")
+
+        if "tls_everywhere" not in job or not job["tls_everywhere"]:
+            # some jobs have TLS in their name as upper case
+            job["tls_everywhere"] = ""
+            if "tls" in job_name.lower():
+                job["tls_everywhere"] = "True"

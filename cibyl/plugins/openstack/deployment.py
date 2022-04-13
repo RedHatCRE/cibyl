@@ -76,6 +76,13 @@ class Deployment(Model):
                                    description="Whether dvr is used in the "
                                    "deployment")]
             },
+        'tls_everywhere': {
+            'attr_type': str,
+            'arguments': [Argument(name='--tls-everywhere', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Whether tls-everywhere is "
+                                   "used in the deployment")]
+            },
         'network_backend': {
             'attr_type': str,
             'arguments': [Argument(name='--network-backend', arg_type=str,
@@ -106,13 +113,13 @@ class Deployment(Model):
                  nodes: List[Node], services: List[Service],
                  ip_version: str = None, topology: str = None,
                  network_backend: str = None, storage_backend: str = None,
-                 dvr: str = None):
+                 dvr: str = None, tls_everywhere: str = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
                           'ip_version': ip_version, 'topology': topology,
                           'network_backend': network_backend,
                           'storage_backend': storage_backend,
-                          'dvr': dvr})
+                          'dvr': dvr, 'tls_everywhere': tls_everywhere})
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
@@ -137,9 +144,11 @@ class Deployment(Model):
         if self.dvr.value:
             info += f'\n{indent_space}' + Colors.blue('DVR: ')
             info += f'{self.dvr}'
+        if self.tls_everywhere.value:
+            info += f'\n{indent_space}' + Colors.blue('TLS everywhere: ')
+            info += f'{self.tls_everywhere}'
         for node in self.nodes:
-            info += f'\n{indent_space}  '
-            info += f'{node.__str__(indent=indent+2, verbosity=verbosity)}'
+            info += f'\n{node.__str__(indent=indent+2, verbosity=verbosity)}'
         if self.services.value:
             info += f'\n{indent_space}' + Colors.blue('Service: ')
             info += f'{self.services.value}'
