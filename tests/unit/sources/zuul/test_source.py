@@ -318,8 +318,7 @@ class TestGetLastBuild(TestCase):
         build1 = '1'
         build2 = '2'
 
-        job1 = 'job1'
-        job2 = 'job2'
+        job = 'job'
 
         kwargs = {
             'jobs': Argument('name', list, '', value=[]),
@@ -327,17 +326,17 @@ class TestGetLastBuild(TestCase):
         }
 
         client1 = Mock()
-        client1.name = job1
+        client1.name = job
         client1.builds = Mock()
         client1.builds.return_value = [
             {
                 'uuid': build1,
-                'job_name': job1,
+                'job_name': job,
                 'result': 'success'
             },
             {
                 'uuid': build2,
-                'job_name': job2,
+                'job_name': job,
                 'result': 'success'
             }
         ]
@@ -348,8 +347,89 @@ class TestGetLastBuild(TestCase):
 
         result = zuul.get_builds(**kwargs).value
 
-        self.assertEqual([job1], list(result.keys()))
+        # Check that the job was returned
+        self.assertEqual([job], list(result.keys()))
 
-        self.assertEqual([build1], list(result[job1].builds.keys()))
+        # Assert build 2 was filtered out
+        self.assertEqual([build1], list(result[job].builds.keys()))
 
-        self.assertEqual(build1, result[job1].builds[build1].build_id.value)
+        # Verify that build order was respected
+        self.assertEqual(build1, result[job].builds[build1].build_id.value)
+
+
+class TestBuildFilters(TestCase):
+    """Tests for all filters that apply to builds.
+    """
+
+    def setUp(self):
+        def new_mocked_tenant():
+            tenant = Mock()
+            tenant.jobs = Mock()
+            tenant.jobs.return_value = []
+            tenant.builds = Mock()
+            tenant.builds.return_value = []
+
+            return tenant
+
+        self.tenants = [
+            new_mocked_tenant(),
+            new_mocked_tenant()
+        ]
+
+        self.api = Mock()
+        self.api.tenants = Mock()
+        self.api.tenants.return_value = self.tenants
+
+    def test_filters_by_build_status(self):
+        """Checks that only those builds which status is among the ones
+        entered in '--build-status' are returned.
+        """
+        build1 = '1'
+        build2 = '2'
+        build3 = '3'
+
+        job = 'job'
+
+        status_ok = 'OK'
+        status_not_ok = 'NOT_OK'
+
+        status = [status_ok, status_not_ok]
+
+        kwargs = {
+            'jobs': Argument('name', list, '', value=[]),
+            'build_status': Argument('status', list, '', value=status)
+        }
+
+        client1 = Mock()
+        client1.name = job
+        client1.builds = Mock()
+        client1.builds.return_value = [
+            {
+                'uuid': build1,
+                'result': status_ok
+            },
+            {
+                'uuid': build2,
+                'result': '---'
+            },
+            {
+                'uuid': build3,
+                'result': status_not_ok
+            }
+        ]
+
+        self.tenants[0].jobs.return_value = [client1]
+
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
+
+        result = zuul.get_builds(**kwargs).value
+
+        # Check that the job was returned
+        self.assertEqual([job], list(result.keys()))
+
+        # Assert build 2 was filtered
+        self.assertEqual([build1, build3], list(result[job].builds.keys()))
+
+        # Verify that passed builds have the desired status
+        self.assertIn(result[job].builds[build1].status.value, status)
+        self.assertIn(result[job].builds[build3].status.value, status)

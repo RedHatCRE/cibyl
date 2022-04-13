@@ -14,11 +14,12 @@
 #    under the License.
 """
 import logging
+from typing import Dict
 
 import requests
 
-from cibyl.exceptions.source import (NoSupportedSourcesFound,
-                                     TooManyValidSources)
+from cibyl.cli.argument import Argument
+from cibyl.exceptions.source import NoSupportedSourcesFound
 from cibyl.utils.attrdict import AttrDict
 
 LOG = logging.getLogger(__name__)
@@ -96,12 +97,27 @@ def is_source_valid(source: Source, desired_attr: str):
     return True
 
 
-def get_source_method(system_name: str, sources: list, func_name: str):
+def get_source_speed_score(source, func_name: str, args: Dict[str, Argument]):
+    """Get the speed index for a source's method according to user input.
+
+    :param source: Source to evaluate
+    :type source: :class:`.Source`
+    :param func_name: Source's method to evaluate
+    :type func_name: str
+    :param args: User input arguments
+    :type args: dict
+    """
+    source_method = getattr(source, func_name)
+    speed = source_method.speed_index.get('base', 0)
+    for arg in args:
+        speed += source_method.speed_index.get(arg, 0)
+    return speed
+
+
+def get_source_method(system_name: str, sources: list, func_name: str,
+                      args: Dict[str, Argument]):
     """Returns a method of a single source given all the sources
     of the system and the name of function.
-
-    An exception is raised if there are no sources with such function
-    name or if there are multiple sources that have this function.
 
     :param system_name: The name of system
     :type system_name: str
@@ -109,23 +125,36 @@ def get_source_method(system_name: str, sources: list, func_name: str):
     :type sources: list[Source]
     :param func_name: The name of the function to invoke
     :type func_name: str
+    :param args: User input arguments
+    :type args: dict
+    :raises: NoSupportedSourcesFound if no sources with the function name are
+    found
     """
 
-    def get_valid_sources():
-        result = []
+    speed_score = 0
+    source_method = None
 
-        for source in sources:
-            if is_source_valid(source, func_name):
-                result.append(source)
+    for source in sources:
+        if is_source_valid(source, func_name):
+            source_speed_score = get_source_speed_score(source,
+                                                        func_name, args)
+            if source_speed_score > speed_score:
+                source_method = getattr(source, func_name)
+                speed_score = source_speed_score
 
-        return result
-
-    valid_sources = get_valid_sources()
-
-    if len(valid_sources) == 0:
+    if not source_method:
         raise NoSupportedSourcesFound(system_name, func_name)
+    LOG.debug("chose source %s with speed score %d",
+              source_method.__self__.get('driver'), speed_score)
 
-    if len(valid_sources) > 1:
-        raise TooManyValidSources(system_name)
+    return source_method
 
-    return getattr(valid_sources[0], func_name)
+
+def speed_index(speed):
+    """Add a speed index to sources methods to select the best one according to
+    user input.
+    """
+    def decorator(func):
+        setattr(func, 'speed_index', speed)
+        return func
+    return decorator

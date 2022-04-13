@@ -18,7 +18,7 @@ from itertools import chain
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
-from cibyl.sources.source import Source
+from cibyl.sources.source import Source, speed_index
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
 from cibyl.utils.filtering import apply_filters
 
@@ -64,12 +64,8 @@ class Zuul(Source):
                 )
 
                 if fetch_builds:
-                    builds = self._get_builds_for(job, **kwargs)
-
-                    model.builds = {
-                        build['uuid']: Build(build['uuid'], build['result'])
-                        for build in builds
-                    }
+                    for build in self._get_builds_for(job, **kwargs):
+                        model.add_build(Build(build['uuid'], build['result']))
 
                 return model
 
@@ -108,17 +104,24 @@ class Zuul(Source):
             :rtype: list[dict]
             """
 
-            def apply_last_build_filter(build):
+            def last_build_filter(build):
                 if 'last_build' not in kwargs:
                     return True
 
                 return build == builds[0]
 
+            def build_status_filter(build):
+                if 'build_status' not in kwargs:
+                    return True
+
+                return build['result'] in kwargs['build_status'].value
+
             builds = job.builds()
 
             return apply_filters(
                 builds,
-                apply_last_build_filter
+                last_build_filter,
+                build_status_filter
             )
 
         @staticmethod
@@ -195,6 +198,7 @@ class Zuul(Source):
 
         return Zuul(api=ZuulRESTClient.from_url(url, cert), url=url, **kwargs)
 
+    @speed_index({'base': 3})
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 
@@ -205,6 +209,7 @@ class Zuul(Source):
         """
         return self._api.get_jobs(fetch_builds=False, **kwargs)
 
+    @speed_index({'base': 3})
     def get_builds(self, **kwargs):
         """Retrieves builds present on the host.
 

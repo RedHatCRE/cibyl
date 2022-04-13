@@ -13,19 +13,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import operator
+import re
+from collections import namedtuple
 
+EXPRESSION_PATTERN = re.compile(r"([<>=!]*)(\d)+")
 
-class AttrDict(dict):
-    """A dictionary that allows you to access its items as attributes, meaning
-    that the following: "dict['item']" can also be written as "dict.item".
-    """
-    __setattr__ = dict.__setattr__
+Range = namedtuple('Range', 'operator operand')
 
-    def __getattr__(self, attribute):
-        """Define __getattr__ to reuse __getitem__ but raise AttributeError
-        instead of KeyError, so we can use hasattr with child classes.
-        """
-        try:
-            return self.__getitem__(attribute)
-        except KeyError as ex:
-            raise AttributeError from ex
+RANGE_OPERATORS = {"==": operator.eq, "=": operator.eq, "<": operator.lt,
+                   ">": operator.gt, "<=": operator.le, ">=": operator.ge,
+                   "!=": operator.ne}
+
+VALID_OPS = ",".join(RANGE_OPERATORS.keys())

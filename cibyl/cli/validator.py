@@ -18,6 +18,7 @@ import logging
 
 from cibyl.exceptions.model import (InvalidEnvironment, InvalidSystem,
                                     NoValidSystem)
+from cibyl.exceptions.source import NoValidSources
 
 LOG = logging.getLogger(__name__)
 
@@ -71,7 +72,6 @@ class Validator:
         """
         name = system.name.value
         system_type = system.system_type.value
-        system_sources = set(source.name for source in system.sources)
 
         user_system_type = self.ci_args.get("system_type")
         if user_system_type and system_type not in user_system_type.value:
@@ -81,6 +81,19 @@ class Validator:
         if user_systems and name not in user_systems.value:
             return False
 
+        return True
+
+    def _system_has_valid_sources(self, system):
+        """Check if a system should be used according to user input from
+        sources point of view.
+
+        :param system: Model to validate
+        :type system: :class:`.System`
+        :returns: Whether the system is consistent with user input
+        :rtype: bool
+        """
+
+        system_sources = set(source.name for source in system.sources)
         user_sources = self.ci_args.get("sources")
         if user_sources:
             user_sources_names = set(user_sources.value)
@@ -135,4 +148,23 @@ class Validator:
 
         if not user_systems:
             raise NoValidSystem(all_systems)
-        return user_envs, user_systems
+
+        user_systems = []
+        final_envs = []
+        for env in user_envs:
+            env_systems = []
+            for system in env.systems:
+                if not self._system_has_valid_sources(system):
+                    msg = "System %s has no sources consistent with user input"
+                    LOG.debug(msg, system.name.value)
+                    continue
+                env_systems.append(system)
+            if env_systems:
+                env.systems.value = env_systems
+                final_envs.append(env)
+                user_systems.extend(env_systems)
+
+        if not user_systems:
+            raise NoValidSources()
+
+        return final_envs, user_systems

@@ -24,3 +24,13 @@ class AbortedByUserError(CibylException):
         """Constructor.
         """
         super().__init__(message)
+
+
+class InvalidArgument(CibylException):
+    """Represents an argument with invalid format.
+    """
+
+    def __init__(self, message='Invalid argument provided.'):
+        """Constructor.
+        """
+        super().__init__(message)

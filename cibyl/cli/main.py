@@ -34,9 +34,10 @@ def raw_parsing(arguments):
     """
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
-            "debug": False, "plugins": [DEFAULT_PLUGIN]}
+            "logging": logging.INFO, "plugins": [DEFAULT_PLUGIN],
+            "debug": False}
     for i, item in enumerate(arguments[1:]):
-        if item == "--config":
+        if item in ('-c', '--config'):
             args['config_file_path'] = arguments[i + 2]
         if item in ('-h', '--help'):
             args['help'] = True
@@ -44,7 +45,10 @@ def raw_parsing(arguments):
             args["log_file"] = arguments[i + 2]
         elif item == "--log-mode":
             args["log_mode"] = arguments[i + 2]
-        elif item == "--debug":
+        elif item in ('-d', '--debug'):
+            args["logging"] = logging.DEBUG
+            # add both arguments so that the checking code to enable the
+            # exception traceback is clearer
             args["debug"] = True
         elif item in ('-p', '--plugin'):
             plugins = []
@@ -65,7 +69,9 @@ def main():
     arguments = raw_parsing(sys.argv)
     if not arguments['debug']:
         CibylException.setup_quiet_exceptions()
-    configure_logging(arguments)
+    configure_logging(arguments.get('log_mode'),
+                      arguments.get('log_file'),
+                      arguments.get('logging'))
 
     plugins = arguments.get('plugins')
     if plugins:
@@ -95,7 +101,8 @@ def main():
     orchestrator.run_query()
     orchestrator.publisher.publish(
         orchestrator.environments,
-        verbosity=orchestrator.parser.app_args.get('verbosity'))
+        verbosity=orchestrator.parser.app_args.get('verbosity'),
+        user_arguments=len(orchestrator.parser.ci_args))
 
 
 if __name__ == "__main__":
