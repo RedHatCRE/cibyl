@@ -26,9 +26,10 @@ PROPERTY_PATTERN = re.compile(r"=(.*)")
 NETWORK_BACKEND_PATTERN = re.compile("geneve|gre|vlan|vxlan")
 STORAGE_BACKEND_PATTERN = re.compile("ceph|lvm|netapp-iscsi|netapp-nfs|swift")
 DEPLOYMENT_PATTERN = re.compile("ovb|baremetal")
-DVR_OPTIONS = re.compile("yes|no|true|false")
-DVR_PATTERN_RUN = re.compile(rf"--network-dvr ({DVR_OPTIONS.pattern})")
+OPTIONS = re.compile("yes|no|true|false")
+DVR_PATTERN_RUN = re.compile(rf"--network-dvr ({OPTIONS.pattern})")
 DVR_PATTERN_NAME = re.compile(r"(non*_)*dvr")
+TLS_PATTERN_RUN = re.compile(rf"--tls-everywhere ({OPTIONS.pattern})")
 
 
 def satisfy_regex_match(model: Dict[str, str], pattern: Pattern,
