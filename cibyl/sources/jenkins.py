@@ -86,12 +86,6 @@ def filter_jobs(jobs_found: List[Dict], **kwargs):
         checks_to_apply.append(partial(satisfy_regex_match, pattern=pattern,
                                        field_to_check="name"))
 
-    job_names = kwargs.get('job_name')
-    if job_names:
-        checks_to_apply.append(partial(satisfy_exact_match,
-                                       user_input=job_names,
-                                       field_to_check="name"))
-
     job_urls = kwargs.get('job_url')
     if job_urls:
         checks_to_apply.append(partial(satisfy_exact_match,

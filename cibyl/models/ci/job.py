@@ -32,9 +32,7 @@ class Job(Model):
     API = {
         'name': {
             'attr_type': str,
-            'arguments': [Argument(name='--job-name', arg_type=str,
-                                   description="Job name",
-                                   func='get_jobs')]
+            'arguments': []
         },
         'url': {
             'attr_type': str,
