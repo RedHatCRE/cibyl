@@ -74,7 +74,8 @@ def is_job(job):
     :rtype: bool
     """
     job_class = job["_class"].lower()
-    return not ("view" in job_class or "folder" in job_class)
+    return not ("view" in job_class or "folder" in job_class or "multibranch"
+                in job_class)
 
 
 def filter_jobs(jobs_found: List[Dict], **kwargs):

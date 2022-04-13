@@ -1,3 +1,4 @@
+"""
 #    Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -11,15 +12,17 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+"""
 import sys
 
 from cibyl.utils.colors import Colors
 
 
 class CibylException(Exception):
+    """Parent class for all cibyl exceptions for easier control of the
+    exceptions' representation."""
     def __init__(self, message=''):
-        """Constructor.
-        """
+        """Constructor."""
         super().__init__(*[message])
 
     @staticmethod

@@ -42,3 +42,8 @@ specified sources with --source argument are present in the
 configuration.""".replace("\n", " ")
 
         super().__init__(self.message)
+
+
+class SourceException(CibylException):
+    """Abstract exception to representation any error while querying a
+    source."""
