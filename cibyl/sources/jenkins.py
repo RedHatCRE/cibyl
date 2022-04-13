@@ -221,7 +221,6 @@ class Jenkins(Source):
 
             url += f'{api_entrypoint}{query}'
 
-            LOG.debug("URL: %s", url)
             return url
 
         response = requests.get(
@@ -312,6 +311,7 @@ try reducing verbosity for quicker query")
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
+    @speed_index({'base': 2})
     def get_tests(self, **kwargs):
         """
             Get tests for a Jenkins job.
