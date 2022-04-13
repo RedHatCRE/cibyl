@@ -369,7 +369,7 @@ try reducing verbosity for quicker query")
                         item=f"job/{job_name}/{build['number']}/testReport",
                         query=self.build_tests_query)
                 except JenkinsError as jerr:
-                    if re.search('404', str(jerr)):
+                    if '404' in str(jerr):
                         LOG.warning("No tests found for build %s for job %s",
                                     build['number'], job_name)
                         continue
