@@ -356,28 +356,36 @@ try reducing verbosity for quicker query")
                     build_id=build['number'],
                     status=build['result'])
 
+                job_objects[job_name].add_build(build_object)
+
                 if build['result'] == 'FAILURE':
                     LOG.warning("Build %s for job %s failed. No tests to "
                                 "fetch", build['number'], job_name)
                     continue
 
                 # Get the tests for this build
-                tests_found = self.send_request(
-                    item=f"job/{job_name}/{build['number']}/testReport",
-                    query=self.build_tests_query)
+                try:
+                    tests_found = self.send_request(
+                        item=f"job/{job_name}/{build['number']}/testReport",
+                        query=self.build_tests_query)
+                except JenkinsError as jerr:
+                    if re.search('404', str(jerr)):
+                        LOG.warning("No tests found for build %s for job %s",
+                                    build['number'], job_name)
+                        continue
+                    else:
+                        raise jerr
 
                 for suit in tests_found['suites']:
                     for test in suit['cases']:
                         if not test['className']:
                             continue
 
-                        build_object.add_test(Test(
-                            name=test.get('name'),
-                            class_name=test.get('className'),
-                            result=test.get('status'),
-                            duration=test.get('duration')))
-
-                job_objects[job_name].add_build(build_object)
+                        job_objects[job_name].builds[build['number']].add_test(
+                            Test(name=test.get('name'),
+                                 class_name=test.get('className'),
+                                 result=test.get('status'),
+                                 duration=test.get('duration')))
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
