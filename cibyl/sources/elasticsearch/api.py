@@ -63,9 +63,6 @@ class ElasticSearchOSP(Source):
         if 'jobs' in kwargs:
             jobs_to_search = kwargs.get('jobs').value
             key_filter = 'jobName'
-        if 'job_name' in kwargs:
-            jobs_to_search = kwargs.get('job_name').value
-            key_filter = 'jobName'
         if 'job_url' in kwargs:
             jobs_to_search = kwargs.get('job_url').value
             key_filter = 'envVars.JOB_URL'
@@ -195,9 +192,7 @@ class ElasticSearchOSP(Source):
         :rtype: :class:`AttributeDictValue`
         """
         jobs_to_search = []
-        if 'job_name' in kwargs:
-            jobs_to_search = kwargs.get('job_name').value
-        elif 'jobs' in kwargs:
+        if 'jobs' in kwargs:
             jobs_to_search = kwargs.get('jobs').value
 
         query_body = QueryTemplate('jobName', jobs_to_search).get
