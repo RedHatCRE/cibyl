@@ -76,7 +76,7 @@ class Zuul(Source):
                 if 'job_url' not in kwargs:
                     return True
 
-                return self._get_url_for(job) == kwargs['job_url'].value
+                return self._get_url_for(job) in kwargs['job_url'].value
 
             def get_model_for(job):
                 model = Job(
