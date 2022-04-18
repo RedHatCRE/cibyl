@@ -97,10 +97,19 @@ class Zuul(Source):
 
             :param job: The job to get the build for.
             :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
-            :key last_build: Fetch only the latest build of each job. Does
-                nothing if build fetching is not requested. Type: bool.
-                Default: False.
-            :return: Information about the job's builds.
+            :param kwargs: Provides information on all filters that want to
+                be applied. For a filter to be considered, its key must be
+                present here and the correspondent data provided on its value.
+            :key last_build:
+                Fetch only the latest build of each job.
+                Type: None
+            :key build_id:
+                List of build IDs to be fetched.
+                Type: Argument[list[str]].
+            :key build_status:
+                List of desired statuses to be fetched.
+                Type: Argument[list[str]].
+            :return: Data on the job's builds.
             :rtype: list[dict]
             """
 
