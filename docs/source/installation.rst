@@ -1,40 +1,35 @@
 Installation
 ============
 
-.. code-block:: bash
-   :linenos:
+Install `cibyl` from GitHub (Recommended)::
 
-        pip install cibyl
+    pip install 'git+https://github.com/rhos-infra/cibyl.git'
 
-Set up configuration in one of the following paths:
-  * ~/.config/cibyl.yaml
-  * /etc/cibyl/cibyl.yaml
+To obtain latest stable released version of Cibyl, install it from PyPi::
 
-A valid configuration should specify an environment, its system(s) and the
-system(s) details.
-Use the configuration below as a minimal configuration file.
+    pip install cibyl
 
-.. code-block:: yaml
-   :linenos:
+.. warning:: Using Cibyl from virtualenv might not work as expected if certifications are required to connect the CI system(s)
+.. note:: For development purposes, it's recommended to use ``pip install -e 'git+https://github.com/rhos-infra/cibyl.git'``
 
-        environments:
-            env_1:
-                jenkins_system:
-                    system_type: ""
+Configuration
+-------------
 
-For query purposes, add sources in the following format:
+In order to use Cibyl's CLI, you should set up configuration first. Configuration is structured as follows::
 
+  environments:
+    example_env:
+      example_system:
+        system_type: jenkins
+        sources:
+          osp_jenkins:
+            driver: jenkins
+            url: 'https://some.jenkins.com'
+            cert: False
+            username: example_username  # Required specifically by Jenkins
+            token: example_token        # Required specifically by Jenkins
 
-.. code-block:: yaml
-   :linenos:
+Default location for the configuration file is ``~/.config/cibyl.yaml``
 
-        environments:
-          staging:
-            environment1:
-              system_type: 'SYSTEM_TYPE'
-              sources:
-                source1:
-                  driver: 'DRIVER'
-                  username: 'USERNAME'
-                  token: 'PERSONAL_TOKEN'
-                  url: 'https://URL.com'
+Each type of system will require a different set of parameters in order to start using/querying it.
+For more information on how to set up configuration for CLI usage, read the `configuration <configuration.html#configuration>`_ section.

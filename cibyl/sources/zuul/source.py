@@ -48,13 +48,8 @@ class Zuul(Source):
 
             :param fetch_builds: Whether to also download the jobs builds.
             :type fetch_builds: bool
-            :key jobs:
-                Names of the jobs to be fetched.
-                Type: Argument[list[str]].
-            :key job_url:
-                URL of the job to be fetched.
-                Type: Argument[str].
-            :return: Fetched jobs.
+            :param kwargs: See :meth:`~.get_jobs`.
+            :return: The fetched jobs.
             :rtype: :class:`AttributeDictValue`
             """
 
@@ -116,18 +111,7 @@ class Zuul(Source):
 
             :param job: The job to get the build for.
             :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
-            :param kwargs: Provides information on all filters that want to
-                be applied. For a filter to be considered, its key must be
-                present here and the correspondent data provided on its value.
-            :key last_build:
-                Fetch only the latest build of each job.
-                Type: None
-            :key build_id:
-                List of build IDs to be fetched.
-                Type: Argument[list[str]].
-            :key build_status:
-                List of desired statuses to be fetched.
-                Type: Argument[list[str]].
+            :param kwargs: See :meth:`~.get_builds`.
             :return: Data on the job's builds.
             :rtype: list[dict]
             """
@@ -204,10 +188,17 @@ class Zuul(Source):
         :type url: str
         :param cert: See :meth:`ZuulRESTClient.from_url`
         :type cert: str or None
-        :key name: Name of the source. Type: str. Default: 'zuul-ci'.
-        :key driver: Driver for this source. Type: str. Default: 'zuul'.
-        :key priority: Priority of the source. Type: int. Default: 0.
-        :key enabled: Whether this source is to be used.
+        :key name:
+            Name of the source.
+            Type: str. Default: 'zuul-ci'.
+        :key driver:
+            Driver for this source.
+            Type: str. Default: 'zuul'.
+        :key priority:
+            Priority of the source.
+            Type: int. Default: 0.
+        :key enabled:
+            Whether this source is to be used.
             Type: bool. Default: True.
         :return: The instance.
         """
@@ -220,6 +211,15 @@ class Zuul(Source):
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 
+        :param kwargs: Indicates all the filters that are to be applied to
+            the request. For a filter to be used, its key must be present
+            on this collection and its parameters present on the key's value.
+        :key jobs:
+            Names of the jobs to be fetched.
+            Type: Argument[list[str]].
+        :key job_url:
+            URL of the job to be fetched.
+            Type: Argument[str].
         :return: The jobs retrieved from the query, formatted as an attribute
             of type :class:`Job`. Jobs are indexed by their name on the
             attribute.
@@ -231,10 +231,21 @@ class Zuul(Source):
     def get_builds(self, **kwargs):
         """Retrieves builds present on the host.
 
-        :param kwargs: Parameters which narrow down the builds to search for.
-            Currently, the accepted parameters are:
-                * jobs -> list[str]: Name of jobs to search for.
-        :type kwargs: :class:`cibyl.cli.argument.Argument`
+        .. seealso::
+            For filters related to jobs, see: :meth:`~.get_jobs`.
+
+        :param kwargs: Indicates all the filters that are to be applied to
+            the request. For a filter to be used, its key must be present
+            on this collection and its parameters present on the key's value.
+        :key last_build:
+            Fetch only the latest build of each job.
+            Type: None
+        :key build_id:
+            List of build IDs to be fetched.
+            Type: Argument[list[str]].
+        :key build_status:
+            List of desired statuses to be fetched.
+            Type: Argument[list[str]].
         :return: The jobs retrieved from the query, formatted as an attribute
             of type :class:`Job`. Jobs are indexed by their name on the
             attribute. Builds can be found inside each of the jobs listed here.
