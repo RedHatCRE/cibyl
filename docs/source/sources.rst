@@ -77,9 +77,9 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
-   * - --build-number
+   * - --build-id
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
