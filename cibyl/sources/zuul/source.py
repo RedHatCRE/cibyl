@@ -48,14 +48,37 @@ class Zuul(Source):
 
             :param fetch_builds: Whether to also download the jobs builds.
             :type fetch_builds: bool
-            :key jobs: List of jobs to be fetched. Type: Argument[list[str]].
-                Default: None.
-            :key last_build: Fetch only the latest build of each job. Does
-                nothing if build fetching is not requested. Type: bool.
-                Default: False.
-            :return: The jobs in the format of an attribute.
+            :key jobs:
+                Names of the jobs to be fetched.
+                Type: Argument[list[str]].
+            :return: Fetched jobs.
             :rtype: :class:`AttributeDictValue`
             """
+
+            def get_all_jobs():
+                return chain.from_iterable(
+                    tenant.jobs() for tenant in self._api.tenants()
+                )
+
+            def job_name_filter(job):
+                # Filter not requested
+                if 'jobs' not in kwargs:
+                    return True
+
+                targets = kwargs['jobs'].value
+
+                # An empty '--jobs' means fetch all jobs.
+                if not targets:
+                    return True
+
+                return job.name in targets
+
+            def job_url_filter(job):
+                # Filter not requested
+                if 'job_url' not in kwargs:
+                    return True
+
+                return self._get_url_for(job) == kwargs['job_url'].value
 
             def get_model_for(job):
                 model = Job(
@@ -69,17 +92,10 @@ class Zuul(Source):
 
                 return model
 
-            def get_targets():
-                if 'jobs' not in kwargs:
-                    return []
-
-                return kwargs['jobs'].value
-
             jobs = apply_filters(
-                chain.from_iterable(
-                    tenant.jobs() for tenant in self._api.tenants()
-                ),
-                lambda job: self._is_job_a_target(get_targets(), job)
+                get_all_jobs(),
+                job_name_filter,
+                job_url_filter
             )
 
             return AttributeDictValue(
@@ -123,23 +139,6 @@ class Zuul(Source):
                 last_build_filter,
                 build_status_filter
             )
-
-        @staticmethod
-        def _is_job_a_target(targets, job):
-            """Implements the '--jobs job1 job2 ...' filter.
-
-            :param targets: Name of the jobs that are considered targets.
-                All jobs will be considered a target if this is empty.
-            :type targets: list[str]
-            :param job: The job to check.
-            :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
-            :return: Whether it is or not.
-            :rtype: bool
-            """
-            if not targets:
-                return True
-
-            return job.name in targets
 
         def _get_url_for(self, job):
             """Builds the URL where the job is located at. This URL is meant
