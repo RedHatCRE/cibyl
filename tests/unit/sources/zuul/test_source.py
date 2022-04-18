@@ -357,6 +357,60 @@ class TestGetLastBuild(TestCase):
         self.assertEqual(build1, result[job].builds[build1].build_id.value)
 
 
+class TestJobFilters(TestCase):
+    """Tests for all filters that apply to jobs.
+    """
+
+    @staticmethod
+    def new_job(tenant, name, url):
+        """Utility for creating mocked jobs.
+        """
+        job = Mock()
+        job.tenant = tenant
+        job.name = name
+        job.url = url
+
+        return job
+
+    def test_filters_by_url(self):
+        """Checks that only the job pointed by the url provided through
+        '--job-url' is returned.
+        """
+        url = 'http://localhost:8080/t/tenant/job/job1'
+
+        job1 = 'job1'
+        job2 = 'job2'
+        job3 = 'job3'
+
+        kwargs = {
+            'jobs': Argument('name', list, '', value=[]),
+            'job_url': Argument('url', str, '', value=url)
+        }
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+        tenant.jobs = Mock()
+        tenant.jobs.return_value = [
+            self.new_job(tenant, job1, url),
+            self.new_job(tenant, job2, '---'),
+            self.new_job(tenant, job3, '---')
+        ]
+
+        api = Mock()
+        api.tenants = Mock()
+        api.tenants.return_value = [tenant]
+
+        zuul = Zuul(api, 'zuul-ci', 'zuul', 'http://localhost:8080')
+
+        result = zuul.get_jobs(**kwargs).value
+
+        # Check that the job was returned
+        self.assertEqual([job1], list(result.keys()))
+
+        # Check that it is indeed the job with the desired url
+        self.assertEqual(result[job1].url.value, url)
+
+
 class TestBuildFilters(TestCase):
     """Tests for all filters that apply to builds.
     """
