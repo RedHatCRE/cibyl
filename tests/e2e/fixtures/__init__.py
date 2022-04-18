@@ -14,27 +14,24 @@
 #    under the License.
 """
 import sys
-
-from cibyl.cli.main import main
-from tests.e2e.containers.elasticsearch import ElasticSearchContainer
-from tests.e2e.fixtures import EndToEndTest
+from io import StringIO
+from unittest import TestCase
 
 
-class TestElasticSearch(EndToEndTest):
-    """Tests queries regarding the ElasticSearch source.
+class EndToEndTest(TestCase):
+    """Base fixture for e2e tests. Redirects stdout to a buffer to help
+    assert the app's output.
     """
 
-    def test_jobs(self):
-        """Checks that jobs are retrieved with the "--jobs" flag.
+    def setUp(self):
+        self._buffer = StringIO()
+
+        sys.stdout = self._buffer
+
+    @property
+    def output(self):
         """
-        with ElasticSearchContainer():
-            sys.argv = [
-                '',
-                '--config', 'tests/e2e/data/configs/elasticsearch.yaml',
-                '--jobs',
-                '-vv'
-            ]
-
-            main()
-
-            self.assertIn('Total jobs: 0', self.output)
+        :return: What the app wrote to stdout.
+        :rtype: str
+        """
+        return self._buffer.getvalue()
