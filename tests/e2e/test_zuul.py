@@ -16,25 +16,25 @@
 import sys
 
 from cibyl.cli.main import main
-from tests.e2e.fixture import ZuulTest
+from tests.e2e.containers.zuul import OpenDevZuulContainer
+from tests.e2e.fixtures import EndToEndTest
 
 
-class TestZuul(ZuulTest):
+class TestZuul(EndToEndTest):
     """Tests queries regarding the Zuul source.
     """
 
     def test_get_jobs(self):
         """Checks that jobs are retrieved with the "--jobs" flag.
         """
+        with OpenDevZuulContainer():
+            sys.argv = [
+                '',
+                '--config', 'tests/e2e/data/configs/zuul.yaml',
+                '--jobs',
+                '-vv'
+            ]
 
-        sys.argv = [
-            '',
-            '--config',
-            'tests/e2e/configs/zuul.yaml',
-            '--jobs',
-            '-vv'
-        ]
+            main()
 
-        main()
-
-        self.assertIn('Total jobs: 65', self.output)
+            self.assertIn('Total jobs: 65', self.output)
