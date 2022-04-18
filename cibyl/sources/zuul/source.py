@@ -51,6 +51,9 @@ class Zuul(Source):
             :key jobs:
                 Names of the jobs to be fetched.
                 Type: Argument[list[str]].
+            :key job_url:
+                URL of the job to be fetched.
+                Type: Argument[str].
             :return: Fetched jobs.
             :rtype: :class:`AttributeDictValue`
             """
