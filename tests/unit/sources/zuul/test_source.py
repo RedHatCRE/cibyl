@@ -434,6 +434,55 @@ class TestBuildFilters(TestCase):
         self.api.tenants = Mock()
         self.api.tenants.return_value = self.tenants
 
+    def test_filters_by_build_id(self):
+        """Checks that only those builds which IDs are among the ones
+        entered in '--build-id' are returned.
+        """
+        build1 = '1'
+        build2 = '2'
+        build3 = '3'
+
+        job = 'job'
+
+        kwargs = {
+            'jobs': Argument('name', list, '', value=[]),
+            'build_id': Argument('uuid', list, '', value=[build1, build3])
+        }
+
+        client1 = Mock()
+        client1.name = job
+        client1.builds = Mock()
+        client1.builds.return_value = [
+            {
+                'uuid': build1,
+                'result': '---'
+            },
+            {
+                'uuid': build2,
+                'result': '---'
+            },
+            {
+                'uuid': build3,
+                'result': '---'
+            }
+        ]
+
+        self.tenants[0].jobs.return_value = [client1]
+
+        zuul = Zuul(self.api, 'zuul-ci', 'zuul', 'http://localhost:8080')
+
+        result = zuul.get_builds(**kwargs).value
+
+        # Check that the job was returned
+        self.assertEqual([job], list(result.keys()))
+
+        # Assert build 2 was filtered
+        self.assertEqual([build1, build3], list(result[job].builds.keys()))
+
+        # Verify that passed builds have the desired ID
+        self.assertIn(result[job].builds[build1].build_id.value, build1)
+        self.assertIn(result[job].builds[build3].build_id.value, build3)
+
     def test_filters_by_build_status(self):
         """Checks that only those builds which status is among the ones
         entered in '--build-status' are returned.
