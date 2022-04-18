@@ -110,6 +110,12 @@ class Zuul(Source):
 
                 return build == builds[0]
 
+            def build_id_filter(build):
+                if 'build_id' not in kwargs:
+                    return True
+
+                return build['uuid'] in kwargs['build_id'].value
+
             def build_status_filter(build):
                 if 'build_status' not in kwargs:
                     return True
@@ -121,6 +127,7 @@ class Zuul(Source):
             return apply_filters(
                 builds,
                 last_build_filter,
+                build_id_filter,
                 build_status_filter
             )
 
