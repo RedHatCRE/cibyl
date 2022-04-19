@@ -13,3 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.plugins.openstack.printers.colored import ColoredPrinter
+from cibyl.publisher import PrintMode
+from cibyl.utils.colors import ClearText
+
+
+class RawPrinter(ColoredPrinter):
+    def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
+        super().__init__(mode, verbosity, ClearText())

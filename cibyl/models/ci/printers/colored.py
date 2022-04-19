@@ -28,12 +28,16 @@ LOG = logging.getLogger(__name__)
 
 
 class ColoredPrinter(CIPrinter):
-    def __init__(
-        self, mode=PrintMode.COMPLETE, verbosity=0, palette=DefaultPalette()
-    ):
+    def __init__(self,
+                 mode=PrintMode.COMPLETE, verbosity=0,
+                 palette=DefaultPalette()):
         super().__init__(mode, verbosity)
 
         self._palette = palette
+
+    @property
+    def palette(self):
+        return self._palette
 
     def print_environment(self, env):
         printer = IndentedTextBuilder()

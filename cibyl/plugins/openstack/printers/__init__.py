@@ -15,26 +15,53 @@
 """
 from abc import ABC, abstractmethod
 
+from cibyl.cli.output import OutputStyle
+from cibyl.plugins.openstack.printers.colored import ColoredPrinter
+from cibyl.plugins.openstack.printers.raw import RawPrinter
 from cibyl.publisher import Printer
 
 
-class OpenStackPrinter(ABC, Printer):
+class OSPrinter(ABC, Printer):
     @abstractmethod
-    def print_container(self):
+    def print_container(self, container):
         raise NotImplementedError
 
     @abstractmethod
-    def print_deployment(self):
+    def print_deployment(self, deployment):
         raise NotImplementedError
 
     @abstractmethod
-    def print_node(self):
+    def print_node(self, node):
         raise NotImplementedError
 
     @abstractmethod
-    def print_package(self):
+    def print_package(self, package):
         raise NotImplementedError
 
     @abstractmethod
-    def print_service(self):
+    def print_service(self, service):
         raise NotImplementedError
+
+
+class OSPrinterFactory:
+    @staticmethod
+    def from_style(style, mode, verbosity):
+        """
+
+        :param style:
+        :type style: :class:`OutputStyle`
+        :param mode:
+        :type mode: :class:`PrintMode`
+        :param verbosity:
+        :type verbosity: int
+        :return:
+        :rtype: :class:`OSPrinter`
+        :raise NotImplementedError: If there is not printer for the desired
+            style.
+        """
+        if style == OutputStyle.TEXT:
+            return RawPrinter(mode, verbosity)
+        elif style == OutputStyle.COLORIZED:
+            return ColoredPrinter(mode, verbosity)
+        else:
+            raise NotImplementedError(f'Unknown output style: {style}')
