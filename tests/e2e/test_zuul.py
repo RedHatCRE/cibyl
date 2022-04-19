@@ -37,4 +37,4 @@ class TestZuul(EndToEndTest):
 
             main()
 
-            self.assertIn('Total jobs: 65', self.output)
+            self.assertIn('Total jobs found in query: 65', self.output)
