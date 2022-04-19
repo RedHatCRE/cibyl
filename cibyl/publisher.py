@@ -14,37 +14,31 @@
 #    under the License.
 """
 import logging
+from abc import ABC
+from enum import Enum
 
-from cibyl.cli.output import OutputStyle
-from cibyl.models.ci.printers import PrintMode
-from cibyl.models.ci.printers.colored import ColoredPrinter
-from cibyl.models.ci.printers.raw import RawPrinter
+from cibyl.models.ci.printers import CIPrinterFactory
 
 LOG = logging.getLogger(__name__)
 
 
-class PrinterFactory:
-    @staticmethod
-    def from_style(style, mode, verbosity):
-        """
+class PrintMode(Enum):
+    SIMPLE = 0
+    COMPLETE = 1
 
-        :param style:
-        :type style: :class:`OutputStyle`
-        :param mode:
-        :type mode: :class:`PrintMode`
-        :param verbosity:
-        :type verbosity: int
-        :return:
-        :rtype: :class:`cibyl.models.ci.printers.Printer`
-        :raise NotImplementedError: If there is not printer for the desired
-            style.
-        """
-        if style == OutputStyle.TEXT:
-            return RawPrinter(mode, verbosity)
-        elif style == OutputStyle.COLORIZED:
-            return ColoredPrinter(mode, verbosity)
-        else:
-            raise NotImplementedError(f'Unknown output style: {style}')
+
+class Printer(ABC):
+    def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
+        self._mode = mode
+        self._verbosity = verbosity
+
+    @property
+    def mode(self):
+        return self._mode
+
+    @property
+    def verbosity(self):
+        return self._verbosity
 
 
 class Publisher:
@@ -70,7 +64,7 @@ class Publisher:
 
         if dest == "terminal":
             for env in environments:
-                printer = PrinterFactory.from_style(
+                printer = CIPrinterFactory.from_style(
                     output_style, print_mode, verbosity
                 )
 

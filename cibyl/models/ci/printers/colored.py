@@ -18,8 +18,9 @@ from abc import ABC, abstractmethod
 
 from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
-from cibyl.models.ci.printers import Printer, PrintMode
+from cibyl.models.ci.printers import CIPrinter
 from cibyl.models.ci.system import JobsSystem
+from cibyl.publisher import PrintMode
 from cibyl.utils.colors import Colors
 from cibyl.utils.strings import IndentedTextBuilder
 
@@ -69,7 +70,7 @@ class DefaultPalette(ColorPalette):
         return Colors.underline(text)
 
 
-class ColoredPrinter(Printer):
+class ColoredPrinter(CIPrinter):
     def __init__(
         self, mode=PrintMode.COMPLETE, verbosity=0, palette=DefaultPalette()
     ):
