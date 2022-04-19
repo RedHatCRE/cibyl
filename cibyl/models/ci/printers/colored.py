@@ -14,60 +14,17 @@
 #    under the License.
 """
 import logging
-from abc import ABC, abstractmethod
 
 from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
 from cibyl.models.ci.printers import CIPrinter
 from cibyl.models.ci.system import JobsSystem
 from cibyl.publisher import PrintMode
-from cibyl.utils.colors import Colors
+from cibyl.utils.colors import DefaultPalette
 from cibyl.utils.strings import IndentedTextBuilder
+from cibyl.utils.time import as_minutes
 
 LOG = logging.getLogger(__name__)
-
-
-def _as_minutes(ms):
-    return ms / 60000
-
-
-class ColorPalette(ABC):
-    @abstractmethod
-    def red(self, text):
-        raise NotImplementedError
-
-    @abstractmethod
-    def green(self, text):
-        raise NotImplementedError
-
-    @abstractmethod
-    def blue(self, text):
-        raise NotImplementedError
-
-    @abstractmethod
-    def yellow(self, text):
-        raise NotImplementedError
-
-    @abstractmethod
-    def underline(self, text):
-        raise NotImplementedError
-
-
-class DefaultPalette(ColorPalette):
-    def red(self, text):
-        return Colors.red(text)
-
-    def green(self, text):
-        return Colors.green(text)
-
-    def blue(self, text):
-        return Colors.blue(text)
-
-    def yellow(self, text):
-        return Colors.yellow(text)
-
-    def underline(self, text):
-        return Colors.underline(text)
 
 
 class ColoredPrinter(CIPrinter):
@@ -178,7 +135,7 @@ class ColoredPrinter(CIPrinter):
 
         if self.verbosity > 0:
             if build.duration.value:
-                duration = _as_minutes(build.duration.value)
+                duration = as_minutes(build.duration.value)
 
                 printer.add(self._palette.blue('Duration: '), 1)
                 printer[-1].append(f'{duration:.2f}m')
@@ -213,7 +170,7 @@ class ColoredPrinter(CIPrinter):
 
         if self.verbosity > 0:
             if test.duration.value:
-                duration = _as_minutes(test.duration.value)
+                duration = as_minutes(test.duration.value)
 
                 printer.add(self._palette.blue('Duration: '), 1)
                 printer[-1].append(f'{duration:.2f}m')

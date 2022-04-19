@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from abc import ABC, abstractmethod
 
 
 class Colors:
@@ -45,3 +46,59 @@ class Colors:
     @staticmethod
     def underline(text):
         return f"{Colors.UNDERLINE}{text}{Colors.CLOSE}"
+
+
+class ColorPalette(ABC):
+    @abstractmethod
+    def red(self, text):
+        raise NotImplementedError
+
+    @abstractmethod
+    def green(self, text):
+        raise NotImplementedError
+
+    @abstractmethod
+    def blue(self, text):
+        raise NotImplementedError
+
+    @abstractmethod
+    def yellow(self, text):
+        raise NotImplementedError
+
+    @abstractmethod
+    def underline(self, text):
+        raise NotImplementedError
+
+
+class DefaultPalette(ColorPalette):
+    def red(self, text):
+        return Colors.red(text)
+
+    def green(self, text):
+        return Colors.green(text)
+
+    def blue(self, text):
+        return Colors.blue(text)
+
+    def yellow(self, text):
+        return Colors.yellow(text)
+
+    def underline(self, text):
+        return Colors.underline(text)
+
+
+class ClearText(ColorPalette):
+    def red(self, text):
+        return text
+
+    def green(self, text):
+        return text
+
+    def blue(self, text):
+        return text
+
+    def yellow(self, text):
+        return text
+
+    def underline(self, text):
+        return text

@@ -13,11 +13,28 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.models.ci.printers import ColoredPrinter
-from cibyl.publisher import PrintMode
-from cibyl.utils.colors import ClearText
+from abc import ABC, abstractmethod
+
+from cibyl.publisher import Printer
 
 
-class RawPrinter(ColoredPrinter):
-    def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
-        super().__init__(mode, verbosity, ClearText())
+class OpenStackPrinter(ABC, Printer):
+    @abstractmethod
+    def print_container(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def print_deployment(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def print_node(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def print_package(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def print_service(self):
+        raise NotImplementedError
