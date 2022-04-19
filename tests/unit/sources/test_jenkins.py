@@ -472,9 +472,10 @@ class TestJenkinsSource(TestCase):
             self.assertEqual(deployment.release.value, release)
             self.assertEqual(deployment.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
-            for node, node_name in zip(deployment.nodes, node_list):
-                self.assertEqual(node.name.value, node_name)
-                self.assertEqual(node.role.value, node_name.split("-")[0])
+            for node_name, node_expected in zip(deployment.nodes, node_list):
+                node = deployment.nodes[node_name]
+                self.assertEqual(node.name.value, node_expected)
+                self.assertEqual(node.role.value, node_expected.split("-")[0])
 
     def test_get_deployment_many_jobs(self):
         """ Test that get_deployment reads properly the information obtained
