@@ -38,4 +38,4 @@ class TestElasticSearch(EndToEndTest):
 
             main()
 
-            self.assertIn('Total jobs: 0', self.output)
+            self.assertIn('Total jobs found in query: 0', self.output)
