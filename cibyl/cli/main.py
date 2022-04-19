@@ -16,7 +16,9 @@
 import logging
 import sys
 
+from cibyl.cli.output import OutputStyle
 from cibyl.exceptions import CibylException
+from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.orchestrator import Orchestrator
 from cibyl.plugins import DEFAULT_PLUGIN, extend_models
@@ -35,7 +37,7 @@ def raw_parsing(arguments):
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
             "logging": logging.INFO, "plugins": [DEFAULT_PLUGIN],
-            "debug": False}
+            "debug": False, "output_style": OutputStyle.COLORIZED}
     for i, item in enumerate(arguments[1:]):
         if item in ('-c', '--config'):
             args['config_file_path'] = arguments[i + 2]
@@ -57,6 +59,14 @@ def raw_parsing(arguments):
                     break
                 plugins.append(argument)
             args["plugins"] = plugins
+        elif item in ('-f', '--output-format'):
+            arg = arguments[i + 2]
+
+            try:
+                args["output_style"] = OutputStyle.from_key(arg)
+            except NotImplementedError:
+                raise InvalidArgument(f'Unknown format: {arg}')
+
     return args
 
 
@@ -101,6 +111,7 @@ def main():
     orchestrator.run_query()
     orchestrator.publisher.publish(
         orchestrator.environments,
+        arguments["output_style"],
         verbosity=orchestrator.parser.app_args.get('verbosity'),
         user_arguments=len(orchestrator.parser.ci_args))
 

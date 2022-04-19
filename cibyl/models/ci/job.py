@@ -20,7 +20,6 @@ from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue, AttributeValue
 from cibyl.models.ci.build import Build
 from cibyl.models.model import Model
-from cibyl.utils.colors import Colors
 
 
 class Job(Model):
@@ -56,27 +55,6 @@ class Job(Model):
                  builds: Dict[str, Build] = None):
         super().__init__({'name': name, 'url': url,
                           'builds': builds})
-
-    def __str__(self, indent=0, verbosity=0):
-        indent_space = indent*' '
-        job_str = Colors.blue(f"{indent_space}Job: ") + f"{self.name.value}"
-        if verbosity > 0 and self.url.value:
-            job_str += Colors.blue(f"\n{indent_space}  URL: ") + \
-                f"{self.url.value}"
-        if self.builds.value:
-            for build in self.builds.values():
-                job_str += f"\n{build.__str__(indent+2, verbosity)}"
-        for attribute_name in self.plugin_attributes:
-            attribute = getattr(self, attribute_name)
-            if not attribute.value:
-                continue
-            if isinstance(attribute, AttributeValue):
-                job_str += f"\n{attribute.value.__str__(indent+2, verbosity)}"
-            else:
-                for attr_value in attribute.value:
-                    job_str += f"\n{attr_value.__str__(indent+2, verbosity)}"
-
-        return job_str
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):

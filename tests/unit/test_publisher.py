@@ -14,8 +14,9 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
+from cibyl.cli.output import OutputStyle
 from cibyl.models.ci.environment import Environment
 from cibyl.publisher import Publisher
 
@@ -28,9 +29,23 @@ class TestOrchestrator(TestCase):
         self.env_name = "env1"
         self.environment = Environment(self.env_name)
 
+    @patch('cibyl.models.ci.printers.factory.CIPrinterFactory.from_style')
     @patch('builtins.print')
-    def test_publisher_publish(self, mock_print):
+    def test_publisher_publish(self, mock_print, mock_printer_factory):
         """Testing Publisher publish method"""
+        style = OutputStyle.TEXT
+        text = 'output-text'
+
+        printer = Mock()
+        printer.print_environment = Mock()
+        printer.print_environment.return_value = text
+
+        mock_printer_factory.return_value = printer
+
         self.publisher.publish(environments=[self.environment],
+                               output_style=style,
                                dest="terminal")
-        mock_print.assert_called_with(self.environment.__str__())
+
+        printer.print_environment.assert_called_once_with(self.environment)
+
+        mock_print.assert_called_once_with(text)

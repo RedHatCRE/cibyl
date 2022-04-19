@@ -32,7 +32,8 @@ class TestConfig(EndToEndTest):
         with HTTPDContainer() as httpd:
             sys.argv = [
                 '',
-                '--config', f'{httpd.url}/jenkins.yaml'
+                '--config', f'{httpd.url}/jenkins.yaml',
+                '-f', 'text'
             ]
 
             builtins.input = Mock()

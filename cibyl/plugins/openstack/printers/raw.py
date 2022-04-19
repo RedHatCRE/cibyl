@@ -13,8 +13,18 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.exceptions.source import SourceException
+from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
+from cibyl.publisher import PrintMode
+from cibyl.utils.colors import ClearText
 
 
-class JenkinsError(SourceException):
-    """Represents an error occurring while querying Jenkins."""
+class OSRawPrinter(OSColoredPrinter):
+    """Same as :class:`OSColoredPrinter`, but this one removes all color
+    decoration, leaving only the raw text.
+    """
+
+    def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
+        """| Constructor.
+        See parents for more information.
+        """
+        super().__init__(mode, verbosity, ClearText())

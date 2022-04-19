@@ -16,7 +16,6 @@
 # pylint: disable=no-member
 from cibyl.cli.argument import Argument
 from cibyl.models.model import Model
-from cibyl.utils.colors import Colors
 
 
 class Test(Model):
@@ -24,9 +23,7 @@ class Test(Model):
     API = {
         'name': {
             'attr_type': str,
-            'arguments': [Argument(name='--test-name', arg_type=str,
-                                   func='get_tests',
-                                   description="Test name")]
+            'arguments': []
         },
         'result': {
             'attr_type': str,
@@ -42,9 +39,7 @@ class Test(Model):
         },
         'class_name': {
             'attr_type': int,
-            'arguments': [Argument(name='--test-class-name', arg_type=str,
-                                   func='get_tests',
-                                   description="Test class name")]
+            'arguments': []
         }
     }
 
@@ -54,32 +49,6 @@ class Test(Model):
             result = result.upper()
         super().__init__({'name': name, 'result': result,
                           'duration': duration, 'class_name': class_name})
-
-    def __str__(self, indent=0, verbosity=0):
-        indent_space = indent*' '
-        test_str = f"{indent_space}{Colors.blue('Test: ')}{self.name.value}"
-        if self.result.value:
-            test_str += f"\n{indent_space}  {Colors.blue('Result: ')}"
-            success_values = ['SUCCESS', 'PASSED']
-            failure_values = ['FAILURE', 'FAILED']
-            if self.result.value in success_values:
-                test_str += Colors.green(f"{self.result.value}")
-            elif self.result.value in failure_values:
-                test_str += Colors.red(f"{self.result.value}")
-            elif self.result.value == "UNSTABLE":
-                test_str += Colors.yellow(f"{self.result.value}")
-            elif self.result.value == "SKIPPED":
-                test_str += Colors.blue(f"{self.result.value}")
-
-        if self.class_name.value:
-            test_str += f"\n{indent_space}  {Colors.blue('Class name: ')}"
-            test_str += f"{self.class_name.value}"
-
-        if verbosity > 0 and self.duration.value:
-            duration_in_min = self.duration.value / 60000
-            test_str += f"\n{indent_space}  {Colors.blue('Duration: ')}" + \
-                f"{duration_in_min:.2f}m"
-        return test_str
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):

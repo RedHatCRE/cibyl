@@ -13,8 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.exceptions.source import SourceException
 
 
-class JenkinsError(SourceException):
-    """Represents an error occurring while querying Jenkins."""
+def as_minutes(ms):
+    """Converts ms to mins.
+
+    :param ms: The ms to converts.
+    :type ms: int
+    :return: The time in minutes.
+    :rtype: int
+    """
+    return ms / 60000

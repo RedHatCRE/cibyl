@@ -31,10 +31,11 @@ class TestElasticSearch(EndToEndTest):
             sys.argv = [
                 '',
                 '--config', 'tests/e2e/data/configs/elasticsearch.yaml',
-                '--jobs',
-                '-vv'
+                '-f', 'text',
+                '-vv',
+                '--jobs'
             ]
 
             main()
 
-            self.assertIn('Total jobs: 0', self.output)
+            self.assertIn('Total jobs found in query: 0', self.output)

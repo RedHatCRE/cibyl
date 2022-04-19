@@ -34,10 +34,11 @@ class TestJenkins(EndToEndTest):
             sys.argv = [
                 '',
                 '--config', 'tests/e2e/data/configs/jenkins.yaml',
-                '--jobs',
-                '-vv'
+                '-f', 'text',
+                '-vv',
+                '--jobs'
             ]
 
             main()
 
-            self.assertIn('Total jobs: 2', self.output)
+            self.assertIn('Total jobs found in query: 2', self.output)
