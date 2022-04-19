@@ -50,12 +50,12 @@ Arguments Matrix
      - Zuul.d
    * - --jobs
      - | Jobs names or pattern
-       | Deafult: all jobs
+       | Default: all jobs
+     - |:ballot_box_with_check:|
+     - |:ballot_box_with_check:|
+     - |:ballot_box_with_check:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
-     - |:ballot_box_with_check:|
-     - |:ballot_box_with_check:|
-     - |:ballot_box_with_check:|
-     - |:x:|
    * - --job-url
      - Job URL
      - |:ballot_box_with_check:|
