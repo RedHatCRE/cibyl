@@ -40,8 +40,8 @@ class TestJobWithPlugin(TestCase):
 
     def setUp(self):
         extend_models("openstack")
-        self.deployment = Deployment(17.0, "test", [], [])
-        self.deployment2 = Deployment(17.1, "test", [], [])
+        self.deployment = Deployment(17.0, "test", {}, {})
+        self.deployment2 = Deployment(17.1, "test", {}, {})
         self.job = Job("job1", "url1")
         self.job2 = Job("job2", "url2")
 
