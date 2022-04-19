@@ -61,7 +61,7 @@ class Test(Model):
         if self.result.value:
             test_str += f"\n{indent_space}  {Colors.blue('Result: ')}"
             success_values = ['SUCCESS', 'PASSED']
-            failure_values = ['FAILURE', 'FAILED']
+            failure_values = ['FAILURE', 'FAILED', 'REGRESSION']
             if self.result.value in success_values:
                 test_str += Colors.green(f"{self.result.value}")
             elif self.result.value in failure_values:
