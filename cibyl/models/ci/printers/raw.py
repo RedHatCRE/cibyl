@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.models.ci.printers import PrintMode
 from cibyl.models.ci.printers.colored import ColoredPrinter, ColorPalette
 
 
@@ -34,5 +35,5 @@ class ClearText(ColorPalette):
 
 
 class RawPrinter(ColoredPrinter):
-    def __init__(self, verbosity=0):
-        super().__init__(verbosity, ClearText())
+    def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
+        super().__init__(mode, verbosity, ClearText())

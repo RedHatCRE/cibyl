@@ -16,13 +16,13 @@
 import logging
 import sys
 
+from cibyl.cli.output import OutputStyle
 from cibyl.exceptions import CibylException
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.orchestrator import Orchestrator
 from cibyl.plugins import DEFAULT_PLUGIN, extend_models
 from cibyl.utils.logger import configure_logging
-from cibyl.cli.output import OutputStyle
 
 LOG = logging.getLogger(__name__)
 

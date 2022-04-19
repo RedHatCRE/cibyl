@@ -14,11 +14,22 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
+from enum import Enum
+
+
+class PrintMode(Enum):
+    SIMPLE = 0
+    COMPLETE = 1
 
 
 class Printer(ABC):
-    def __init__(self, verbosity=0):
+    def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
+        self._mode = mode
         self._verbosity = verbosity
+
+    @property
+    def mode(self):
+        return self._mode
 
     @property
     def verbosity(self):
@@ -38,4 +49,8 @@ class Printer(ABC):
 
     @abstractmethod
     def print_build(self, build):
+        raise NotImplementedError
+
+    @abstractmethod
+    def print_test(self, test):
         raise NotImplementedError

@@ -16,6 +16,7 @@
 import logging
 
 from cibyl.cli.output import OutputStyle
+from cibyl.models.ci.printers import PrintMode
 from cibyl.models.ci.printers.colored import ColoredPrinter
 from cibyl.models.ci.printers.raw import RawPrinter
 
@@ -24,11 +25,13 @@ LOG = logging.getLogger(__name__)
 
 class PrinterFactory:
     @staticmethod
-    def from_style(style, verbosity):
+    def from_style(style, mode, verbosity):
         """
 
         :param style:
         :type style: :class:`OutputStyle`
+        :param mode:
+        :type mode: :class:`PrintMode`
         :param verbosity:
         :type verbosity: int
         :return:
@@ -37,9 +40,9 @@ class PrinterFactory:
             style.
         """
         if style == OutputStyle.TEXT:
-            return RawPrinter(verbosity)
+            return RawPrinter(mode, verbosity)
         elif style == OutputStyle.COLORIZED:
-            return ColoredPrinter(verbosity)
+            return ColoredPrinter(mode, verbosity)
         else:
             raise NotImplementedError(f'Unknown output style: {style}')
 
@@ -58,11 +61,17 @@ class Publisher:
         """Publishes the data of the given environments to the
         chosen destination.
         """
+        print_mode = PrintMode.COMPLETE
+
         # if the user did not pass any query argument (--jobs, --builds, ...)
         # print only a simple representation of the environment
-        simple_representation = user_arguments == 0
+        if user_arguments == 0:
+            print_mode = PrintMode.SIMPLE
+
         if dest == "terminal":
             for env in environments:
-                printer = PrinterFactory.from_style(output_style, verbosity)
+                printer = PrinterFactory.from_style(
+                    output_style, print_mode, verbosity
+                )
 
                 print(printer.print_environment(env))
