@@ -26,7 +26,7 @@ from cibyl.utils.strings import IndentedTextBuilder
 LOG = logging.getLogger(__name__)
 
 
-class ColorProvider(ABC):
+class ColorPalette(ABC):
     @abstractmethod
     def red(self, text):
         raise NotImplementedError
@@ -48,7 +48,7 @@ class ColorProvider(ABC):
         raise NotImplementedError
 
 
-class ColoredText(ColorProvider):
+class DefaultPalette(ColorPalette):
     def red(self, text):
         return Colors.red(text)
 
@@ -66,15 +66,16 @@ class ColoredText(ColorProvider):
 
 
 class ColoredPrinter(Printer):
-    def __init__(self, verbosity=0, color=ColoredText()):
+    def __init__(self, verbosity=0, palette=DefaultPalette()):
         super().__init__(verbosity)
 
-        self._color = color
+        self._palette = palette
 
     def print_environment(self, env):
         printer = IndentedTextBuilder()
 
-        printer.add(f'{self._color.blue("Environment: ")}{env.name.value}', 0)
+        printer.add(f'{self._palette.blue("Environment: ")}', 0)
+        printer[0].append(env.name.value)
 
         for system in env.systems:
             if isinstance(system, JobsSystem):
@@ -88,7 +89,8 @@ class ColoredPrinter(Printer):
     def print_jobs_system(self, system):
         printer = IndentedTextBuilder()
 
-        printer.add(f'{self._color.blue("System: ")}{system.name.value}', 0)
+        printer.add(f'{self._palette.blue("System: ")}', 0)
+        printer[0].append(system.name.value)
 
         if self.verbosity > 0:
             printer[0].append(f' (type: {system.system_type.value})')
@@ -104,7 +106,8 @@ class ColoredPrinter(Printer):
     def print_job(self, job):
         printer = IndentedTextBuilder()
 
-        printer.add(f'{self._color.blue("Job: ")}{job.name.value}', 0)
+        printer.add(f'{self._palette.blue("Job: ")}', 0)
+        printer[0].append(job.name.value)
 
         if self.verbosity > 0:
             if job.url.value:
@@ -146,21 +149,22 @@ class ColoredPrinter(Printer):
     def print_build(self, build):
         printer = IndentedTextBuilder()
 
-        printer.add(f'{self._color.blue("Build: ")}{build.build_id.value}', 0)
+        printer.add(f'{self._palette.blue("Build: ")}', 0)
+        printer[0].append(build.build_id.value)
 
         if build.status.value:
             status_x_color_map = {
-                'SUCCESS': lambda: self._color.green(build.status.value),
-                'FAILURE': lambda: self._color.red(build.status.value),
-                'UNSTABLE': lambda: self._color.yellow(build.status.value)
+                'SUCCESS': lambda: self._palette.green(build.status.value),
+                'FAILURE': lambda: self._palette.red(build.status.value),
+                'UNSTABLE': lambda: self._palette.yellow(build.status.value)
             }
 
             status = status_x_color_map.get(
                 build.status.value,
-                lambda: self._color.underline(build.status.value)
+                lambda: self._palette.underline(build.status.value)
             )
 
-            printer.add(f'{self._color.blue("Status: ")}{status}', 1)
+            printer.add(f'{self._palette.blue("Status: ")}{status}', 1)
 
         if self.verbosity > 0:
             if build.duration.value:
@@ -170,7 +174,7 @@ class ColoredPrinter(Printer):
                 duration = as_minutes(build.duration.value)
 
                 printer.add(
-                    f'{self._color.blue("Duration: ")}{duration:.2f}', 1
+                    f'{self._palette.blue("Duration: ")}{duration:.2f}', 1
                 )
 
         return printer.build()

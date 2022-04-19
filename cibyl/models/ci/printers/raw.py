@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.models.ci.printers.colored import ColoredPrinter, ColorProvider
+from cibyl.models.ci.printers.colored import ColoredPrinter, ColorPalette
 
 
-class ClearText(ColorProvider):
+class ClearText(ColorPalette):
     def red(self, text):
         return text
 
