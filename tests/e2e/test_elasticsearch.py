@@ -16,24 +16,26 @@
 import sys
 
 from cibyl.cli.main import main
-from tests.e2e.fixture import ElasticSearchTest
+from tests.e2e.containers.elasticsearch import ElasticSearchContainer
+from tests.e2e.fixtures import EndToEndTest
 
 
-class TestElasticSearch(ElasticSearchTest):
+class TestElasticSearch(EndToEndTest):
     """Tests queries regarding the ElasticSearch source.
     """
 
     def test_jobs(self):
         """Checks that jobs are retrieved with the "--jobs" flag.
         """
-        sys.argv = [
-            '',
-            '--config', 'tests/e2e/configs/elasticsearch.yaml',
-            '-f', 'text',
-            '-vv',
-            '--jobs'
-        ]
+        with ElasticSearchContainer():
+            sys.argv = [
+                '',
+                '--config', 'tests/e2e/data/configs/elasticsearch.yaml',
+                '-f', 'text',
+                '-vv',
+                '--jobs'
+            ]
 
-        main()
+            main()
 
-        self.assertIn('Total jobs: 0', self.output)
+            self.assertIn('Total jobs: 0', self.output)

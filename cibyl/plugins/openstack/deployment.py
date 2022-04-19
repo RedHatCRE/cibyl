@@ -38,6 +38,7 @@ class Deployment(Model):
         'infra_type': {
             'attr_type': str,
             'arguments': [Argument(name='--infra-type', arg_type=str,
+                                   func='get_deployment', nargs='*',
                                    description="Infra type")]
         },
         'nodes': {
@@ -68,6 +69,20 @@ class Deployment(Model):
                                    description="Topology used in the "
                                    "deployment")]
             },
+        'dvr': {
+            'attr_type': str,
+            'arguments': [Argument(name='--dvr', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Whether dvr is used in the "
+                                   "deployment")]
+            },
+        'tls_everywhere': {
+            'attr_type': str,
+            'arguments': [Argument(name='--tls-everywhere', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Whether tls-everywhere is "
+                                   "used in the deployment")]
+            },
         'network_backend': {
             'attr_type': str,
             'arguments': [Argument(name='--network-backend', arg_type=str,
@@ -84,31 +99,36 @@ class Deployment(Model):
                                    ranged=True,
                                    description="Number of computes used "
                                    "in the deployment")]
+            },
+        'storage_backend': {
+            'attr_type': str,
+            'arguments': [Argument(name='--storage-backend', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Storage backend used in the "
+                                   "deployment")]
             }
     }
 
     def __init__(self, release: float, infra_type: str,
                  nodes: List[Node], services: List[Service],
                  ip_version: str = None, topology: str = None,
-                 network_backend: str = None):
+                 network_backend: str = None, storage_backend: str = None,
+                 dvr: str = None, tls_everywhere: str = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
                           'ip_version': ip_version, 'topology': topology,
-                          'network_backend': network_backend})
+                          'network_backend': network_backend,
+                          'storage_backend': storage_backend,
+                          'dvr': dvr, 'tls_everywhere': tls_everywhere})
 
     def __str__(self, indent=0, verbosity=0):
         indent_space = indent*' '
         info = f'{indent_space}' + Colors.blue("Release: ")
         info += f'{self.release.value}'
 
-        info += f'\n{indent_space}' + Colors.blue('Infra type: ')
-        info += f'{self.infra_type.value}'
-        for node in self.nodes:
-            info += f'\n{indent_space}  '
-            info += f'{node.__str__(indent=indent+2, verbosity=verbosity)}'
-        if self.services.value:
-            info += f'\n{indent_space}' + Colors.blue('Service: ')
-            info += f'{self.services.value}'
+        if self.infra_type.value:
+            info += f'\n{indent_space}' + Colors.blue('Infra type: ')
+            info += f'{self.infra_type.value}'
         if self.ip_version.value:
             info += f'\n{indent_space}' + Colors.blue('IP version: ')
             info += f'{self.ip_version}'
@@ -116,7 +136,21 @@ class Deployment(Model):
             info += f'\n{indent_space}' + Colors.blue('Topology: ')
             info += f'{self.topology}'
         if self.network_backend.value:
-            info += f'\n{indent_space}' + Colors.blue('Nework backend: ')
+            info += f'\n{indent_space}' + Colors.blue('Network backend: ')
             info += f'{self.network_backend}'
+        if self.storage_backend.value:
+            info += f'\n{indent_space}' + Colors.blue('Storage backend: ')
+            info += f'{self.storage_backend}'
+        if self.dvr.value:
+            info += f'\n{indent_space}' + Colors.blue('DVR: ')
+            info += f'{self.dvr}'
+        if self.tls_everywhere.value:
+            info += f'\n{indent_space}' + Colors.blue('TLS everywhere: ')
+            info += f'{self.tls_everywhere}'
+        for node in self.nodes:
+            info += f'\n{node.__str__(indent=indent+2, verbosity=verbosity)}'
+        if self.services.value:
+            info += f'\n{indent_space}' + Colors.blue('Service: ')
+            info += f'{self.services.value}'
 
         return info

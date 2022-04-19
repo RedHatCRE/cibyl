@@ -23,18 +23,27 @@ class NoSupportedSourcesFound(CibylException):
 
     def __init__(self, system, function):
         self.message = f"""Couldn't find any enabled source for the system
-{system} that implements the function {function}.
-"""
+{system} that implements the function {function}.""".replace("\n", " ")
         super().__init__(self.message)
 
 
 class NoValidSources(CibylException):
     """Exception for a case when no valid source is found."""
 
-    def __init__(self, system):
-        self.system = system
-        self.message = f"""No valid source defined for the system
+    def __init__(self, system=None):
+        if system:
+            self.system = system
+            self.message = f"""No valid source defined for the system
 {self.system}.  Please ensure the specified sources with --source argument
-are present in the configuration.
-"""
+are present in the configuration.""".replace("\n", " ")
+        else:
+            self.message = """No valid source found. Please ensure the
+specified sources with --source argument are present in the
+configuration.""".replace("\n", " ")
+
         super().__init__(self.message)
+
+
+class SourceException(CibylException):
+    """Abstract exception to representation any error while querying a
+    source."""

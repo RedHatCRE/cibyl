@@ -16,24 +16,29 @@
 import sys
 
 from cibyl.cli.main import main
-from tests.e2e.fixture import JenkinsTest
+from tests.e2e.containers.jenkins import JenkinsContainer
+from tests.e2e.fixtures import EndToEndTest
 
 
-class TestJenkins(JenkinsTest):
+class TestJenkins(EndToEndTest):
     """Tests queries regarding the Jenkins source.
     """
 
     def test_get_jobs(self):
         """Checks that jobs are retrieved with the "--jobs" flag.
         """
-        sys.argv = [
-            '',
-            '--config', 'tests/e2e/configs/jenkins.yaml',
-            '-f', 'text',
-            '-vv',
-            '--jobs'
-        ]
+        with JenkinsContainer() as jenkins:
+            jenkins.add_job('test_1')
+            jenkins.add_job('test_2')
 
-        main()
+            sys.argv = [
+                '',
+                '--config', 'tests/e2e/data/configs/jenkins.yaml',
+                '-f', 'text',
+                '-vv',
+                '--jobs'
+            ]
 
-        self.assertIn('Total jobs: 0', self.output)
+            main()
+
+            self.assertIn('Total jobs: 2', self.output)

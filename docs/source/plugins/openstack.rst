@@ -31,76 +31,108 @@ Arguments Matrix
 ----------------
 
 .. list-table:: The supported arguments in the different built-in sources
-   :widths: 25 25 25 25 25 25
+   :widths: 20 40 10 10 10 10 10
    :header-rows: 1
 
    * - Argument / Source
+     - Description
      - Jenkins
-     - Zuul API
-     - Elasticsearch
+     - Zuul
+     - ES
      - JJB
      - Zuul.d
    * - --ip-version
+     - | The IP version used
+       | by the deployment (4 or 6)
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --release
+     - | OpenStack Release
+       | (OSP and RDO supported)
+     - |:ballot_box_with_check:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+   * - --infra-type
+     - | The infrstructure on which
+       | OS is deployed (e.g. ovb,
+       | baremetal, virthost)
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --topology
+     - | The combination of node
+       | types deployed
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --controllers
-     - |:black_square_button:|
+     - | Number of controlllers
+       | (Can be also range: ">=3")
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --computes
-     - |:black_square_button:|
+     - | Number of computes
+       | (Can be also range: ">=3")
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --dvr
-     - |:black_square_button:|
+     - | Does the deployment uses
+       | Distributed Virtual Router
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --network-backend
+     - | What network protocol is
+       | used (e.g. vxlan, vlan, ...)
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --storage-backend
-     - |:black_square_button:|
+     - | What storage backend is
+       | used (vlan, Ceph, Netapp)
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --packages
+     - | Package installed by the
+       | deployment
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:x:|
      - |:x:|
    * - --tls-everywhere
-     - |:black_square_button:|
+     - | Does the deployment uses
+       | TLS on all hosts
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:x:|
      - |:x:|
    * - --containers
+     - | List of containers running
+       | on the hosts
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|

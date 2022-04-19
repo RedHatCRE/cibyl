@@ -13,19 +13,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from overrides import overrides
+
+from tests.e2e.containers import ComposedContainer, wait_for
 
 
-class AttrDict(dict):
-    """A dictionary that allows you to access its items as attributes, meaning
-    that the following: "dict['item']" can also be written as "dict.item".
-    """
-    __setattr__ = dict.__setattr__
+class HTTPDContainer(ComposedContainer):
+    def __init__(self):
+        super().__init__('tests/e2e/data/images/httpd')
 
-    def __getattr__(self, attribute):
-        """Define __getattr__ to reuse __getitem__ but raise AttributeError
-        instead of KeyError, so we can use hasattr with child classes.
-        """
-        try:
-            return self.__getitem__(attribute)
-        except KeyError as ex:
-            raise AttributeError from ex
+    @property
+    def url(self):
+        return 'http://localhost:8080/'
+
+    @overrides
+    def _wait_until_ready(self):
+        wait_for(f'{self.url}')

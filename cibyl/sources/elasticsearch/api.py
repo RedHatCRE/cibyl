@@ -58,12 +58,10 @@ class ElasticSearchOSP(Source):
             :returns: Job objects queried from elasticserach
             :rtype: :class:`AttributeDictValue`
         """
-        key_filter = None
+        key_filter = 'jobName'
+        jobs_to_search = []
         if 'jobs' in kwargs:
             jobs_to_search = kwargs.get('jobs').value
-            key_filter = 'jobName'
-        if 'job_name' in kwargs:
-            jobs_to_search = kwargs.get('job_name').value
             key_filter = 'jobName'
         if 'job_url' in kwargs:
             jobs_to_search = kwargs.get('job_url').value
@@ -131,6 +129,10 @@ class ElasticSearchOSP(Source):
                                   for status in
                                   kwargs.get('build_status').value]
 
+            build_id_argument = None
+            if 'build_id' in kwargs:
+                build_id_argument = kwargs.get('build_id').value
+
             for build in builds:
 
                 build_result = None
@@ -144,7 +146,13 @@ class ElasticSearchOSP(Source):
                         build['_source']['buildResult'] not in build_statuses:
                     continue
 
-                job.add_build(Build(str(build['_source']['buildID']),
+                build_id = str(build['_source']['buildID'])
+
+                if build_id_argument and \
+                        build_id not in build_id_argument:
+                    continue
+
+                job.add_build(Build(build_id,
                                     build_result,
                                     build['_source']['runDuration']))
 
@@ -184,9 +192,7 @@ class ElasticSearchOSP(Source):
         :rtype: :class:`AttributeDictValue`
         """
         jobs_to_search = []
-        if 'job_name' in kwargs:
-            jobs_to_search = kwargs.get('job_name').value
-        elif 'jobs' in kwargs:
+        if 'jobs' in kwargs:
             jobs_to_search = kwargs.get('jobs').value
 
         query_body = QueryTemplate('jobName', jobs_to_search).get

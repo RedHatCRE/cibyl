@@ -14,8 +14,6 @@
 #    under the License.
 """
 
-# flake8: noqa from cibyl.cli.argument import Argument
-# flake8: noqa from cibyl.models.attribute import AttributeListValue
 from typing import Dict
 
 from cibyl.cli.argument import Argument
@@ -65,15 +63,18 @@ class Node(Model):
                           'packages': packages})
 
     def __str__(self, indent=2, verbosity=0):
-        info = Colors.blue('Node name: ') + f'{self.name.value}'
+        indent_space = indent*' '
+        info = f'{indent_space}'
+        info += Colors.blue('Node name: ') + f'{self.name.value}'
         if self.role.value and verbosity > 0:
-            info += Colors.blue('\n Role: ') + \
-                f'{self.role.value.__str__(indent)}'
+            info += f'\n{indent_space}  ' + Colors.blue('Role: ')
+            info += f'{self.role}'
         if self.containers.value:
             for container in self.containers:
-                info += Colors.blue('Container: ') + \
-                    f'{container.__str__(indent)}'
+                info += f'\n{indent_space}  ' + Colors.blue('Container: ')
+                info += f'{container.__str__(indent)}'
         if self.packages.value:
             for package in self.packages:
-                info += Colors.blue('Package: ') + f'{package.__str__(indent)}'
+                info += f'\n{indent_space}  ' + Colors.blue('Package: ')
+                info += f'{package.__str__(indent)}'
         return info

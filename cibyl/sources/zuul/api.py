@@ -15,8 +15,10 @@
 """
 from abc import ABC, abstractmethod
 
+from cibyl.exceptions.source import SourceException
 
-class ZuulAPIError(Exception):
+
+class ZuulAPIError(SourceException):
     """Represents an error occurring while performing a call to Zuul's API
     """
 

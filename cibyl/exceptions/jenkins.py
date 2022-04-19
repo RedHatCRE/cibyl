@@ -13,8 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.exceptions import CibylException
+from cibyl.exceptions.source import SourceException
 
 
-class JenkinsError(CibylException):
+class JenkinsError(SourceException):
     """Represents an error occurring while querying Jenkins."""

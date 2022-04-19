@@ -39,7 +39,7 @@ def raw_parsing(arguments):
             "logging": logging.INFO, "plugins": [DEFAULT_PLUGIN],
             "debug": False, "output_style": OutputStyle.COLORIZED}
     for i, item in enumerate(arguments[1:]):
-        if item == "--config":
+        if item in ('-c', '--config'):
             args['config_file_path'] = arguments[i + 2]
         if item in ('-h', '--help'):
             args['help'] = True
@@ -112,7 +112,8 @@ def main():
     orchestrator.publisher.publish(
         orchestrator.environments,
         arguments["output_style"],
-        verbosity=orchestrator.parser.app_args.get('verbosity'))
+        verbosity=orchestrator.parser.app_args.get('verbosity'),
+        user_arguments=len(orchestrator.parser.ci_args))
 
 
 if __name__ == "__main__":

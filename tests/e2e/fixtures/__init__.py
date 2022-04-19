@@ -14,28 +14,24 @@
 #    under the License.
 """
 import sys
-
-from cibyl.cli.main import main
-from tests.e2e.containers.zuul import OpenDevZuulContainer
-from tests.e2e.fixtures import EndToEndTest
+from io import StringIO
+from unittest import TestCase
 
 
-class TestZuul(EndToEndTest):
-    """Tests queries regarding the Zuul source.
+class EndToEndTest(TestCase):
+    """Base fixture for e2e tests. Redirects stdout to a buffer to help
+    assert the app's output.
     """
 
-    def test_get_jobs(self):
-        """Checks that jobs are retrieved with the "--jobs" flag.
+    def setUp(self):
+        self._buffer = StringIO()
+
+        sys.stdout = self._buffer
+
+    @property
+    def output(self):
         """
-        with OpenDevZuulContainer():
-            sys.argv = [
-                '',
-                '--config', 'tests/e2e/data/configs/zuul.yaml',
-                '-f', 'text',
-                '-vv',
-                '--jobs'
-            ]
-
-            main()
-
-            self.assertIn('Total jobs: 65', self.output)
+        :return: What the app wrote to stdout.
+        :rtype: str
+        """
+        return self._buffer.getvalue()
