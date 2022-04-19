@@ -56,3 +56,13 @@ class TestIndentedTextBuilder(TestCase):
         expected = 'Header\n  Section\n    Paragraph 1\n      List 1'
 
         self.assertEqual(expected, builder1.build())
+
+    def test_append_non_string(self):
+        builder = IndentedTextBuilder()
+
+        builder.add('Line ', 0)
+        builder[-1].append(1)
+
+        expected = 'Line 1'
+
+        self.assertEqual(expected, builder.build())

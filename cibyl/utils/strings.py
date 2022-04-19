@@ -33,7 +33,7 @@ class IndentedTextBuilder:
             return self._level
 
         def append(self, text):
-            self._text += text
+            self._text += str(text)
 
     def __init__(self, spaces_per_tab=2):
         self._lines = []
