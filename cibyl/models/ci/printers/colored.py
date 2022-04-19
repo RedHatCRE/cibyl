@@ -146,7 +146,7 @@ class ColoredPrinter(Printer):
             for value in values:
                 printer.add(value, 1)
 
-        return printer
+        return printer.build()
 
     def print_build(self, build):
         printer = IndentedTextBuilder()
