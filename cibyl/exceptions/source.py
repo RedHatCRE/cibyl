@@ -14,6 +14,7 @@
 #    under the License.
 """
 from cibyl.exceptions import CibylException
+from cibyl.utils.colors import Colors
 
 
 class NoSupportedSourcesFound(CibylException):
@@ -30,16 +31,15 @@ class NoSupportedSourcesFound(CibylException):
 class NoValidSources(CibylException):
     """Exception for a case when no valid source is found."""
 
-    def __init__(self, system=None):
+    def __init__(self, system="", sources=""):
+        if sources:
+            sources = Colors.blue('\n  '.join(sources))
+            sources = f"Available sources:\n  {sources}"
         if system:
-            self.system = system
-            self.message = f"""No valid source defined for the system
-{self.system}.  Please ensure the specified sources with --source argument
-are present in the configuration.""".replace("\n", " ")
-        else:
-            self.message = """No valid source found. Please ensure the
-specified sources with --source argument are present in the
-configuration.""".replace("\n", " ")
+            system = f"defined for the system {system}."
+        self.message = f"""No valid source found {system}. \
+Please ensure the specified sources with --source argument are present in \
+the configuration.\n{sources}"""
 
         super().__init__(self.message)
 

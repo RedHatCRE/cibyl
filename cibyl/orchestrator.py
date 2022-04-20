@@ -126,7 +126,8 @@ class Orchestrator:
             system_sources = [source for source in system.sources if
                               source.name in sources_user.value]
         if not system_sources:
-            raise NoValidSources(system)
+            raise NoValidSources(system,
+                                 [source.name for source in system.sources])
         return get_source_method(system.name.value, system_sources,
                                  argument.func, args=self.parser.ci_args)
 

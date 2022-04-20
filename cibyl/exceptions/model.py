@@ -14,6 +14,7 @@
 #    under the License.
 """
 from cibyl.exceptions import CibylException
+from cibyl.utils.colors import Colors
 
 
 class NonSupportedModelType(CibylException):
@@ -65,10 +66,9 @@ class InvalidSystem(CibylException):
     def __init__(self, system, valid_systems=None):
         self.message = f"No such system: {system}"
         if valid_systems:
-            self.message += "\nPlease use one of the following available"
-            self.message += " systems:\n"
+            self.message += "\nAvailable systems:\n"
             for system_name in valid_systems:
-                self.message += f"{system_name}\n"
+                self.message += f"  {Colors.blue(system_name)}\n"
         else:
             self.message += "\nPlease ensure the specified systems are present"
             self.message += " in the configuration."
