@@ -19,6 +19,9 @@ from cibyl.models.ci.printers.raw import CIRawPrinter
 
 
 class CIPrinterFactory:
+    """Factory for :class:`CIPrinter`.
+    """
+
     @staticmethod
     def from_style(style, mode, verbosity):
         """Builds the appropriate printer for the desired output style.

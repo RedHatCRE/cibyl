@@ -22,7 +22,7 @@ class PrintMode(Enum):
     output style.
     """
     SIMPLE = 0
-    """Prints the minimum amount of information on a model for it to be 
+    """Prints the minimum amount of information on a model for it to be
     distinguishable."""
     COMPLETE = 1
     """Prints all the information contained on a model."""

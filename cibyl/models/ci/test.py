@@ -16,7 +16,6 @@
 # pylint: disable=no-member
 from cibyl.cli.argument import Argument
 from cibyl.models.model import Model
-from cibyl.utils.colors import Colors
 
 
 class Test(Model):

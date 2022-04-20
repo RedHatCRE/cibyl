@@ -20,7 +20,6 @@ from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue, AttributeValue
 from cibyl.models.ci.build import Build
 from cibyl.models.model import Model
-from cibyl.utils.colors import Colors
 
 
 class Job(Model):

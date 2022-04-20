@@ -19,7 +19,6 @@ from cibyl.models.attribute import AttributeListValue
 from cibyl.models.ci.system import System
 from cibyl.models.ci.system_factory import SystemFactory
 from cibyl.models.model import Model
-from cibyl.utils.colors import Colors
 
 
 class Environment(Model):

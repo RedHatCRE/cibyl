@@ -20,7 +20,6 @@ from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.test import Test
 from cibyl.models.model import Model
-from cibyl.utils.colors import Colors
 
 
 class Build(Model):
