@@ -95,16 +95,16 @@ Arguments Matrix
      - |:black_square_button:|
      - |:x:|
      - |:x:|
-   * - --test-class-name
-     - Test class name
-     - |:black_square_button:|
-     - |:black_square_button:|
-     - |:black_square_button:|
-     - |:x:|
-     - |:x:|
    * - --test-result
      - | Test result (default: all)
        | success, failed, skipped
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:x:|
+     - |:x:|
+   * - --test-duration
+     - | Test duration (default: all)
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|

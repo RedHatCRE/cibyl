@@ -40,9 +40,7 @@ class Test(Model):
         },
         'class_name': {
             'attr_type': int,
-            'arguments': [Argument(name='--test-class-name', arg_type=str,
-                                   func='get_tests',
-                                   description="Test class name")]
+            'arguments': []
         }
     }
 
