@@ -21,15 +21,15 @@ from cibyl.models.ci.printers.raw import CIRawPrinter
 class CIPrinterFactory:
     @staticmethod
     def from_style(style, mode, verbosity):
-        """
+        """Builds the appropriate printer for the desired output style.
 
-        :param style:
+        :param style: The desired output style.
         :type style: :class:`OutputStyle`
-        :param mode:
+        :param mode: Amount of desired information.
         :type mode: :class:`PrintMode`
-        :param verbosity:
+        :param verbosity: Verbosity level.
         :type verbosity: int
-        :return:
+        :return: The printer.
         :rtype: :class:`CIPrinter`
         :raise NotImplementedError: If there is not printer for the desired
             style.

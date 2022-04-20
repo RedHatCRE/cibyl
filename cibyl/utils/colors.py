@@ -49,28 +49,64 @@ class Colors:
 
 
 class ColorPalette(ABC):
+    """Represents the palette of colors used on output.
+    """
+
     @abstractmethod
     def red(self, text):
+        """Paints text with the color red.
+
+        :param text: The text to paint.
+        :return: The painted text.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def green(self, text):
+        """Paints text with the color green.
+
+        :param text: The text to paint.
+        :return: The painted text.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def blue(self, text):
+        """Paints text with the color blue.
+
+        :param text: The text to paint.
+        :return: The painted text.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def yellow(self, text):
+        """Paints text with the color yellow.
+
+        :param text: The text to paint.
+        :return: The painted text.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def underline(self, text):
+        """Underlines text.
+
+        :param text: The text to underline.
+        :return: The underlined text.
+        :rtype: str
+        """
         raise NotImplementedError
 
 
 class DefaultPalette(ColorPalette):
+    """The default color scheme of the app.
+    """
+
     def red(self, text):
         return Colors.red(text)
 
@@ -88,6 +124,10 @@ class DefaultPalette(ColorPalette):
 
 
 class ClearText(ColorPalette):
+    """A palette without colors. Leaves all text as is. Used to disable
+    coloring wherever it is present.
+    """
+
     def red(self, text):
         return text
 

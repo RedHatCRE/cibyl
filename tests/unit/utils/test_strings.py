@@ -19,7 +19,12 @@ from cibyl.utils.strings import IndentedTextBuilder
 
 
 class TestIndentedTextBuilder(TestCase):
+    """Tests for :class:`IndentedTextBuilder`.
+    """
+
     def test_add_multiple_levels(self):
+        """Checks that the text is indented.
+        """
         builder = IndentedTextBuilder()
 
         builder \
@@ -32,6 +37,8 @@ class TestIndentedTextBuilder(TestCase):
         self.assertEqual(expected, builder.build())
 
     def test_can_modify_line(self):
+        """Checks that a line on the builder can be modified individually.
+        """
         builder = IndentedTextBuilder()
 
         builder.add('Text1,', 0)
@@ -42,6 +49,9 @@ class TestIndentedTextBuilder(TestCase):
         self.assertEqual(expected, builder.build())
 
     def test_nested_builders(self):
+        """Checks that the result of builder conserves indentation when
+        added to another.
+        """
         builder1 = IndentedTextBuilder()
         builder2 = IndentedTextBuilder()
 
@@ -58,6 +68,9 @@ class TestIndentedTextBuilder(TestCase):
         self.assertEqual(expected, builder1.build())
 
     def test_append_non_string(self):
+        """Checks that other data types other than str can be appended to
+        lines.
+        """
         builder = IndentedTextBuilder()
 
         builder.add('Line ', 0)

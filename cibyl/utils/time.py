@@ -16,4 +16,11 @@
 
 
 def as_minutes(ms):
+    """Converts ms to mins.
+
+    :param ms: The ms to converts.
+    :type ms: int
+    :return: The time in minutes.
+    :rtype: int
+    """
     return ms / 60000

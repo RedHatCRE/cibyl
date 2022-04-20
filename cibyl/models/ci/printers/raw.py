@@ -19,5 +19,12 @@ from cibyl.utils.colors import ClearText
 
 
 class CIRawPrinter(CIColoredPrinter):
+    """Same as :class:`CIColoredPrinter`, but this one removes all color
+    decoration, leaving only the raw text.
+    """
+
     def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
+        """| Constructor.
+        See parents for more information.
+        """
         super().__init__(mode, verbosity, ClearText())

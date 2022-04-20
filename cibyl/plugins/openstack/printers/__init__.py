@@ -19,22 +19,50 @@ from cibyl.output import Printer
 
 
 class OSPrinter(Printer, ABC):
+    """Base class for all printers for a OS model tree.
+    """
+
     @abstractmethod
     def print_container(self, container):
+        """
+        :param container: The container.
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def print_deployment(self, deployment):
+        """
+        :param deployment: The deployment.
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def print_node(self, node):
+        """
+        :param node: The node.
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def print_package(self, package):
+        """
+        :param package: The package.
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def print_service(self, service):
+        """
+        :param service: The service.
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         raise NotImplementedError

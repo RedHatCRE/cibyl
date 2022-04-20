@@ -17,14 +17,29 @@ from enum import Enum
 
 
 class OutputStyle(Enum):
+    """Lists all supported output formats by the CLI.
+    """
     TEXT = 0
+    """A human-readable text based format."""
     COLORIZED = 1
+    """Same as :attr:`TEXT` but colored for easier read."""
 
     @staticmethod
-    def from_str(label):
-        if label == 'text':
+    def from_key(key):
+        """| Parses a key into an :class:`OutputStyle`.
+        Map of known keys:
+            * 'text' -> OutputStyle.TEXT
+            * 'colorized' -> OutputStyle.COLORIZED
+
+        :param key: The key to get the style for.
+        :type key: Any
+        :return: The correspondent style.
+        :rtype: :class:`OutputStyle`
+        :raise NotImplementedError: If no style is present for the given key.
+        """
+        if key == 'text':
             return OutputStyle.TEXT
-        elif label == 'colorized':
+        elif key == 'colorized':
             return OutputStyle.COLORIZED
         else:
-            raise NotImplementedError(f'Unknown format: {label}')
+            raise NotImplementedError(f'Unknown format: {key}')

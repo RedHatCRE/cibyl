@@ -18,19 +18,46 @@ from enum import Enum
 
 
 class PrintMode(Enum):
+    """Defines the multiple ways on which a model can be printed within an
+    output style.
+    """
     SIMPLE = 0
+    """Prints the minimum amount of information on a model for it to be 
+    distinguishable."""
     COMPLETE = 1
+    """Prints all the information contained on a model."""
 
 
 class Printer(ABC):
+    """Base class for all implementations of an output style.
+    """
+
     def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
+        """Constructor.
+
+        :param mode: Amount of information desired on the printed result.
+        :type mode: :class:`PrintMode`
+        :param verbosity: How verbose the output is to be expected.
+            The higher this value is, the more text will be printed.
+            This differs from the mode in that the mode selects the data to be
+            printed while this how much is to be said about each entry.
+        :type verbosity: int
+        """
         self._mode = mode
         self._verbosity = verbosity
 
     @property
     def mode(self):
+        """
+        :return: The print mode of this printer.
+        :rtype: :class:`PrintMode`
+        """
         return self._mode
 
     @property
     def verbosity(self):
+        """
+        :return: Verbosity level of this printer.
+        :rtype: int
+        """
         return self._verbosity

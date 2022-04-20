@@ -23,6 +23,9 @@ from cibyl.models.ci.test import Test
 
 
 class TestCIRawParser(TestCase):
+    """Tests for :class:`CIRawParser`.
+    """
+
     def test_str_environment(self):
         """Testing printing of an environment.
         """

@@ -22,6 +22,9 @@ from cibyl.plugins.openstack.service import Service
 
 
 class TestOSRawPrinter(TestCase):
+    """Tests for :class:`OSRawParser`.
+    """
+
     def test_print_deployment(self):
         """Test that the string representation of Deployment works.
         """

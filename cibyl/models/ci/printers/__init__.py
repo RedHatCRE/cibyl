@@ -19,22 +19,50 @@ from cibyl.output import Printer
 
 
 class CIPrinter(Printer, ABC):
+    """Base class for all printers for a CI model tree.
+    """
+
     @abstractmethod
     def print_environment(self, env):
+        """
+        :param env: The environment.
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def print_jobs_system(self, system):
+        """
+        :param system: The system.
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def print_job(self, job):
+        """
+        :param job: The job.
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def print_build(self, build):
+        """
+        :param build: The build.
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def print_test(self, test):
+        """
+        :param test: The test.
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         raise NotImplementedError

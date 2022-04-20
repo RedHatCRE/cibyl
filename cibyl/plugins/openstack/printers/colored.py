@@ -20,15 +20,29 @@ from cibyl.utils.strings import IndentedTextBuilder
 
 
 class OSColoredPrinter(OSPrinter):
+    """Provides a human-readable representation of OS models decorated with
+    coloring for easier readability.
+    """
+
     def __init__(self,
                  mode=PrintMode.COMPLETE, verbosity=0,
                  palette=DefaultPalette()):
+        """| Constructor.
+        See parents for more information.
+
+        :param palette: Palette of colors to be used.
+        :type palette: :class:`cibyl.utils.colors.ColorPalette`
+        """
         super().__init__(mode, verbosity)
 
         self._palette = palette
 
     @property
     def palette(self):
+        """
+        :return: The palette currently in use.
+        :rtype: :class:`cibyl.utils.colors.ColorPalette`
+        """
         return self._palette
 
     def print_container(self, container):

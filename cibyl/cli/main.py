@@ -63,7 +63,7 @@ def raw_parsing(arguments):
             arg = arguments[i + 2]
 
             try:
-                args["output_style"] = OutputStyle.from_str(arg)
+                args["output_style"] = OutputStyle.from_key(arg)
             except NotImplementedError:
                 raise InvalidArgument(f'Unknown format: {arg}')
 
