@@ -58,27 +58,6 @@ class Build(Model):
         super().__init__({'build_id': build_id, 'status': status,
                           'duration': duration, 'tests': tests})
 
-    def __str__(self, indent=0, verbosity=0):
-        indent_space = indent*' '
-        build_str = Colors.blue(
-            f"{indent_space}Build: ") + f"{self.build_id.value}"
-        if self.status.value:
-            build_str += Colors.blue(f"\n{indent_space}  Status: ")
-            if self.status.value == "SUCCESS":
-                build_str += Colors.green(f"{self.status.value}")
-            if self.status.value == "FAILURE":
-                build_str += Colors.red(f"{self.status.value}")
-            if self.status.value == "UNSTABLE":
-                build_str += Colors.yellow(f"{self.status.value}")
-        if verbosity > 0 and self.duration.value:
-            duration_in_min = self.duration.value / 60000
-            build_str += Colors.blue(f"\n{indent_space}  Duration: ") + \
-                f"{duration_in_min:.2f}m"
-        if self.tests.value:
-            for test in self.tests.values():
-                build_str += f"\n{test.__str__(indent+2, verbosity)}"
-        return build_str
-
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False

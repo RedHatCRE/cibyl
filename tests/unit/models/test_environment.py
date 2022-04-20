@@ -55,11 +55,6 @@ instead of {self.name}")
         self.assertEqual("zuul_sys", self.env.systems.value[0].name.value)
         self.assertEqual("jenkins_sys", self.env.systems.value[1].name.value)
 
-    def test_str_environment(self):
-        """Testing environment str method"""
-        self.assertIn("Environment: ", str(self.env))
-        self.assertIn(self.name, str(self.env))
-
     def test_add_systems_constructor(self):
         """Testing passing systems to environment constructor"""
         zuul = PipelineSystem("zuul_sys", "zuul")

@@ -21,7 +21,7 @@ from cibyl.plugins.openstack.printers.raw import OSRawPrinter
 from cibyl.plugins.openstack.service import Service
 
 
-class TestRawPrinter(TestCase):
+class TestOSRawPrinter(TestCase):
     def test_print_deployment(self):
         """Test that the string representation of Deployment works.
         """

@@ -71,9 +71,11 @@ class TestJobWithPlugin(TestCase):
 
     def test_str_no_deployment(self):
         """Test string representation of Job without deployment."""
-        job_str = self.job.__str__(indent=2, verbosity=2)
-        self.assertNotIn("Release: ", job_str)
-        self.assertNotIn("Infra type: ", job_str)
+        printer = CIRawPrinter(verbosity=2)
+        result = printer.print_job(self.job)
+
+        self.assertNotIn("Release: ", result)
+        self.assertNotIn("Infra type: ", result)
 
 
 class TestOpenstackPluginUtils(TestCase):

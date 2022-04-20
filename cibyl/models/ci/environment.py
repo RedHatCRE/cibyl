@@ -48,12 +48,3 @@ class Environment(Model):
         self.systems.append(SystemFactory.create_system(system_type, name,
                                                         sources=sources,
                                                         jobs_scope=jobs_scope))
-
-    def __str__(self, indent=0, verbosity=0, simple_representation=False):
-        string = ""
-        string += Colors.blue("Environment: ") + f"{self.name.value}"
-        for system in self.systems:
-            system_str = system.__str__(indent + 2, verbosity,
-                                        simple_representation)
-            string += f"\n{system_str}"
-        return string

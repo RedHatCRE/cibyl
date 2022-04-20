@@ -145,7 +145,7 @@ class CIColoredPrinter(CIPrinter):
             status = status_x_color_map.get(
                 build.status.value,
                 lambda: self._palette.underline(build.status.value)
-            )
+            )()
 
             printer.add(self._palette.blue('Status: '), 1)
             printer[-1].append(status)
@@ -158,7 +158,7 @@ class CIColoredPrinter(CIPrinter):
                 printer[-1].append(f'{duration:.2f}m')
 
         if build.tests.value:
-            for test in build.test.values():
+            for test in build.tests.values():
                 printer.add(self.print_test(test), 1)
 
         return printer.build()
