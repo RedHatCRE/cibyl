@@ -28,9 +28,7 @@ class Build(Model):
     API = {
         'build_id': {
             'attr_type': str,
-            'arguments': [Argument(name='--build-id', arg_type=str,
-                                   nargs='*', func='get_builds',
-                                   description="Build ID")]
+            'arguments': []
         },
         'status': {
             'attr_type': str,

@@ -24,9 +24,7 @@ class Test(Model):
     API = {
         'name': {
             'attr_type': str,
-            'arguments': [Argument(name='--test-name', arg_type=str,
-                                   func='get_tests',
-                                   description="Test name")]
+            'arguments': []
         },
         'result': {
             'attr_type': str,
@@ -42,9 +40,7 @@ class Test(Model):
         },
         'class_name': {
             'attr_type': int,
-            'arguments': [Argument(name='--test-class-name', arg_type=str,
-                                   func='get_tests',
-                                   description="Test class name")]
+            'arguments': []
         }
     }
 

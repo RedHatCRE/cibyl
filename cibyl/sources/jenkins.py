@@ -107,12 +107,6 @@ def filter_builds(builds_found: List[Dict], **kwargs):
                                        user_input=builds_arg,
                                        field_to_check="number"))
 
-    build_ids = kwargs.get('build_id')
-    if build_ids:
-        checks_to_apply.append(partial(satisfy_exact_match,
-                                       user_input=build_ids,
-                                       field_to_check="number"))
-
     build_status = kwargs.get('build_status')
     if build_status:
         checks_to_apply.append(partial(satisfy_case_insensitive_match,
@@ -334,7 +328,7 @@ try reducing verbosity for quicker query")
             job_object = Job(name=job_name, url=job.get('url'))
             job_objects[job_name] = job_object
 
-            if kwargs.get('build_id'):
+            if kwargs.get('builds'):
                 # For specific build ids we have to fetch them
                 builds = self.send_request(item=f"job/{job_name}",
                                            query=self.jobs_builds_query.get(
