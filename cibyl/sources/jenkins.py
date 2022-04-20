@@ -37,6 +37,7 @@ from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
                                    DVR_PATTERN_RUN, IP_PATTERN,
                                    NETWORK_BACKEND_PATTERN, OPTIONS,
                                    PROPERTY_PATTERN, RELEASE_PATTERN,
+                                   RELEASE_RUN, RELEASE_VERSION,
                                    STORAGE_BACKEND_PATTERN, TLS_PATTERN_RUN,
                                    TOPOLOGY_PATTERN, apply_filters,
                                    filter_topology,
@@ -532,9 +533,13 @@ accurate results", len(jobs_found))
                 topology_str = topology_str.replace('"', '')
                 topology_str = topology_str.replace("'", '')
                 job["topology"] = topology_str
-            if "--version" in line or "PRODUCT_VERSION" in line:
+            if "--version" in line:
                 job["release"] = detect_job_info_regex(line,
-                                                       RELEASE_PATTERN)
+                                                       RELEASE_RUN)
+            if "PRODUCT_VERSION" in line:
+                job["release"] = detect_job_info_regex(line,
+                                                       RELEASE_VERSION)
+
             if "--storage-backend" in line or "STORAGE_BACKEND" in line:
                 storage = detect_job_info_regex(line, STORAGE_BACKEND_PATTERN)
                 job["storage_backend"] = storage

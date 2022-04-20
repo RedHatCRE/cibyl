@@ -21,6 +21,8 @@ from cibyl.cli.ranged_argument import RANGE_OPERATORS
 
 IP_PATTERN = re.compile("ipv(.)")
 RELEASE_PATTERN = re.compile(r"\d\d\.?\d?")
+RELEASE_RUN = re.compile(rf"--version ({RELEASE_PATTERN})")
+RELEASE_VERSION = re.compile(rf"PRODUCT_VERSION:({RELEASE_PATTERN})")
 TOPOLOGY_PATTERN = re.compile(r"(\d([a-zA-Z])+_?)+")
 PROPERTY_PATTERN = re.compile(r"=(.*)")
 NETWORK_BACKEND_PATTERN = re.compile("geneve|gre|vlan|vxlan")
