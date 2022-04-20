@@ -29,7 +29,7 @@ class TestOrchestrator(TestCase):
         self.env_name = "env1"
         self.environment = Environment(self.env_name)
 
-    @patch('cibyl.publisher.PrinterFactory.from_style')
+    @patch('cibyl.models.ci.printers.factory.CIPrinterFactory.from_style')
     @patch('builtins.print')
     def test_publisher_publish(self, mock_print, mock_printer_factory):
         """Testing Publisher publish method"""

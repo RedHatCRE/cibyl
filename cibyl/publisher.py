@@ -14,31 +14,11 @@
 #    under the License.
 """
 import logging
-from abc import ABC
-from enum import Enum
 
-from cibyl.models.ci.printers import CIPrinterFactory
+from cibyl.models.ci.printers.factory import CIPrinterFactory
+from cibyl.output import PrintMode
 
 LOG = logging.getLogger(__name__)
-
-
-class PrintMode(Enum):
-    SIMPLE = 0
-    COMPLETE = 1
-
-
-class Printer(ABC):
-    def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
-        self._mode = mode
-        self._verbosity = verbosity
-
-    @property
-    def mode(self):
-        return self._mode
-
-    @property
-    def verbosity(self):
-        return self._verbosity
 
 
 class Publisher:

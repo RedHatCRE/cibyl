@@ -13,11 +13,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.models.ci.printers.colored import ColoredPrinter
-from cibyl.output import PrintMode
-from cibyl.utils.colors import ClearText
+from abc import ABC
+from enum import Enum
 
 
-class RawPrinter(ColoredPrinter):
+class PrintMode(Enum):
+    SIMPLE = 0
+    COMPLETE = 1
+
+
+class Printer(ABC):
     def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
-        super().__init__(mode, verbosity, ClearText())
+        self._mode = mode
+        self._verbosity = verbosity
+
+    @property
+    def mode(self):
+        return self._mode
+
+    @property
+    def verbosity(self):
+        return self._verbosity

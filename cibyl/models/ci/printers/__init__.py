@@ -13,15 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from abc import ABC, abstractmethod
+from abc import abstractmethod, ABC
 
-from cibyl.cli.output import OutputStyle
-from cibyl.models.ci.printers.colored import ColoredPrinter
-from cibyl.models.ci.printers.raw import RawPrinter
-from cibyl.publisher import Printer
+from cibyl.output import Printer
 
 
-class CIPrinter(ABC, Printer):
+class CIPrinter(Printer, ABC):
     @abstractmethod
     def print_environment(self, env):
         raise NotImplementedError
@@ -41,27 +38,3 @@ class CIPrinter(ABC, Printer):
     @abstractmethod
     def print_test(self, test):
         raise NotImplementedError
-
-
-class CIPrinterFactory:
-    @staticmethod
-    def from_style(style, mode, verbosity):
-        """
-
-        :param style:
-        :type style: :class:`OutputStyle`
-        :param mode:
-        :type mode: :class:`PrintMode`
-        :param verbosity:
-        :type verbosity: int
-        :return:
-        :rtype: :class:`CIPrinter`
-        :raise NotImplementedError: If there is not printer for the desired
-            style.
-        """
-        if style == OutputStyle.TEXT:
-            return RawPrinter(mode, verbosity)
-        elif style == OutputStyle.COLORIZED:
-            return ColoredPrinter(mode, verbosity)
-        else:
-            raise NotImplementedError(f'Unknown output style: {style}')

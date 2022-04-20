@@ -15,11 +15,11 @@
 """
 import logging
 
-from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
-                                    AttributeValue)
+from cibyl.models.attribute import AttributeValue, AttributeListValue, \
+    AttributeDictValue
 from cibyl.models.ci.printers import CIPrinter
 from cibyl.models.ci.system import JobsSystem
-from cibyl.publisher import PrintMode
+from cibyl.output import PrintMode
 from cibyl.utils.colors import DefaultPalette
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
