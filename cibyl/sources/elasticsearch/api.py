@@ -247,8 +247,8 @@ class ElasticSearchOSP(Source):
             deployment = Deployment(
                 release,
                 "unknown",
-                [],
-                [],
+                {},
+                {},
                 ip_version=ip_version,
                 topology=topology,
                 network_backend=network_backend

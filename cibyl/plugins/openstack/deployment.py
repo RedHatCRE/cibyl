@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import List
+from typing import Dict
 
 from cibyl.cli.argument import Argument
-from cibyl.models.attribute import AttributeListValue
+from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.model import Model
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.service import Service
@@ -43,14 +43,14 @@ class Deployment(Model):
         },
         'nodes': {
             'attr_type': Node,
-            'attribute_value_class': AttributeListValue,
+            'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--nodes', arg_type=str,
                                    nargs='*',
                                    description="Nodes on the deployment")]
         },
         'services': {
             'attr_type': Service,
-            'attribute_value_class': AttributeListValue,
+            'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--services', arg_type=str,
                                    nargs='*',
                                    description="Services in the deployment")]
@@ -109,8 +109,8 @@ class Deployment(Model):
             }
     }
 
-    def __init__(self, release: float, infra_type: str,
-                 nodes: List[Node], services: List[Service],
+    def __init__(self, release: str, infra_type: str,
+                 nodes: Dict[str, Node], services: Dict[str, Service],
                  ip_version: str = None, topology: str = None,
                  network_backend: str = None, storage_backend: str = None,
                  dvr: str = None, tls_everywhere: str = None):
@@ -147,10 +147,58 @@ class Deployment(Model):
         if self.tls_everywhere.value:
             info += f'\n{indent_space}' + Colors.blue('TLS everywhere: ')
             info += f'{self.tls_everywhere}'
-        for node in self.nodes:
+        for node in self.nodes.values():
             info += f'\n{node.__str__(indent=indent+2, verbosity=verbosity)}'
-        if self.services.value:
-            info += f'\n{indent_space}' + Colors.blue('Service: ')
-            info += f'{self.services.value}'
+        for service in self.services.values():
+            info += '\n'
+            info += f'{service.__str__(indent=indent+2, verbosity=verbosity)}'
 
         return info
+
+    def add_node(self, node: Node):
+        """Add a node to the deployment.
+
+        :param node: Node to add to the deployment
+        :type node: Node
+        """
+        node_name = node.name.value
+        if node_name in self.nodes:
+            self.nodes[node_name].merge(node)
+        else:
+            self.nodes[node_name] = node
+
+    def add_service(self, service: Service):
+        """Add a service to the deployment.
+
+        :param service: Service to add to the deployment
+        :type service: Service
+        """
+        service_name = service.name.value
+        if service_name in self.services:
+            self.services[service_name].merge(service)
+        else:
+            self.services[service_name] = service
+
+    def merge(self, other):
+        """Merge the information of two deployment objects representing the
+        same deployment.
+
+        :param other: The Deployment object to merge
+        :type other: :class:`.Deployment`
+        """
+        if not self.ip_version.value:
+            self.ip_version.value = other.ip_version.value
+        if not self.topology.value:
+            self.topology.value = other.topology.value
+        if not self.network_backend.value:
+            self.network_backend.value = other.network_backend.value
+        if not self.storage_backend.value:
+            self.storage_backend.value = other.storage_backend.value
+        if not self.dvr.value:
+            self.dvr.value = other.dvr.value
+        if not self.tls_everywhere.value:
+            self.tls_everywhere.value = other.tls_everywhere.value
+        for node in other.nodes.values():
+            self.add_node(node)
+        for service in other.services.values():
+            self.add_service(service)

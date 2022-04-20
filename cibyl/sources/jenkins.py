@@ -462,17 +462,18 @@ accurate results", len(jobs_found))
             name = job.get('name')
             job_objects[name] = Job(name=name, url=job.get('url'))
             topology = job["topology"]
-            nodes = []
+            nodes = {}
             if topology:
                 for component in topology.split(","):
                     role, amount = component.split(":")
                     for i in range(int(amount)):
-                        nodes.append(Node(role+f"-{i}", role=role))
+                        node_name = role+f"-{i}"
+                        nodes[node_name] = Node(node_name, role=role)
 
             # TODO: (jgilaber) query for services
             deployment = Deployment(job["release"],
                                     job["infra_type"],
-                                    nodes, [], ip_version=job["ip_version"],
+                                    nodes, {}, ip_version=job["ip_version"],
                                     topology=topology,
                                     network_backend=job["network_backend"],
                                     storage_backend=job["storage_backend"],
