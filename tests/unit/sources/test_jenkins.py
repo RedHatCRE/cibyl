@@ -244,13 +244,13 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(len(tests_found), 3)
         self.assertEqual(tests_found['test1'].result.value, 'PASSED')
         self.assertEqual(tests_found['test1'].class_name.value, 'class1')
-        self.assertEqual(tests_found['test1'].duration.value, 1)
+        self.assertEqual(tests_found['test1'].duration.value, 1000)
         self.assertEqual(tests_found['test2'].result.value, 'SKIPPED')
         self.assertEqual(tests_found['test2'].class_name.value, 'class2')
         self.assertEqual(tests_found['test2'].duration.value, 0)
         self.assertEqual(tests_found['test3'].result.value, 'FAILED')
         self.assertEqual(tests_found['test3'].class_name.value, 'class2')
-        self.assertEqual(tests_found['test3'].duration.value, 2.4)
+        self.assertEqual(tests_found['test3'].duration.value, 2400)
 
     def test_get_tests_no_completed_build(self):
         """
@@ -309,10 +309,10 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(len(tests_found), 2)
         self.assertEqual(tests_found['test1'].result.value, 'PASSED')
         self.assertEqual(tests_found['test1'].class_name.value, 'class1')
-        self.assertEqual(tests_found['test1'].duration.value, 1.1)
+        self.assertEqual(tests_found['test1'].duration.value, 1100)
         self.assertEqual(tests_found['test2'].result.value, 'PASSED')
         self.assertEqual(tests_found['test2'].class_name.value, 'class2')
-        self.assertEqual(tests_found['test2'].duration.value, 7.2)
+        self.assertEqual(tests_found['test2'].duration.value, 7200)
 
     def test_get_tests_multiple_jobs(self):
         """
@@ -371,21 +371,86 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(len(tests_found1), 3)
         self.assertEqual(tests_found1['test1'].result.value, 'PASSED')
         self.assertEqual(tests_found1['test1'].class_name.value, 'class1')
-        self.assertEqual(tests_found1['test1'].duration.value, 1)
+        self.assertEqual(tests_found1['test1'].duration.value, 1000)
         self.assertEqual(tests_found1['test2'].result.value, 'SKIPPED')
         self.assertEqual(tests_found1['test2'].class_name.value, 'class2')
         self.assertEqual(tests_found1['test2'].duration.value, 0)
         self.assertEqual(tests_found1['test3'].result.value, 'FAILED')
         self.assertEqual(tests_found1['test3'].class_name.value, 'class2')
-        self.assertEqual(tests_found1['test3'].duration.value, 2.4)
+        self.assertEqual(tests_found1['test3'].duration.value, 2400)
         tests_found27 = jobs['ansible-two'].builds.value['27'].tests
         self.assertEqual(len(tests_found27), 2)
         self.assertEqual(tests_found27['test1'].result.value, 'PASSED')
         self.assertEqual(tests_found27['test1'].class_name.value, 'class271')
-        self.assertEqual(tests_found27['test1'].duration.value, 11.1)
+        self.assertEqual(tests_found27['test1'].duration.value, 11100)
         self.assertEqual(tests_found27['test2'].result.value, 'PASSED')
         self.assertEqual(tests_found27['test2'].class_name.value, 'class272')
-        self.assertEqual(tests_found27['test2'].duration.value, 5.1)
+        self.assertEqual(tests_found27['test2'].duration.value, 5100)
+
+    def test_get_tests_child(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_tests` is
+            correct when tests are located inside `childReports`.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': 'ansible', 'url': 'url1',
+                              'lastCompletedBuild': {
+                                  'number': 1, 'result': 'UNSTABLE',
+                                  'duration': 3.5
+                              }}]}
+        tests = {'_class': '_empty',
+                 'childReports': [
+                     {
+                         'result': {
+                             'suites': [
+                                {
+                                    'cases': [
+                                        {'className': 'class1',
+                                         'duration': 1, 'name': 'test1',
+                                         'status': 'PASSED'},
+                                        {'className': 'class2',
+                                         'duration': 0, 'name': 'test2',
+                                         'status': 'SKIPPED'},
+                                        {'className': 'class2',
+                                         'duration': 2.4, 'name': 'test3',
+                                         'status': 'FAILED'},
+                                        {'className': 'class2',
+                                         'duration': 120.0, 'name': 'test4',
+                                         'status': 'REGRESSION'}
+                                    ]
+                                }
+                             ]
+                         }
+                     }
+                 ]}
+
+        self.jenkins.send_request = Mock(side_effect=[response, tests])
+
+        jobs = self.jenkins.get_tests()
+        self.assertEqual(len(jobs), 1)
+        job = jobs['ansible']
+        self.assertEqual(job.name.value, 'ansible')
+        self.assertEqual(job.url.value, 'url1')
+
+        builds_found = job.builds.value
+        self.assertEqual(len(builds_found), 1)
+        self.assertEqual(builds_found['1'].build_id.value, '1')
+        self.assertEqual(builds_found['1'].status.value, 'UNSTABLE')
+
+        tests_found = job.builds.value['1'].tests
+        self.assertEqual(len(tests_found), 4)
+        self.assertEqual(tests_found['test1'].result.value, 'PASSED')
+        self.assertEqual(tests_found['test1'].class_name.value, 'class1')
+        self.assertEqual(tests_found['test1'].duration.value, 1000)
+        self.assertEqual(tests_found['test2'].result.value, 'SKIPPED')
+        self.assertEqual(tests_found['test2'].class_name.value, 'class2')
+        self.assertEqual(tests_found['test2'].duration.value, 0)
+        self.assertEqual(tests_found['test3'].result.value, 'FAILED')
+        self.assertEqual(tests_found['test3'].class_name.value, 'class2')
+        self.assertEqual(tests_found['test3'].duration.value, 2400)
+        self.assertEqual(tests_found['test4'].result.value, 'REGRESSION')
+        self.assertEqual(tests_found['test4'].class_name.value, 'class2')
+        self.assertEqual(tests_found['test4'].duration.value, 120000)
 
     @patch("requests.get")
     def test_send_request(self, patched_get):

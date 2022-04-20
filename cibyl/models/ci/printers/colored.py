@@ -188,7 +188,7 @@ class CIColoredPrinter(CIPrinter):
 
             if test.result.value in ['SUCCESS', 'PASSED']:
                 printer[-1].append(self._palette.green(test.result.value))
-            elif test.result.value in ['FAILURE', 'FAILED']:
+            elif test.result.value in ['FAILURE', 'FAILED', 'REGRESSION']:
                 printer[-1].append(self._palette.red(test.result.value))
             elif test.result.value == "UNSTABLE":
                 printer[-1].append(self._palette.yellow(test.result.value))
