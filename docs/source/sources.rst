@@ -87,24 +87,10 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
-   * - --build-id
-     - Build number
-     - |:ballot_box_with_check:|
-     - |:ballot_box_with_check:|
-     - |:ballot_box_with_check:|
-     - |:x:|
-     - |:x:|
    * - --tests
      - | Test names or pattern
        | Default: all tests
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
-     - |:black_square_button:|
-     - |:x:|
-     - |:x:|
-   * - --test-name
-     - Test name
-     - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:x:|

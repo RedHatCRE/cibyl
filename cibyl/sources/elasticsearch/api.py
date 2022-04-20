@@ -130,8 +130,8 @@ class ElasticSearchOSP(Source):
                                   kwargs.get('build_status').value]
 
             build_id_argument = None
-            if 'build_id' in kwargs:
-                build_id_argument = kwargs.get('build_id').value
+            if 'builds' in kwargs:
+                build_id_argument = kwargs.get('builds').value
 
             for build in builds:
 

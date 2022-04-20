@@ -446,7 +446,7 @@ class TestBuildFilters(TestCase):
 
         kwargs = {
             'jobs': Argument('name', list, '', value=[]),
-            'build_id': Argument('uuid', list, '', value=[build1, build3])
+            'builds': Argument('uuid', list, '', value=[build1, build3])
         }
 
         client1 = Mock()
