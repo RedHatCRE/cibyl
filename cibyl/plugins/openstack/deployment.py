@@ -21,7 +21,6 @@ from cibyl.models.model import Model
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.service import Service
 
-
 # pylint: disable=no-member
 
 

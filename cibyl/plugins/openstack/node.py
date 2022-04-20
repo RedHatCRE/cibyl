@@ -22,7 +22,6 @@ from cibyl.models.model import Model
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.package import Package
 
-
 # pylint: disable=no-member
 
 

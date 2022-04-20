@@ -19,7 +19,6 @@ from typing import Dict
 from cibyl.cli.argument import Argument
 from cibyl.models.model import Model
 
-
 # pylint: disable=no-member
 
 
