@@ -21,7 +21,7 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.model import Model
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.package import Package
-from cibyl.utils.colors import Colors
+
 
 # pylint: disable=no-member
 
@@ -35,24 +35,26 @@ class Node(Model):
         'name': {
             'attr_type': str,
             'arguments': [Argument(name='--node-name', arg_type=str,
-                          description="Node name")]
+                                   description="Node name")]
         },
         'role': {
             'attr_type': str,
             'arguments': [Argument(name='--role', arg_type=str,
-                          description="Role for the node")]
+                                   description="Role for the node")]
         },
         'containers': {
             'attr_type': Container,
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--node-containers', arg_type=str,
-                          nargs='*', description="Containers on the node")]
+                                   nargs='*',
+                                   description="Containers on the node")]
         },
         'packages': {
             'attr_type': Package,
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--node-packages', arg_type=str,
-                          nargs='*', description="Packages in the node")]
+                                   nargs='*',
+                                   description="Packages in the node")]
         }
     }
 
@@ -61,20 +63,3 @@ class Node(Model):
                  packages: Dict[str, Package] = None):
         super().__init__({'name': name, 'role': role, 'containers': containers,
                           'packages': packages})
-
-    def __str__(self, indent=2, verbosity=0):
-        indent_space = indent*' '
-        info = f'{indent_space}'
-        info += Colors.blue('Node name: ') + f'{self.name.value}'
-        if self.role.value and verbosity > 0:
-            info += f'\n{indent_space}  ' + Colors.blue('Role: ')
-            info += f'{self.role}'
-        if self.containers.value:
-            for container in self.containers:
-                info += f'\n{indent_space}  ' + Colors.blue('Container: ')
-                info += f'{container.__str__(indent)}'
-        if self.packages.value:
-            for package in self.packages:
-                info += f'\n{indent_space}  ' + Colors.blue('Package: ')
-                info += f'{package.__str__(indent)}'
-        return info

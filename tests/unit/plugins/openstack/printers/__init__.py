@@ -13,22 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from unittest import TestCase
-
-from cibyl.plugins.openstack.node import Node
-
-
-class TestOpenstackNode(TestCase):
-    """Test openstack node model."""
-    def setUp(self):
-        self.name = 'controller-0'
-        self.role = 'controller'
-        self.node = Node(self.name, self.role)
-
-    def test_str_method(self):
-        """Test that the string representation of Node works."""
-        node_str = self.node.__str__(verbosity=1)
-        self.assertIn("Node name:", node_str)
-        self.assertIn(self.name, node_str)
-        self.assertIn("Role: ", node_str)
-        self.assertIn(self.role, node_str)

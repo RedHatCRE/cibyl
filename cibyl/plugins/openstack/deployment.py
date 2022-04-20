@@ -20,7 +20,7 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.model import Model
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.service import Service
-from cibyl.utils.colors import Colors
+
 
 # pylint: disable=no-member
 
@@ -60,53 +60,53 @@ class Deployment(Model):
             'arguments': [Argument(name='--ip-version', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    description="Ip version used in the "
-                                   "deployment")]
-            },
+                                               "deployment")]
+        },
         'topology': {
             'attr_type': str,
             'arguments': [Argument(name='--topology', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    description="Topology used in the "
-                                   "deployment")]
-            },
+                                               "deployment")]
+        },
         'dvr': {
             'attr_type': str,
             'arguments': [Argument(name='--dvr', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    description="Whether dvr is used in the "
-                                   "deployment")]
-            },
+                                               "deployment")]
+        },
         'tls_everywhere': {
             'attr_type': str,
             'arguments': [Argument(name='--tls-everywhere', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    description="Whether tls-everywhere is "
-                                   "used in the deployment")]
-            },
+                                               "used in the deployment")]
+        },
         'network_backend': {
             'attr_type': str,
             'arguments': [Argument(name='--network-backend', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    description="Network backend used in the "
-                                   "deployment"),
+                                               "deployment"),
                           Argument(name='--controllers', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    ranged=True,
                                    description="Number of controllers used "
-                                   "in the deployment"),
+                                               "in the deployment"),
                           Argument(name='--computes', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    ranged=True,
                                    description="Number of computes used "
-                                   "in the deployment")]
-            },
+                                               "in the deployment")]
+        },
         'storage_backend': {
             'attr_type': str,
             'arguments': [Argument(name='--storage-backend', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    description="Storage backend used in the "
-                                   "deployment")]
-            }
+                                               "deployment")]
+        }
     }
 
     def __init__(self, release: str, infra_type: str,
@@ -120,40 +120,6 @@ class Deployment(Model):
                           'network_backend': network_backend,
                           'storage_backend': storage_backend,
                           'dvr': dvr, 'tls_everywhere': tls_everywhere})
-
-    def __str__(self, indent=0, verbosity=0):
-        indent_space = indent*' '
-        info = f'{indent_space}' + Colors.blue("Release: ")
-        info += f'{self.release.value}'
-
-        if self.infra_type.value:
-            info += f'\n{indent_space}' + Colors.blue('Infra type: ')
-            info += f'{self.infra_type.value}'
-        if self.ip_version.value:
-            info += f'\n{indent_space}' + Colors.blue('IP version: ')
-            info += f'{self.ip_version}'
-        if self.topology.value:
-            info += f'\n{indent_space}' + Colors.blue('Topology: ')
-            info += f'{self.topology}'
-        if self.network_backend.value:
-            info += f'\n{indent_space}' + Colors.blue('Network backend: ')
-            info += f'{self.network_backend}'
-        if self.storage_backend.value:
-            info += f'\n{indent_space}' + Colors.blue('Storage backend: ')
-            info += f'{self.storage_backend}'
-        if self.dvr.value:
-            info += f'\n{indent_space}' + Colors.blue('DVR: ')
-            info += f'{self.dvr}'
-        if self.tls_everywhere.value:
-            info += f'\n{indent_space}' + Colors.blue('TLS everywhere: ')
-            info += f'{self.tls_everywhere}'
-        for node in self.nodes.values():
-            info += f'\n{node.__str__(indent=indent+2, verbosity=verbosity)}'
-        for service in self.services.values():
-            info += '\n'
-            info += f'{service.__str__(indent=indent+2, verbosity=verbosity)}'
-
-        return info
 
     def add_node(self, node: Node):
         """Add a node to the deployment.

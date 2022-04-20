@@ -20,6 +20,8 @@ from cibyl.models.attribute import AttributeValue, AttributeListValue, \
 from cibyl.models.ci.printers import CIPrinter
 from cibyl.models.ci.system import JobsSystem
 from cibyl.output import PrintMode
+from cibyl.plugins.openstack import Deployment
+from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
 from cibyl.utils.colors import DefaultPalette
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
@@ -27,7 +29,7 @@ from cibyl.utils.time import as_minutes
 LOG = logging.getLogger(__name__)
 
 
-class ColoredPrinter(CIPrinter):
+class CIColoredPrinter(CIPrinter):
     def __init__(self,
                  mode=PrintMode.COMPLETE, verbosity=0,
                  palette=DefaultPalette()):
@@ -112,7 +114,17 @@ class ColoredPrinter(CIPrinter):
                 continue
 
             for value in values:
-                printer.add(value, 1)
+                if isinstance(value, Deployment):
+                    os_printer = OSColoredPrinter(
+                        self.mode, self.verbosity, self.palette
+                    )
+
+                    printer.add(os_printer.print_deployment(value), 1)
+                else:
+                    LOG.warning(
+                        'Ignoring unknown plugin type: %s', type(value)
+                    )
+                    continue
 
         return printer.build()
 
@@ -126,7 +138,8 @@ class ColoredPrinter(CIPrinter):
             status_x_color_map = {
                 'SUCCESS': lambda: self._palette.green(build.status.value),
                 'FAILURE': lambda: self._palette.red(build.status.value),
-                'UNSTABLE': lambda: self._palette.yellow(build.status.value)
+                'UNSTABLE': lambda: self._palette.yellow(
+                    build.status.value)
             }
 
             status = status_x_color_map.get(

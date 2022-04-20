@@ -14,8 +14,8 @@
 #    under the License.
 """
 from cibyl.cli.output import OutputStyle
-from cibyl.models.ci.printers.colored import ColoredPrinter
-from cibyl.models.ci.printers.raw import RawPrinter
+from cibyl.models.ci.printers.colored import CIColoredPrinter
+from cibyl.models.ci.printers.raw import CIRawPrinter
 
 
 class CIPrinterFactory:
@@ -35,8 +35,8 @@ class CIPrinterFactory:
             style.
         """
         if style == OutputStyle.TEXT:
-            return RawPrinter(mode, verbosity)
+            return CIRawPrinter(mode, verbosity)
         elif style == OutputStyle.COLORIZED:
-            return ColoredPrinter(mode, verbosity)
+            return CIColoredPrinter(mode, verbosity)
         else:
             raise NotImplementedError(f'Unknown output style: {style}')

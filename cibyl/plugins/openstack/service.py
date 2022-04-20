@@ -18,7 +18,7 @@ from typing import Dict
 
 from cibyl.cli.argument import Argument
 from cibyl.models.model import Model
-from cibyl.utils.colors import Colors
+
 
 # pylint: disable=no-member
 
@@ -30,27 +30,17 @@ class Service(Model):
         'name': {
             'attr_type': str,
             'arguments': [Argument(name='--service-name', arg_type=str,
-                          description="Service name")]
+                                   description="Service name")]
         },
         'configuration': {
             'attr_type': dict,
             'arguments': [Argument(name='--service-config', arg_type=str,
-                          description="Service configuration")]
+                                   description="Service configuration")]
         }
     }
 
     def __init__(self, name: str, configuration: Dict[str, str] = None):
         super().__init__({'name': name, 'configuration': configuration})
-
-    def __str__(self, indent=2, verbosity=0):
-        indent_space = indent*' '
-        info = f'{indent_space}'
-        info += Colors.blue('Service name: ') + f'{self.name.value}'
-        if self.configuration.value and verbosity > 0:
-            for parameter, value in self.configuration.value.items():
-                info += f'\n{indent_space}  ' + Colors.blue(f'{parameter}: ')
-                info += f'{value}'
-        return info
 
     def merge(self, other):
         """Merge two Service objects representing the same service."""

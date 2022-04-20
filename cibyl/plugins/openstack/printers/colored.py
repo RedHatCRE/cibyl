@@ -13,13 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.output import PrintMode
 from cibyl.plugins.openstack.printers import OSPrinter
-from cibyl.publisher import PrintMode
 from cibyl.utils.colors import DefaultPalette
 from cibyl.utils.strings import IndentedTextBuilder
 
 
-class ColoredPrinter(OSPrinter):
+class OSColoredPrinter(OSPrinter):
     def __init__(self,
                  mode=PrintMode.COMPLETE, verbosity=0,
                  palette=DefaultPalette()):
