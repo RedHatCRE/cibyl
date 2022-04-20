@@ -21,7 +21,8 @@ from cibyl.cli.parser import Parser
 from cibyl.cli.validator import Validator
 from cibyl.config import Config, ConfigFactory
 from cibyl.exceptions.config import InvalidConfiguration
-from cibyl.exceptions.source import NoValidSources, SourceException
+from cibyl.exceptions.source import (NoSupportedSourcesFound, NoValidSources,
+                                     SourceException)
 from cibyl.models.ci.environment import Environment
 from cibyl.publisher import Publisher
 from cibyl.sources.source import get_source_method
@@ -139,6 +140,7 @@ class Orchestrator:
         # information
         self.environments, valid_systems = validator.validate_environments(
                 self.environments)
+        debug = self.parser.app_args.get("debug", False)
         for arg in sorted(self.parser.ci_args.values(),
                           key=operator.attrgetter('level'), reverse=True):
             if arg.level >= start_level and arg.level >= last_level:
@@ -151,11 +153,19 @@ class Orchestrator:
                 # because the environment information is not used from this
                 # point forward
                 for system in valid_systems:
-                    source_methods = self.select_source_method(system, arg)
+                    try:
+                        source_methods = self.select_source_method(system, arg)
+                    except NoSupportedSourcesFound as exception:
+                        # if no sources are found in the system for this
+                        # particular query, jump to the next one without
+                        # stopping execution
+                        LOG.error(exception, exc_info=debug)
+                        continue
+
                     for source_method, speed_score in source_methods:
                         if source_methods_store.has_been_called(source_method):
                             # we want to avoid repeating calls to the same
-                            # source method if several argument with that
+                            # source method if several arguments with that
                             # method are provided
                             continue
                         source_methods_store.add_call(source_method)
@@ -169,11 +179,9 @@ class Orchestrator:
                             model_instances_dict = source_method(
                                 **self.parser.ci_args, **self.parser.app_args)
                         except SourceException as exception:
-                            if self.parser.app_args.get("debug"):
-                                LOG.error(exception, exc_info=True)
-                            else:
-                                LOG.error("Error in source %s. %s",
-                                          source_name, exception)
+                            LOG.error("Error in source %s. %s",
+                                      source_name, exception,
+                                      exc_info=debug)
                             continue
                         end_time = time.time()
                         LOG.info("Took %.2fs to query system %s using %s",
@@ -182,7 +190,7 @@ class Orchestrator:
                         # only update last_level if the query was successful
                         last_level = arg.level
                         system.populate(model_instances_dict)
-                        # if once source has provided the information, there is
+                        # if one source has provided the information, there is
                         # no need to query the rest
                         break
 
