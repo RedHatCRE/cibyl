@@ -225,4 +225,11 @@ class ZuulSystem(System):
         )
 
     def add_toplevel_model(self, model):
-        pass
+        key = model.name.value
+
+        if key in self.tenants:
+            # Extract unknown contents of tenant
+            self.tenants[key].merge(model)
+        else:
+            # Add a brand-new tenant
+            self.tenants[key] = model
