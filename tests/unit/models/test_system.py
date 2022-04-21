@@ -96,3 +96,9 @@ class TestJobsSystem(unittest.TestCase):
     Build: 1
       Status: SUCCESS"""
         self.assertIn(output, expected)
+
+    def test_query_attribute(self):
+        """Test system queried attribute."""
+        self.assertFalse(self.system.is_queried())
+        self.system.register_query()
+        self.assertTrue(self.system.is_queried())

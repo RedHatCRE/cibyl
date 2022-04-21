@@ -36,6 +36,10 @@ BASE_SYSTEM_API = {
                      description="System type")
         ]
     },
+    'queried': {
+        'attr_type': bool,
+        'arguments': []
+    },
     'sources': {
         'attr_type': Source,
         'attribute_value_class': AttributeListValue,
@@ -103,6 +107,7 @@ class System(Model):
         self.name = None
         self.system_type = None
         self.sources = None
+        self.queried = None
 
         # Set up the model
         super().__init__(
@@ -110,6 +115,7 @@ class System(Model):
                 'name': name,
                 'system_type': system_type,
                 'sources': sources,
+                'queried': False,
                 **kwargs
             }
         )
@@ -131,6 +137,18 @@ class System(Model):
         :type source: :class:`Source`
         """
         self.sources.append(source)
+
+    def register_query(self):
+        """Record that the system was queried."""
+        self.queried.value = True
+
+    def is_queried(self):
+        """Check whether a system was queried.
+
+        :returns: Whether the system was queried
+        :rtype: bool
+        """
+        return self.queried.value
 
     def populate(self, instances):
         """Adds all models found on an attribute to this system.

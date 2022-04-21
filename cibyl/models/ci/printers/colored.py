@@ -84,8 +84,12 @@ class CIColoredPrinter(CIPrinter):
             for job in system.jobs.values():
                 printer.add(self.print_job(job), 1)
 
-            printer.add(self._palette.blue('Total jobs found in query: '), 1)
-            printer[-1].append(len(system.jobs))
+            if system.is_queried():
+                printer.add(self._palette.blue('Total jobs found in query: '),
+                            1)
+                printer[-1].append(len(system.jobs))
+            else:
+                printer.add(self._palette.blue('No query performed'), 1)
 
         return printer.build()
 
