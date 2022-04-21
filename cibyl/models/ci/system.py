@@ -13,13 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from abc import abstractmethod, ABC
+from abc import abstractmethod
 from typing import Dict, List, Type
 
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.model import NonSupportedModelType
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.job import Job
+from cibyl.models.ci.tenant import Tenant
 from cibyl.models.model import Model
 from cibyl.sources.source import Source
 
@@ -64,6 +65,16 @@ JOBS_SYSTEM_API = {
 }
 
 ZUUL_SYSTEM_API = {
+    'tenants': {
+        'attr_type': Tenant,
+        'attribute_value_class': AttributeDictValue,
+        'arguments': [
+            Argument(name='--tenants', arg_type=Tenant,
+                     nargs='*',
+                     description='System tenants',
+                     func='get_tenants')
+        ]
+    }
 }
 
 
@@ -199,11 +210,19 @@ class ZuulSystem(System):
     def __init__(self,
                  name,
                  system_type='zuul',
-                 sources=None):
+                 sources=None,
+                 tenants=None):
+        # Let IDEs know this class's attributes
+        self.tenants = None
+
         # Set up model
         super().__init__(
             name=name,
             system_type=system_type,
-            top_level_model=None,
-            sources=sources
+            top_level_model=Tenant,
+            sources=sources,
+            tenants=tenants
         )
+
+    def add_toplevel_model(self, model):
+        pass

@@ -15,7 +15,7 @@
 """
 from enum import Enum
 
-from cibyl.models.ci.system import JobsSystem
+from cibyl.models.ci.system import JobsSystem, ZuulSystem
 
 
 class SystemType(str, Enum):
@@ -48,10 +48,6 @@ class SystemFactory:
             return JobsSystem(name=name, system_type=system_type, **kwargs)
 
         if system_type == SystemType.ZUUL:
-            # NOTE: Not functional yet -> Swap then needed
-            # return PipelineSystem(
-            #     name=name, system_type=system_type, **kwargs
-            # )
-            return JobsSystem(name=name, system_type=system_type, **kwargs)
+            return ZuulSystem(name=name, system_type=system_type, **kwargs)
 
         raise NotImplementedError(f"Unknown system type '{system_type}'")
