@@ -154,6 +154,8 @@ class Orchestrator:
                 # because the environment information is not used from this
                 # point forward
                 for system in valid_systems:
+                    if not system.is_enabled():
+                        continue
                     try:
                         source_methods = self.select_source_method(system, arg)
                     except NoSupportedSourcesFound as exception:

@@ -50,6 +50,10 @@ class System(Model):
             'attr_type': str,
             'arguments': []
         },
+        'enabled': {
+            'attr_type': bool,
+            'arguments': []
+        },
         'sources': {
             'attr_type': Source,
             'attribute_value_class': AttributeListValue,
@@ -68,15 +72,28 @@ class System(Model):
     def __init__(self, name: str,  # pylint: disable=too-many-arguments
                  system_type: str, jobs: Dict[str, Job] = None,
                  jobs_scope: str = "*", sources: List = None,
-                 pipelines: Dict[str, Pipeline] = None):
+                 pipelines: Dict[str, Pipeline] = None,
+                 enabled: bool = True):
         super().__init__({'name': name, 'system_type': system_type,
                           'jobs': jobs, 'jobs_scope': jobs_scope,
                           'sources': sources, 'pipelines': pipelines,
-                          'queried': False})
+                          'queried': False, 'enabled': enabled})
         # this variable describes which model will the system use as top-level
         # model. For most systems, this will be Job, for zuul systems it will
         # be Pipeline
         self.top_level_model = Job
+
+    def enable(self):
+        """Enable a system for querying."""
+        self.enabled.value = True
+
+    def is_enabled(self):
+        """Check whether a system is enabled.
+
+        :returns: Whether the system is enabled
+        :rtype: bool
+        """
+        return self.enabled.value
 
     def register_query(self):
         """Record that the system was queried."""
@@ -128,11 +145,12 @@ class JobsSystem(System):
     # pylint: disable=too-many-arguments
     def __init__(self, name: str, system_type: str,
                  jobs: Dict[str, Job] = None,
-                 jobs_scope: str = "*", sources: List = None):
+                 jobs_scope: str = "*", sources: List = None,
+                 enabled: bool = True):
 
         super().__init__(name=name, system_type=system_type,
                          pipelines=None, jobs_scope=jobs_scope,
-                         sources=sources, jobs=jobs)
+                         sources=sources, jobs=jobs, enabled=enabled)
 
     def add_toplevel_model(self, model: Job):
         """Add a top-level model to the system.
