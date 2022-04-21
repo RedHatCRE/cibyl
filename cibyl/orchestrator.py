@@ -191,6 +191,7 @@ class Orchestrator:
                         # only update last_level if the query was successful
                         last_level = arg.level
                         system.populate(model_instances_dict)
+                        system.register_query()
                         # if one source has provided the information, there is
                         # no need to query the rest
                         break

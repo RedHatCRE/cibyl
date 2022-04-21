@@ -42,6 +42,10 @@ class System(Model):
             'arguments': [Argument(name='--system-type', arg_type=str,
                                    description="System type")]
         },
+        'queried': {
+            'attr_type': bool,
+            'arguments': []
+        },
         'jobs_scope': {
             'attr_type': str,
             'arguments': []
@@ -67,11 +71,24 @@ class System(Model):
                  pipelines: Dict[str, Pipeline] = None):
         super().__init__({'name': name, 'system_type': system_type,
                           'jobs': jobs, 'jobs_scope': jobs_scope,
-                          'sources': sources, 'pipelines': pipelines})
+                          'sources': sources, 'pipelines': pipelines,
+                          'queried': False})
         # this variable describes which model will the system use as top-level
         # model. For most systems, this will be Job, for zuul systems it will
         # be Pipeline
         self.top_level_model = Job
+
+    def register_query(self):
+        """Record that the system was queried."""
+        self.queried.value = True
+
+    def is_queried(self):
+        """Check whether a system was queried.
+
+        :returns: Whether the system was queried
+        :rtype: bool
+        """
+        return self.queried.value
 
     def add_source(self, source: Source):
         """Add a source to the CI system

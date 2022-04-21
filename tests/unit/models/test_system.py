@@ -98,6 +98,12 @@ class TestJobsSystem(unittest.TestCase):
       Status: SUCCESS"""
         self.assertIn(output, expected)
 
+    def test_query_attribute(self):
+        """Test system queried attribute."""
+        self.assertFalse(self.system.is_queried())
+        self.system.register_query()
+        self.assertTrue(self.system.is_queried())
+
 
 class TestPipelineSystem(unittest.TestCase):
     """Test the PipelineSystem class."""
