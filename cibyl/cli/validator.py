@@ -116,10 +116,11 @@ class Validator:
         for env in environments:
             all_envs.append(env.name.value)
             for system in env.systems:
-                all_systems.append(system.name.value)
+                all_systems.append(system)
         self._check_input_environments(all_envs, "env_name",
                                        InvalidEnvironment)
-        self._check_input_environments(all_systems, "systems", InvalidSystem)
+        system_names = [system.name.value for system in all_systems]
+        self._check_input_environments(system_names, "systems", InvalidSystem)
 
         # if the user input is good, then filter the environments and systems
         # so we only keep the ones consistent with user input
@@ -151,6 +152,7 @@ class Validator:
 
         user_systems = []
         final_envs = []
+        sources = []
         for env in user_envs:
             env_systems = []
             for system in env.systems:
@@ -165,6 +167,8 @@ class Validator:
                 user_systems.extend(env_systems)
 
         if not user_systems:
-            raise NoValidSources()
+            sources = [source['name'] for system in all_systems
+                       for source in system.sources]
+            raise NoValidSources(sources=sources)
 
         return final_envs, user_systems
