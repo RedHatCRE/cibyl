@@ -16,7 +16,8 @@
 
 
 class IndentedTextBuilder:
-    """| Easy creation of structured text based on indents.
+    """Easy creation of structured text based on indents.
+
     This additionally implements:
         * len() -> Number of lines on text.
         * [] -> Access line by index.

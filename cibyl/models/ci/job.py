@@ -53,6 +53,12 @@ class Job(Model):
 
     def __init__(self, name: str, url: str = None,
                  builds: Dict[str, Build] = None):
+        # Let IDEs know this class's attributes
+        self.name = None
+        self.url = None
+        self.builds = None
+
+        # Set up model
         super().__init__({'name': name, 'url': url,
                           'builds': builds})
 

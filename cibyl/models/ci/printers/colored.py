@@ -37,7 +37,8 @@ class CIColoredPrinter(CIPrinter):
     def __init__(self,
                  mode=PrintMode.COMPLETE, verbosity=0,
                  palette=DefaultPalette()):
-        """| Constructor.
+        """Constructor.
+
         See parents for more information.
 
         :param palette: Palette of colors to be used.

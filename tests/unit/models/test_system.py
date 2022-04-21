@@ -19,9 +19,8 @@ import unittest
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
-from cibyl.models.ci.pipeline import Pipeline
-from cibyl.models.ci.system import JobsSystem, PipelineSystem, System
-from cibyl.sources.source import Source
+from cibyl.models.ci.system import JobsSystem, System
+from cibyl.models.model import Model
 
 
 class TestSystem(unittest.TestCase):
@@ -30,12 +29,12 @@ class TestSystem(unittest.TestCase):
     def setUp(self):
         self.name = "test"
         self.system_type = "test_type"
-        self.system = System(self.name, self.system_type)
-        self.other_system = System(self.name, self.system_type)
+        self.system = System(self.name, self.system_type, Model)
+        self.other_system = System(self.name, self.system_type, Model)
 
     def test_new_system_name(self):
         """Test the name attribute of the System class."""
-        system = System("test", "test_type")
+        system = System("test", "test_type", Model)
         attribute_name = 'name'
         test_name_bool = hasattr(system, attribute_name)
         self.assertTrue(
@@ -48,7 +47,7 @@ class TestSystem(unittest.TestCase):
 
     def test_new_system_type(self):
         """Test the type attribute of the System class."""
-        system = System("test", "test_type")
+        system = System("test", "test_type", Model)
         attribute_name = 'system_type'
         test_name_bool = hasattr(system, attribute_name)
         self.assertTrue(
@@ -97,85 +96,3 @@ class TestJobsSystem(unittest.TestCase):
     Build: 1
       Status: SUCCESS"""
         self.assertIn(output, expected)
-
-
-class TestPipelineSystem(unittest.TestCase):
-    """Test the PipelineSystem class."""
-
-    def setUp(self):
-        self.name = "test"
-        self.system = PipelineSystem(self.name, "zuul")
-        self.other_system = PipelineSystem(self.name, "zuul")
-
-    def test_new_system_name(self):
-        """Test the type attribute of the PipelineSystem class."""
-        self.assertTrue(
-            hasattr(self.system, 'name'), msg="System lacks name attribute")
-        system_name = self.system.name.value
-        error_msg = f"System name should be {self.name}, not {system_name}"
-        self.assertEqual(self.system.name.value, self.name,
-                         msg=error_msg)
-
-    def test_new_system_type(self):
-        """Test the type attribute of the PipelineSystem class."""
-        self.assertTrue(
-            hasattr(self.system, 'system_type'),
-            msg="System lacks type attribute")
-        system_type = self.system.system_type.value
-        error_msg = f"System type should be zuul, not {system_type}"
-        self.assertEqual(self.system.name.value, self.name,
-                         msg=error_msg)
-
-    def test_system_comparison(self):
-        """Test new PipelineSystem instances comparison."""
-        self.assertEqual(
-            self.system, self.other_system,
-            msg="Systems {self.system.name.value} and \
-{self.system.name.value} are not equal")
-
-    def test_system_comparison_other_types(self):
-        """Test new PipelineSystem instances comparison."""
-        self.assertNotEqual(
-            self.system, "test",
-            msg=f"System {self.system.name.value} should be different from str"
-        )
-
-    def test_system_str(self):
-        """Test PipelineSystem __str__ method."""
-        self.assertIn("System: ", str(self.system))
-        self.assertIn("System: ", str(self.other_system))
-        self.assertIn(self.name, str(self.system))
-        self.assertIn(self.name, str(self.other_system))
-
-    def test_add_pipeline(self):
-        """Test PipelineSystem add pipeline method."""
-        pipeline = Pipeline("check")
-        self.system.add_pipeline(pipeline)
-        self.assertEqual(len(self.system.pipelines.value), 1)
-        self.assertEqual(pipeline, self.system.pipelines["check"])
-
-    def test_add_pipeline_with_merge(self):
-        """Test PipelineSystem add pipeline method."""
-        pipeline = Pipeline("check")
-        self.system.add_pipeline(pipeline)
-        self.system.add_pipeline(pipeline)
-        self.assertEqual(len(self.system.pipelines.value), 1)
-        self.assertEqual(pipeline, self.system.pipelines["check"])
-
-    def test_populate(self):
-        """Test populating the system."""
-        pipeline_name = "check"
-        pipeline = Pipeline("check")
-        pipelines = AttributeDictValue(name='pipelines',
-                                       value={pipeline_name: pipeline},
-                                       attr_type=Pipeline)
-        self.system.populate(pipelines)
-        self.assertEqual(len(self.system.pipelines.value), 1)
-        self.assertEqual(pipeline, self.system.pipelines.value[pipeline_name])
-
-    def test_add_source(self):
-        """Test adding a new source to a system."""
-        source = Source("test_source", driver="jenkins")
-        self.system.add_source(source)
-        self.assertEqual(len(self.system.sources.value), 1)
-        self.assertEqual(source, self.system.sources.value[0])

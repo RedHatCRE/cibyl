@@ -26,7 +26,8 @@ class OutputStyle(Enum):
 
     @staticmethod
     def from_key(key):
-        """| Parses a key into an :class:`OutputStyle`.
+        """Parses a key into an :class:`OutputStyle`.
+
         Map of known keys:
             * 'text' -> OutputStyle.TEXT
             * 'colorized' -> OutputStyle.COLORIZED
