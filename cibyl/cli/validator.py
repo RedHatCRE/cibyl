@@ -102,6 +102,48 @@ class Validator:
 
         return True
 
+    def check_envs(self, environments, systems_check, envs_check,
+                   systems_msg, envs_msg):
+        """Iterate over environments and systems and apply some check to each
+        of them. Only return those that satisfy the checks.
+
+        :param environments: Environments to validate
+        :type environments: list
+        :param systems_check: Function to use to check a system
+        :type systems_check: callable
+        :param envs_check: Function to use to check an environment
+        :type envs_check: callable
+        :param systems_msg: Message template to log in case of system check
+        failure
+        :type systems_msg: str
+        :param envs_msg: Message template to log in case of environment check
+        failure
+        :type envs_msg: str
+
+        :returns: Environments and systems that pass the checks
+        :rtype: list, list
+        """
+        user_systems = []
+        user_envs = []
+        for env in environments:
+            env_systems = []
+            if not envs_check(env):
+                LOG.debug(envs_msg, env.name.value)
+                continue
+            for system in env.systems:
+                if not systems_check(system):
+                    LOG.debug(systems_msg, system.name.value)
+                    continue
+                env_systems.append(system)
+            if env_systems:
+                # if the environment has no valid systems, we will not pass it
+                # back, so for the rest of the execution we will only consider
+                # valid environments and systems
+                env.systems.value = env_systems
+                user_envs.append(env)
+                user_systems.extend(env_systems)
+        return user_envs, user_systems
+
     def validate_environments(self, environments):
         """Filter environments and systems according to user input.
 
@@ -124,51 +166,27 @@ class Validator:
 
         # if the user input is good, then filter the environments and systems
         # so we only keep the ones consistent with user input
-        user_systems = []
-        user_envs = []
-        for env in environments:
-            env_systems = []
-            if not self._consistent_environment(env):
-                LOG.debug("Environment %s is not consistent with user input",
-                          env.name.value)
-                continue
-            for system in env.systems:
-                if not self._consistent_system(system):
-                    LOG.debug("System %s is not consistent with user input",
-                              system.name.value)
-
-                    continue
-                env_systems.append(system)
-            if env_systems:
-                # if the environment has no valid systems, we will not pass it
-                # back, so for the rest of the execution we will only consider
-                # valid environments and systems
-                env.systems.value = env_systems
-                user_envs.append(env)
-                user_systems.extend(env_systems)
+        user_envs, user_systems = self.check_envs(environments,
+                                                  self._consistent_system,
+                                                  self._consistent_environment,
+                                                  "System %s is not consistent"
+                                                  " with user input",
+                                                  "Environment %s is not "
+                                                  "consistent with user input")
 
         if not user_systems:
             raise NoValidSystem(all_systems)
 
-        user_systems = []
-        final_envs = []
-        sources = []
-        for env in user_envs:
-            env_systems = []
-            for system in env.systems:
-                if not self._system_has_valid_sources(system):
-                    msg = "System %s has no sources consistent with user input"
-                    LOG.debug(msg, system.name.value)
-                    continue
-                env_systems.append(system)
-            if env_systems:
-                env.systems.value = env_systems
-                final_envs.append(env)
-                user_systems.extend(env_systems)
-
+        system_sources_check = self._system_has_valid_sources
+        user_envs, user_systems = self.check_envs(user_envs,
+                                                  system_sources_check,
+                                                  lambda _: True,
+                                                  "System %s has no sources "
+                                                  "consistent with user input",
+                                                  "")
         if not user_systems:
             sources = [source['name'] for system in all_systems
                        for source in system.sources]
             raise NoValidSources(sources=sources)
 
-        return final_envs, user_systems
+        return user_envs, user_systems
