@@ -18,7 +18,7 @@ import logging
 from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
 from cibyl.models.ci.printers import CIPrinter
-from cibyl.models.ci.system import JobsSystem
+from cibyl.models.ci.system import JobsSystem, ZuulSystem
 from cibyl.output import PrintMode
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
@@ -63,15 +63,11 @@ class CIColoredPrinter(CIPrinter):
         printer[0].append(env.name.value)
 
         for system in env.systems:
-            if isinstance(system, JobsSystem):
-                printer.add(self.print_jobs_system(system), 1)
-            else:
-                LOG.warning('Ignoring unknown system type: %s', type(system))
-                continue
+            printer.add(self.print_system(system), 1)
 
         return printer.build()
 
-    def print_jobs_system(self, system):
+    def print_system(self, system):
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('System: '), 0)
@@ -80,14 +76,43 @@ class CIColoredPrinter(CIPrinter):
         if self.verbosity > 0:
             printer[-1].append(f' (type: {system.system_type.value})')
 
+        # Print type specific contents
+        if isinstance(system, JobsSystem):
+            printer.add(self._print_jobs_system(system), 1)
+        elif isinstance(system, ZuulSystem):
+            printer.add(self._print_zuul_system(system), 1)
+
+        return printer.build()
+
+    def _print_jobs_system(self, system):
+        printer = IndentedTextBuilder()
+
         if self.mode == PrintMode.COMPLETE:
             for job in system.jobs.values():
                 printer.add(self.print_job(job), 1)
 
             if system.is_queried():
-                printer.add(self._palette.blue('Total jobs found in query: '),
-                            1)
+                header = 'Total jobs found in query: '
+
+                printer.add(self._palette.blue(header), 1)
                 printer[-1].append(len(system.jobs))
+            else:
+                printer.add(self._palette.blue('No query performed'), 1)
+
+        return printer.build()
+
+    def _print_zuul_system(self, system):
+        printer = IndentedTextBuilder()
+
+        if self.mode == PrintMode.COMPLETE:
+            for tenant in system.tenants.values():
+                printer.add(self.print_tenant(tenant), 1)
+
+            if system.is_queried():
+                header = 'Total tenants found in query: '
+
+                printer.add(self._palette.blue(header), 1)
+                printer[-1].append(len(system.tenants))
             else:
                 printer.add(self._palette.blue('No query performed'), 1)
 

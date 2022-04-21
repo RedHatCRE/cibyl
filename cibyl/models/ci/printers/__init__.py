@@ -32,7 +32,7 @@ class CIPrinter(Printer, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def print_jobs_system(self, system):
+    def print_system(self, system):
         """
         :param system: The system.
         :return: Textual representation of the provided model.
