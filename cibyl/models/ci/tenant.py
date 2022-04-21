@@ -17,8 +17,6 @@ from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.job import Job
 from cibyl.models.model import Model
-from cibyl.utils.colors import Colors
-from cibyl.utils.strings import IndentedTextBuilder
 
 
 class Tenant(Model):
@@ -46,7 +44,7 @@ class Tenant(Model):
         self.name = None
         self.jobs = None
 
-        # Load data into the model
+        # Set up the model
         super().__init__({'name': name, 'jobs': jobs})
 
     def __eq__(self, other):
@@ -54,21 +52,6 @@ class Tenant(Model):
             return False
 
         return self.name == other.name
-
-    def __str__(self, indent=0, verbosity=0, simple_representation=False):
-        result = IndentedTextBuilder()
-
-        result.add(f"{Colors.blue('Tenant: ')}", indent)
-        result[-1].append(self.name.value)
-
-        for job in self.jobs.values():
-            result.add(f'{job.__str__(indent + 2, verbosity)}', indent)
-
-        if not simple_representation:
-            result.add(f"{Colors.blue('Total jobs: ')}", indent)
-            result[-1].append({len(self.jobs)})
-
-        return result.build()
 
     def merge(self, other):
         """
@@ -83,7 +66,7 @@ class Tenant(Model):
         key = job.name.value
 
         if key in self.jobs:
-            # Store unknown contents of job
+            # Extract unknown contents of job
             self.jobs[key].merge(job)
         else:
             # Register brand-new job

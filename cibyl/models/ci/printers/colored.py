@@ -88,6 +88,21 @@ class CIColoredPrinter(CIPrinter):
 
         return printer.build()
 
+    def print_tenant(self, tenant):
+        result = IndentedTextBuilder()
+
+        result.add(self._palette.blue('Tenant: '), 0)
+        result[-1].append(tenant.name.value)
+
+        for job in tenant.jobs.values():
+            result.add(self.print_job(job), 1)
+
+        if self.mode == PrintMode.COMPLETE:
+            result.add(self._palette.blue('Total jobs found in query: '), 1)
+            result[-1].append(len(tenant.jobs))
+
+        return result.build()
+
     def print_job(self, job):
         printer = IndentedTextBuilder()
 
