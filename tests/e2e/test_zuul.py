@@ -31,8 +31,9 @@ class TestZuul(EndToEndTest):
             sys.argv = [
                 '',
                 '--config', 'tests/e2e/data/configs/zuul.yaml',
-                '--jobs',
-                '-vv'
+                '-f', 'text',
+                '-vv',
+                '--jobs'
             ]
 
             main()

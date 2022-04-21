@@ -45,30 +45,6 @@ class TestOpenstackDeployment(TestCase):
                                             dvr=self.dvr,
                                             tls_everywhere=self.tls_everywhere)
 
-    def test_str_method(self):
-        """Test that the string representation of Deployment works."""
-        deployment_str = self.second_deployment.__str__(verbosity=1)
-        self.assertIn("Release:", deployment_str)
-        self.assertIn(self.release, deployment_str)
-        self.assertIn("Infra type:", deployment_str)
-        self.assertIn(self.infra, deployment_str)
-        self.assertIn("IP version:", deployment_str)
-        self.assertIn(self.ip_version, deployment_str)
-        self.assertIn("Topology:", deployment_str)
-        self.assertIn(self.topology, deployment_str)
-        self.assertIn("Network backend:", deployment_str)
-        self.assertIn(self.network, deployment_str)
-        self.assertIn("Storage backend:", deployment_str)
-        self.assertIn(self.storage, deployment_str)
-        self.assertIn("DVR:", deployment_str)
-        self.assertIn(self.dvr, deployment_str)
-        self.assertIn("TLS everywhere:", deployment_str)
-        self.assertIn(self.tls_everywhere, deployment_str)
-        self.assertIn("Service name:", deployment_str)
-        self.assertIn('nova', deployment_str)
-        self.assertIn("Node name:", deployment_str)
-        self.assertIn('controller-0', deployment_str)
-
     def test_merge_method(self):
         """Test merge method of Deployment class."""
         self.assertIsNone(self.deployment.ip_version.value)

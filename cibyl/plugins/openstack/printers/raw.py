@@ -13,22 +13,18 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from unittest import TestCase
+from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
+from cibyl.publisher import PrintMode
+from cibyl.utils.colors import ClearText
 
-from cibyl.plugins.openstack.node import Node
 
+class OSRawPrinter(OSColoredPrinter):
+    """Same as :class:`OSColoredPrinter`, but this one removes all color
+    decoration, leaving only the raw text.
+    """
 
-class TestOpenstackNode(TestCase):
-    """Test openstack node model."""
-    def setUp(self):
-        self.name = 'controller-0'
-        self.role = 'controller'
-        self.node = Node(self.name, self.role)
-
-    def test_str_method(self):
-        """Test that the string representation of Node works."""
-        node_str = self.node.__str__(verbosity=1)
-        self.assertIn("Node name:", node_str)
-        self.assertIn(self.name, node_str)
-        self.assertIn("Role: ", node_str)
-        self.assertIn(self.role, node_str)
+    def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
+        """| Constructor.
+        See parents for more information.
+        """
+        super().__init__(mode, verbosity, ClearText())

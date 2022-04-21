@@ -34,8 +34,9 @@ class TestJenkins(EndToEndTest):
             sys.argv = [
                 '',
                 '--config', 'tests/e2e/data/configs/jenkins.yaml',
-                '--jobs',
-                '-vv'
+                '-f', 'text',
+                '-vv',
+                '--jobs'
             ]
 
             main()

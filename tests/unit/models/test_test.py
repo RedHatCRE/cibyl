@@ -77,26 +77,6 @@ Should be {self.test_result}")
             msg=f"Test {self.test.name.value} should be different from \
 str")
 
-    def test_test_str(self):
-        """Test Test __str__ method."""
-        self.assertIn('Test: ', str(self.test))
-        self.assertIn(self.name, str(self.test))
-        self.assertIn('Test: ', str(self.second_test))
-
-        self.second_test.result.value = self.test_result
-        self.second_test.duration.value = self.duration
-        self.second_test.class_name.value = self.class_name
-        second_test_str = self.second_test.__str__(verbosity=2)
-
-        self.assertIn('Test: ', second_test_str)
-        self.assertIn(self.name, second_test_str)
-        self.assertIn('Result: ', second_test_str)
-        self.assertIn(self.test_result, second_test_str)
-        self.assertIn('Class name: ', second_test_str)
-        self.assertIn(self.class_name, second_test_str)
-        self.assertIn('Duration:', second_test_str)
-        self.assertIn('0.00m', second_test_str)
-
     def test_test_merge(self):
         """Test Test merge method."""
         self.test.result.value = "SUCCESS"
@@ -104,12 +84,3 @@ str")
         self.second_test.merge(self.test)
         self.assertEqual(self.second_test.result.value, "SUCCESS")
         self.assertEqual(self.second_test.duration.value, 25)
-
-    def test_test_str_all_result(self):
-        """Test Test str for various result strings."""
-        results = ["SUCCESS", "FAILURE", "UNSTABLE", "SKIPPED"]
-        for result in results:
-            self.test.result.value = result
-            test_str = str(self.test)
-            self.assertIn('Result: ', test_str)
-            self.assertIn(result, test_str)
