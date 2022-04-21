@@ -17,7 +17,7 @@
 import logging
 
 from cibyl.exceptions.model import (InvalidEnvironment, InvalidSystem,
-                                    NoValidSystem)
+                                    NoEnabledSystem, NoValidSystem)
 from cibyl.exceptions.source import NoValidSources
 
 LOG = logging.getLogger(__name__)
@@ -144,6 +144,34 @@ class Validator:
                 user_systems.extend(env_systems)
         return user_envs, user_systems
 
+    def _system_is_enabled(self, system):
+        """Check if a system should be used according to enabled parameter in
+        configuration file.
+
+        :param system: Model to validate
+        :type system: :class:`.System`
+        :returns: Whether the system is enabled
+        :rtype: bool
+        """
+        return system.is_enabled()
+
+    def override_enabled_systems(self, systems):
+        """Ensure that systems specified by the user with the --systems
+        argument are enabled.
+
+        :param systems: systems to check
+        :type systems: list
+        """
+
+        user_systems = self.ci_args.get("systems")
+        if not user_systems or not user_systems.value:
+            # if the user did not specify anything for --systems, nothing to do
+            # here
+            return
+        for system in systems:
+            if system.name.value in user_systems.value:
+                system.enable()
+
     def validate_environments(self, environments):
         """Filter environments and systems according to user input.
 
@@ -175,7 +203,17 @@ class Validator:
                                                   "consistent with user input")
 
         if not user_systems:
-            raise NoValidSystem(all_systems)
+            raise NoValidSystem(system_names)
+
+        self.override_enabled_systems(user_systems)
+
+        user_envs, user_systems = self.check_envs(user_envs,
+                                                  self._system_is_enabled,
+                                                  lambda _: True,
+                                                  "System %s is disabled ",
+                                                  "")
+        if not user_systems:
+            raise NoEnabledSystem()
 
         system_sources_check = self._system_has_valid_sources
         user_envs, user_systems = self.check_envs(user_envs,
