@@ -68,7 +68,7 @@ def safe_request_generic(request, custom_error):
 class Source(AttrDict):
     """Represents a data provider within a system."""
 
-    def __init__(self, name: str, driver: str, **kwargs):
+    def __init__(self, name: str = None, driver: str = None, **kwargs):
         kwargs.setdefault('enabled', True)
         kwargs.setdefault('priority', 0)
 
