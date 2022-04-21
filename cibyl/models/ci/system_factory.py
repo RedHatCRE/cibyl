@@ -16,6 +16,7 @@
 from enum import Enum
 
 from cibyl.models.ci.system import JobsSystem, ZuulSystem
+from cibyl.utils.dicts import subset
 
 
 class SystemType(str, Enum):
@@ -45,9 +46,15 @@ class SystemFactory:
         system_type = system_type.lower()
 
         if system_type == SystemType.JENKINS:
-            return JobsSystem(name=name, system_type=system_type, **kwargs)
+            # Extract interesting arguments for this system
+            args = subset(kwargs, ['sources', 'jobs_scope'])
+
+            return JobsSystem(name=name, system_type=system_type, **args)
 
         if system_type == SystemType.ZUUL:
-            return ZuulSystem(name=name, system_type=system_type, **kwargs)
+            # Extract interesting arguments for this system
+            args = subset(kwargs, ['sources'])
+
+            return ZuulSystem(name=name, system_type=system_type, **args)
 
         raise NotImplementedError(f"Unknown system type '{system_type}'")

@@ -150,7 +150,7 @@ class TestValidator(TestCase):
                           validator.validate_environments,
                           original_envs)
 
-    def test_validtor_validate_sources(self):
+    def test_validator_validate_sources(self):
         """Test Validator validate_environments with sources."""
         self.orchestrator.config.data = self.config
         self.orchestrator.create_ci_environments()
