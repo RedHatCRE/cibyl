@@ -13,19 +13,27 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
-from cibyl.publisher import PrintMode
-from cibyl.utils.colors import ClearText
+from unittest import TestCase
+
+from cibyl.utils.dicts import subset
 
 
-class OSRawPrinter(OSColoredPrinter):
-    """Same as :class:`OSColoredPrinter`, but this one removes all color
-    decoration, leaving only the raw text.
-    """
-
-    def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
-        """Constructor.
-
-        See parents for more information.
+class TestSubset(TestCase):
+    def test_subset_is_generated(self):
+        """Checks that this is capable of creating a dictionary from another.
         """
-        super().__init__(mode, verbosity, ClearText())
+        original = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
+
+        keys = ['a', 'c']
+
+        self.assertEqual(
+            {
+                'a': 1,
+                'c': 3
+            },
+            subset(original, keys)
+        )

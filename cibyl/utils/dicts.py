@@ -13,19 +13,28 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
-from cibyl.publisher import PrintMode
-from cibyl.utils.colors import ClearText
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
-class OSRawPrinter(OSColoredPrinter):
-    """Same as :class:`OSColoredPrinter`, but this one removes all color
-    decoration, leaving only the raw text.
+def subset(dictionary, keys):
     """
 
-    def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
-        """Constructor.
+    :param dictionary:
+    :type dictionary: dict
+    :param keys:
+    :type keys: list
+    :return:
+    """
+    result = {}
 
-        See parents for more information.
-        """
-        super().__init__(mode, verbosity, ClearText())
+    for key in keys:
+        if key not in dictionary:
+            message = "Ignoring key '%s' not found in dictionary: %s"
+            LOG.debug(message, key, dictionary)
+            continue
+
+        result[key] = dictionary[key]
+
+    return result

@@ -24,7 +24,8 @@ class CIRawPrinter(CIColoredPrinter):
     """
 
     def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
-        """| Constructor.
+        """Constructor.
+
         See parents for more information.
         """
         super().__init__(mode, verbosity, ClearText())
