@@ -25,7 +25,8 @@ from pathlib import Path
 from cibyl.exceptions.jenkins_job_builder import JenkinsJobBuilderError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.job import Job
-from cibyl.sources.source import Source, safe_request_generic, speed_index
+from cibyl.sources.git import GitSource
+from cibyl.sources.source import safe_request_generic, speed_index
 
 LOG = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ safe_request = partial(safe_request_generic,
 
 
 # pylint: disable=no-member
-class JenkinsJobBuilder(Source):
+class JenkinsJobBuilder(GitSource):
     """A class representation of a JenkinsJobBuilder repo."""
 
     # pylint: disable=too-many-arguments
@@ -52,55 +53,9 @@ class JenkinsJobBuilder(Source):
         :param branch: Branch to checkout
         :type branch: str
         """
-        super().__init__(name, url=url, driver=driver,
-                         enabled=enabled, priority=priority)
-        self.dest = dest
-        self.branch = branch
-        self.cloned = False
-        if self.dest is None and self.url is None:
-            message = f"Source {self.name} needs a url or a destination path."
-            raise JenkinsJobBuilderError(message)
-
-        if dest is None:
-            repo_name = os.path.split(self.url)[-1]
-            project_name = os.path.splitext(repo_name)[0]
-            self.dest = os.path.join(os.path.expanduser('~'), '.cibyl',
-                                     project_name)
-            os.makedirs(self.dest, exist_ok=True)
-
-    def ensure_repo_present(self):
-        """Ensure that the repository with job definitions is present."""
-        if self.cloned:
-            return
-        self.cloned = True
-        if not os.path.exists(os.path.join(self.dest, ".git")):
-            LOG.debug("cloning repository %s to %s", self.url, self.dest)
-            self.get_repo()
-        else:
-            LOG.debug("Repository %s found in %s, pulling latest changes",
-                      self.url, self.dest)
-            self.pull_latest_changes()
-
-    @safe_request
-    def pull_latest_changes(self):
-        """Ensure that the repo is up to date."""
-        branch = []
-        if self.branch:
-            subprocess.run(["git", "checkout", self.branch], check=True,
-                           cwd=self.dest)
-            branch.append(self.branch)
-
-        subprocess.run(["git", "pull", "origin"]+branch, check=True,
-                       cwd=self.dest)
-
-    @safe_request
-    def get_repo(self):
-        """Download git repository for job definitions."""
-        branch_options = []
-        if self.branch is not None:
-            branch_options = ["-b", self.branch]
-        subprocess.run(["git", "clone", self.url, self.dest]+branch_options,
-                       check=True)
+        super().__init__(name=name, url=url, driver=driver,
+                         enabled=enabled, priority=priority,
+                         dest=dest, branch=branch)
 
     def _generate_xml(self):
         """Use tox to generate jenkins job xml files."""
