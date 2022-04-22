@@ -114,14 +114,6 @@ Arguments Matrix
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
-   * - --packages
-     - | Package installed by the
-       | deployment
-     - |:black_square_button:|
-     - |:black_square_button:|
-     - |:black_square_button:|
-     - |:x:|
-     - |:x:|
    * - --tls-everywhere
      - | Does the deployment uses
        | TLS on all hosts
@@ -133,6 +125,31 @@ Arguments Matrix
    * - --containers
      - | List of containers running
        | on the hosts
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:x:|
+     - |:x:|
+   * - --container-image
+     - | List of images used for
+       | the containers running
+       | on the hosts
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:x:|
+     - |:x:|
+   * - --packages
+     - | Package installed by the
+       | deployment
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:x:|
+     - |:x:|
+   * - --package-origin
+     - | Origin of package installed
+       | by the deployment
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|

@@ -17,7 +17,6 @@
 import unittest
 
 from cibyl.models.attribute import AttributeDictValue
-from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.system import JobsSystem, System
 from cibyl.models.model import Model
@@ -82,20 +81,6 @@ class TestJobsSystem(unittest.TestCase):
         self.system.populate(jobs)
         self.assertEqual(len(self.system.jobs.value), 1)
         self.assertEqual(job, self.system.jobs.value["test_job"])
-
-    @unittest.skip("will be integrated later")
-    def test_system_str_jobs(self):
-        """Test system str for a system with jobs and builds."""
-        build = Build("1", "SUCCESS")
-        job = Job("test_job")
-        job.add_build(build)
-        self.system.add_job(job)
-        output = str(self.system)
-        expected = """System: test
-  Job: test_job
-    Build: 1
-      Status: SUCCESS"""
-        self.assertIn(output, expected)
 
     def test_query_attribute(self):
         """Test system queried attribute."""

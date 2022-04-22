@@ -17,6 +17,7 @@ from unittest import TestCase
 
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.node import Node
+from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.service import Service
 
 
@@ -77,3 +78,16 @@ class TestOpenstackDeployment(TestCase):
         self.assertEqual(service.name.value, service_to_add.name.value)
         self.assertEqual(service.configuration.value,
                          service_to_add.configuration.value)
+
+    def test_merge_method_existing_node(self):
+        """Test merge method of Deployment class."""
+
+        node_to_add = Node('controller-0', 'controller',
+                           packages={'package': Package('package')})
+        self.deployment.add_node(node_to_add)
+        self.second_deployment.merge(self.deployment)
+        node = self.second_deployment.nodes['controller-0']
+        self.assertEqual(node.name.value, node.name.value)
+        self.assertEqual(node.role.value, node.role.value)
+        self.assertEqual(node.packages['package'].name,
+                         node_to_add.packages['package'].name)

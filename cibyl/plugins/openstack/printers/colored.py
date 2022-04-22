@@ -46,13 +46,12 @@ class OSColoredPrinter(OSPrinter):
         """
         return self._palette
 
-    def print_container(self, container):
-        raise NotImplementedError
-
     def print_deployment(self, deployment):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('Release: '), 0)
+        printer.add(self._palette.blue('Openstack deployment: '), 0)
+
+        printer.add(self._palette.blue('Release: '), 1)
         printer[-1].append(deployment.release.value)
 
         if deployment.infra_type.value:
@@ -103,19 +102,26 @@ class OSColoredPrinter(OSPrinter):
                 printer[-1].append(node.role)
 
         if node.containers.value:
-            for container in node.containers:
-                printer.add(self._palette.blue('Container: '), 1)
-                printer[-1].append(self.print_container(container))
+            for container in node.containers.values():
+                printer.add(self.print_container(container), 1)
 
         if node.packages.value:
-            for package in node.packages:
-                printer.add(self._palette.blue('Package: '), 1)
-                printer[-1].append(self.print_package(package), 1)
+            for package in node.packages.values():
+                printer.add(self.print_package(package), 1)
 
         return printer.build()
 
     def print_package(self, package):
-        raise NotImplementedError
+        printer = IndentedTextBuilder()
+
+        printer.add(self._palette.blue('Package: '), 0)
+        printer[-1].append(package.name)
+
+        if package.origin.value:
+            printer.add(self._palette.blue('Origin: '), 1)
+            printer[-1].append(package.origin)
+
+        return printer.build()
 
     def print_service(self, service):
         printer = IndentedTextBuilder()
@@ -128,5 +134,21 @@ class OSColoredPrinter(OSPrinter):
                 for parameter, value in service.configuration.value.items():
                     printer.add(self._palette.blue(f'{parameter}: '), 1)
                     printer[-1].append(value)
+
+        return printer.build()
+
+    def print_container(self, container):
+        printer = IndentedTextBuilder()
+
+        printer.add(self._palette.blue('Container: '), 0)
+        printer[-1].append(container.name)
+
+        if container.image.value:
+            printer.add(self._palette.blue('Image: '), 1)
+            printer[-1].append(container.image)
+
+        if container.packages.value:
+            for package in container.packages.values():
+                printer.add(self.print_package(package), 1)
 
         return printer.build()
