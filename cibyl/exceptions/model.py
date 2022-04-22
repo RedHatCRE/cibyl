@@ -73,3 +73,15 @@ class InvalidSystem(CibylException):
             self.message += "\nPlease ensure the specified systems are present"
             self.message += " in the configuration."
         super().__init__(self.message)
+
+
+class NoEnabledSystem(CibylException):
+    """Exception for a case when no enabled system is found."""
+
+    def __init__(self, message=None):
+        """Constructor."""
+        if not message:
+            message = "No enabled system was found. Please ensure at least one"
+            message += " system is enabled in your configuration or specify a"
+            message += " system with the --systems argument to override it."
+        super().__init__(message)

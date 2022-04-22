@@ -36,10 +36,6 @@ BASE_SYSTEM_API = {
                      description="System type")
         ]
     },
-    'queried': {
-        'attr_type': bool,
-        'arguments': []
-    },
     'sources': {
         'attr_type': Source,
         'attribute_value_class': AttributeListValue,
@@ -48,6 +44,14 @@ BASE_SYSTEM_API = {
                      nargs="*",
                      description="Source name")
         ]
+    },
+    'enabled': {
+        'attr_type': bool,
+        'arguments': []
+    },
+    'queried': {
+        'attr_type': bool,
+        'arguments': []
     }
 }
 
@@ -102,11 +106,13 @@ class System(Model):
                  system_type: str,
                  top_level_model: Type[Model],
                  sources: List = None,
+                 enabled: bool = True,
                  **kwargs):
         # Let IDEs know this class's attributes
         self.name = None
         self.system_type = None
         self.sources = None
+        self.enabled = None
         self.queried = None
 
         # Set up the model
@@ -115,6 +121,7 @@ class System(Model):
                 'name': name,
                 'system_type': system_type,
                 'sources': sources,
+                'enabled': enabled,
                 'queried': False,
                 **kwargs
             }
@@ -137,6 +144,18 @@ class System(Model):
         :type source: :class:`Source`
         """
         self.sources.append(source)
+
+    def enable(self):
+        """Enable a system for querying."""
+        self.enabled.value = True
+
+    def is_enabled(self):
+        """Check whether a system is enabled.
+
+        :returns: Whether the system is enabled
+        :rtype: bool
+        """
+        return self.enabled.value
 
     def register_query(self):
         """Record that the system was queried."""
@@ -181,6 +200,7 @@ class JobsSystem(System):
                  name: str,
                  system_type: str,
                  sources: List = None,
+                 enabled: bool = True,
                  jobs: Dict[str, Job] = None,
                  jobs_scope: str = "*"):
         # Let IDEs know this class's attributes
@@ -193,6 +213,7 @@ class JobsSystem(System):
             system_type=system_type,
             top_level_model=Job,
             sources=sources,
+            enabled=enabled,
             jobs_scope=jobs_scope,
             jobs=jobs
         )
@@ -229,6 +250,7 @@ class ZuulSystem(System):
                  name,
                  system_type='zuul',
                  sources=None,
+                 enabled=True,
                  tenants=None):
         # Let IDEs know this class's attributes
         self.tenants = None
@@ -239,6 +261,7 @@ class ZuulSystem(System):
             system_type=system_type,
             top_level_model=Tenant,
             sources=sources,
+            enabled=enabled,
             tenants=tenants
         )
 

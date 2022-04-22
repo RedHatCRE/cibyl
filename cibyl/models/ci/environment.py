@@ -42,8 +42,9 @@ class Environment(Model):
         super().__init__({'name': name, 'systems': systems})
 
     def add_system(self, name: str, system_type: str, jobs_scope: str = None,
-                   sources: list = None):
+                   sources: list = None, enabled: bool = True):
         """Adds a CI system to the CI environment"""
         self.systems.append(SystemFactory.create_system(system_type, name,
                                                         sources=sources,
-                                                        jobs_scope=jobs_scope))
+                                                        jobs_scope=jobs_scope,
+                                                        enabled=enabled))

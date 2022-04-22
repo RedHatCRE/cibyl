@@ -45,16 +45,16 @@ class SystemFactory:
         """
         system_type = system_type.lower()
 
+        # Extract common arguments of interest
+        args = subset(kwargs, ['sources', 'enabled'])
+
         if system_type == SystemType.JENKINS:
-            # Extract interesting arguments for this system
-            args = subset(kwargs, ['sources', 'jobs_scope'])
+            # Add arguments specific for this type
+            args.update(subset(kwargs, ['jobs_scope']))
 
             return JobsSystem(name=name, system_type=system_type, **args)
 
         if system_type == SystemType.ZUUL:
-            # Extract interesting arguments for this system
-            args = subset(kwargs, ['sources'])
-
             return ZuulSystem(name=name, system_type=system_type, **args)
 
         raise NotImplementedError(f"Unknown system type '{system_type}'")
