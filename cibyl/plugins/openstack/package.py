@@ -14,17 +14,37 @@
 #    under the License.
 """
 
-# flake8: noqa from cibyl.cli.argument import Argument
-# flake8: noqa from cibyl.models.attribute import AttributeListValue
+from cibyl.cli.argument import Argument
 from cibyl.models.model import Model
 
 # pylint: disable=no-member
 
 
 class Package(Model):
-    """
-    Model for packages found on Openstack node
-    """
-    # To be implemented in future PR
+    """ Model for packages found on Openstack node."""
 
-    API = {}
+    API = {
+        'name': {
+            'attr_type': str,
+            'arguments': []
+        },
+        'origin': {
+            'attr_type': str,
+            'arguments': [Argument(name='--package-origin', arg_type=str,
+                                   nargs="*", func="get_deployment",
+                                   description="Package origin")]
+        }
+    }
+
+    def __init__(self, name: str, origin: str = None):
+        super().__init__({'name': name, 'origin': origin})
+
+    def merge(self, other):
+        """Merge the information of two package objects representing the
+        same package.
+
+        :param other: The Package object to merge
+        :type other: :class:`.Package`
+        """
+        if not self.origin.value:
+            self.origin.value = other.origin.value
