@@ -253,3 +253,28 @@ class ZuulSystem(System):
         else:
             # Add a brand-new tenant
             self.tenants[key] = model
+
+
+class ZuulDSystem(JobsSystem):
+    """
+    ZuulD system class
+    """
+
+    def __init__(self,
+                 name,
+                 system_type='zuul.d',
+                 sources=None,
+                 enabled=True,
+                 tenants=None):
+        # Let IDEs know this class's attributes
+        self.tenants = None
+
+        # Set up model
+        super().__init__(
+            name=name,
+            system_type=system_type,
+            sources=sources,
+            enabled=enabled,
+        )
+
+        System.API = self.API

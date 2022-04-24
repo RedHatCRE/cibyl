@@ -23,6 +23,7 @@ from cibyl.sources.source import speed_index
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
 from cibyl.sources.zuul.query import handle_query
 from cibyl.utils.dicts import subset
+from cibyl.sources.zuul.git_api import ZuulGitHub
 
 
 class Zuul(ServerSource):
@@ -187,3 +188,32 @@ class Zuul(ServerSource):
         :rtype: :class:`AttributeDictValue`
         """
         return self.get_jobs(**kwargs)
+
+
+class ZuulD(Source):
+    class API:
+        def __init__(self, parent, url, **kwargs):
+            self._parent = parent
+            self._api = url
+            self.kwargs = kwargs
+
+    def __init__(self, api, url, name: str, driver: str, **kwargs):
+        super().__init__(name, driver, **kwargs)
+        self.api = api
+        self.url = url
+        self.kwargs = kwargs
+
+    @speed_index({'base': 3})
+    def get_jobs(self, **kwargs):
+        return ZuulGitHub(self.url, self.kwargs).get_jobs()
+
+    @staticmethod
+    def new_source(url, **kwargs):
+        api_client = None
+        if url.startswith("http") or url.startswith("https"):
+            # use git api
+            api_client = None
+        else:
+            # use file api
+            api_client = None
+        return ZuulD(api=api_client, url=url, **kwargs)
