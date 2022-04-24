@@ -40,26 +40,23 @@ class JenkinsJobBuilder(GitSource):
     """A class representation of a JenkinsJobBuilder repo."""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, url: str = None, dest: str = None, branch: str = None,
+    def __init__(self, repos: dict = None,
                  enabled: bool = True, priority: int = 0,
                  name: str = "jenkins_job_builder",
                  driver: str = "jenkins_job_builder"):
         """Create a client to talk to a jenkins job definitions instance.
 
-        :param url: Job definitions address
-        :type url: str
-        :param dest: Path to the repository, or where to store it
-        :type dest: str
-        :param branch: Branch to checkout
-        :type branch: str
+        :param repos: A dictionary of repositories to clone
+        :type repos: dict
         """
-        super().__init__(name=name, url=url, driver=driver,
-                         enabled=enabled, priority=priority,
-                         dest=dest, branch=branch)
+        super().__init__(name=name, repos=repos, driver=driver,
+                         enabled=enabled, priority=priority)
 
     def _generate_xml(self):
         """Use tox to generate jenkins job xml files."""
-        subprocess.run(["tox",  "-e", "jobs"], check=True, cwd=self.dest)
+        for repo in self.repos:
+            subprocess.run(["tox",  "-e", "jobs"], check=True,
+                           cwd=repo.get('dest'))
 
     @speed_index({'base': 1})
     def get_jobs(self, **kwargs):
@@ -69,7 +66,20 @@ class JenkinsJobBuilder(GitSource):
         name, fullname, url, color
         :rtype: list
         """
-        self.ensure_repo_present()
+        all_jobs = {}
+        print(self.repos)
+        for repo in self.repos:
+            all_jobs.update(self.get_jobs_from_repo(repo, **kwargs))
+        return AttributeDictValue("jobs", attr_type=Job, value=all_jobs)
+
+    def get_jobs_from_repo(self, repo, **kwargs):
+        """Get all jobs from a given repo
+
+        :param repo: repo information like path and url
+        :type repo: dict
+        :returns: All jobs from the given repository
+        :rtype: dict
+        """
         self._generate_xml()
         jobs_available = {}
         jobs_arg = kwargs.get('jobs')
@@ -78,7 +88,8 @@ class JenkinsJobBuilder(GitSource):
             pattern = re.compile("|".join(jobs_arg.value))
 
         jobs_found = []
-        for path in Path(os.path.join(self.dest, "out-xml")).rglob("*.xml"):
+        for path in Path(os.path.join(repo.get('dest'),
+                                      "out-xml")).rglob("*.xml"):
             file_content = ET.parse(path).getroot()
             file_type = file_content.tag
             if "folder" in file_type:
@@ -98,5 +109,4 @@ class JenkinsJobBuilder(GitSource):
                                                                     )]
         for job in jobs_filtered:
             jobs_available[job] = Job(name=job)
-
-        return AttributeDictValue("jobs", attr_type=Job, value=jobs_available)
+        return jobs_available

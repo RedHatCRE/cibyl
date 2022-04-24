@@ -14,6 +14,7 @@
 #    under the License.
 """
 import logging
+from abc import abstractmethod
 from operator import itemgetter
 from typing import Dict
 
@@ -73,6 +74,11 @@ class Source(AttrDict):
         kwargs.setdefault('priority', 0)
 
         super().__init__(name=name, driver=driver, **kwargs)
+
+    @abstractmethod
+    def setup(self):
+        """Setup everything required for the source to become operational."""
+        LOG.debug(f"Setting up source: {self.name}")
 
 
 def is_source_valid(source: Source, desired_attr: str):

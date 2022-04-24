@@ -15,7 +15,8 @@ To following is a configuration sample of how to configure the 'Jenkins Job Buil
           sources:
             jjb_source:
               driver: jenkins_job_builder
-              repo: 'https://jjb_repo_example.git'
+              repos:
+                  - url: 'https://jjb_repo_example.git'
 
 Plugin Support
 ^^^^^^^^^^^^^^
