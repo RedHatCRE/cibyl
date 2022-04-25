@@ -96,7 +96,8 @@ class ElasticSearchOSP(Source):
         """
         try:
             with self.es_client.connect() as es_connection:
-                LOG.info(f"Using the following query: {query}")
+                LOG.info("Using the following query: {}"
+                         .format(str(query).replace("'", '"')))
                 hits = [item for item in scan(
                     es_connection,
                     index=index,
@@ -242,6 +243,11 @@ class ElasticSearchOSP(Source):
                           "exists": {
                             "field": "topology"
                           }
+                        },
+                        {
+                            "exists": {
+                                "field": "osp_release"
+                            }
                         }
                       ],
                       "minimum_should_match": 1
@@ -276,15 +282,17 @@ class ElasticSearchOSP(Source):
         ip_version_argument = None
         if 'ip_version' in kwargs:
             ip_version_argument = kwargs.get('ip_version').value
-        # release_argument = None
-        # if 'release' in kwargs:
-        #     release_argument = kwargs.get('release').value
+        release_argument = None
+        if 'release' in kwargs:
+            release_argument = kwargs.get('release').value
         network_argument = None
         if 'network_backend' in kwargs:
             network_argument = kwargs.get('network_backend').value
         storage_argument = None
         if 'storage_backend' in kwargs:
             storage_argument = kwargs.get('storage_backend').value
+        if 'osp_release' in kwargs:
+            storage_argument = kwargs.get('osp_release').value
 
         job_objects = {}
         for hit in hits:
@@ -304,6 +312,8 @@ class ElasticSearchOSP(Source):
                 "storage_backend", "unknown")
             dvr = hit['_source'].get(
                 "dvr", "unknown")
+            osp_release = hit['_source'].get(
+                "osp_release", "unknown")
 
             if ip_version != 'unknown':
                 matches = IP_PATTERN.search(ip_version)
@@ -314,10 +324,10 @@ class ElasticSearchOSP(Source):
                     ip_version not in ip_version_argument:
                 continue
 
-            # # Check if necessary filter by release version:
-            # if release_argument and \
-            #         release not in release_argument:
-            #     continue
+            # Check if necessary filter by release version:
+            if release_argument and \
+                    osp_release not in release_argument:
+                continue
 
             # Check if necessary filter by network backend:
             if network_argument and \
@@ -331,7 +341,7 @@ class ElasticSearchOSP(Source):
 
             job_objects[job_name] = Job(name=job_name, url=job_url)
             deployment = Deployment(
-                release='unknown',
+                release=osp_release,
                 infra_type='',
                 nodes={},
                 services={},
