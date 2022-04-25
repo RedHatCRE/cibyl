@@ -72,12 +72,13 @@ class TestJenkinsJobBuilderSource(TestCase):
         url = 'url/to/repo'
         dest = 'dest_folder'
         branch = 'master'
+        repos = [{'url': url, 'dest': dest, 'branch': branch}]
 
-        jenkins = JenkinsJobBuilder(url, dest=dest, branch=branch)
+        jenkins = JenkinsJobBuilder(repos=repos)
 
-        self.assertEqual(dest, jenkins.dest)
-        self.assertEqual(url, jenkins.url)
-        self.assertEqual(branch, jenkins.branch)
+        self.assertEqual(dest, jenkins.repos[-1].get('dest'))
+        self.assertEqual(url, jenkins.repos[-1].get('url'))
+        self.assertEqual(branch, jenkins.repos[-1].get('branch'))
 
     def test_with_no_dest(self, _):
         """Checks that object is built correctly when the dest is not
@@ -85,13 +86,18 @@ class TestJenkinsJobBuilderSource(TestCase):
         """
         url = 'url/to/repo/'
         branch = 'master'
+        repos = [{'url': url, 'branch': branch}]
 
-        jenkins = JenkinsJobBuilder(url, branch=branch)
+        jenkins = JenkinsJobBuilder(repos=repos)
 
-        self.assertEqual(url, jenkins.url)
-        self.assertEqual(branch, jenkins.branch)
-        self.assertIsNotNone(jenkins.dest)
-        self.assertTrue(os.path.isdir(jenkins.dest))
+        self.assertIsNone(jenkins.repos[-1].get('dest'))
+
+        jenkins.setup()
+
+        self.assertEqual(url, jenkins.repos[-1].get('url'))
+        self.assertEqual(branch, jenkins.repos[-1].get('branch'))
+        self.assertIsNotNone(jenkins.repos[-1].get('dest'))
+        self.assertTrue(os.path.isdir(jenkins.repos[-1].get('dest')))
 
     def test_with_no_branch(self, _):
         """Checks that object is built correctly when the branch is not
@@ -99,12 +105,13 @@ class TestJenkinsJobBuilderSource(TestCase):
         """
         url = 'url/to/repo/'
         dest = 'dest'
+        repos = [{'url': url, 'dest': dest}]
 
-        jenkins = JenkinsJobBuilder(url, dest=dest)
+        jenkins = JenkinsJobBuilder(repos)
 
-        self.assertEqual(url, jenkins.url)
-        self.assertIsNone(jenkins.branch)
-        self.assertEqual(dest, jenkins.dest)
+        self.assertEqual(url, jenkins.repos[-1].get('url'))
+        self.assertIsNone(jenkins.repos[-1].get('branch'))
+        self.assertEqual(dest, jenkins.repos[-1].get('dest'))
 
     def test_get_jobs(self, _):
         """
@@ -112,7 +119,8 @@ class TestJenkinsJobBuilderSource(TestCase):
             is correct. The jenkins API method that should do the query is
             mocked so that it returns the query itself.
         """
-        jenkins = JenkinsJobBuilder("url", dest="out_jjb_test")
+        repos = [{'dest': 'out_jjb_test'}]
+        jenkins = JenkinsJobBuilder(repos=repos)
         jenkins._generate_xml = Mock()
 
         jobs = jenkins.get_jobs()

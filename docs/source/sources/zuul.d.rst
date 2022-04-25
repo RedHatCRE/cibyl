@@ -15,7 +15,8 @@ To following is a configuration sample of how to configure the Jenkins source::
           sources:
             zuul_definitions_source:
               driver: zuul.d
-              url: 'http://zuul_defitions_repo.git
+              repos:
+                  - url: 'http://zuul_defitions_repo.git
 
 Plugin Support
 ^^^^^^^^^^^^^^

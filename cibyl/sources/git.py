@@ -32,51 +32,53 @@ class GitSource(Source):
     """A class representation of a Git-based source."""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, url: str = None, dest: str = None, branch: str = None,
+    def __init__(self, repos: dict = None,
                  enabled: bool = True, priority: int = 0,
                  name: str = "git", driver: str = None):
         """Create a client to talk to a jenkins job definitions instance.
 
-        :param url: Job definitions address
-        :type url: str
-        :param dest: Path to the repository, or where to store it
-        :type dest: str
-        :param branch: Branch to checkout
-        :type branch: str
+        :param repos: A dictionary of repositories to clone
+        :type repos: dict
         """
-        super().__init__(name, url=url, driver=driver,
+        super().__init__(name, driver=driver,
                          enabled=enabled, priority=priority)
-        self.dest = dest
-        self.branch = branch
-        self.cloned = False
-        if self.dest is None and self.url is None:
-            message = f"Source {self.name} needs a url or a destination path."
-            raise GitError(message)
+        self.repos = repos
 
-        if dest is None:
-            repo_name = os.path.split(self.url)[-1]
-            project_name = os.path.splitext(repo_name)[0]
-            self.dest = os.path.join(os.path.expanduser('~'), '.cibyl',
-                                     project_name)
-            os.makedirs(self.dest, exist_ok=True)
+    def setup(self):
+        """Clone the repositories specified by the 'repos' argument/field."""
+        super().setup()
+        for repo in self.repos:
+            if repo.get('dest') is None and repo.get('url') is None:
+                message = f"Source {self.name} needs a url or \
+a destination path."
+                raise GitError(message)
+            if repo.get('dest') is None:
+                repo_name = os.path.split(repo.get('url'))[-1]
+                project_name = os.path.splitext(repo_name)[0]
+                repo['dest'] = os.path.join(os.path.expanduser('~'), '.cibyl',
+                                            project_name)
+                os.makedirs(repo.get('dest'), exist_ok=True)
+        self.ensure_repos_present()
 
-    def ensure_repo_present(self):
+    def ensure_repos_present(self):
         """Ensure that the repository with job definitions is present."""
-        if self.cloned:
-            return
-        self.cloned = True
-        if not os.path.exists(os.path.join(self.dest, ".git")):
-            LOG.debug("cloning repository %s to %s", self.url, self.dest)
-            self.get_repo()
-        else:
-            LOG.debug("Repository %s found in %s, pulling latest changes",
-                      self.url, self.dest)
-            self.pull_latest_changes()
+        for repo in self.repos:
+            if repo.get('cloned'):
+                continue
+            if not os.path.exists(os.path.join(repo.get('dest'), ".git")):
+                LOG.debug("cloning repository %s to %s", repo.get('url'),
+                          repo.get('dest'))
+                self.get_repo()
+            else:
+                LOG.debug("Repository %s found in %s, pulling latest changes",
+                          repo.get('url'), repo.get('dest'))
+                self.pull_latest_changes(repo.get('dest'))
+                repo['cloned'] = True
 
     @safe_request
-    def pull_latest_changes(self):
+    def pull_latest_changes(self, repo_path):
         """Ensure that the repo is up to date."""
-        repo = Repo(self.dest)
+        repo = Repo(repo_path)
         repo_remote = repo.remotes.origin
         repo_remote.pull()
 
