@@ -13,150 +13,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from itertools import chain
 
 from cibyl.models.attribute import AttributeDictValue
-from cibyl.models.ci.build import Build
-from cibyl.models.ci.job import Job
 from cibyl.sources.source import Source, speed_index
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
-from cibyl.utils.filtering import apply_filters
+from cibyl.sources.zuul.query import handle_query
 
 
 class Zuul(Source):
     """Source implementation for a Zuul host.
     """
-
-    class API:
-        """The meat of the source. Provides its capabilities without being
-        restricted by the interface definition.
-        """
-
-        def __init__(self, parent, api):
-            """Constructor.
-
-            :param parent: The source this gives capabilities to.
-            :type parent: :class:`Zuul`
-            :param api: Low-Level Zuul client.
-            :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
-            """
-            self._parent = parent
-            self._api = api
-
-        def get_jobs(self, fetch_builds=False, **kwargs):
-            """Gets a set of jobs from the host formatted with the job model.
-
-            :param fetch_builds: Whether to also download the jobs builds.
-            :type fetch_builds: bool
-            :param kwargs: See :meth:`~.get_jobs`.
-            :return: The fetched jobs.
-            :rtype: :class:`AttributeDictValue`
-            """
-
-            def get_all_jobs():
-                return chain.from_iterable(
-                    tenant.jobs() for tenant in self._api.tenants()
-                )
-
-            def job_name_filter(job):
-                # Filter not requested
-                if 'jobs' not in kwargs:
-                    return True
-
-                targets = kwargs['jobs'].value
-
-                # An empty '--jobs' means fetch all jobs.
-                if not targets:
-                    return True
-
-                return job.name in targets
-
-            def job_url_filter(job):
-                # Filter not requested
-                if 'job_url' not in kwargs:
-                    return True
-
-                return self._get_url_for(job) in kwargs['job_url'].value
-
-            def get_model_for(job):
-                model = Job(
-                    name=job.name,
-                    url=self._get_url_for(job)
-                )
-
-                if fetch_builds:
-                    for build in self._get_builds_for(job, **kwargs):
-                        model.add_build(Build(build['uuid'], build['result']))
-
-                return model
-
-            jobs = apply_filters(
-                get_all_jobs(),
-                job_name_filter,
-                job_url_filter
-            )
-
-            return AttributeDictValue(
-                name='jobs',
-                attr_type=Job,
-                value={
-                    job.name: get_model_for(job)
-                    for job in jobs
-                }
-            )
-
-        @staticmethod
-        def _get_builds_for(job, **kwargs):
-            """Gets the builds of a job formatted as raw data.
-
-            :param job: The job to get the build for.
-            :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
-            :param kwargs: See :meth:`~.get_builds`.
-            :return: Data on the job's builds.
-            :rtype: list[dict]
-            """
-
-            def last_build_filter(build):
-                if 'last_build' not in kwargs:
-                    return True
-
-                return build == builds[0]
-
-            def build_id_filter(build):
-                if 'builds' not in kwargs:
-                    return True
-
-                return build['uuid'] in kwargs['builds'].value
-
-            def build_status_filter(build):
-                if 'build_status' not in kwargs:
-                    return True
-
-                return build['result'] in kwargs['build_status'].value
-
-            builds = job.builds()
-
-            return apply_filters(
-                builds,
-                last_build_filter,
-                build_id_filter,
-                build_status_filter
-            )
-
-        def _get_url_for(self, job):
-            """Builds the URL where the job is located at. This URL is meant
-            to be seen on a browser, do not confuse it with the API
-            counterpart.
-
-            :param job: The job to build the URL for.
-            :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
-            :return: The URL.
-            :rtype: str
-            """
-            base = self._parent.url
-            tenant = job.tenant
-
-            return f"{base}/t/{tenant.name}/job/{job.name}"
 
     def __init__(self, api, name, driver, url, **kwargs):
         """Constructor.
@@ -178,7 +44,7 @@ class Zuul(Source):
 
         super().__init__(name, driver, url=url, **kwargs)
 
-        self._api = Zuul.API(self, api)
+        self._api = api
 
     @staticmethod
     def new_source(url, cert=None, **kwargs):
@@ -207,25 +73,28 @@ class Zuul(Source):
 
         return Zuul(api=ZuulRESTClient.from_url(url, cert), url=url, **kwargs)
 
-    @speed_index({'base': 3})
+    @speed_index({'base': 1})
+    def get_tenants(self, **kwargs):
+        return handle_query(self._api, **kwargs)
+
+    @speed_index({'base': 2})
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 
-        :param kwargs: Indicates all the filters that are to be applied to
-            the request. For a filter to be used, its key must be present
-            on this collection and its parameters present on the key's value.
+        :param kwargs: All arguments from the command line.
+            These define the query to be performed. Arguments that explicitly
+            affect jobs are listed below.
         :key jobs:
             Names of the jobs to be fetched.
             Type: Argument[list[str]].
         :key job_url:
             URL of the job to be fetched.
             Type: Argument[str].
-        :return: The jobs retrieved from the query, formatted as an attribute
-            of type :class:`Job`. Jobs are indexed by their name on the
-            attribute.
+        :return: Resulting CI model from the query, formatted as an
+            attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self._api.get_jobs(fetch_builds=False, **kwargs)
+        return self.get_tenants(**kwargs)
 
     @speed_index({'base': 3})
     def get_builds(self, **kwargs):
@@ -234,9 +103,9 @@ class Zuul(Source):
         .. seealso::
             For filters related to jobs, see: :meth:`~.get_jobs`.
 
-        :param kwargs: Indicates all the filters that are to be applied to
-            the request. For a filter to be used, its key must be present
-            on this collection and its parameters present on the key's value.
+        :param kwargs: All arguments from the command line.
+            These define the query to be performed. Arguments that explicitly
+            affect builds are listed below.
         :key last_build:
             Fetch only the latest build of each job.
             Type: None
@@ -246,9 +115,8 @@ class Zuul(Source):
         :key build_status:
             List of desired statuses to be fetched.
             Type: Argument[list[str]].
-        :return: The jobs retrieved from the query, formatted as an attribute
-            of type :class:`Job`. Jobs are indexed by their name on the
-            attribute. Builds can be found inside each of the jobs listed here.
+        :return: Resulting CI model from the query, formatted as an
+            attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self._api.get_jobs(fetch_builds=True, **kwargs)
+        return self.get_jobs(**kwargs)
