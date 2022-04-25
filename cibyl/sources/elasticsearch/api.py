@@ -15,7 +15,10 @@
 """
 
 import logging
+import re
 from urllib.parse import urlsplit
+
+from elasticsearch.helpers import scan
 
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.elasticsearch import ElasticSearchError
@@ -48,7 +51,7 @@ class ElasticSearchOSP(Source):
                 port = url_parsed.port
             except Exception as exception:
                 raise ElasticSearchError('The URL given is not valid') \
-                      from exception
+                    from exception
             self.es_client = ElasticSearchClient(host, port)
 
     @speed_index({'base': 1})
@@ -58,25 +61,26 @@ class ElasticSearchOSP(Source):
             :returns: Job objects queried from elasticserach
             :rtype: :class:`AttributeDictValue`
         """
-        key_filter = 'jobName'
+        key_filter = 'job_name'
         jobs_to_search = []
         if 'jobs' in kwargs:
             jobs_to_search = kwargs.get('jobs').value
-            key_filter = 'jobName'
+            key_filter = 'job_name'
         if 'job_url' in kwargs:
             jobs_to_search = kwargs.get('job_url').value
-            key_filter = 'envVars.JOB_URL'
+            key_filter = 'job_url'
 
         query_body = QueryTemplate(key_filter, jobs_to_search).get
 
         hits = self.__query_get_hits(
-            query=query_body
+            query=query_body,
+            index='logstash_jenkins_jobs'
         )
 
         job_objects = {}
         for hit in hits:
-            job_name = hit['_source']['jobName']
-            url = hit['_source']['envVars']['JOB_URL']
+            job_name = hit['_source']['job_name']
+            url = hit['_source']['job_url']
             job_objects[job_name] = Job(name=job_name, url=url)
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
@@ -92,16 +96,17 @@ class ElasticSearchOSP(Source):
         """
         try:
             with self.es_client.connect() as es_connection:
-                response = es_connection.search(
+                hits = [item for item in scan(
+                    es_connection,
                     index=index,
-                    body=query,
-                    size=10000,
-                )
+                    query=query,
+                    size=10000
+                )]
             es_connection.transport.close()
         except Exception as exception:
             raise ElasticSearchError("Error getting the results") \
-                  from exception
-        return response['hits']['hits']
+                from exception
+        return hits
 
     @speed_index({'base': 2})
     def get_builds(self: object, **kwargs: Argument):
@@ -115,12 +120,13 @@ class ElasticSearchOSP(Source):
         jobs_found = self.get_jobs(**kwargs)
 
         for job_name, job in jobs_found.items():
-            query_body = QueryTemplate('jobName',
+            query_body = QueryTemplate('job_name',
                                        [job_name],
                                        query_type='match').get
 
             builds = self.__query_get_hits(
-                query=query_body
+                query=query_body,
+                index='jenkins_builds'
             )
 
             build_statuses = []
@@ -136,17 +142,17 @@ class ElasticSearchOSP(Source):
             for build in builds:
 
                 build_result = None
-                if not build['_source']['buildResult'] and \
-                        build['_source']['currentBuildResult']:
-                    build_result = build['_source']['currentBuildResult']
+                if not build['_source']['build_result'] and \
+                        build['_source']['current_build_result']:
+                    build_result = build['_source']['current_build_result']
                 else:
-                    build_result = build["_source"]['buildResult']
+                    build_result = build["_source"]['build_result']
 
                 if 'build_status' in kwargs and \
-                        build['_source']['buildResult'] not in build_statuses:
+                        build['_source']['build_result'] not in build_statuses:
                     continue
 
-                build_id = str(build['_source']['buildID'])
+                build_id = str(build['_source']['build_id'])
 
                 if build_id_argument and \
                         build_id not in build_id_argument:
@@ -154,7 +160,7 @@ class ElasticSearchOSP(Source):
 
                 job.add_build(Build(build_id,
                                     build_result,
-                                    build['_source']['runDuration']))
+                                    build['_source']['time_duration']))
 
         if 'last_build' in kwargs:
             return self.get_last_build(jobs_found)
@@ -172,6 +178,10 @@ class ElasticSearchOSP(Source):
         job_object = {}
         for job_name, build_info in builds_jobs.items():
             builds = build_info.builds
+
+            if not builds:
+                continue
+
             last_build_number = sorted(builds.keys(), key=int)[-1]
             last_build_info = builds[last_build_number]
             # Now we need to consturct the Job object
@@ -195,34 +205,104 @@ class ElasticSearchOSP(Source):
         if 'jobs' in kwargs:
             jobs_to_search = kwargs.get('jobs').value
 
-        query_body = QueryTemplate('jobName', jobs_to_search).get
+        query_body = {
+            "query": {
+              "bool": {
+                "must": [
+                  {
+                    "bool": {
+                      "must": []
+                    }
+                  },
+                  {
+                    "bool": {
+                      "should": [
+                        {
+                          "exists": {
+                            "field": "ip_version"
+                          }
+                        },
+                        {
+                          "exists": {
+                            "field": "storage_backend"
+                          }
+                        },
+                        {
+                          "exists": {
+                            "field": "network_backend"
+                          }
+                        },
+                        {
+                          "exists": {
+                            "field": "dvr"
+                          }
+                        },
+                        {
+                          "exists": {
+                            "field": "topology"
+                          }
+                        }
+                      ],
+                      "minimum_should_match": 1
+                    }
+                  }
+                ]
+              }
+            },
+            "size": 1,
+            "sort": [
+                {
+                    "timestamp.keyword": {
+                        "order": "desc"
+                    }
+                }
+            ]
+        }
 
-        hits = self.__query_get_hits(
-            query=query_body
-        )
+        hits = []
+        for job in jobs_to_search:
+            query_body['query']['bool']['must'][0]['bool']['must'] = {
+                "match": {
+                    "job_name.keyword": f"{job}"
+                }
+            }
+            results = self.__query_get_hits(
+                query=query_body,
+                index='logstash_jenkins'
+            )
+            hits.append(results[0])
 
         ip_version_argument = None
         if 'ip_version' in kwargs:
             ip_version_argument = kwargs.get('ip_version').value
-        release_argument = None
-        if 'release' in kwargs:
-            release_argument = kwargs.get('release').value
+        # release_argument = None
+        # if 'release' in kwargs:
+        #     release_argument = kwargs.get('release').value
         network_argument = None
         if 'network_backend' in kwargs:
             network_argument = kwargs.get('network_backend').value
+        storage_argument = None
+        if 'storage_backend' in kwargs:
+            storage_argument = kwargs.get('storage_backend').value
+
         job_objects = {}
         for hit in hits:
-            job_name = hit['_source']['jobName']
-            url = hit['_source']['envVars']['JOB_URL']
+            job_name = hit['_source']['job_name']
+            job_url = re.compile(r"(.*)/\d").search(
+                hit['_source']['build_url']
+            ).group(1)
+
             # If the key exists assign the value otherwise assign unknown
-            topology = hit['_source']['envVars'].get(
-                "JP_IRVIRSH_TOPOLOGY_NODES", "unknown")
-            release = hit['_source']['envVars'].get(
-                "JP_OSPD_PRODUCT_VERSION", "unknown")
-            network_backend = hit['_source']['envVars'].get(
-                "JP_OSPD_NETWORK_BACKEND", "unknown")
-            ip_version = hit['_source']['envVars'].get(
-                "JP_OSPD_NETWORK_PROTOCOL", "unknown")
+            topology = hit['_source'].get(
+                "topology", "unknown")
+            network_backend = hit['_source'].get(
+                "network_backend", "unknown")
+            ip_version = hit['_source'].get(
+                "ip_version", "unknown")
+            storage_backend = hit['_source'].get(
+                "storage_backend", "unknown")
+            dvr = hit['_source'].get(
+                "dvr", "unknown")
 
             if ip_version != 'unknown':
                 matches = IP_PATTERN.search(ip_version)
@@ -233,26 +313,35 @@ class ElasticSearchOSP(Source):
                     ip_version not in ip_version_argument:
                 continue
 
-            # Check if necessary filter by release version:
-            if release_argument and \
-                    release not in release_argument:
-                continue
+            # # Check if necessary filter by release version:
+            # if release_argument and \
+            #         release not in release_argument:
+            #     continue
 
             # Check if necessary filter by network backend:
             if network_argument and \
                     network_backend not in network_argument:
                 continue
 
-            job_objects[job_name] = Job(name=job_name, url=url)
+            # Check if necessary filter by storage backend:
+            if storage_argument and \
+                    storage_backend not in storage_argument:
+                continue
+
+            job_objects[job_name] = Job(name=job_name, url=job_url)
             deployment = Deployment(
-                release,
+                # release,
                 "unknown",
                 [],
                 [],
+                services=[],
                 ip_version=ip_version,
                 topology=topology,
-                network_backend=network_backend
+                network_backend=network_backend,
+                dvr=dvr,
+                storage_backend=storage_backend
             )
+
             job_objects[job_name].add_deployment(deployment)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
@@ -317,7 +406,7 @@ class QueryTemplate():
                 }
             }
 
-    @property
+    @ property
     def get(self: object) -> dict:
         """Return DSL query in dictionary format"""
         LOG.info(f"Using the following query: {self.query_body}")
