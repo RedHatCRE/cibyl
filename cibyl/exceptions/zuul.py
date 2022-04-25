@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.exceptions import CibylException
+from cibyl.exceptions.source import SourceException
 
 
-class RateLimitException(CibylException):
+class RateLimitException(SourceException):
     """
     Exception for rate limit exceeded.
     """

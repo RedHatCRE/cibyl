@@ -18,7 +18,8 @@ from enum import Enum
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
-from cibyl.sources.zuul.source import Zuul, ZuulD
+from cibyl.sources.zuul.source import Zuul
+from cibyl.sources.zuuld.source import ZuulD
 
 
 class SourceType(str, Enum):
@@ -61,6 +62,6 @@ class SourceFactory:
             return JenkinsJobBuilder(name=name, **kwargs)
 
         if source_type == SourceType.ZUUL_D:
-            return ZuulD.new_source(name=name, **kwargs)
+            return ZuulD(name=name, **kwargs)
 
         raise NotImplementedError(f"Unknown source type '{source_type}'")
