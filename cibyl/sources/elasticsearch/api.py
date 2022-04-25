@@ -406,7 +406,7 @@ class QueryTemplate():
                 }
             }
 
-    @ property
+    @property
     def get(self: object) -> dict:
         """Return DSL query in dictionary format"""
         LOG.info(f"Using the following query: {self.query_body}")
