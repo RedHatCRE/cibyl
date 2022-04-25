@@ -56,7 +56,7 @@ class JobsRequest(Request):
     def get(self):
         jobs = apply_filters(self._tenant.jobs(), *self._filters)
 
-        return [JobResponse(job) for job in jobs]
+        return [JobResponse(self._tenant, job) for job in jobs]
 
 
 class BuildsRequest(Request):
@@ -86,7 +86,7 @@ class BuildsRequest(Request):
         if self._last_build_only:
             builds = builds[0:1]  # Just the newest build
 
-        return [BuildResponse(build) for build in builds]
+        return [BuildResponse(self._job, build) for build in builds]
 
 
 class TenantResponse:
@@ -94,28 +94,42 @@ class TenantResponse:
         self._tenant = tenant
 
     @property
-    def api(self):
-        return self._tenant
+    def name(self):
+        return self._tenant.name
 
     def jobs(self):
         return JobsRequest(self._tenant)
 
 
 class JobResponse:
-    def __init__(self, job):
+    def __init__(self, tenant, job):
+        self._tenant = tenant
         self._job = job
 
     @property
-    def api(self):
-        return self._job
+    def tenant(self):
+        return self._tenant
+
+    @property
+    def name(self):
+        return self._job.name
+
+    @property
+    def url(self):
+        return self._job.url
 
     def builds(self):
         return BuildsRequest(self._job)
 
 
 class BuildResponse:
-    def __init__(self, build):
+    def __init__(self, job, build):
+        self._job = job
         self._build = build
+
+    @property
+    def job(self):
+        return self._job
 
     @property
     def data(self):
