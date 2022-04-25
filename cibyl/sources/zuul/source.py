@@ -14,7 +14,6 @@
 #    under the License.
 """
 
-from cibyl.models.attribute import AttributeDictValue
 from cibyl.sources.source import Source, speed_index
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
 from cibyl.sources.zuul.query import handle_query
