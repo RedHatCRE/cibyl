@@ -65,6 +65,7 @@ class TestElasticsearchOSP(TestCase):
                     {
                         '_source': {
                             'job_name': 'test',
+                            'job_url': 'http://domain.tld/test/',
                             'build_result': 'SUCCESS',
                             'build_id': '1',
                             'time_duration': 20,
@@ -76,6 +77,7 @@ class TestElasticsearchOSP(TestCase):
                     {
                         '_source': {
                             'job_name': 'test2',
+                            'job_url': 'http://domain.tld/test2/',
                             'build_result': 'FAIL',
                             'build_id': '2',
                             'time_duration': 10,
