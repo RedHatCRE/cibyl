@@ -19,7 +19,6 @@ from cibyl.models.attribute import AttributeListValue
 from cibyl.models.ci.system import System
 from cibyl.models.ci.system_factory import SystemFactory
 from cibyl.models.model import Model
-from cibyl.utils.colors import Colors
 
 
 class Environment(Model):
@@ -43,17 +42,9 @@ class Environment(Model):
         super().__init__({'name': name, 'systems': systems})
 
     def add_system(self, name: str, system_type: str, jobs_scope: str = None,
-                   sources: list = None):
+                   sources: list = None, enabled: bool = True):
         """Adds a CI system to the CI environment"""
         self.systems.append(SystemFactory.create_system(system_type, name,
                                                         sources=sources,
-                                                        jobs_scope=jobs_scope))
-
-    def __str__(self, indent=0, verbosity=0, simple_representation=False):
-        string = ""
-        string += Colors.blue("Environment: ") + f"{self.name.value}"
-        for system in self.systems:
-            system_str = system.__str__(indent + 2, verbosity,
-                                        simple_representation)
-            string += f"\n{system_str}"
-        return string
+                                                        jobs_scope=jobs_scope,
+                                                        enabled=enabled))

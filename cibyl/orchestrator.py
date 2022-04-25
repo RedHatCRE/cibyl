@@ -21,7 +21,8 @@ from cibyl.cli.parser import Parser
 from cibyl.cli.validator import Validator
 from cibyl.config import Config, ConfigFactory
 from cibyl.exceptions.config import InvalidConfiguration
-from cibyl.exceptions.source import NoValidSources
+from cibyl.exceptions.source import (NoSupportedSourcesFound, NoValidSources,
+                                     SourceException)
 from cibyl.models.ci.environment import Environment
 from cibyl.publisher import Publisher
 from cibyl.sources.source import get_source_method
@@ -96,6 +97,7 @@ class Orchestrator:
                                 **source_data
                             )
                         )
+                        sources[-1].setup()
 
                     environment.add_system(
                         name=system_name,
@@ -115,8 +117,9 @@ class Orchestrator:
         :param argument: argument that is considered for the query
         :type argument: :class:`.Argument`
 
-        :returns: method to call from the selected source
-        :rtype: function
+        :returns: List of pairs with source method and its speed index sorted
+        by the speed index value
+        :rtype: tuple
         """
         sources_user = self.parser.ci_args.get("sources")
         system_sources = system.sources
@@ -124,7 +127,8 @@ class Orchestrator:
             system_sources = [source for source in system.sources if
                               source.name in sources_user.value]
         if not system_sources:
-            raise NoValidSources(system)
+            raise NoValidSources(system,
+                                 [source.name for source in system.sources])
         return get_source_method(system.name.value, system_sources,
                                  argument.func, args=self.parser.ci_args)
 
@@ -138,6 +142,7 @@ class Orchestrator:
         # information
         self.environments, valid_systems = validator.validate_environments(
                 self.environments)
+        debug = self.parser.app_args.get("debug", False)
         for arg in sorted(self.parser.ci_args.values(),
                           key=operator.attrgetter('level'), reverse=True):
             if arg.level >= start_level and arg.level >= last_level:
@@ -150,25 +155,49 @@ class Orchestrator:
                 # because the environment information is not used from this
                 # point forward
                 for system in valid_systems:
-                    source_method = self.select_source_method(system, arg)
-                    if source_methods_store.has_been_called(source_method):
-                        # we want to avoid repeating calls to the same source
-                        # method if several argument with that method are
-                        # provided
+                    if not system.is_enabled():
                         continue
-                    source_methods_store.add_call(source_method)
-                    start_time = time.time()
-                    LOG.debug(f"Running {source_method.__name__} method \
-from {source_method.__self__.get('driver')}")
-                    model_instances_dict = source_method(
-                        **self.parser.ci_args, **self.parser.app_args)
-                    end_time = time.time()
-                    LOG.info("Took %.2fs to query system %s using %s",
-                             end_time-start_time, system.name.value,
-                             source_information_from_method(source_method))
-                    # only update last_level if the query was successful
-                    last_level = arg.level
-                    system.populate(model_instances_dict)
+                    try:
+                        source_methods = self.select_source_method(system, arg)
+                    except NoSupportedSourcesFound as exception:
+                        # if no sources are found in the system for this
+                        # particular query, jump to the next one without
+                        # stopping execution
+                        LOG.error(exception, exc_info=debug)
+                        continue
+
+                    for source_method, speed_score in source_methods:
+                        if source_methods_store.has_been_called(source_method):
+                            # we want to avoid repeating calls to the same
+                            # source method if several arguments with that
+                            # method are provided
+                            continue
+                        source_methods_store.add_call(source_method)
+                        source_driver = source_method.__self__.get('driver')
+                        source_name = source_method.__self__.get('name')
+                        start_time = time.time()
+                        LOG.debug("Running %s method from %s of type %s and"
+                                  " speed index %d", source_method.__name__,
+                                  source_name, source_driver, speed_score)
+                        try:
+                            model_instances_dict = source_method(
+                                **self.parser.ci_args, **self.parser.app_args)
+                        except SourceException as exception:
+                            LOG.error("Error in source %s. %s",
+                                      source_name, exception,
+                                      exc_info=debug)
+                            continue
+                        end_time = time.time()
+                        LOG.info("Took %.2fs to query system %s using %s",
+                                 end_time-start_time, system.name.value,
+                                 source_information_from_method(source_method))
+                        # only update last_level if the query was successful
+                        last_level = arg.level
+                        system.populate(model_instances_dict)
+                        system.register_query()
+                        # if one source has provided the information, there is
+                        # no need to query the rest
+                        break
 
     def extend_parser(self, attributes, group_name='Environment',
                       level=0):

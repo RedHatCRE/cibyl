@@ -18,7 +18,8 @@ from unittest.mock import Mock
 
 from cibyl.cli.validator import Validator
 from cibyl.exceptions.model import (InvalidEnvironment, InvalidSystem,
-                                    NoValidSystem)
+                                    NoEnabledSystem, NoValidSystem)
+from cibyl.exceptions.source import NoValidSources
 from cibyl.orchestrator import Orchestrator
 
 
@@ -41,6 +42,29 @@ class TestValidator(TestCase):
                 'env1': {
                     'system1': {
                         'system_type': 'zuul',
+                        'sources': {
+                            'zuul': {
+                                'driver': 'zuul',
+                                'url': ''
+                                }
+                            }}
+                }
+            }
+        }
+        self.config_enable = {
+            'environments': {
+                'env': {
+                    'system3': {
+                        'system_type': 'jenkins',
+                        'enabled': False},
+                    'system4': {
+                        'system_type': 'zuul',
+                        'enabled': False}
+                },
+                'env1': {
+                    'system1': {
+                        'system_type': 'zuul',
+                        'enabled': False,
                         'sources': {
                             'zuul': {
                                 'driver': 'zuul',
@@ -150,7 +174,7 @@ class TestValidator(TestCase):
                           validator.validate_environments,
                           original_envs)
 
-    def test_validtor_validate_sources(self):
+    def test_validator_validate_sources(self):
         """Test Validator validate_environments with sources."""
         self.orchestrator.config.data = self.config
         self.orchestrator.create_ci_environments()
@@ -165,3 +189,47 @@ class TestValidator(TestCase):
         self.assertEqual("system1", systems[0].name.value)
         self.assertEqual("zuul", systems[0].system_type.value)
         self.assertEqual("env1", envs[0].name.value)
+
+    def test_validator_validate_no_sources(self):
+        """Test Validator validate_environments with no sources."""
+        self.orchestrator.config.data = self.config
+        self.orchestrator.create_ci_environments()
+        self.ci_args["env_name"] = Mock()
+        self.ci_args["env_name"].value = ["env"]
+        self.ci_args["sources"] = Mock()
+        self.ci_args["sources"].value = ["zuul"]
+
+        original_envs = self.orchestrator.environments
+        validator = Validator(self.ci_args)
+        self.assertRaises(NoValidSources,
+                          validator.validate_environments,
+                          original_envs)
+
+    def test_validator_validate_no_enabled_system(self):
+        """Test Validator validate_environments with no enabled systems."""
+        self.orchestrator.config.data = self.config_enable
+        self.orchestrator.create_ci_environments()
+
+        original_envs = self.orchestrator.environments
+        validator = Validator(self.ci_args)
+        self.assertRaises(NoEnabledSystem,
+                          validator.validate_environments,
+                          original_envs)
+
+    def test_validator_validate_override_no_enabled_system(self):
+        """Test Validator validate_environments overriding disabled systems."""
+        self.orchestrator.config.data = self.config_enable
+        self.orchestrator.create_ci_environments()
+        self.ci_args["systems"] = Mock()
+        self.ci_args["systems"].value = ["system3", "system4"]
+
+        original_envs = self.orchestrator.environments
+        validator = Validator(self.ci_args)
+        envs, systems = validator.validate_environments(original_envs)
+        self.assertEqual(1, len(envs))
+        self.assertEqual(2, len(systems))
+        self.assertEqual("env", envs[0].name.value)
+        self.assertEqual("system3", systems[0].name.value)
+        self.assertEqual("system4", systems[1].name.value)
+        self.assertEqual("jenkins", systems[0].system_type.value)
+        self.assertEqual("zuul", systems[1].system_type.value)

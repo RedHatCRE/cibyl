@@ -37,6 +37,7 @@ from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
                                    DVR_PATTERN_RUN, IP_PATTERN,
                                    NETWORK_BACKEND_PATTERN, OPTIONS,
                                    PROPERTY_PATTERN, RELEASE_PATTERN,
+                                   RELEASE_RUN, RELEASE_VERSION,
                                    STORAGE_BACKEND_PATTERN, TLS_PATTERN_RUN,
                                    TOPOLOGY_PATTERN, apply_filters,
                                    filter_topology,
@@ -74,7 +75,8 @@ def is_job(job):
     :rtype: bool
     """
     job_class = job["_class"].lower()
-    return not ("view" in job_class or "folder" in job_class)
+    return not ("view" in job_class or "folder" in job_class or "multibranch"
+                in job_class)
 
 
 def filter_jobs(jobs_found: List[Dict], **kwargs):
@@ -104,12 +106,6 @@ def filter_builds(builds_found: List[Dict], **kwargs):
     if builds_arg and builds_arg.value:
         checks_to_apply.append(partial(satisfy_exact_match,
                                        user_input=builds_arg,
-                                       field_to_check="number"))
-
-    build_ids = kwargs.get('build_id')
-    if build_ids:
-        checks_to_apply.append(partial(satisfy_exact_match,
-                                       user_input=build_ids,
                                        field_to_check="number"))
 
     build_status = kwargs.get('build_status')
@@ -333,7 +329,7 @@ try reducing verbosity for quicker query")
             job_object = Job(name=job_name, url=job.get('url'))
             job_objects[job_name] = job_object
 
-            if kwargs.get('build_id'):
+            if kwargs.get('builds'):
                 # For specific build ids we have to fetch them
                 builds = self.send_request(item=f"job/{job_name}",
                                            query=self.jobs_builds_query.get(
@@ -363,7 +359,7 @@ try reducing verbosity for quicker query")
                 try:
                     tests_found = self.send_request(
                         item=f"job/{job_name}/{build['number']}/testReport",
-                        query=self.build_tests_query)
+                        query='')
                 except JenkinsError as jerr:
                     if '404' in str(jerr):
                         LOG.warning("No tests found for build %s for job %s",
@@ -372,16 +368,37 @@ try reducing verbosity for quicker query")
                     else:
                         raise jerr
 
-                for suit in tests_found['suites']:
+                test_suites = []
+                if 'suites' in tests_found:
+                    test_suites = tests_found['suites']
+
+                # Some jobs have the test report in a child container
+                if 'childReports' in tests_found:
+                    for child_report in tests_found['childReports']:
+                        for suit in child_report['result']['suites']:
+                            test_suites.append(suit)
+
+                if not test_suites:
+                    LOG.warning("No test suites found for job %s", job_name)
+                    continue
+
+                for suit_id, suit in enumerate(test_suites):
+                    if 'cases' not in suit:
+                        LOG.warning("No 'cases' found in test suit %d for job"
+                                    " %s", suit_id, job_name)
+                        continue
+
                     for test in suit['cases']:
                         if not test['className']:
                             continue
 
+                        # Duration comes in seconds (float)
+                        duration_in_ms = test.get('duration')*1000
                         job_objects[job_name].builds[build['number']].add_test(
                             Test(name=test.get('name'),
                                  class_name=test.get('className'),
                                  result=test.get('status'),
-                                 duration=test.get('duration')))
+                                 duration=duration_in_ms))
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
@@ -461,17 +478,18 @@ accurate results", len(jobs_found))
             name = job.get('name')
             job_objects[name] = Job(name=name, url=job.get('url'))
             topology = job["topology"]
-            nodes = []
+            nodes = {}
             if topology:
                 for component in topology.split(","):
                     role, amount = component.split(":")
                     for i in range(int(amount)):
-                        nodes.append(Node(role+f"-{i}", role=role))
+                        node_name = role+f"-{i}"
+                        nodes[node_name] = Node(node_name, role=role)
 
             # TODO: (jgilaber) query for services
             deployment = Deployment(job["release"],
                                     job["infra_type"],
-                                    nodes, [], ip_version=job["ip_version"],
+                                    nodes, {}, ip_version=job["ip_version"],
                                     topology=topology,
                                     network_backend=job["network_backend"],
                                     storage_backend=job["storage_backend"],
@@ -515,9 +533,13 @@ accurate results", len(jobs_found))
                 topology_str = topology_str.replace('"', '')
                 topology_str = topology_str.replace("'", '')
                 job["topology"] = topology_str
-            if "--version" in line or "PRODUCT_VERSION" in line:
+            if "--version" in line:
                 job["release"] = detect_job_info_regex(line,
-                                                       RELEASE_PATTERN)
+                                                       RELEASE_RUN)
+            if "PRODUCT_VERSION" in line:
+                job["release"] = detect_job_info_regex(line,
+                                                       RELEASE_VERSION)
+
             if "--storage-backend" in line or "STORAGE_BACKEND" in line:
                 storage = detect_job_info_regex(line, STORAGE_BACKEND_PATTERN)
                 job["storage_backend"] = storage

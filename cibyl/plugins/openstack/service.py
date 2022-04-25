@@ -14,17 +14,33 @@
 #    under the License.
 """
 
-# flake8: noqa from cibyl.cli.argument import Argument
-# flake8: noqa from cibyl.models.attribute import AttributeListValue
+from typing import Dict
+
+from cibyl.cli.argument import Argument
 from cibyl.models.model import Model
 
 # pylint: disable=no-member
 
 
 class Service(Model):
-    """
-    Model for services found on Openstack deployment
-    """
-    # To be implemented in future PR
+    """Model for services found on Openstack deployment."""
 
-    API = {}
+    API = {
+        'name': {
+            'attr_type': str,
+            'arguments': [Argument(name='--service-name', arg_type=str,
+                                   description="Service name")]
+        },
+        'configuration': {
+            'attr_type': dict,
+            'arguments': [Argument(name='--service-config', arg_type=str,
+                                   description="Service configuration")]
+        }
+    }
+
+    def __init__(self, name: str, configuration: Dict[str, str] = None):
+        super().__init__({'name': name, 'configuration': configuration})
+
+    def merge(self, other):
+        """Merge two Service objects representing the same service."""
+        self.configuration.value.update(other.configuration.value)

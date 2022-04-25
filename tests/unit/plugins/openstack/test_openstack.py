@@ -17,6 +17,7 @@ from unittest import TestCase
 
 from cibyl.models.ci.environment import Environment
 from cibyl.models.ci.job import Job
+from cibyl.models.ci.printers.raw import CIRawPrinter
 from cibyl.plugins import extend_models
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
@@ -40,8 +41,8 @@ class TestJobWithPlugin(TestCase):
 
     def setUp(self):
         extend_models("openstack")
-        self.deployment = Deployment(17.0, "test", [], [])
-        self.deployment2 = Deployment(17.1, "test", [], [])
+        self.deployment = Deployment(17.0, "test", {}, {})
+        self.deployment2 = Deployment(17.1, "test", {}, {})
         self.job = Job("job1", "url1")
         self.job2 = Job("job2", "url2")
 
@@ -61,15 +62,20 @@ class TestJobWithPlugin(TestCase):
     def test_str(self):
         """Test string representation of Job with deployment."""
         self.job.add_deployment(self.deployment)
-        job_str = self.job.__str__(indent=2, verbosity=2)
-        self.assertIn("Release: ", job_str)
-        self.assertIn("Infra type: ", job_str)
+
+        printer = CIRawPrinter(verbosity=2)
+        result = printer.print_job(self.job)
+
+        self.assertIn("Release: ", result)
+        self.assertIn("Infra type: ", result)
 
     def test_str_no_deployment(self):
         """Test string representation of Job without deployment."""
-        job_str = self.job.__str__(indent=2, verbosity=2)
-        self.assertNotIn("Release: ", job_str)
-        self.assertNotIn("Infra type: ", job_str)
+        printer = CIRawPrinter(verbosity=2)
+        result = printer.print_job(self.job)
+
+        self.assertNotIn("Release: ", result)
+        self.assertNotIn("Infra type: ", result)
 
 
 class TestOpenstackPluginUtils(TestCase):

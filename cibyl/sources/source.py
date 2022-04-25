@@ -14,6 +14,8 @@
 #    under the License.
 """
 import logging
+from abc import abstractmethod
+from operator import itemgetter
 from typing import Dict
 
 import requests
@@ -58,7 +60,8 @@ def safe_request_generic(request, custom_error):
                  f"Got response {ex.response.status_code} from target host."
             ) from ex
         except Exception as ex:
-            raise custom_error('Failure on request to target host.') from ex
+            raise custom_error('Failure on request to target host.'
+                               f' {str(ex)}') from ex
 
     return request_handler
 
@@ -66,11 +69,16 @@ def safe_request_generic(request, custom_error):
 class Source(AttrDict):
     """Represents a data provider within a system."""
 
-    def __init__(self, name: str, driver: str, **kwargs):
+    def __init__(self, name: str = None, driver: str = None, **kwargs):
         kwargs.setdefault('enabled', True)
         kwargs.setdefault('priority', 0)
 
         super().__init__(name=name, driver=driver, **kwargs)
+
+    @abstractmethod
+    def setup(self):
+        """Setup everything required for the source to become operational."""
+        LOG.debug(f"Setting up source: {self.name}")
 
 
 def is_source_valid(source: Source, desired_attr: str):
@@ -116,8 +124,8 @@ def get_source_speed_score(source, func_name: str, args: Dict[str, Argument]):
 
 def get_source_method(system_name: str, sources: list, func_name: str,
                       args: Dict[str, Argument]):
-    """Returns a method of a single source given all the sources
-    of the system and the name of function.
+    """Returns a list of sources' methods that provided the functionality
+    requested by the user sorted by the speed index.
 
     :param system_name: The name of system
     :type system_name: str
@@ -129,25 +137,23 @@ def get_source_method(system_name: str, sources: list, func_name: str,
     :type args: dict
     :raises: NoSupportedSourcesFound if no sources with the function name are
     found
+    :returns: List of pairs with source method and its speed index sorted by
+    the speed index
+    :rtype: tuple
     """
 
-    speed_score = 0
-    source_method = None
-
+    valid_sources = []
     for source in sources:
         if is_source_valid(source, func_name):
             source_speed_score = get_source_speed_score(source,
                                                         func_name, args)
-            if source_speed_score > speed_score:
-                source_method = getattr(source, func_name)
-                speed_score = source_speed_score
+            source_method = getattr(source, func_name)
+            valid_sources.append((source_method, source_speed_score))
 
-    if not source_method:
+    if not valid_sources:
         raise NoSupportedSourcesFound(system_name, func_name)
-    LOG.debug("chose source %s with speed score %d",
-              source_method.__self__.get('driver'), speed_score)
 
-    return source_method
+    return sorted(valid_sources, key=itemgetter(1), reverse=True)
 
 
 def speed_index(speed):

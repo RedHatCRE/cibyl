@@ -21,6 +21,7 @@ from cibyl.config import Config
 from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.exceptions.source import NoValidSources
 from cibyl.orchestrator import Orchestrator
+from cibyl.sources.source import Source
 
 
 class TestOrchestrator(TestCase):
@@ -155,8 +156,7 @@ class TestOrchestrator(TestCase):
         system.name = Mock()
         system.name.value = "system"
         system.sources = Mock()
-        source = Mock()
-        source.name = "jenkins"
+        source = Source(name="source", driver="jenkins")
         system.sources = [source]
         argument = Mock()
         argument.func = None

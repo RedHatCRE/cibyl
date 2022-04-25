@@ -17,7 +17,7 @@
 import logging
 
 from cibyl.exceptions.model import (InvalidEnvironment, InvalidSystem,
-                                    NoValidSystem)
+                                    NoEnabledSystem, NoValidSystem)
 from cibyl.exceptions.source import NoValidSources
 
 LOG = logging.getLogger(__name__)
@@ -102,6 +102,76 @@ class Validator:
 
         return True
 
+    def check_envs(self, environments, systems_check, envs_check,
+                   systems_msg, envs_msg):
+        """Iterate over environments and systems and apply some check to each
+        of them. Only return those that satisfy the checks.
+
+        :param environments: Environments to validate
+        :type environments: list
+        :param systems_check: Function to use to check a system
+        :type systems_check: callable
+        :param envs_check: Function to use to check an environment
+        :type envs_check: callable
+        :param systems_msg: Message template to log in case of system check
+        failure
+        :type systems_msg: str
+        :param envs_msg: Message template to log in case of environment check
+        failure
+        :type envs_msg: str
+
+        :returns: Environments and systems that pass the checks
+        :rtype: list, list
+        """
+        user_systems = []
+        user_envs = []
+        for env in environments:
+            env_systems = []
+            if not envs_check(env):
+                LOG.debug(envs_msg, env.name.value)
+                continue
+            for system in env.systems:
+                if not systems_check(system):
+                    LOG.debug(systems_msg, system.name.value)
+                    continue
+                env_systems.append(system)
+            if env_systems:
+                # if the environment has no valid systems, we will not pass it
+                # back, so for the rest of the execution we will only consider
+                # valid environments and systems
+                env.systems.value = env_systems
+                user_envs.append(env)
+                user_systems.extend(env_systems)
+        return user_envs, user_systems
+
+    def _system_is_enabled(self, system):
+        """Check if a system should be used according to enabled parameter in
+        configuration file.
+
+        :param system: Model to validate
+        :type system: :class:`.System`
+        :returns: Whether the system is enabled
+        :rtype: bool
+        """
+        return system.is_enabled()
+
+    def override_enabled_systems(self, systems):
+        """Ensure that systems specified by the user with the --systems
+        argument are enabled.
+
+        :param systems: systems to check
+        :type systems: list
+        """
+
+        user_systems = self.ci_args.get("systems")
+        if not user_systems or not user_systems.value:
+            # if the user did not specify anything for --systems, nothing to do
+            # here
+            return
+        for system in systems:
+            if system.name.value in user_systems.value:
+                system.enable()
+
     def validate_environments(self, environments):
         """Filter environments and systems according to user input.
 
@@ -116,55 +186,45 @@ class Validator:
         for env in environments:
             all_envs.append(env.name.value)
             for system in env.systems:
-                all_systems.append(system.name.value)
+                all_systems.append(system)
         self._check_input_environments(all_envs, "env_name",
                                        InvalidEnvironment)
-        self._check_input_environments(all_systems, "systems", InvalidSystem)
+        system_names = [system.name.value for system in all_systems]
+        self._check_input_environments(system_names, "systems", InvalidSystem)
 
         # if the user input is good, then filter the environments and systems
         # so we only keep the ones consistent with user input
-        user_systems = []
-        user_envs = []
-        for env in environments:
-            env_systems = []
-            if not self._consistent_environment(env):
-                LOG.debug("Environment %s is not consistent with user input",
-                          env.name.value)
-                continue
-            for system in env.systems:
-                if not self._consistent_system(system):
-                    LOG.debug("System %s is not consistent with user input",
-                              system.name.value)
-
-                    continue
-                env_systems.append(system)
-            if env_systems:
-                # if the environment has no valid systems, we will not pass it
-                # back, so for the rest of the execution we will only consider
-                # valid environments and systems
-                env.systems.value = env_systems
-                user_envs.append(env)
-                user_systems.extend(env_systems)
+        user_envs, user_systems = self.check_envs(environments,
+                                                  self._consistent_system,
+                                                  self._consistent_environment,
+                                                  "System %s is not consistent"
+                                                  " with user input",
+                                                  "Environment %s is not "
+                                                  "consistent with user input")
 
         if not user_systems:
-            raise NoValidSystem(all_systems)
+            raise NoValidSystem(system_names)
 
-        user_systems = []
-        final_envs = []
-        for env in user_envs:
-            env_systems = []
-            for system in env.systems:
-                if not self._system_has_valid_sources(system):
-                    msg = "System %s has no sources consistent with user input"
-                    LOG.debug(msg, system.name.value)
-                    continue
-                env_systems.append(system)
-            if env_systems:
-                env.systems.value = env_systems
-                final_envs.append(env)
-                user_systems.extend(env_systems)
+        self.override_enabled_systems(user_systems)
 
+        user_envs, user_systems = self.check_envs(user_envs,
+                                                  self._system_is_enabled,
+                                                  lambda _: True,
+                                                  "System %s is disabled ",
+                                                  "")
         if not user_systems:
-            raise NoValidSources()
+            raise NoEnabledSystem()
 
-        return final_envs, user_systems
+        system_sources_check = self._system_has_valid_sources
+        user_envs, user_systems = self.check_envs(user_envs,
+                                                  system_sources_check,
+                                                  lambda _: True,
+                                                  "System %s has no sources "
+                                                  "consistent with user input",
+                                                  "")
+        if not user_systems:
+            sources = [source['name'] for system in all_systems
+                       for source in system.sources]
+            raise NoValidSources(sources=sources)
+
+        return user_envs, user_systems

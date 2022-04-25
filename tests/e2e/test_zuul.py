@@ -31,10 +31,11 @@ class TestZuul(EndToEndTest):
             sys.argv = [
                 '',
                 '--config', 'tests/e2e/data/configs/zuul.yaml',
-                '--jobs',
-                '-vv'
+                '-f', 'text',
+                '-vv',
+                '--jobs'
             ]
 
             main()
 
-            self.assertIn('Total jobs: 65', self.output)
+            self.assertIn('Total jobs found in query: 65', self.output)

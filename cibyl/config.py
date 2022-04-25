@@ -29,6 +29,19 @@ from cibyl.utils.net import DownloadError, download_file
 LOG = logging.getLogger(__name__)
 
 
+def _ask_user_for_overwrite():
+    """Prints a question on the command line asking whether the user would
+    like to continue with a file overwrite or not.
+
+    ..  warning::
+            Blocking call, requires interaction.
+
+    :return: True if the user answered yes, false if not.
+    :rtype: bool
+    """
+    return ask_yes_no_question('Overwrite file?')
+
+
 class Config(UserDict):
     """Representation of a Cybil's configuration file. Even though it starts
     without any contents, this dictionary can be filled in with the data
@@ -124,10 +137,6 @@ class ConfigFactory:
             raise ConfigurationNotFound(msg)
 
         return ConfigFactory.from_file(file)
-
-    @staticmethod
-    def _ask_user_for_overwrite():
-        return ask_yes_no_question('Overwrite file?')
 
     @staticmethod
     def from_url(url,

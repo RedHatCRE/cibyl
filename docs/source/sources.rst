@@ -50,12 +50,12 @@ Arguments Matrix
      - Zuul.d
    * - --jobs
      - | Jobs names or pattern
-       | Deafult: all jobs
+       | Default: all jobs
+     - |:ballot_box_with_check:|
+     - |:ballot_box_with_check:|
+     - |:ballot_box_with_check:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
-     - |:ballot_box_with_check:|
-     - |:ballot_box_with_check:|
-     - |:ballot_box_with_check:|
-     - |:x:|
    * - --job-url
      - Job URL
      - |:ballot_box_with_check:|
@@ -87,13 +87,6 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
-   * - --build-id
-     - Build number
-     - |:ballot_box_with_check:|
-     - |:ballot_box_with_check:|
-     - |:ballot_box_with_check:|
-     - |:x:|
-     - |:x:|
    * - --tests
      - | Test names or pattern
        | Default: all tests
@@ -102,23 +95,16 @@ Arguments Matrix
      - |:black_square_button:|
      - |:x:|
      - |:x:|
-   * - --test-name
-     - Test name
-     - |:black_square_button:|
-     - |:black_square_button:|
-     - |:black_square_button:|
-     - |:x:|
-     - |:x:|
-   * - --test-class-name
-     - Test class name
-     - |:black_square_button:|
-     - |:black_square_button:|
-     - |:black_square_button:|
-     - |:x:|
-     - |:x:|
    * - --test-result
      - | Test result (default: all)
        | success, failed, skipped
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:x:|
+     - |:x:|
+   * - --test-duration
+     - | Test duration (default: all)
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|

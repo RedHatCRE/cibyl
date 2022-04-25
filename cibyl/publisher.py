@@ -15,6 +15,9 @@
 """
 import logging
 
+from cibyl.models.ci.printers.factory import CIPrinterFactory
+from cibyl.output import PrintMode
+
 LOG = logging.getLogger(__name__)
 
 
@@ -25,14 +28,24 @@ class Publisher:
     """
 
     @staticmethod
-    def publish(environments, dest="terminal", verbosity=0, user_arguments=0):
+    def publish(
+        environments, output_style,
+        dest="terminal", verbosity=0, user_arguments=0
+    ):
         """Publishes the data of the given environments to the
         chosen destination.
         """
+        print_mode = PrintMode.COMPLETE
+
         # if the user did not pass any query argument (--jobs, --builds, ...)
         # print only a simple representation of the environment
-        simple_representation = user_arguments == 0
+        if user_arguments == 0:
+            print_mode = PrintMode.SIMPLE
+
         if dest == "terminal":
             for env in environments:
-                print(env.__str__(verbosity=verbosity,
-                                  simple_representation=simple_representation))
+                printer = CIPrinterFactory.from_style(
+                    output_style, print_mode, verbosity
+                )
+
+                print(printer.print_environment(env))

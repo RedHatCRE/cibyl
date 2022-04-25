@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from abc import ABC, abstractmethod
 
 
 class Colors:
@@ -45,3 +46,99 @@ class Colors:
     @staticmethod
     def underline(text):
         return f"{Colors.UNDERLINE}{text}{Colors.CLOSE}"
+
+
+class ColorPalette(ABC):
+    """Represents the palette of colors used on output.
+    """
+
+    @abstractmethod
+    def red(self, text):
+        """Paints text with the color red.
+
+        :param text: The text to paint.
+        :return: The painted text.
+        :rtype: str
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def green(self, text):
+        """Paints text with the color green.
+
+        :param text: The text to paint.
+        :return: The painted text.
+        :rtype: str
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def blue(self, text):
+        """Paints text with the color blue.
+
+        :param text: The text to paint.
+        :return: The painted text.
+        :rtype: str
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def yellow(self, text):
+        """Paints text with the color yellow.
+
+        :param text: The text to paint.
+        :return: The painted text.
+        :rtype: str
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def underline(self, text):
+        """Underlines text.
+
+        :param text: The text to underline.
+        :return: The underlined text.
+        :rtype: str
+        """
+        raise NotImplementedError
+
+
+class DefaultPalette(ColorPalette):
+    """The default color scheme of the app.
+    """
+
+    def red(self, text):
+        return Colors.red(text)
+
+    def green(self, text):
+        return Colors.green(text)
+
+    def blue(self, text):
+        return Colors.blue(text)
+
+    def yellow(self, text):
+        return Colors.yellow(text)
+
+    def underline(self, text):
+        return Colors.underline(text)
+
+
+class ClearText(ColorPalette):
+    """A palette without colors. Leaves all text as is. Used to disable
+    coloring wherever it is present.
+    """
+
+    def red(self, text):
+        return text
+
+    def green(self, text):
+        return text
+
+    def blue(self, text):
+        return text
+
+    def yellow(self, text):
+        return text
+
+    def underline(self, text):
+        return text

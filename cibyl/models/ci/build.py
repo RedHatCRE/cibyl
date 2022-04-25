@@ -20,7 +20,6 @@ from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.test import Test
 from cibyl.models.model import Model
-from cibyl.utils.colors import Colors
 
 
 class Build(Model):
@@ -28,9 +27,7 @@ class Build(Model):
     API = {
         'build_id': {
             'attr_type': str,
-            'arguments': [Argument(name='--build-id', arg_type=str,
-                                   nargs='*', func='get_builds',
-                                   description="Build ID")]
+            'arguments': []
         },
         'status': {
             'attr_type': str,
@@ -57,27 +54,6 @@ class Build(Model):
             status = status.upper()
         super().__init__({'build_id': build_id, 'status': status,
                           'duration': duration, 'tests': tests})
-
-    def __str__(self, indent=0, verbosity=0):
-        indent_space = indent*' '
-        build_str = Colors.blue(
-            f"{indent_space}Build: ") + f"{self.build_id.value}"
-        if self.status.value:
-            build_str += Colors.blue(f"\n{indent_space}  Status: ")
-            if self.status.value == "SUCCESS":
-                build_str += Colors.green(f"{self.status.value}")
-            if self.status.value == "FAILURE":
-                build_str += Colors.red(f"{self.status.value}")
-            if self.status.value == "UNSTABLE":
-                build_str += Colors.yellow(f"{self.status.value}")
-        if verbosity > 0 and self.duration.value:
-            duration_in_min = self.duration.value / 60000
-            build_str += Colors.blue(f"\n{indent_space}  Duration: ") + \
-                f"{duration_in_min:.2f}m"
-        if self.tests.value:
-            for test in self.tests.values():
-                build_str += f"\n{test.__str__(indent+2, verbosity)}"
-        return build_str
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):

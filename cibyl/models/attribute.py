@@ -18,7 +18,7 @@ from typing import List
 from cibyl.cli.argument import Argument
 
 
-class AttributeValue():
+class AttributeValue:
     """Represents the value used by the attributes of the different models"""
 
     def __init__(self, name: str, attr_type: object,

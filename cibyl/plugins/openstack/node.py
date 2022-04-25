@@ -21,7 +21,6 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.model import Model
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.package import Package
-from cibyl.utils.colors import Colors
 
 # pylint: disable=no-member
 
@@ -35,24 +34,26 @@ class Node(Model):
         'name': {
             'attr_type': str,
             'arguments': [Argument(name='--node-name', arg_type=str,
-                          description="Node name")]
+                                   description="Node name")]
         },
         'role': {
             'attr_type': str,
             'arguments': [Argument(name='--role', arg_type=str,
-                          description="Role for the node")]
+                                   description="Role for the node")]
         },
         'containers': {
             'attr_type': Container,
             'attribute_value_class': AttributeDictValue,
-            'arguments': [Argument(name='--node-containers', arg_type=str,
-                          nargs='*', description="Containers on the node")]
+            'arguments': [Argument(name='--containers', arg_type=str,
+                                   nargs='*',
+                                   description="Containers on the node")]
         },
         'packages': {
             'attr_type': Package,
             'attribute_value_class': AttributeDictValue,
-            'arguments': [Argument(name='--node-packages', arg_type=str,
-                          nargs='*', description="Packages in the node")]
+            'arguments': [Argument(name='--packages', arg_type=str,
+                                   nargs='*',
+                                   description="Packages in the node")]
         }
     }
 
@@ -62,19 +63,40 @@ class Node(Model):
         super().__init__({'name': name, 'role': role, 'containers': containers,
                           'packages': packages})
 
-    def __str__(self, indent=2, verbosity=0):
-        indent_space = indent*' '
-        info = f'{indent_space}'
-        info += Colors.blue('Node name: ') + f'{self.name.value}'
-        if self.role.value and verbosity > 0:
-            info += f'\n{indent_space}  ' + Colors.blue('Role: ')
-            info += f'{self.role}'
-        if self.containers.value:
-            for container in self.containers:
-                info += f'\n{indent_space}  ' + Colors.blue('Container: ')
-                info += f'{container.__str__(indent)}'
-        if self.packages.value:
-            for package in self.packages:
-                info += f'\n{indent_space}  ' + Colors.blue('Package: ')
-                info += f'{package.__str__(indent)}'
-        return info
+    def add_container(self, container: Container):
+        """Add a container to the node.
+
+        :param container: Container to add to the node
+        :type container: Container
+        """
+        container_name = container.name.value
+        if container_name in self.containers:
+            self.containers[container_name].merge(container)
+        else:
+            self.containers[container_name] = container
+
+    def add_package(self, package: Package):
+        """Add a package to the node.
+
+        :param package: Package to add to the node
+        :type package: Package
+        """
+        package_name = package.name.value
+        if package_name in self.packages:
+            self.packages[package_name].merge(package)
+        else:
+            self.packages[package_name] = package
+
+    def merge(self, other):
+        """Merge the information of two node objects representing the
+        same node.
+
+        :param other: The Node object to merge
+        :type other: :class:`.Node`
+        """
+        if not self.role.value:
+            self.role.value = other.role.value
+        for package in other.packages.values():
+            self.add_package(package)
+        for container in other.containers.values():
+            self.add_container(container)

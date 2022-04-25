@@ -123,10 +123,10 @@ class Zuul(Source):
                 return build == builds[0]
 
             def build_id_filter(build):
-                if 'build_id' not in kwargs:
+                if 'builds' not in kwargs:
                     return True
 
-                return build['uuid'] in kwargs['build_id'].value
+                return build['uuid'] in kwargs['builds'].value
 
             def build_status_filter(build):
                 if 'build_status' not in kwargs:
