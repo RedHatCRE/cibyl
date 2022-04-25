@@ -66,5 +66,3 @@ class ModelBuilder:
         for tenant in self._tenants.values():
             if name in tenant.jobs.value:
                 return tenant.jobs.value[name]
-
-        return None

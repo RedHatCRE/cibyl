@@ -71,7 +71,7 @@ def _get_tenants(zuul, **kwargs):
 
     # Apply tenants filters
     if 'tenants' in kwargs:
-        targets = kwargs['tenant'].value
+        targets = kwargs['tenants'].value
 
         # An empty '--tenants' means all of them.
         if targets:
