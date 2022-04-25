@@ -203,9 +203,7 @@ class ElasticSearchOSP(Source):
         elasticsearch server
         :rtype: :class:`AttributeDictValue`
         """
-        jobs_to_search = []
-        if 'jobs' in kwargs:
-            jobs_to_search = kwargs.get('jobs').value
+        jobs_found = self.get_jobs(**kwargs)
 
         query_body = {
             "query": {
@@ -243,11 +241,6 @@ class ElasticSearchOSP(Source):
                           "exists": {
                             "field": "topology"
                           }
-                        },
-                        {
-                            "exists": {
-                                "field": "osp_release"
-                            }
                         }
                       ],
                       "minimum_should_match": 1
@@ -266,8 +259,9 @@ class ElasticSearchOSP(Source):
             ]
         }
 
+        results = []
         hits = []
-        for job in jobs_to_search:
+        for job in jobs_found:
             query_body['query']['bool']['must'][0]['bool']['must'] = {
                 "match": {
                     "job_name.keyword": f"{job}"
@@ -277,7 +271,11 @@ class ElasticSearchOSP(Source):
                 query=query_body,
                 index='logstash_jenkins'
             )
-            hits.append(results[0])
+            if results:
+                hits.append(results[0])
+
+        if not results:
+            return jobs_found
 
         ip_version_argument = None
         if 'ip_version' in kwargs:
