@@ -33,6 +33,10 @@ class TenantsRequest(Request):
 
         self._zuul = zuul
 
+    def with_name(self, *name):
+        self._filters.append(lambda tenant: tenant.name in name)
+        return self
+
     def get(self):
         tenants = apply_filters(self._zuul.tenants(), *self._filters)
 

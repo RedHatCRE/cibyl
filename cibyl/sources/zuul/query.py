@@ -19,89 +19,84 @@ from cibyl.sources.zuul.models import ModelBuilder
 from cibyl.sources.zuul.requests import TenantsRequest
 
 
-def _is_keyword_on_args(*keyword, **kwargs):
-    return any(key in kwargs for key in keyword)
+def _get_builds(zuul, **kwargs):
+    result = []
+
+    for job in _get_jobs(zuul, **kwargs):
+        builds = job.builds()
+
+        # Apply builds filters
+        if 'builds' in kwargs:
+            targets = kwargs['builds'].value
+
+            # An empty '--builds' means all of them.
+            if targets:
+                builds.with_uuid(*targets)
+
+        if 'build_status' in kwargs:
+            builds.with_status(*kwargs['build_status'].value)
+
+        if 'last_build' in kwargs:
+            builds.with_last_build_only()
+
+        result += builds.get()
+
+    return result
 
 
-def _asked_for_builds(**kwargs):
-    return _is_keyword_on_args('builds', **kwargs)
+def _get_jobs(zuul, **kwargs):
+    result = []
+
+    for tenant in _get_tenants(zuul, **kwargs):
+        jobs = tenant.jobs()
+
+        # Apply jobs filters
+        if 'jobs' in kwargs:
+            targets = kwargs['jobs'].value
+
+            # An empty '--jobs' means all of them.
+            if targets:
+                jobs.with_name(*targets)
+
+        if 'job_url' in kwargs:
+            jobs.with_url(*kwargs['job_url'].value)
+
+        result += jobs.get()
+
+    return result
 
 
-def _asked_for_jobs(**kwargs):
-    if _asked_for_builds(**kwargs):
-        return True
-
-    return _is_keyword_on_args('jobs', **kwargs)
-
-
-def _asked_for_tenants(**kwargs):
-    if _asked_for_jobs(**kwargs):
-        return True
-
-    return _is_keyword_on_args('tenants', **kwargs)
-
-
-def _handle_builds(job, builder, **kwargs):
-    if not _asked_for_builds(**kwargs):
-        return
-
-    builds = job.builds()
-
-    # Apply builds filters
-    if 'builds' in kwargs:
-        builds.with_uuid(*kwargs['builds'].value)
-
-    if 'build_status' in kwargs:
-        statuses = kwargs['build_status'].value
-        builds.with_status(*statuses)
-
-    if 'last_build' in kwargs:
-        builds.with_last_build_only()
-
-    for build in builds.get():
-        builder.with_build(build)
-
-
-def _handle_jobs(tenant, builder, **kwargs):
-    if not _asked_for_jobs(**kwargs):
-        return
-
-    jobs = tenant.jobs()
-
-    # Apply jobs filters
-    if 'jobs' in kwargs:
-        targets = kwargs['jobs'].value
-
-        # An empty '--jobs' means all jobs.
-        if targets:
-            jobs.with_name(*targets)
-
-    if 'job_url' in kwargs:
-        jobs.with_url(*kwargs['job_url'].value)
-
-    for job in jobs.get():
-        builder.with_job(job)
-        _handle_builds(job, builder, **kwargs)
-
-
-def _handle_tenants(zuul, builder, **kwargs):
-    if not _asked_for_tenants(**kwargs):
-        return
-
+def _get_tenants(zuul, **kwargs):
     tenants = TenantsRequest(zuul)
 
     # Apply tenants filters
+    if 'tenants' in kwargs:
+        targets = kwargs['tenant'].value
 
-    for tenant in tenants.get():
-        builder.with_tenant(tenant)
-        _handle_jobs(tenant, builder, **kwargs)
+        # An empty '--tenants' means all of them.
+        if targets:
+            tenants.with_name(*targets)
+
+    return tenants.get()
 
 
 def handle_query(api, **kwargs):
     model = ModelBuilder()
 
-    # Perform the query
-    _handle_tenants(api, model, **kwargs)
+    # Perform tenants query
+    if 'tenants' in kwargs:
+        for tenant in _get_tenants(api, **kwargs):
+            model.with_tenant(tenant)
+
+    # Perform jobs query
+    if 'jobs' in kwargs:
+        for job in _get_jobs(api, **kwargs):
+            model.with_job(job)
+
+    # Perform builds query
+    if 'builds' in kwargs:
+        for build in _get_builds(api, **kwargs):
+            model.with_build(build)
 
     # Format the result
     return AttributeDictValue(
