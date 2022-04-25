@@ -96,6 +96,7 @@ class ElasticSearchOSP(Source):
         """
         try:
             with self.es_client.connect() as es_connection:
+                LOG.info(f"Using the following query: {query}")
                 hits = [item for item in scan(
                     es_connection,
                     index=index,
@@ -330,16 +331,16 @@ class ElasticSearchOSP(Source):
 
             job_objects[job_name] = Job(name=job_name, url=job_url)
             deployment = Deployment(
-                # release,
-                "unknown",
-                [],
-                [],
-                services=[],
+                release='unknown',
+                infra_type='',
+                nodes={},
+                services={},
                 ip_version=ip_version,
                 topology=topology,
                 network_backend=network_backend,
                 dvr=dvr,
-                storage_backend=storage_backend
+                storage_backend=storage_backend,
+                tls_everywhere=''
             )
 
             job_objects[job_name].add_deployment(deployment)
@@ -409,5 +410,4 @@ class QueryTemplate():
     @property
     def get(self: object) -> dict:
         """Return DSL query in dictionary format"""
-        LOG.info(f"Using the following query: {self.query_body}")
         return self.query_body
