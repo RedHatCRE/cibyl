@@ -57,6 +57,11 @@ class ZuulJobAPI(ABC):
         """
         return self._job['name']
 
+    @property
+    @abstractmethod
+    def url(self):
+        raise NotImplementedError
+
     @abstractmethod
     def builds(self):
         """

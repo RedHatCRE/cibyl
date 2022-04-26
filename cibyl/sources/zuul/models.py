@@ -19,21 +19,46 @@ from cibyl.models.ci.tenant import Tenant
 
 
 class ModelBuilder:
+    """Utility used to generate CI models out of data retrieved from the
+    Zuul host.
+    """
+
     def __init__(self):
+        """Constructor.
+        """
         self._tenants = {}
 
     def with_tenant(self, tenant):
+        """Adds a tenant to the current model being built. If the tenant is
+        already present on the model, then this is ignored.
+
+        :param tenant: The tenant to add.
+        :type tenant: :class:`cibyl.sources.zuul.requests.TenantResponse`
+        :return: The builder's instance.
+        :rtype: :class:`ModelBuilder`
+        """
         if not self._get_tenant(tenant.name):
             self._tenants[tenant.name] = Tenant(tenant.name)
 
         return self
 
     def with_job(self, job):
+        """Adds a job to the current model being built. If the job is
+        already present on the model, then this is ignored. If the job's
+        tenant is not on the model, then it is also added to it.
+
+        :param job: The job to add.
+        :type job: :class:`cibyl.sources.zuul.requests.JobResponse`
+        :return: The builder's instance.
+        :rtype: :class:`ModelBuilder`
+        """
         model = Job(job.name, job.url)
 
         tenant = self._get_tenant(job.tenant.name)
 
+        # Is the job's tenant on the model?
         if not tenant:
+            # Add it then
             self.with_tenant(job.tenant)
             tenant = self._get_tenant(job.tenant.name)
 
@@ -41,6 +66,15 @@ class ModelBuilder:
         return self
 
     def with_build(self, build):
+        """Adds a build to the current model being built. If the build is
+        already present on the model, then this is ignored. If the build's
+        job is not on the model, then it is also added to it.
+
+        :param build: The build to add.
+        :type build: :class:`cibyl.sources.zuul.requests.BuildResponse`
+        :return: The builder's instance.
+        :rtype: :class:`ModelBuilder`
+        """
         model = Build(
             build.data['uuid'],
             build.data['result'],
@@ -49,7 +83,9 @@ class ModelBuilder:
 
         job = self._get_job(build.job.name)
 
+        # Is the build's job on the model?
         if not job:
+            # Add it then
             self.with_job(build.job)
             job = self._get_job(build.job.name)
 
@@ -57,12 +93,31 @@ class ModelBuilder:
         return self
 
     def assemble(self):
+        """Generates the CI model.
+
+        :return: The model.
+        :rtype: dict[str, :class:`Tenant`]
+        """
         return self._tenants
 
     def _get_tenant(self, name):
+        """Searches the model for a certain tenant.
+
+        :param name: Name of the tenant.
+        :type name: str
+        :return: The tenant's model.
+        :rtype: :class:`Tenant` or None
+        """
         return self._tenants.get(name)
 
     def _get_job(self, name):
+        """Searches the model for a certain job.
+
+        :param name: Name of the job.
+        :type name: str
+        :return: The job's model.
+        :rtype: :class:`Job` or None
+        """
         for tenant in self._tenants.values():
             if name in tenant.jobs.value:
                 return tenant.jobs.value[name]

@@ -1,4 +1,7 @@
-"""
+"""Retrieval of data from a Zuul host in a format that Cibyl can use and
+understand.
+
+License:
 #    Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -20,6 +23,14 @@ from cibyl.sources.zuul.requests import TenantsRequest
 
 
 def _get_builds(zuul, **kwargs):
+    """Query for builds.
+
+    :param zuul: API to interact with Zuul with.
+    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :param kwargs: See :func:`handle_query`.
+    :return: List of retrieved builds.
+    :rtype: list[:class:`cibyl.sources.zuul.requests.BuildResponse`]
+    """
     result = []
 
     for job in _get_jobs(zuul, **kwargs):
@@ -45,6 +56,14 @@ def _get_builds(zuul, **kwargs):
 
 
 def _get_jobs(zuul, **kwargs):
+    """Query for jobs.
+
+    :param zuul: API to interact with Zuul with.
+    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :param kwargs: See :func:`handle_query`.
+    :return: List of retrieved jobs.
+    :rtype: list[:class:`cibyl.sources.zuul.requests.JobResponse`]
+    """
     result = []
 
     for tenant in _get_tenants(zuul, **kwargs):
@@ -67,6 +86,14 @@ def _get_jobs(zuul, **kwargs):
 
 
 def _get_tenants(zuul, **kwargs):
+    """Query for tenants.
+
+    :param zuul: API to interact with Zuul with.
+    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :param kwargs: See :func:`handle_query`.
+    :return: List of retrieved tenants.
+    :rtype: list[:class:`cibyl.sources.zuul.requests.TenantResponse`]
+    """
     tenants = TenantsRequest(zuul)
 
     # Apply tenants filters
@@ -81,6 +108,28 @@ def _get_tenants(zuul, **kwargs):
 
 
 def handle_query(api, **kwargs):
+    """Generates and performs a query on a Zuul host based on the given
+    arguments.
+
+    :param api: API to interact with Zuul with.
+    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :param kwargs: Arguments that define the query that will be performed.
+    If one of these keys is not present, it is simply ignored.
+    :key tenants:
+        Name of the tenants to query. Type: AttributeListValue[str].
+    :key jobs:
+        Name of the jobs to query. Type: AttributeListValue[str].
+    :key job_url:
+        URL of the jobs to query. Type: AttributeListValue[str].
+    :key builds:
+        Name of the builds to query. Type: AttributeListValue[str].
+    :key builds_status:
+        Status of the builds to query. Type: AttributeListValue[str].
+    :key last_build:
+        Will only return the newest build from the query. Type: None.
+    :return: Attribute assembled for usage by Cibyl.
+    :rtype: :class:`AttributeDictValue`
+    """
     model = ModelBuilder()
 
     # Perform tenants query
