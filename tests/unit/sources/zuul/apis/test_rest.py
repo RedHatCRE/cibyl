@@ -31,7 +31,7 @@ class TestZuulSession(TestCase):
 
         session = ZuulSession(Mock(), url, None)
 
-        self.assertEqual(f'{url}/api/', session.url)
+        self.assertEqual(f'{url}/api/', session.api)
 
     def test_happy_query(self):
         """Tests that the JSON from the response is returned if the query
@@ -59,7 +59,7 @@ class TestZuulSession(TestCase):
 
         self.assertEqual(json, session.get(service))
 
-        rest.get.assert_called_with(f'{session.url}{service}')
+        rest.get.assert_called_with(f'{session.api}{service}')
 
         request.raise_for_status.assert_called()
         request.json.assert_called()
@@ -89,6 +89,23 @@ class TestZuulJobRESTClient(TestCase):
 
         # Equality by contents
         self.assertEqual(ZuulJobRESTClient(session, tenant, job), client)
+
+    def test_url(self):
+        """Checks that the user's url for the job is properly build.
+        """
+        job = {
+            'name': 'job'
+        }
+
+        session = Mock()
+        session.host = 'http://localhost:8080/'
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+
+        client = ZuulJobRESTClient(session, tenant, job)
+
+        self.assertEqual('http://localhost:8080/t/tenant/job/job', client.url)
 
     def test_builds(self):
         """Checks that the current steps are taken to get the builds

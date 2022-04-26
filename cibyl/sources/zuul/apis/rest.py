@@ -27,13 +27,13 @@ class ZuulSession:
     base class for all communication with the host.
     """
 
-    def __init__(self, session, host_url, verify):
+    def __init__(self, session, host, verify):
         """Constructor.
 
         :param session: Low-level HTTP handler.
         :type session: :class:`Session`
-        :param host_url: URL to the Zuul host.
-        :type host_url: str
+        :param host: URL to the Zuul host.
+        :type host: str
         :param verify: Indicates what is to be done regarding identification
             of the host. 'False' and 'None' disable need for validation.
             'True' activates it and leaves it up to the client's system to
@@ -44,18 +44,22 @@ class ZuulSession:
         self._session = session
         self._session.verify = verify
 
-        if not host_url.endswith('/'):
-            host_url += '/'
+        if not host.endswith('/'):
+            host += '/'
 
-        self._api_url = urljoin(host_url, 'api/')
+        self._host = host
 
     @property
-    def url(self):
+    def host(self):
+        return self._host
+
+    @property
+    def api(self):
         """
         :return: URL to the entry point of the host's REST-API.
         :rtype: str
         """
-        return self._api_url
+        return urljoin(self.host, 'api/')
 
     def get(self, service):
         """Performs a GET action on one of the host's end-points.
@@ -66,7 +70,7 @@ class ZuulSession:
         :rtype: dict
         :raises ZuulAPIError: If the request failed.
         """
-        request = self._session.get(urljoin(self._api_url, service))
+        request = self._session.get(urljoin(self.api, service))
 
         self._check_request_status(request)
 
@@ -113,6 +117,13 @@ class ZuulJobRESTClient(ZuulJobAPI):
             return True
 
         return self.tenant == other.tenant and self.name == other.name
+
+    @property
+    def url(self):
+        base = self._session.host[:-1]
+        tenant = self.tenant
+
+        return f"{base}/t/{tenant.name}/job/{self.name}"
 
     def builds(self):
         return self._session.get(
@@ -162,11 +173,11 @@ class ZuulRESTClient(ZuulAPI):
         self._session = session
 
     @staticmethod
-    def from_url(host_url, cert=None):
+    def from_url(host, cert=None):
         """Builds a client through the parameters that define a session.
 
-        :param host_url: URL to the host to be targeted.
-        :type host_url: str
+        :param host: URL to the host to be targeted.
+        :type host: str
         :param cert: Path to certificate to be used to validate the host.
             Recommended usage in production environments as otherwise
             the session would be vulnerable to man-in-the-middle attacks.
@@ -175,15 +186,7 @@ class ZuulRESTClient(ZuulAPI):
         :return: A client instance.
         :rtype: :class:`ZuulRESTClient`
         """
-        return ZuulRESTClient(ZuulSession(Session(), host_url, cert))
-
-    @property
-    def session(self):
-        """
-        :return: The session this client is working on top of.
-        :rtype: :class:`ZuulSession`
-        """
-        return self._session
+        return ZuulRESTClient(ZuulSession(Session(), host, cert))
 
     def info(self):
         return self._session.get('info')
