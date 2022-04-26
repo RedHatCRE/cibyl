@@ -77,7 +77,7 @@ ZUUL_SYSTEM_API = {
         'attr_type': Tenant,
         'attribute_value_class': AttributeDictValue,
         'arguments': [
-            Argument(name='--tenants', arg_type=Tenant,
+            Argument(name='--tenants', arg_type=str,
                      nargs='*',
                      description='System tenants',
                      func='get_tenants')
