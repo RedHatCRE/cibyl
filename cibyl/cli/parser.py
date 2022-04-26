@@ -153,4 +153,4 @@ class Parser:
                     default=arg.default,
                     level=level)
         except argparse.ArgumentError:
-            LOG.debug("argument already exists: %s...ignoring", arg.name)
+            pass
