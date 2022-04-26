@@ -39,3 +39,39 @@ class TestZuul(EndToEndTest):
             main()
 
             self.assertIn('Total jobs found in query: 65', self.output)
+
+    def test_get_jobs_by_name(self):
+        """Checks retrieved jobs by "--jobs name" flag.
+        """
+        with OpenDevZuulContainer():
+            sys.argv = [
+                '',
+                '--config', 'tests/e2e/data/configs/zuul.yaml',
+                '-f', 'text',
+                '-vv',
+                '--jobs', 'build-docker-image'
+            ]
+
+            main()
+
+            self.assertIn('Job: build-docker-image', self.output)
+            self.assertIn('Total jobs found in query: 1', self.output)
+
+    def test_get_jobs_by_url(self):
+        """Checks retrieved jobs by "--jobs --job-url url" flag.
+        """
+        with OpenDevZuulContainer():
+            sys.argv = [
+                '',
+                '--config', 'tests/e2e/data/configs/zuul.yaml',
+                '-f', 'text',
+                '-vv',
+                '--jobs',
+                '--job-url',
+                'http://localhost:9000/t/example-tenant/job/build-docker-image'
+            ]
+
+            main()
+
+            self.assertIn('Job: build-docker-image', self.output)
+            self.assertIn('Total jobs found in query: 1', self.output)

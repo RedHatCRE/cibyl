@@ -60,9 +60,9 @@ class Tenant(Model):
         :return:
         """
         for job in other.jobs:
-            self._add_job(job)
+            self.add_job(job)
 
-    def _add_job(self, job):
+    def add_job(self, job):
         key = job.name.value
 
         if key in self.jobs:
