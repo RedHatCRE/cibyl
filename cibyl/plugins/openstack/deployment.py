@@ -45,7 +45,17 @@ class Deployment(Model):
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--nodes', arg_type=str,
                                    nargs='*',
-                                   description="Nodes on the deployment")]
+                                   description="Nodes on the deployment"),
+                          Argument(name='--controllers', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   ranged=True,
+                                   description="Number of controllers used "
+                                               "in the deployment"),
+                          Argument(name='--computes', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   ranged=True,
+                                   description="Number of computes used "
+                                               "in the deployment")]
         },
         'services': {
             'attr_type': Service,
@@ -87,17 +97,7 @@ class Deployment(Model):
             'arguments': [Argument(name='--network-backend', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    description="Network backend used in the "
-                                               "deployment"),
-                          Argument(name='--controllers', arg_type=str,
-                                   func='get_deployment', nargs='*',
-                                   ranged=True,
-                                   description="Number of controllers used "
-                                               "in the deployment"),
-                          Argument(name='--computes', arg_type=str,
-                                   func='get_deployment', nargs='*',
-                                   ranged=True,
-                                   description="Number of computes used "
-                                               "in the deployment")]
+                                               "deployment")]
         },
         'storage_backend': {
             'attr_type': str,

@@ -19,6 +19,7 @@ from cibyl.models.ci.build import Build
 from cibyl.models.ci.environment import Environment
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.printers.raw import CIRawPrinter
+from cibyl.models.ci.system import JobsSystem
 from cibyl.models.ci.test import Test
 
 
@@ -161,3 +162,22 @@ class TestCIRawParser(TestCase):
 
             self.assertIn('Result: ', result)
             self.assertIn(result, result)
+
+    def test_system_str_jobs(self):
+        """Test system str for a system with jobs and builds."""
+        system = JobsSystem("test", "test_type")
+        build = Build("1", "SUCCESS")
+        job = Job("test_job")
+        job.add_build(build)
+        system.add_job(job)
+        system.register_query()
+
+        printer = CIRawPrinter(verbosity=0)
+
+        output = printer.print_system(system)
+        expected = """System: test
+    Job: test_job
+      Build: 1
+        Status: SUCCESS
+    Total jobs found in query: 1"""
+        self.assertIn(output, expected)

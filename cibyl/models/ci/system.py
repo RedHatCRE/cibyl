@@ -96,8 +96,7 @@ class System(Model):
     """
     API = {
         **BASE_SYSTEM_API,
-        **JOBS_SYSTEM_API,
-        **ZUUL_SYSTEM_API
+        **JOBS_SYSTEM_API
     }
     """Defines the CLI arguments for all systems.
     """
@@ -264,6 +263,10 @@ class ZuulSystem(System):
             enabled=enabled,
             tenants=tenants
         )
+
+        # If we have a tenant-based system in the configuration, we need to
+        # change the System hierarchy to include tenants
+        System.API = self.API
 
     def add_toplevel_model(self, model):
         key = model.name.value

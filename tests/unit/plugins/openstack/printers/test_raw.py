@@ -16,7 +16,9 @@
 from unittest import TestCase
 
 from cibyl.plugins.openstack import Deployment
+from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
+from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.printers.raw import OSRawPrinter
 from cibyl.plugins.openstack.service import Service
 
@@ -52,6 +54,7 @@ class TestOSRawPrinter(TestCase):
 
         result = printer.print_deployment(deployment)
 
+        self.assertIn("Openstack deployment:", result)
         self.assertIn("Release:", result)
         self.assertIn(release, result)
         self.assertIn("Infra type:", result)
@@ -73,36 +76,67 @@ class TestOSRawPrinter(TestCase):
         self.assertIn("Node name:", result)
         self.assertIn('controller-0', result)
 
+    def test_print_node(self):
+        """Test that the string representation of Node works.
+        """
+        name = 'controller-0'
+        role = 'controller'
+        packages = {"rpm-package": Package("rpm-package", "rhos-release")}
+        containers = {"container": Container("container", "image")}
+        node = Node(name, role, containers=containers, packages=packages)
 
-def test_print_node(self):
-    """Test that the string representation of Node works.
-    """
-    name = 'controller-0'
-    role = 'controller'
-    node = Node(name, role)
+        printer = OSRawPrinter(verbosity=1)
 
-    printer = OSRawPrinter(verbosity=1)
+        result = printer.print_node(node)
 
-    result = printer.print_node(node)
+        self.assertIn(f"Node name: {name}", result)
+        self.assertIn(f"  Role: {role}", result)
+        self.assertIn("  Container: container", result)
+        self.assertIn("    Image: image", result)
+        self.assertIn("  Package: rpm-package", result)
+        self.assertIn("    Origin: rhos-release", result)
 
-    self.assertIn("Node name:", result)
-    self.assertIn(name, result)
-    self.assertIn("Role: ", result)
-    self.assertIn(role, result)
+    def test_print_service(self):
+        """Test that the string representation of Service works.
+        """
+        name = 'test-service'
+        config = {'option1': 'true'}
+        service = Service(name, config)
 
+        printer = OSRawPrinter(verbosity=1)
 
-def test_print_service(self):
-    """Test that the string representation of Service works.
-    """
-    name = 'test-service'
-    config = {'option1': 'true'}
-    service = Service(name, config)
+        result = printer.print_service(service)
 
-    printer = OSRawPrinter(verbosity=1)
+        self.assertIn("Service name:", result)
+        self.assertIn(name, result)
+        self.assertIn("option1:", result)
+        self.assertIn("true", result)
 
-    result = printer.print_service(service)
+    def test_print_package(self):
+        """Test that the string representation of Package works."""
+        name = "rpm-package"
+        origin = "rhos-release"
+        package = Package(name, origin)
+        printer = OSRawPrinter(verbosity=1)
 
-    self.assertIn("Service name:", result)
-    self.assertIn(name, result)
-    self.assertIn("option1:", result)
-    self.assertIn("true", result)
+        result = printer.print_package(package)
+        self.assertIn("Package: ", result)
+        self.assertIn(name, result)
+        self.assertIn("  Origin: ", result)
+        self.assertIn(origin, result)
+
+    def test_print_container(self):
+        """Test that the string representation of Package works."""
+        name = "container"
+        image = "image"
+        packages = {"rpm-package": Package("rpm-package", "rhos-release")}
+        container = Container(name, image, packages)
+
+        printer = OSRawPrinter(verbosity=1)
+
+        result = printer.print_container(container)
+
+        self.assertIn(f"Container: {name}", result)
+        self.assertIn(f"  Image: {image}", result)
+        self.assertIn("  Package: rpm-package", result)
+        self.assertIn("    Origin: rhos-release", result)

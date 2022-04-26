@@ -14,6 +14,7 @@
 #    under the License.
 """
 import logging
+from abc import abstractmethod
 from operator import itemgetter
 from typing import Dict
 
@@ -68,11 +69,16 @@ def safe_request_generic(request, custom_error):
 class Source(AttrDict):
     """Represents a data provider within a system."""
 
-    def __init__(self, name: str, driver: str, **kwargs):
+    def __init__(self, name: str = None, driver: str = None, **kwargs):
         kwargs.setdefault('enabled', True)
         kwargs.setdefault('priority', 0)
 
         super().__init__(name=name, driver=driver, **kwargs)
+
+    @abstractmethod
+    def setup(self):
+        """Setup everything required for the source to become operational."""
+        LOG.debug(f"Setting up source: {self.name}")
 
 
 def is_source_valid(source: Source, desired_attr: str):
