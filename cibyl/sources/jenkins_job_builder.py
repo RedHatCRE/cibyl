@@ -67,7 +67,6 @@ class JenkinsJobBuilder(GitSource):
         :rtype: list
         """
         all_jobs = {}
-        print(self.repos)
         for repo in self.repos:
             all_jobs.update(self.get_jobs_from_repo(repo, **kwargs))
         return AttributeDictValue("jobs", attr_type=Job, value=all_jobs)

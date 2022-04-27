@@ -14,45 +14,34 @@
 #    under the License.
 """
 from abc import ABC
-from enum import Enum
 
-
-class PrintMode(Enum):
-    """Defines the multiple ways on which a model can be printed within an
-    output style.
-    """
-    SIMPLE = 0
-    """Prints the minimum amount of information on a model for it to be
-    distinguishable."""
-    COMPLETE = 1
-    """Prints all the information contained on a model."""
+from cibyl.cli.query import QueryType
 
 
 class Printer(ABC):
     """Base class for all implementations of an output style.
     """
 
-    def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
+    def __init__(self, query=QueryType.NONE, verbosity=0):
         """Constructor.
 
-        :param mode: Amount of information desired on the printed result.
-        :type mode: :class:`PrintMode`
-        :param verbosity: How verbose the output is to be expected.
-            The higher this value is, the more text will be printed.
-            This differs from the mode in that the mode selects the data to be
-            printed while this how much is to be said about each entry.
+        :param query: Type of query requested by the user. Determines how
+            far down the model hierarchy the printer will go.
+        :type query: :class:`QueryType`
+        :param verbosity: How verbose the output is to be expected. The
+            bigger this is, the more is printed for each hierarchy level.
         :type verbosity: int
         """
-        self._mode = mode
+        self._query = query
         self._verbosity = verbosity
 
     @property
-    def mode(self):
+    def query(self):
         """
-        :return: The print mode of this printer.
-        :rtype: :class:`PrintMode`
+        :return: Query type requested by user.
+        :rtype: :class:`QueryType`
         """
-        return self._mode
+        return self._query
 
     @property
     def verbosity(self):

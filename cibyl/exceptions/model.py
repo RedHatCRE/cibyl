@@ -36,7 +36,7 @@ class NoValidSystem(CibylException):
             self.message += "\nPlease use one of the following available"
             self.message += " systems:\n"
             for system_name in valid_systems:
-                self.message += f"{system_name}\n"
+                self.message += f"  {Colors.blue(system_name)}\n"
         else:
             self.message += "\nPlease ensure the specified systems are present"
             self.message += " in the configuration."
@@ -52,7 +52,7 @@ class InvalidEnvironment(CibylException):
             self.message += "\nPlease use one of the following available"
             self.message += " environments:\n"
             for env_name in valid_environments:
-                self.message += f"{env_name}\n"
+                self.message += f"{Colors.blue(env_name)}\n"
         else:
             self.message += "\nPlease set at least one environment in the "
             self.message += "configuration file."
