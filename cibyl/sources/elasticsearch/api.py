@@ -25,6 +25,7 @@ from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
+from cibyl.models.ci.test import Test
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
 from cibyl.sources.source import Source, speed_index
@@ -352,6 +353,109 @@ class ElasticSearchOSP(Source):
             )
 
             job_objects[job_name].add_deployment(deployment)
+
+        return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
+
+    @speed_index({'base': 2})
+    def get_tests(self, **kwargs):
+        """
+            Get tests for a elasticsearch job.
+
+            :returns: container of jobs with the last completed build
+            (if any) and the tests
+            :rtype: :class:`AttributeDictValue`
+        """
+        jobs_found = self.get_jobs(**kwargs)
+        query_body = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {},
+                        {
+                            "exists": {
+                                "field": "test_status"
+                            }
+                        },
+                        {
+                            "exists": {
+                                "field": "test_name"
+                            }
+                        }
+                    ]
+                }
+            },
+            "size": 100,
+            "sort": [{"timestamp.keyword": {"order": "desc"}}]
+        }
+
+        results = []
+        hits = []
+        job_objects = {}
+        for job in jobs_found:
+            query_body['query']['bool']['must'][0] = {
+                "match": {
+                    "job_name.keyword": f"{job}"
+                }
+            }
+            results = self.__query_get_hits(
+                query=query_body,
+                index='logstash_jenkins'
+            )
+
+            # We need to process all the results because
+            # in the same build we can have different tests
+            # So we can't use '"size": 1' in the query
+            if results:
+                for result in results:
+                    hits.append(result)
+
+        if not results:
+            return jobs_found
+
+        for hit in hits:
+            job_name = hit['_source']['job_name']
+            job_url = hit['_source']['job_url']
+            build_number = hit['_source']['build_num']
+            job_objects[job_name] = Job(
+                name=job_name,
+                url=job_url
+            )
+            build_object = Build(
+                build_id=build_number
+            )
+
+            # Some build is not parsed good and contains
+            # More info than a time in the field
+            try:
+                test_duration = float(hit['_source']['test_time'])
+            except ValueError:
+                LOG.warning("'test_time' field is not well parsed in "
+                            "elasticsearch for job: %s and build ID: %s",
+                            job_name,
+                            build_number
+                            )
+                continue
+
+            test_name = hit['_source']['test_name']
+            test_status = hit['_source']['test_status']
+            class_name = hit['_source'].get(
+                'test_class_name',
+                'unknown'
+            )
+
+            job_objects[job_name].add_build(build_object)
+
+            job_objects[job_name].builds[build_number].add_test(
+                Test(
+                    name=test_name,
+                    result=test_status,
+                    duration=test_duration,
+                    class_name=class_name
+                )
+            )
+            print(
+                job_objects[job_name].builds[build_number].tests
+            )
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
