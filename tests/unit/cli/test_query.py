@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from cibyl.cli.query import get_query_type, QueryType
+from cibyl.cli.query import QueryType, get_query_type
 
 
 class TestGetQueryType(TestCase):

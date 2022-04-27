@@ -16,7 +16,7 @@ License:
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.cli.query import get_query_type, QueryType
+from cibyl.cli.query import QueryType, get_query_type
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.tenant import Tenant
 from cibyl.sources.zuul.models import ModelBuilder
@@ -115,7 +115,7 @@ def handle_query(api, **kwargs):
     :param api: API to interact with Zuul with.
     :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
     :param kwargs: Arguments that define the query that will be performed.
-    If one of these' keys is not present, it is simply ignored.
+    If one of these keys is not present, it is simply ignored.
     :key tenants:
         Name of the tenants to query. Type: AttributeListValue[str].
     :key jobs:
