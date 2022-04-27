@@ -39,7 +39,7 @@ class TestHandleQuery(TestCase):
     """Tests the correct retrieval and processing of data from a Zuul
     source.
 
-    This is an integration test that combines the :mod:`query`,
+    This is an integration test that combines the :mod:`query`, :mod:`cli`,
     :mod:`models` and :mod:`requests` modules.
     """
 

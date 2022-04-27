@@ -18,6 +18,7 @@ License:
 """
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.tenant import Tenant
+from cibyl.models.cli import get_query_type, QueryType
 from cibyl.sources.zuul.models import ModelBuilder
 from cibyl.sources.zuul.requests import TenantsRequest
 
@@ -114,7 +115,7 @@ def handle_query(api, **kwargs):
     :param api: API to interact with Zuul with.
     :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
     :param kwargs: Arguments that define the query that will be performed.
-    If one of these keys is not present, it is simply ignored.
+    If one of these' keys is not present, it is simply ignored.
     :key tenants:
         Name of the tenants to query. Type: AttributeListValue[str].
     :key jobs:
@@ -131,19 +132,17 @@ def handle_query(api, **kwargs):
     :rtype: :class:`AttributeDictValue`
     """
     model = ModelBuilder()
+    query = get_query_type(**kwargs)
 
-    # Perform tenants query
-    if 'tenants' in kwargs:
+    if query == QueryType.TENANTS:
         for tenant in _get_tenants(api, **kwargs):
             model.with_tenant(tenant)
 
-    # Perform jobs query
-    if 'jobs' in kwargs:
+    if query == QueryType.JOBS:
         for job in _get_jobs(api, **kwargs):
             model.with_job(job)
 
-    # Perform builds query
-    if 'builds' in kwargs:
+    if query == QueryType.BUILDS:
         for build in _get_builds(api, **kwargs):
             model.with_build(build)
 
