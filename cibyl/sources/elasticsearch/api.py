@@ -53,7 +53,7 @@ class ElasticSearchOSP(Source):
             except Exception as exception:
                 raise ElasticSearchError('The URL given is not valid') \
                     from exception
-            self.es_client = ElasticSearchClient(host, port)
+            self.es_client = ElasticSearchClient(host, port).connect()
 
     @speed_index({'base': 1})
     def get_jobs(self: object, **kwargs: Argument) -> list:
@@ -96,16 +96,14 @@ class ElasticSearchOSP(Source):
         :return: List of hits.
         """
         try:
-            with self.es_client.connect() as es_connection:
-                LOG.info("Using the following query: {}"
-                         .format(str(query).replace("'", '"')))
-                hits = [item for item in scan(
-                    es_connection,
-                    index=index,
-                    query=query,
-                    size=10000
-                )]
-            es_connection.transport.close()
+            LOG.info("Using the following query: {}"
+                     .format(str(query).replace("'", '"')))
+            hits = [item for item in scan(
+                self.es_client,
+                index=index,
+                query=query,
+                size=10000
+            )]
         except Exception as exception:
             raise ElasticSearchError("Error getting the results") \
                 from exception
@@ -356,7 +354,7 @@ class ElasticSearchOSP(Source):
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
-    @speed_index({'base': 2})
+    @speed_index({'base': 3})
     def get_tests(self, **kwargs):
         """
             Get tests for a elasticsearch job.
@@ -417,12 +415,12 @@ class ElasticSearchOSP(Source):
             test_status = hit['_source']['test_status']
             class_name = hit['_source'].get(
                 'test_class_name',
-                'unknown'
+                None
             )
             # Some build is not parsed good and contains
             # More info than a time in the field
             try:
-                test_duration = float(hit['_source']['test_time'])
+                test_duration = float(hit['_source']['test_time'])*1000
             except ValueError:
                 LOG.warning("'test_time' field is not well parsed in "
                             "elasticsearch for job: %s and build ID: %s",
@@ -445,6 +443,7 @@ class ElasticSearchOSP(Source):
                     class_name=class_name
                 )
             )
+
         return AttributeDictValue("jobs", attr_type=Job, value=jobs_found)
 
 
