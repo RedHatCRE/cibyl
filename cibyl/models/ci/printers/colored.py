@@ -130,9 +130,9 @@ class CIColoredPrinter(CIPrinter):
             result.add(self.print_job(job), 1)
 
         if self.query != QueryType.TENANTS:
-            result.add(self._palette.blue('Total jobs found in tenant '), 1)
-            result[-1].append(self._palette.underline(tenant.name))
-            result[-1].append(self._palette.blue(': '))
+            result.add(self._palette.blue("Total jobs found in tenant '"), 1)
+            result[-1].append(tenant.name)
+            result[-1].append(self._palette.blue("': "))
             result[-1].append(len(tenant.jobs))
 
         return result.build()

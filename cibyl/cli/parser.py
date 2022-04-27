@@ -17,6 +17,8 @@ import argparse
 import logging
 
 from cibyl.cli.argument import Argument
+from cibyl.models.ci.system_factory import SystemType
+from cibyl.utils.dicts import subset
 
 LOG = logging.getLogger(__name__)
 
@@ -55,7 +57,13 @@ class Parser:
     attributes.
     """
 
-    def __init__(self, ci_args: dict = None, app_args: dict = None):
+    def __init__(self,
+                 def_args: dict = None,
+                 ci_args: dict = None,
+                 app_args: dict = None):
+        self.def_args = def_args
+        if not def_args:
+            self.def_args = {}
         self.ci_args = ci_args
         if not ci_args:
             self.ci_args = {}
@@ -91,7 +99,7 @@ class Parser:
             help="Causes Cibyl to print more debug messages. "
                  "Adding multiple -v will increase the verbosity.")
 
-    def parse(self, arguments=None):
+    def parse(self, arguments=None, config=None):
         """Parse application and CI models arguments.
 
         Sets the attributes ci_args and app_args with dictionaries
@@ -103,12 +111,23 @@ class Parser:
         # First item is the namespace of the parsed known arguments (we ignore
         # the arguments we are not familiar with)
         known_arguments = self.argument_parser.parse_known_args(arguments)[0]
+        # Get default value for omitted arguments -> Overwritten later
+        self._load_defaults(config)
         # Keep only the used arguments
         self.ci_args = {arg_name: arg_value for arg_name, arg_value in vars(
             known_arguments).items() if isinstance(arg_value, Argument)}
         self.app_args = {arg_name: arg_value for arg_name, arg_value in vars(
             known_arguments).items() if arg_value is not None and not
             isinstance(arg_value, Argument)}
+
+    def _load_defaults(self, config):
+        if not config:
+            return
+
+        for _, env in config.data['environments'].items():
+            for _, system in env.items():
+                if system['system_type'] == SystemType.ZUUL:
+                    self.def_args.update(subset(system, ['tenants']))
 
     def get_group(self, group_name: str):
         """Returns the argument parser group based on a given group_name

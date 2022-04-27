@@ -106,7 +106,7 @@ def main():
     # We can parse user's arguments only after we have loaded the
     # configuration and extended based on it the parser with arguments
     # from the CI models
-    orchestrator.parser.parse()
+    orchestrator.parser.parse(arguments=None, config=orchestrator.config)
     orchestrator.run_query()
     orchestrator.publisher.publish(
         environments=orchestrator.environments,

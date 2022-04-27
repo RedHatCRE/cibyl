@@ -16,11 +16,15 @@ License:
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
+
 from cibyl.cli.query import QueryType, get_query_type
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.tenant import Tenant
 from cibyl.sources.zuul.models import ModelBuilder
 from cibyl.sources.zuul.requests import TenantsRequest
+
+LOG = logging.getLogger(__name__)
 
 
 def _get_builds(zuul, **kwargs):
@@ -95,15 +99,34 @@ def _get_tenants(zuul, **kwargs):
     :return: List of retrieved tenants.
     :rtype: list[:class:`cibyl.sources.zuul.requests.TenantResponse`]
     """
+
+    def by_name_filter():
+        # Check CLI arguments
+        if 'tenants' in kwargs:
+            targets = kwargs['tenants'].value
+
+            # An empty '--tenants' means all of them.
+            if targets:
+                tenants.with_name(*targets)
+        else:
+            # Check configuration file
+            if 'defaults' in kwargs:
+                defaults = kwargs['defaults']
+
+                if 'tenants' in defaults:
+                    targets = defaults['tenants']
+
+                    # An empty 'tenants: ' means none of them.
+                    if not targets:
+                        LOG.warning('No tenants selected for query. '
+                                    'Please check your configuration file.')
+
+                    tenants.with_name(*targets)
+
     tenants = TenantsRequest(zuul)
 
     # Apply tenants filters
-    if 'tenants' in kwargs:
-        targets = kwargs['tenants'].value
-
-        # An empty '--tenants' means all of them.
-        if targets:
-            tenants.with_name(*targets)
+    by_name_filter()
 
     return tenants.get()
 

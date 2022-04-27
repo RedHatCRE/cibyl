@@ -53,6 +53,6 @@ class OpenDevZuulContainer(ComposedContainer):
         wait_for(f'{self.host}/api')
 
     @overrides
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        super().__exit__(exc_type, exc_val, exc_tb)
+    def stop(self):
+        super().stop()
         self._workspace.cleanup()

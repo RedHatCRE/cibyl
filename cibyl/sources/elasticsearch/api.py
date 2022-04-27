@@ -106,7 +106,7 @@ class ElasticSearchOSP(Source):
                 )]
             es_connection.transport.close()
         except Exception as exception:
-            raise ElasticSearchError("Error getting the results") \
+            raise ElasticSearchError("Error getting the results.") \
                 from exception
         return hits
 
