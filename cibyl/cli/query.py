@@ -17,13 +17,30 @@ from enum import Enum
 
 
 class QueryType(Enum):
+    """Defines the hierarchy level at which a query is meant to be performed.
+    """
     NONE = 0
+    """No data from host is requested."""
     TENANTS = 1
+    """Only retrieve data concerning tenants."""
     JOBS = 2
+    """Retrieve data concerning jobs and above."""
     BUILDS = 3
+    """Retrieve data concerning builds and above."""
 
 
 def get_query_type(**kwargs):
+    """Deduces the type of query from a set of arguments.
+
+    :param kwargs: The arguments.
+    :key tenants: Query targets tenants.
+    :key jobs: Query targets jobs.
+    :key builds: Query target builds.
+    :return: The lowest query level possible. For example,
+        if both 'tenants' and 'builds' are requested, this will choose
+        'builds' over 'tenants'.
+    :rtype: :class:`QueryType`
+    """
     result = QueryType.NONE
 
     if 'tenants' in kwargs:
