@@ -17,6 +17,7 @@ import logging
 import sys
 
 from cibyl.cli.output import OutputStyle
+from cibyl.cli.query import get_query_type
 from cibyl.exceptions import CibylException
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import ConfigurationNotFound
@@ -110,10 +111,10 @@ def main():
     orchestrator.parser.parse()
     orchestrator.run_query()
     orchestrator.publisher.publish(
-        orchestrator.environments,
-        arguments["output_style"],
-        verbosity=orchestrator.parser.app_args.get('verbosity'),
-        user_arguments=len(orchestrator.parser.ci_args))
+        environments=orchestrator.environments,
+        style=arguments["output_style"],
+        query=get_query_type(**arguments),
+        verbosity=orchestrator.parser.app_args.get('verbosity'))
 
 
 if __name__ == "__main__":

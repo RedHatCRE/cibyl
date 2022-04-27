@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.output import PrintMode
+from cibyl.cli.query import QueryType
 from cibyl.plugins.openstack.printers import OSPrinter
 from cibyl.utils.colors import DefaultPalette
 from cibyl.utils.strings import IndentedTextBuilder
@@ -25,7 +25,7 @@ class OSColoredPrinter(OSPrinter):
     """
 
     def __init__(self,
-                 mode=PrintMode.COMPLETE, verbosity=0,
+                 query=QueryType.NONE, verbosity=0,
                  palette=DefaultPalette()):
         """Constructor.
 
@@ -34,7 +34,7 @@ class OSColoredPrinter(OSPrinter):
         :param palette: Palette of colors to be used.
         :type palette: :class:`cibyl.utils.colors.ColorPalette`
         """
-        super().__init__(mode, verbosity)
+        super().__init__(query, verbosity)
 
         self._palette = palette
 

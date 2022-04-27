@@ -16,9 +16,9 @@ License:
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.cli.query import get_query_type, QueryType
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.tenant import Tenant
-from cibyl.models.cli import get_query_type, QueryType
 from cibyl.sources.zuul.models import ModelBuilder
 from cibyl.sources.zuul.requests import TenantsRequest
 

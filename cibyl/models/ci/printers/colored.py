@@ -15,11 +15,11 @@
 """
 import logging
 
+from cibyl.cli.query import QueryType
 from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
 from cibyl.models.ci.printers import CIPrinter
 from cibyl.models.ci.system import JobsSystem, ZuulSystem
-from cibyl.output import PrintMode
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
 from cibyl.utils.colors import DefaultPalette
@@ -35,7 +35,7 @@ class CIColoredPrinter(CIPrinter):
     """
 
     def __init__(self,
-                 mode=PrintMode.COMPLETE, verbosity=0,
+                 query=QueryType.NONE, verbosity=0,
                  palette=DefaultPalette()):
         """Constructor.
 
@@ -44,7 +44,7 @@ class CIColoredPrinter(CIPrinter):
         :param palette: Palette of colors to be used.
         :type palette: :class:`cibyl.utils.colors.ColorPalette`
         """
-        super().__init__(mode, verbosity)
+        super().__init__(query, verbosity)
 
         self._palette = palette
 
@@ -87,7 +87,7 @@ class CIColoredPrinter(CIPrinter):
     def _print_jobs_system(self, system):
         printer = IndentedTextBuilder()
 
-        if self.mode == PrintMode.COMPLETE:
+        if self.query != QueryType.NONE:
             for job in system.jobs.values():
                 printer.add(self.print_job(job), 1)
 
@@ -104,7 +104,7 @@ class CIColoredPrinter(CIPrinter):
     def _print_zuul_system(self, system):
         printer = IndentedTextBuilder()
 
-        if self.mode == PrintMode.COMPLETE:
+        if self.query != QueryType.NONE:
             for tenant in system.tenants.values():
                 printer.add(self.print_tenant(tenant), 1)
 
@@ -127,7 +127,7 @@ class CIColoredPrinter(CIPrinter):
         for job in tenant.jobs.values():
             result.add(self.print_job(job), 1)
 
-        if self.mode == PrintMode.COMPLETE:
+        if self.query == QueryType.TENANTS:
             result.add(self._palette.blue('Total jobs found in query: '), 1)
             result[-1].append(len(tenant.jobs))
 
@@ -175,7 +175,7 @@ class CIColoredPrinter(CIPrinter):
             for value in values:
                 if isinstance(value, Deployment):
                     os_printer = OSColoredPrinter(
-                        self.mode, self.verbosity, self.palette
+                        self.query, self.verbosity, self.palette
                     )
 
                     printer.add(os_printer.print_deployment(value), 1)

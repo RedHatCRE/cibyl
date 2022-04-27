@@ -13,8 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.cli.query import QueryType
 from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
-from cibyl.publisher import PrintMode
 from cibyl.utils.colors import ClearText
 
 
@@ -23,9 +23,9 @@ class OSRawPrinter(OSColoredPrinter):
     decoration, leaving only the raw text.
     """
 
-    def __init__(self, mode=PrintMode.COMPLETE, verbosity=0):
+    def __init__(self, query=QueryType.NONE, verbosity=0):
         """Constructor.
 
         See parents for more information.
         """
-        super().__init__(mode, verbosity, ClearText())
+        super().__init__(query, verbosity, ClearText())

@@ -23,23 +23,23 @@ class CIPrinterFactory:
     """
 
     @staticmethod
-    def from_style(style, mode, verbosity):
+    def from_style(style, query, verbosity):
         """Builds the appropriate printer for the desired output style.
 
         :param style: The desired output style.
         :type style: :class:`OutputStyle`
-        :param mode: Amount of desired information.
-        :type mode: :class:`PrintMode`
+        :param query: How far the hierarchy the printer shall go.
+        :type query: :class:`cibyl.models.cli.QueryType`
         :param verbosity: Verbosity level.
         :type verbosity: int
         :return: The printer.
-        :rtype: :class:`CIPrinter`
+        :rtype: :class:`cibyl.models.ci.printers.CIPrinter`
         :raise NotImplementedError: If there is not printer for the desired
             style.
         """
         if style == OutputStyle.TEXT:
-            return CIRawPrinter(mode, verbosity)
+            return CIRawPrinter(query, verbosity)
         elif style == OutputStyle.COLORIZED:
-            return CIColoredPrinter(mode, verbosity)
+            return CIColoredPrinter(query, verbosity)
         else:
             raise NotImplementedError(f'Unknown output style: {style}')
