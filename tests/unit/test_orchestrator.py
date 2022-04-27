@@ -20,7 +20,7 @@ import cibyl.orchestrator
 from cibyl.config import Config
 from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.exceptions.source import NoValidSources
-from cibyl.orchestrator import Orchestrator
+from cibyl.orchestrator import Orchestrator, source_information_from_method
 from cibyl.sources.source import Source
 
 
@@ -163,3 +163,40 @@ class TestOrchestrator(TestCase):
         self.assertRaises(NoValidSources,
                           self.orchestrator.select_source_method,
                           system, argument)
+
+    def test_source_information_from_method(self):
+        """Test that the source_information_from_method methods provides the
+        correct representation of the source."""
+        source = Source(name="source", driver="driver")
+        expected = "source source of type driver using method setup"
+        output = source_information_from_method(source.setup)
+        self.assertEqual(expected, output)
+
+    def test_extend_parser(self):
+        """Test that extend_parser creates the right cli arguments for a single
+        jenkins system."""
+        self.orchestrator.config.data = self.valid_single_env_config_data
+        self.orchestrator.create_ci_environments()
+        for env in self.orchestrator.environments:
+            self.orchestrator.extend_parser(attributes=env.API)
+        self.orchestrator.parser.parse(["--jobs", "--builds", "--tenants"])
+        self.assertFalse("tenants" in self.orchestrator.parser.ci_args)
+        self.assertTrue("jobs" in self.orchestrator.parser.ci_args)
+        self.assertTrue("builds" in self.orchestrator.parser.ci_args)
+        self.assertEqual(self.orchestrator.parser.ci_args["jobs"].level, 2)
+        self.assertEqual(self.orchestrator.parser.ci_args["builds"].level, 3)
+
+    def test_extend_parser_zuul_system(self):
+        """Test that extend_parser creates the right cli arguments for multiple
+        environments and systems."""
+        self.orchestrator.config.data = self.valid_multiple_envs_config_data
+        self.orchestrator.create_ci_environments()
+        for env in self.orchestrator.environments:
+            self.orchestrator.extend_parser(attributes=env.API)
+        self.orchestrator.parser.parse(["--jobs", "--builds", "--tenants"])
+        self.assertTrue("tenants" in self.orchestrator.parser.ci_args)
+        self.assertTrue("jobs" in self.orchestrator.parser.ci_args)
+        self.assertTrue("builds" in self.orchestrator.parser.ci_args)
+        self.assertEqual(self.orchestrator.parser.ci_args["tenants"].level, 2)
+        self.assertEqual(self.orchestrator.parser.ci_args["jobs"].level, 3)
+        self.assertEqual(self.orchestrator.parser.ci_args["builds"].level, 4)

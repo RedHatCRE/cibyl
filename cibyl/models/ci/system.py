@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import abstractmethod
+from copy import deepcopy
 from typing import Dict, List, Type
 
 from cibyl.cli.argument import Argument
@@ -23,67 +24,6 @@ from cibyl.models.ci.job import Job
 from cibyl.models.ci.tenant import Tenant
 from cibyl.models.model import Model
 from cibyl.sources.source import Source
-
-BASE_SYSTEM_API = {
-    'name': {
-        'attr_type': str,
-        'arguments': []
-    },
-    'system_type': {
-        'attr_type': str,
-        'arguments': [
-            Argument(name='--system-type', arg_type=str,
-                     description="System type")
-        ]
-    },
-    'sources': {
-        'attr_type': Source,
-        'attribute_value_class': AttributeListValue,
-        'arguments': [
-            Argument(name='--sources', arg_type=str,
-                     nargs="*",
-                     description="Source name")
-        ]
-    },
-    'enabled': {
-        'attr_type': bool,
-        'arguments': []
-    },
-    'queried': {
-        'attr_type': bool,
-        'arguments': []
-    }
-}
-
-JOBS_SYSTEM_API = {
-    'jobs_scope': {
-        'attr_type': str,
-        'arguments': []
-    },
-    'jobs': {
-        'attr_type': Job,
-        'attribute_value_class': AttributeDictValue,
-        'arguments': [
-            Argument(name='--jobs', arg_type=str,
-                     nargs='*',
-                     description="System jobs",
-                     func='get_jobs')
-        ]
-    }
-}
-
-ZUUL_SYSTEM_API = {
-    'tenants': {
-        'attr_type': Tenant,
-        'attribute_value_class': AttributeDictValue,
-        'arguments': [
-            Argument(name='--tenants', arg_type=str,
-                     nargs='*',
-                     description='System tenants',
-                     func='get_tenants')
-        ]
-    }
-}
 
 
 class System(Model):
@@ -95,7 +35,34 @@ class System(Model):
         this system. For most system's, this will be :class:`Job`.
     """
     API = {
-        **BASE_SYSTEM_API
+        'name': {
+            'attr_type': str,
+            'arguments': []
+        },
+        'system_type': {
+            'attr_type': str,
+            'arguments': [
+                Argument(name='--system-type', arg_type=str,
+                         description="System type")
+            ]
+        },
+        'sources': {
+            'attr_type': Source,
+            'attribute_value_class': AttributeListValue,
+            'arguments': [
+                Argument(name='--sources', arg_type=str,
+                         nargs="*",
+                         description="Source name")
+            ]
+        },
+        'enabled': {
+            'attr_type': bool,
+            'arguments': []
+        },
+        'queried': {
+            'attr_type': bool,
+            'arguments': []
+        }
     }
     """Defines the CLI arguments for all systems.
     """
@@ -189,10 +156,18 @@ class System(Model):
 class JobsSystem(System):
     """Model a system with :class:`Job` as its top-level model.
     """
-    API = {
-        **BASE_SYSTEM_API,
-        **JOBS_SYSTEM_API
-    }
+    API = deepcopy(System.API)
+    API.update({'jobs_scope': {'attr_type': str,
+                               'arguments': []},
+                'jobs': {
+                    'attr_type': Job,
+                    'attribute_value_class': AttributeDictValue,
+                    'arguments': [
+                        Argument(name='--jobs', arg_type=str,
+                                 nargs='*',
+                                 description="System jobs",
+                                 func='get_jobs')]
+    }})
 
     def __init__(self,
                  name: str,
@@ -215,9 +190,6 @@ class JobsSystem(System):
             jobs_scope=jobs_scope,
             jobs=jobs
         )
-
-        # Register this system's arguments
-        System.API = {**System.API, **JOBS_SYSTEM_API}
 
     def add_toplevel_model(self, model: Job):
         """Adds a top-level model to the system.
@@ -242,10 +214,16 @@ class JobsSystem(System):
 
 
 class ZuulSystem(System):
-    API = {
-        **BASE_SYSTEM_API,
-        **ZUUL_SYSTEM_API
-    }
+    """Model a system with :class:`Tenant` as its top-level model.
+    """
+    API = deepcopy(System.API)
+    API.update({'tenants': {'attr_type': Tenant,
+                            'attribute_value_class': AttributeDictValue,
+                            'arguments': [
+                                Argument(name='--tenants', arg_type=str,
+                                         nargs='*',
+                                         description='System tenants',
+                                         func='get_tenants')]}})
 
     def __init__(self,
                  name,
@@ -265,9 +243,6 @@ class ZuulSystem(System):
             enabled=enabled,
             tenants=tenants
         )
-
-        # Register this system's arguments
-        System.API = {**System.API, **ZUUL_SYSTEM_API}
 
     def add_toplevel_model(self, model):
         key = model.name.value

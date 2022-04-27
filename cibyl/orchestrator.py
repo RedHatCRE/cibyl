@@ -16,6 +16,7 @@
 import logging
 import operator
 import time
+from copy import deepcopy
 
 from cibyl.cli.parser import Parser
 from cibyl.cli.validator import Validator
@@ -24,6 +25,8 @@ from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.exceptions.source import (NoSupportedSourcesFound, NoValidSources,
                                      SourceException)
 from cibyl.models.ci.environment import Environment
+from cibyl.models.ci.system import JobsSystem, System, ZuulSystem
+from cibyl.models.ci.system_factory import SystemType
 from cibyl.publisher import Publisher
 from cibyl.sources.source import get_source_method
 from cibyl.sources.source_factory import SourceFactory
@@ -107,8 +110,22 @@ class Orchestrator:
                     )
 
                 self.environments.append(environment)
+                self.set_system_api()
         except AttributeError as exception:
             raise InvalidConfiguration from exception
+
+    def set_system_api(self):
+        """Modify the System API depending on the type of systems present in
+        the configuration."""
+        zuul_system_present = False
+        for env in self.environments:
+            for system in env.systems:
+                if system.system_type.value == SystemType.ZUUL:
+                    zuul_system_present = True
+        if zuul_system_present:
+            System.API = deepcopy(ZuulSystem.API)
+        else:
+            System.API = deepcopy(JobsSystem.API)
 
     def select_source_method(self, system, argument):
         """Select the apropiate source considering the user input.
