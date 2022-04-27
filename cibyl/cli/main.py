@@ -113,7 +113,7 @@ def main():
     orchestrator.publisher.publish(
         environments=orchestrator.environments,
         style=arguments["output_style"],
-        query=get_query_type(**arguments),
+        query=get_query_type(**orchestrator.parser.ci_args),
         verbosity=orchestrator.parser.app_args.get('verbosity'))
 
 

@@ -81,6 +81,8 @@ class CIColoredPrinter(CIPrinter):
             printer.add(self._print_jobs_system(system), 1)
         elif isinstance(system, ZuulSystem):
             printer.add(self._print_zuul_system(system), 1)
+        else:
+            LOG.warning(f'Ignoring unknown system: {type(system).__name__}')
 
         return printer.build()
 
@@ -127,7 +129,7 @@ class CIColoredPrinter(CIPrinter):
         for job in tenant.jobs.values():
             result.add(self.print_job(job), 1)
 
-        if self.query == QueryType.TENANTS:
+        if self.query != QueryType.TENANTS:
             result.add(self._palette.blue('Total jobs found in query: '), 1)
             result[-1].append(len(tenant.jobs))
 
