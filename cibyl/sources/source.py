@@ -78,7 +78,7 @@ class Source(AttrDict):
     @abstractmethod
     def setup(self):
         """Setup everything required for the source to become operational."""
-        LOG.debug(f"Setting up source: {self.name}")
+        pass
 
 
 def is_source_valid(source: Source, desired_attr: str):

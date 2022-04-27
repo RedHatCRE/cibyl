@@ -97,7 +97,8 @@ class Orchestrator:
                                 **source_data
                             )
                         )
-                        sources[-1].setup()
+                        if sources[-1].enabled:
+                            sources[-1].setup()
 
                     environment.add_system(
                         name=system_name,

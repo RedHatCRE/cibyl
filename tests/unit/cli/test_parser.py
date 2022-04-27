@@ -51,13 +51,6 @@ class TestParser(TestCase):
             ['--config', '/some/path'])
         self.assertEqual(parsed_args.config_file_path, '/some/path')
 
-    def test_parser_extend(self):
-        """Tests parser extend method"""
-        self.parser.extend(self.environment.arguments, 'Environment')
-        # Extend again and see if a message is logged about it
-        with self.assertLogs('cibyl.cli.parser', level='DEBUG'):
-            self.parser.extend(self.environment.arguments, 'Environment')
-
     def test_parser_parse_args(self):
         """Testing parser extend method"""
         self.parser.parse()
