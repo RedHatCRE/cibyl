@@ -24,6 +24,55 @@ class TestZuul(EndToEndTest):
     """Tests queries regarding the Zuul source.
     """
 
+    def test_get_tenants(self):
+        """Checks that tenants are retrieved with the "--tenants" flag.
+        """
+        with OpenDevZuulContainer():
+            sys.argv = [
+                '',
+                '--config', 'tests/e2e/data/configs/zuul.yaml',
+                '-f', 'text',
+                '-vv',
+                '--tenants'
+            ]
+
+            main()
+
+            self.assertIn('Total tenants found in query: 1', self.output)
+
+    def test_get_tenants_by_name(self):
+        """Checks that tenants are retrieved with the "--tenants name" flag.
+        """
+        with OpenDevZuulContainer():
+            sys.argv = [
+                '',
+                '--config', 'tests/e2e/data/configs/zuul.yaml',
+                '-f', 'text',
+                '-vv',
+                '--tenants', 'example-tenant'
+            ]
+
+            main()
+
+            self.assertIn('Tenant: example-tenant', self.output)
+            self.assertIn('Total tenants found in query: 1', self.output)
+
+    def test_no_jobs_on_tenant_query(self):
+        """Checks that no 'Jobs found in tenant...' string is printed for a
+        '--tenants' query.
+        """
+        with OpenDevZuulContainer():
+            sys.argv = [
+                '',
+                '--config', 'tests/e2e/data/configs/zuul.yaml',
+                '-f', 'text',
+                '-vv',
+            ]
+
+            main()
+
+            self.assertNotIn('Total jobs found in query:', self.output)
+
     def test_get_jobs(self):
         """Checks that jobs are retrieved with the "--jobs" flag.
         """

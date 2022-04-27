@@ -44,6 +44,10 @@ class Colors:
         return f"{Colors.YELLOW}{text}{Colors.CLOSE}"
 
     @staticmethod
+    def bold(text):
+        return f"{Colors.BOLD}{text}{Colors.CLOSE}"
+
+    @staticmethod
     def underline(text):
         return f"{Colors.UNDERLINE}{text}{Colors.CLOSE}"
 
@@ -93,6 +97,16 @@ class ColorPalette(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def bold(self, text):
+        """Bolds text.
+
+        :param text: The text to paint.
+        :return: The painted text.
+        :rtype: str
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def underline(self, text):
         """Underlines text.
 
@@ -119,6 +133,9 @@ class DefaultPalette(ColorPalette):
     def yellow(self, text):
         return Colors.yellow(text)
 
+    def bold(self, text):
+        return Colors.bold(text)
+
     def underline(self, text):
         return Colors.underline(text)
 
@@ -138,6 +155,9 @@ class ClearText(ColorPalette):
         return text
 
     def yellow(self, text):
+        return text
+
+    def bold(self, text):
         return text
 
     def underline(self, text):

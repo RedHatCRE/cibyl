@@ -77,7 +77,7 @@ ZUUL_SYSTEM_API = {
         'attr_type': Tenant,
         'attribute_value_class': AttributeDictValue,
         'arguments': [
-            Argument(name='--tenants', arg_type=Tenant,
+            Argument(name='--tenants', arg_type=str,
                      nargs='*',
                      description='System tenants',
                      func='get_tenants')
@@ -95,8 +95,7 @@ class System(Model):
         this system. For most system's, this will be :class:`Job`.
     """
     API = {
-        **BASE_SYSTEM_API,
-        **JOBS_SYSTEM_API
+        **BASE_SYSTEM_API
     }
     """Defines the CLI arguments for all systems.
     """
@@ -217,6 +216,9 @@ class JobsSystem(System):
             jobs=jobs
         )
 
+        # Register this system's arguments
+        System.API = {**System.API, **JOBS_SYSTEM_API}
+
     def add_toplevel_model(self, model: Job):
         """Adds a top-level model to the system.
 
@@ -264,9 +266,8 @@ class ZuulSystem(System):
             tenants=tenants
         )
 
-        # If we have a tenant-based system in the configuration, we need to
-        # change the System hierarchy to include tenants
-        System.API = self.API
+        # Register this system's arguments
+        System.API = {**System.API, **ZUUL_SYSTEM_API}
 
     def add_toplevel_model(self, model):
         key = model.name.value
