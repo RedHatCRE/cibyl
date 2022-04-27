@@ -25,30 +25,34 @@ from tests.e2e.containers import ComposedContainer, wait_for
 class OpenDevZuulContainer(ComposedContainer):
     def __init__(self):
         # Download dockerfile from OpenDev
-        self._repo = TemporaryDirectory()
+        self._workspace = TemporaryDirectory()
 
-        Repo.clone_from('https://opendev.org/zuul/zuul', self.repo)
+        Repo.clone_from(self.origin, self.workspace)
 
         # Point to dockerfile in repo
         super().__init__(
-            filedir=os.path.join(self.repo, 'doc/source/examples'),
+            filedir=os.path.join(self.workspace, 'doc/source/examples'),
             filename='docker-compose.yaml'
         )
 
     @property
-    def url(self):
+    def host(self):
         # Defined in dockerfile
         return 'http://localhost:9000'
 
     @property
-    def repo(self):
-        return self._repo.name
+    def origin(self):
+        return 'git@github.com:jsanemet/zuul-example.git'
+
+    @property
+    def workspace(self):
+        return self._workspace.name
 
     @overrides
     def _wait_until_ready(self):
-        wait_for(f'{self.url}/api')
+        wait_for(f'{self.host}/api')
 
     @overrides
     def __exit__(self, exc_type, exc_val, exc_tb):
         super().__exit__(exc_type, exc_val, exc_tb)
-        self._repo.cleanup()
+        self._workspace.cleanup()
