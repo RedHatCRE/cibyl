@@ -389,7 +389,6 @@ class ElasticSearchOSP(Source):
 
         results = []
         hits = []
-        job_objects = {}
         for job in jobs_found:
             query_body['query']['bool']['must'][0] = {
                 "match": {
@@ -413,16 +412,13 @@ class ElasticSearchOSP(Source):
 
         for hit in hits:
             job_name = hit['_source']['job_name']
-            job_url = hit['_source']['job_url']
             build_number = hit['_source']['build_num']
-            job_objects[job_name] = Job(
-                name=job_name,
-                url=job_url
+            test_name = hit['_source']['test_name']
+            test_status = hit['_source']['test_status']
+            class_name = hit['_source'].get(
+                'test_class_name',
+                'unknown'
             )
-            build_object = Build(
-                build_id=build_number
-            )
-
             # Some build is not parsed good and contains
             # More info than a time in the field
             try:
@@ -435,16 +431,13 @@ class ElasticSearchOSP(Source):
                             )
                 continue
 
-            test_name = hit['_source']['test_name']
-            test_status = hit['_source']['test_status']
-            class_name = hit['_source'].get(
-                'test_class_name',
-                'unknown'
+            build_object = Build(
+                build_id=build_number
             )
 
-            job_objects[job_name].add_build(build_object)
+            jobs_found[job_name].add_build(build_object)
 
-            job_objects[job_name].builds[build_number].add_test(
+            jobs_found[job_name].builds[build_number].add_test(
                 Test(
                     name=test_name,
                     result=test_status,
@@ -452,11 +445,7 @@ class ElasticSearchOSP(Source):
                     class_name=class_name
                 )
             )
-            print(
-                job_objects[job_name].builds[build_number].tests
-            )
-
-        return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
+        return AttributeDictValue("jobs", attr_type=Job, value=jobs_found)
 
 
 class QueryTemplate():
