@@ -384,7 +384,6 @@ class ElasticSearchOSP(Source):
                     ]
                 }
             },
-            "size": 100,
             "sort": [{"timestamp.keyword": {"order": "desc"}}]
         }
 
