@@ -38,7 +38,7 @@ class TestZuul(EndToEndTest):
 
             main()
 
-            self.assertIn('Total tenants found in query: 1', self.output)
+            self.assertIn('Total tenants found in query: 2', self.output)
 
     def test_get_tenants_by_name(self):
         """Checks that tenants are retrieved with the "--tenants name" flag.
@@ -108,3 +108,42 @@ class TestZuul(EndToEndTest):
 
             self.assertIn('Job: build-docker-image', self.output)
             self.assertIn('Total jobs found in query: 1', self.output)
+
+
+class TestZuulConfig(EndToEndTest):
+    def test_default_tenants(self):
+        """Checks that the configuration file can define the default tenants
+        to be consulted.
+        """
+        with OpenDevZuulContainer():
+            sys.argv = [
+                '',
+                '--config', 'tests/e2e/data/configs/zuul/with-tenants.yaml',
+                '-f', 'text',
+                '-vv',
+                '--jobs'
+            ]
+
+            main()
+
+            self.assertIn('Tenant: example-tenant', self.output)
+            self.assertIn('Total tenants found in query: 1', self.output)
+
+    def test_default_tenants_are_overriden(self):
+        """Checks that the '--tenants' argument overrides the default
+        tenants define in the configuration file.
+        """
+        with OpenDevZuulContainer():
+            sys.argv = [
+                '',
+                '--config', 'tests/e2e/data/configs/zuul/with-tenants.yaml',
+                '-f', 'text',
+                '-vv',
+                '--tenants'
+            ]
+
+            main()
+
+            self.assertIn('Tenant: example-tenant', self.output)
+            self.assertIn('Tenant: example-tenant-2', self.output)
+            self.assertIn('Total tenants found in query: 2', self.output)
