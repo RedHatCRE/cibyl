@@ -32,6 +32,8 @@ OPTIONS = re.compile("yes|no|true|false")
 DVR_PATTERN_RUN = re.compile(rf"--network-dvr ({OPTIONS.pattern})")
 DVR_PATTERN_NAME = re.compile(r"(non*_)*dvr")
 TLS_PATTERN_RUN = re.compile(rf"--tls-everywhere ({OPTIONS.pattern})")
+services_pattern_str = r"(tripleo_.*)\.service\s+loaded\s+active\s+running\s"
+SERVICES_PATTERN = re.compile(services_pattern_str)
 
 
 def satisfy_regex_match(model: Dict[str, str], pattern: Pattern,
