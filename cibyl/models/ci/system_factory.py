@@ -54,9 +54,6 @@ class SystemFactory:
             return JobsSystem(name=name, system_type=system_type, **args)
 
         if system_type == SystemType.ZUUL:
-            # Add arguments specific for this type
-            args.update(subset(kwargs, ['tenants']))
-
             return ZuulSystem(name=name, system_type=system_type, **args)
 
         raise NotImplementedError(f"Unknown system type '{system_type}'")

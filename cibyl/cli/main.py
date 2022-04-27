@@ -95,9 +95,7 @@ def main():
         orchestrator.load_configuration(arguments.get('config_file_path'))
     except ConfigurationNotFound as ex:
         # Check if the error is to be ignored
-        skip = arguments.get('help', False)
-
-        if not skip:
+        if not arguments.get('help', False):
             raise ex
 
     orchestrator.create_ci_environments()
