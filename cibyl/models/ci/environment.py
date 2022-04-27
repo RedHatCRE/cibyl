@@ -39,12 +39,21 @@ class Environment(Model):
     }
 
     def __init__(self, name, systems=None):
+        # Let IDEs know this model's attributes
+        self.name = None
+        self.systems = None
+
         super().__init__({'name': name, 'systems': systems})
 
-    def add_system(self, name: str, system_type: str, jobs_scope: str = None,
-                   sources: list = None, enabled: bool = True):
+    def add_system(self,
+                   name: str, system_type: str,
+                   sources: list = None, enabled: bool = True, **kwargs):
         """Adds a CI system to the CI environment"""
-        self.systems.append(SystemFactory.create_system(system_type, name,
-                                                        sources=sources,
-                                                        jobs_scope=jobs_scope,
-                                                        enabled=enabled))
+        self.systems.append(
+            SystemFactory.create_system(
+                system_type, name,
+                sources=sources,
+                enabled=enabled,
+                **kwargs
+            )
+        )

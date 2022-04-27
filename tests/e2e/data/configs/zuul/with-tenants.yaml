@@ -3,7 +3,7 @@ environments:
   env_1:
     zuul_system:
       system_type: zuul
-      tenants: [ 'unknown-tenant' ]
+      tenants: [ 'example-tenant' ]
       sources:
         osp_zuul:
           driver: zuul
