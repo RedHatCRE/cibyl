@@ -96,7 +96,7 @@ class ElasticSearchOSP(Source):
         :return: List of hits.
         """
         try:
-            LOG.info("Using the following query: {}"
+            LOG.debug("Using the following query: {}"
                      .format(str(query).replace("'", '"')))
             hits = [item for item in scan(
                 self.es_client,
@@ -422,7 +422,7 @@ class ElasticSearchOSP(Source):
             try:
                 test_duration = float(hit['_source']['test_time'])*1000
             except ValueError:
-                LOG.warning("'test_time' field is not well parsed in "
+                LOG.debug("'test_time' field is not well parsed in "
                             "elasticsearch for job: %s and build ID: %s",
                             job_name,
                             build_number
