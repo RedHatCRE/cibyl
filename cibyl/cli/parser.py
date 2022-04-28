@@ -107,6 +107,8 @@ class Parser:
 
         :param arguments: Arguments to parse
         :type arguments: list
+        :param config: Configuration file to get default values from.
+        :type config: :class:`cibyl.config.Config` or None
         """
         # First item is the namespace of the parsed known arguments (we ignore
         # the arguments we are not familiar with)
@@ -121,6 +123,12 @@ class Parser:
             isinstance(arg_value, Argument)}
 
     def _load_defaults(self, config):
+        """Loads from the configuration file the values that are to be used by
+        default for omitted arguments.
+
+        :param config: The configuration file. Will do nothing if None.
+        :type config: :class:`cibyl.config.Config` or None
+        """
         if not config:
             return
 

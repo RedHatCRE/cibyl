@@ -82,7 +82,7 @@ class CIColoredPrinter(CIPrinter):
         elif isinstance(system, ZuulSystem):
             printer.add(self._print_zuul_system(system), 1)
         else:
-            LOG.warning(f'Ignoring unknown system: {type(system).__name__}')
+            LOG.warning('Ignoring unknown system: %s', type(system).__name__)
 
         return printer.build()
 
