@@ -59,7 +59,7 @@ class Tenant(Model):
         :type other: :class:`Tenant`
         :return:
         """
-        for job in other.jobs:
+        for job in other.jobs.values():
             self.add_job(job)
 
     def add_job(self, job):
