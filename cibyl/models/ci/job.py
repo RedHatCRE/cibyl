@@ -47,7 +47,10 @@ class Job(Model):
                                    description="Job builds"),
                           Argument(name='--last-build', arg_type=str,
                                    func='get_builds', nargs=0,
-                                   description="Last build for job")]
+                                   description="Last build for job"),
+                          Argument(name='--build-number', arg_type=str,
+                                   func='get_builds', nargs="*",
+                                   description="Specific build for job")]
         }
     }
 

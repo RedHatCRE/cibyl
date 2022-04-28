@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from __future__ import print_function
+
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
@@ -185,12 +187,12 @@ class TestElasticsearchOSP(TestCase):
         """Tests that the internal logic from
            :meth:`ElasticSearchOSP.get_builds` is correct.
         """
-        mock_query_hits.return_value = self.job_hits
+        mock_query_hits.return_value = self.build_hits
 
         jobs_argument = Mock()
         jobs_argument.value = ['test']
         jobs = self.es_api.get_jobs(jobs=jobs_argument)
-        self.assertEqual(len(jobs), 4)
+        self.assertEqual(len(jobs), 2)
 
         self.es_api.get_jobs = Mock()
         self.es_api.get_jobs.return_value = jobs
@@ -242,12 +244,27 @@ class TestElasticsearchOSP(TestCase):
         self.assertEqual(len(tests), 2)
         self.assertTrue('test' in tests)
         self.assertTrue('test2' in tests)
+
+        # There are no builds if we don't
+        # pass --build-number argument:
+        self.assertEqual(len(tests['test'].builds), 0)
+        self.assertEqual(len(tests['test2'].builds), 0)
+
+        build_number_kwargs = MagicMock()
+        build_number_value = PropertyMock(return_value=['1'])
+        type(build_number_kwargs).value = build_number_value
+
+        tests = self.es_api.get_tests(
+            build_number=build_number_kwargs
+        )
+
         self.assertTrue('it_is_just_a_test' in
                         tests['test'].builds['2'].tests)
         self.assertTrue(
             tests['test'].builds['2'].tests['it_is_just_a_test'].duration,
             1.000
         )
+
         # If test_time can't be converted to float we
         # should skip the test
         self.assertEqual(len(tests['test2'].builds), 0)

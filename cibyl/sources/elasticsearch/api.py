@@ -14,6 +14,7 @@
 #    under the License.
 """
 
+from cmath import pi
 import logging
 import re
 from urllib.parse import urlsplit
@@ -135,6 +136,12 @@ class ElasticSearchOSP(Source):
                 build_statuses = [status.upper()
                                   for status in
                                   kwargs.get('build_status').value]
+            build_numbers = []
+
+            if 'build_number' in kwargs:
+                build_numbers = [status.upper()
+                                 for status in
+                                 kwargs.get('build_number').value]
 
             build_id_argument = None
             if 'builds' in kwargs:
@@ -151,6 +158,10 @@ class ElasticSearchOSP(Source):
 
                 if 'build_status' in kwargs and \
                         build['_source']['build_result'] not in build_statuses:
+                    continue
+
+                if 'build_number' in kwargs and \
+                        build['_source']['build_id'] not in build_numbers:
                     continue
 
                 build_id = str(build['_source']['build_id'])
@@ -370,6 +381,13 @@ class ElasticSearchOSP(Source):
                     "must": [
                         {},
                         {
+                            "bool": {
+                              "should": [
+                                {}
+                              ]
+                            }
+                        },
+                        {
                             "exists": {
                                 "field": "test_status"
                             }
@@ -385,6 +403,12 @@ class ElasticSearchOSP(Source):
             "sort": [{"timestamp.keyword": {"order": "desc"}}]
         }
 
+        build_numbers = []
+        if 'build_number' in kwargs:
+            build_numbers = [status.upper()
+                             for status in
+                             kwargs.get('build_number').value]
+
         results = []
         hits = []
         for job in jobs_found:
@@ -393,17 +417,23 @@ class ElasticSearchOSP(Source):
                     "job_name.keyword": f"{job}"
                 }
             }
-            results = self.__query_get_hits(
-                query=query_body,
-                index='logstash_jenkins'
-            )
+            for build_number in build_numbers:
+                query_body['query']['bool']['must'][1]['bool']['should'] = {
+                    "match": {
+                        "build_num": build_number
+                    }
+                }
+                results = self.__query_get_hits(
+                    query=query_body,
+                    index='logstash_jenkins'
+                )
 
-            # We need to process all the results because
-            # in the same build we can have different tests
-            # So we can't use '"size": 1' in the query
-            if results:
-                for result in results:
-                    hits.append(result)
+                # We need to process all the results because
+                # in the same build we can have different tests
+                # So we can't use '"size": 1' in the query
+                if results:
+                    for result in results:
+                        hits.append(result)
 
         if not results:
             return jobs_found
@@ -420,7 +450,12 @@ class ElasticSearchOSP(Source):
             # Some build is not parsed good and contains
             # More info than a time in the field
             try:
-                test_duration = float(hit['_source']['test_time'])*1000
+                test_duration = hit['_source'].get(
+                    'test_time',
+                    None
+                )
+                if test_duration:
+                    test_duration = float(test_duration)*1000
             except ValueError:
                 LOG.debug("'test_time' field is not well parsed in "
                           "elasticsearch for job: %s and build ID: %s",
@@ -434,7 +469,6 @@ class ElasticSearchOSP(Source):
             )
 
             jobs_found[job_name].add_build(build_object)
-
             jobs_found[job_name].builds[build_number].add_test(
                 Test(
                     name=test_name,
@@ -444,7 +478,11 @@ class ElasticSearchOSP(Source):
                 )
             )
 
-        return AttributeDictValue("jobs", attr_type=Job, value=jobs_found)
+        return AttributeDictValue(
+            "jobs",
+            attr_type=Job,
+            value=jobs_found
+        )
 
 
 class QueryTemplate():
