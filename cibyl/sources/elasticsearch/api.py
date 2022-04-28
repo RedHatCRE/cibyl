@@ -14,7 +14,6 @@
 #    under the License.
 """
 
-from cmath import pi
 import logging
 import re
 from urllib.parse import urlsplit
