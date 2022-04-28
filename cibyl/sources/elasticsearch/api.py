@@ -97,7 +97,7 @@ class ElasticSearchOSP(Source):
         """
         try:
             LOG.debug("Using the following query: {}"
-                     .format(str(query).replace("'", '"')))
+                      .format(str(query).replace("'", '"')))
             hits = [item for item in scan(
                 self.es_client,
                 index=index,
@@ -423,10 +423,10 @@ class ElasticSearchOSP(Source):
                 test_duration = float(hit['_source']['test_time'])*1000
             except ValueError:
                 LOG.debug("'test_time' field is not well parsed in "
-                            "elasticsearch for job: %s and build ID: %s",
-                            job_name,
-                            build_number
-                            )
+                          "elasticsearch for job: %s and build ID: %s",
+                          job_name,
+                          build_number
+                          )
                 continue
 
             build_object = Build(
