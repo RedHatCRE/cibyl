@@ -72,6 +72,9 @@ class TestElasticsearchOSP(TestCase):
                             'build_url': 'http://domain.tld/test/7',
                             'ip_version': 'ipv4',
                             'network_backend': 'local_area_n',
+                            'test_name': 'it_is_just_a_test',
+                            'test_time': '0.001',
+                            'test_class_name': 'folder.file.ClassName'
                         }
                     },
                     {
@@ -84,8 +87,35 @@ class TestElasticsearchOSP(TestCase):
                             'build_url': 'http://domain.tld/test2/8',
                             'ip_version': 'ipv6',
                             'network_backend': 'local_area_n',
+                            'test_name': 'it_is_just_a_test2',
+                            'test_time': '0.0001_bad_parsed',
                         }
                     }
+        ]
+
+        self.tests_hits = [
+            {
+                '_source': {
+                    'job_name': 'test',
+                    'job_url': 'http://domain.tld/test/',
+                    'build_result': 'SUCCESS',
+                    'build_num': '2',
+                    'test_name': 'it_is_just_a_test',
+                    'test_time': '0.001',
+                    'test_status': 'SUCCESS'
+                }
+            },
+            {
+                '_source': {
+                    'job_name': 'test2',
+                    'job_url': 'http://domain.tld/test2/',
+                    'build_result': 'FAIL',
+                    'build_num': '2',
+                    'test_name': 'it_is_just_a_test2',
+                    'test_time': '0.0001_bad_parsed',
+                    'test_status': 'FAIL'
+                }
+            }
         ]
 
     @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
@@ -199,6 +229,28 @@ class TestElasticsearchOSP(TestCase):
         build = builds_values['2']
         self.assertEqual(build.build_id.value, '2')
         self.assertEqual(build.status.value, "FAIL")
+
+    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    def test_get_tests(self: object,
+                       mock_query_hits: object) -> None:
+        """Tests internal logic :meth:`ElasticSearchOSP.get_tests`
+            is correct.
+        """
+        mock_query_hits.return_value = self.tests_hits
+        tests = self.es_api.get_tests()
+
+        self.assertEqual(len(tests), 2)
+        self.assertTrue('test' in tests)
+        self.assertTrue('test2' in tests)
+        self.assertTrue('it_is_just_a_test' in
+                        tests['test'].builds['2'].tests)
+        self.assertTrue(
+            tests['test'].builds['2'].tests['it_is_just_a_test'].duration,
+            1.000
+        )
+        # If test_time can't be converted to float we
+        # should skip the test
+        self.assertEqual(len(tests['test2'].builds), 0)
 
 
 class TestQueryTemplate(TestCase):
