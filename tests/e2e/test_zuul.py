@@ -154,7 +154,7 @@ class TestZuul(EndToEndTest):
 
 
 class TestZuulConfig(EndToEndTest):
-    """Tests regarding on how the configuration file affects the Zuul source.
+    """Tests related to how the configuration file affects the Zuul source.
     """
 
     zuul = OpenDevZuulContainer()
