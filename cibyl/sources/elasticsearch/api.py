@@ -402,12 +402,9 @@ class ElasticSearchOSP(Source):
             "sort": [{"timestamp.keyword": {"order": "desc"}}]
         }
 
-        build_numbers = []
-        if 'build_number' in kwargs:
-            build_numbers = [status.upper()
-                             for status in
-                             kwargs.get('build_number').value]
-
+        build_numbers = [status.upper()
+                         for status in
+                         kwargs.get('builds').value]
         hits = []
         for job in jobs_found:
             query_body['query']['bool']['must'][0] = {
