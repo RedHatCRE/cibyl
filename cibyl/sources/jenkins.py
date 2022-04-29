@@ -26,6 +26,7 @@ import requests
 import urllib3
 import yaml
 
+from cibyl.cli.argument import Argument
 from cibyl.exceptions.cli import MissingArgument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue
@@ -39,6 +40,7 @@ from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.service import Service
 from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.source import Source, safe_request_generic, speed_index
+from cibyl.utils.dicts import subset
 from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
                                    IP_PATTERN, NETWORK_BACKEND_PATTERN,
                                    RELEASE_PATTERN, SERVICES_PATTERN,
@@ -53,13 +55,57 @@ safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
+def filter_nodes(job: dict, user_input: Argument, field_to_check: str):
+    """Check whether job should be included according to the user input. The
+    model should be added if the node models provided in the field designated
+    by the variable field_to_check are present in the user_input values.
+
+    :param job: job information obtained from jenkins
+    :type job: str
+    :param user_input: input argument specified by the user
+    :type model_urls: :class:`.Argument`
+    :param field_to_check: Job field to perform the check
+    :param field_to_check: str
+    :returns: Whether the model satisfies user input
+    :rtype: bool
+    """
+    valid_nodes = 0
+    for node in job['nodes'].values():
+        attr = getattr(node, field_to_check)
+        attr.value = subset(attr.value, user_input.value)
+        valid_nodes += len(attr)
+    # if the subset is empty, job should be filtered
+    return valid_nodes > 0
+
+
+def filter_models_by_name(job: dict, user_input: Argument,
+                          field_to_check: str):
+    """Check whether job should be included according to the user input. The
+    model should be added if the models provided in the field designated by the
+    variable field_to_check are present in the user_input values.
+
+    :param job: job information obtained from jenkins
+    :type job: str
+    :param user_input: input argument specified by the user
+    :type model_urls: :class:`.Argument`
+    :param field_to_check: Job field to perform the check
+    :param field_to_check: str
+    :returns: Whether the model satisfies user input
+    :rtype: bool
+    """
+    job[field_to_check] = subset(job[field_to_check], user_input.value)
+    # if the subset is empty, job should be filtered
+    return bool(job[field_to_check])
+
+
 def detect_job_info_regex(job_name, pattern, group_index=0, default=""):
     """Extract information from a jenkins job name using regex, if not present,
     set to a default value.
 
     :param job: Jenkins Job representation as a dictionary
     :type job: dict
-    :returns: The ip version used for the job if present, 'unknown' otherwise
+    :returns: The substring of the job name matchin pattern if present,
+    '' otherwise
     :rtype: str
     """
     match_job = pattern.search(job_name)
@@ -408,7 +454,11 @@ one')
         jobs_found = self.send_request(self.jobs_query_for_deployment)["jobs"]
         jobs_found = filter_jobs(jobs_found, **kwargs)
 
+        spec = "spec" in kwargs
         use_artifacts = True
+        if len(jobs_found) > 1 and spec:
+            raise JenkinsError("Full Openstack specification can be shown "
+                               "only for one job, please restrict the query.")
         if len(jobs_found) > 12:
             LOG.warning("Requesting deployment information for %d jobs \
 will be based on the job name and approximate, restrict the query for more \
@@ -418,9 +468,25 @@ accurate results", len(jobs_found))
         job_deployment_info = []
         for job in jobs_found:
             last_build = job.get("lastCompletedBuild")
-            if use_artifacts and last_build is not None:
+            if spec:
+                if last_build is None:
+                    # jenkins only has a logs link for completed builds
+                    raise JenkinsError("Openstack specification requested for"
+                                       f" job {job['name']} but job has no "
+                                       "completed build.")
+                else:
+                    self.add_job_info_from_artifacts(job, query_packages=True,
+                                                     query_containers=True,
+                                                     query_services=True)
+            elif use_artifacts and last_build is not None:
                 # if we have a lastBuild, we will have artifacts to pull
-                self.add_job_info_from_artifacts(job)
+                containers = "containers" in kwargs
+                packages = "packages" in kwargs
+                services = "services" in kwargs
+                self.add_job_info_from_artifacts(job,
+                                                 query_packages=packages,
+                                                 query_containers=containers,
+                                                 query_services=services)
             else:
                 self.add_job_info_from_name(job)
             job_deployment_info.append(job)
@@ -452,6 +518,19 @@ accurate results", len(jobs_found))
                                        value=value,
                                        component='compute'))
 
+        input_services = kwargs.get('services')
+        if input_services and input_services.value:
+            checks_to_apply.append(partial(filter_models_by_name,
+                                           field_to_check='services',
+                                           user_input=input_services))
+
+        for attribute in ['containers', 'packages']:
+            input_attr = kwargs.get(attribute)
+            if input_attr and input_attr.value:
+                checks_to_apply.append(partial(filter_nodes,
+                                       user_input=input_attr,
+                                       field_to_check=attribute))
+
         job_deployment_info = apply_filters(job_deployment_info,
                                             *checks_to_apply)
 
@@ -482,11 +561,20 @@ accurate results", len(jobs_found))
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
-    def add_job_info_from_artifacts(self, job: dict):
+    def add_job_info_from_artifacts(self, job: dict,
+                                    query_packages: bool = False,
+                                    query_services: bool = False,
+                                    query_containers: bool = False):
         """Add information to the job by querying the last build artifacts.
 
         :param job: Dictionary representation of a jenkins job
         :type job: dict
+        :param query_packages: Whether to provide package information
+        :type query_packages: bool
+        :param query_containers: Whether to provide container information
+        :type query_containers: bool
+        :param query_services: Whether to provide services information
+        :type query_services: bool
         """
         job_name = job['name']
         build_description = job["lastCompletedBuild"].get("description")
@@ -559,11 +647,16 @@ accurate results", len(jobs_found))
                 role, amount = component.split(":")
                 for i in range(int(amount)):
                     node_name = role+f"-{i}"
-                    packages = self.get_packages_node(node_name, logs_url,
-                                                      job_name)
-                    containers = self.get_containers_node(node_name,
+                    containers = {}
+                    packages = {}
+                    if query_packages:
+                        packages = self.get_packages_node(node_name,
                                                           logs_url,
                                                           job_name)
+                    if query_containers:
+                        containers = self.get_containers_node(node_name,
+                                                              logs_url,
+                                                              job_name)
                     job["nodes"][node_name] = Node(node_name, role=role,
                                                    containers=containers,
                                                    packages=packages)
@@ -571,16 +664,17 @@ accurate results", len(jobs_found))
         artifact_path = "undercloud-0/var/log/extra/services.txt.gz"
         artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
         job["services"] = {}
-        try:
-            artifact = self.send_request(item="", query="",
-                                         url=artifact_url,
-                                         raw_response=True)
-            for service in SERVICES_PATTERN.findall(artifact):
-                job["services"][service] = Service(service)
+        if query_services:
+            try:
+                artifact = self.send_request(item="", query="",
+                                             url=artifact_url,
+                                             raw_response=True)
+                for service in SERVICES_PATTERN.findall(artifact):
+                    job["services"][service] = Service(service)
 
-        except JenkinsError:
-            LOG.debug("Found no artifact %s for job %s", artifact_path,
-                      job_name)
+            except JenkinsError:
+                LOG.debug("Found no artifact %s for job %s", artifact_path,
+                          job_name)
 
         if self.job_missing_deployment_info(job):
             LOG.debug("Resorting to get deployment information from job name"
