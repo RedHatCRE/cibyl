@@ -25,8 +25,8 @@ from urllib.parse import urlparse
 import requests
 import urllib3
 import yaml
-from cibyl.exceptions.cli import MissingArgument
 
+from cibyl.exceptions.cli import MissingArgument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
