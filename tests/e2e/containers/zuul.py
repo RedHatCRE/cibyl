@@ -42,7 +42,7 @@ class OpenDevZuulContainer(ComposedContainer):
 
     @property
     def origin(self):
-        return 'git@github.com:jsanemet/zuul-example.git'
+        return 'git@github.com:rhos-infra/cibyl-e2e-zuul.git'
 
     @property
     def workspace(self):
