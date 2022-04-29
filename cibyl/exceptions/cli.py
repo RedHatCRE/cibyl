@@ -34,3 +34,13 @@ class InvalidArgument(CibylException):
         """Constructor.
         """
         super().__init__(message)
+
+
+class MissingArgument(CibylException):
+    """Represents a missing required argument
+    """
+
+    def __init__(self, message='Missing required argument.'):
+        """Constructor.
+        """
+        super().__init__(message)
