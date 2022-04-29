@@ -13,17 +13,33 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from collections import UserDict
+from typing import List, MutableMapping
+
+from overrides import overrides
 
 from cibyl.sources.source import Source, speed_index
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
 from cibyl.sources.zuul.query import handle_query
+from cibyl.utils.dicts import subset
 
 
 class Zuul(Source):
     """Source implementation for a Zuul host.
     """
 
-    def __init__(self, api, name, driver, url, **kwargs):
+    class Fallbacks(UserDict, MutableMapping[str, List[str]]):
+        """Dictionary meant to hold the default search terms for arguments
+        on a zuul query.
+
+        Examples:
+            >>> fallbacks = Zuul.Fallbacks()
+            ... fallbacks['tenants'] = ['tenant_1', 'tenant_2']
+            ... fallbacks['tenants']
+            ['tenant_1', 'tenant_2']
+        """
+
+    def __init__(self, api, name, driver, url, fallbacks=None, **kwargs):
         """Constructor.
 
         :param api: Medium of communication with host.
@@ -34,9 +50,16 @@ class Zuul(Source):
         :type driver: str
         :param url: Address where the host is located.
         :type url: str
+        :param fallbacks: Default search terms to be used for missing query
+            arguments.
+        :type fallbacks: :class:`Zuul.Fallbacks` or None
         :param kwargs: Additional parameters that define the source.
         :type kwargs: Any
         """
+        # Handle optional parameters
+        if not fallbacks:
+            fallbacks = Zuul.Fallbacks()
+
         # URLs are built assuming no slash at the end of URL
         if url.endswith('/'):
             url = url[:-1]  # Removes last character of string
@@ -44,6 +67,7 @@ class Zuul(Source):
         super().__init__(name, driver, url=url, **kwargs)
 
         self._api = api
+        self._fallbacks = fallbacks
 
     @staticmethod
     def new_source(url, cert=None, **kwargs):
@@ -67,28 +91,66 @@ class Zuul(Source):
             Type: bool. Default: True.
         :return: The instance.
         """
+
+        def new_api():
+            return ZuulRESTClient.from_url(url, cert)
+
+        def new_fallbacks_from(*args):
+            """
+            :param args: Arguments to generate fallbacks for.
+            :return: Dictionary with the default values of the requested
+                arguments.
+            :rtype: :class:`Zuul.Fallbacks`
+            """
+            result = Zuul.Fallbacks()
+
+            for entry in args:
+                if entry in kwargs:
+                    # Add the default values for this entry
+                    result.update(subset(kwargs, [entry]))
+
+            return result
+
         kwargs.setdefault('name', 'zuul-ci')
         kwargs.setdefault('driver', 'zuul')
 
-        return Zuul(api=ZuulRESTClient.from_url(url, cert), url=url, **kwargs)
+        api = new_api()
+        fallbacks = new_fallbacks_from('tenants')
+
+        return Zuul(api=api, url=url, fallbacks=fallbacks, **kwargs)
+
+    @overrides
+    def setup(self):
+        pass
 
     @speed_index({'base': 1})
     def get_tenants(self, **kwargs):
-        return handle_query(self._api, **kwargs)
+        """Retrieves tenants present on the host.
+
+       ..  seealso::
+            For kwargs keys: :func:`handle_query`
+
+        :param kwargs: All arguments from the command line.
+            These define the query to be performed.
+        :return: Resulting CI model from the query, formatted as an
+            attribute of type :class:`Tenant`.
+        :rtype: :class:`AttributeDictValue`
+        """
+        return handle_query(
+            self._api,
+            defaults=self._fallbacks,
+            **kwargs
+        )
 
     @speed_index({'base': 2})
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 
+        ..  seealso::
+            For kwargs keys: :func:`handle_query`
+
         :param kwargs: All arguments from the command line.
-            These define the query to be performed. Arguments that explicitly
-            affect jobs are listed below.
-        :key jobs:
-            Names of the jobs to be fetched.
-            Type: Argument[list[str]].
-        :key job_url:
-            URL of the job to be fetched.
-            Type: Argument[str].
+            These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
@@ -99,21 +161,11 @@ class Zuul(Source):
     def get_builds(self, **kwargs):
         """Retrieves builds present on the host.
 
-        .. seealso::
-            For filters related to jobs, see: :meth:`~.get_jobs`.
+        ..  seealso::
+            For kwargs keys: :func:`handle_query`
 
         :param kwargs: All arguments from the command line.
-            These define the query to be performed. Arguments that explicitly
-            affect builds are listed below.
-        :key last_build:
-            Fetch only the latest build of each job.
-            Type: None
-        :key build_id:
-            List of build IDs to be fetched.
-            Type: Argument[list[str]].
-        :key build_status:
-            List of desired statuses to be fetched.
-            Type: Argument[list[str]].
+            These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`

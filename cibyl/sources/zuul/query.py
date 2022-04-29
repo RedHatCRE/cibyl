@@ -139,6 +139,9 @@ def handle_query(api, **kwargs):
     :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
     :param kwargs: Arguments that define the query that will be performed.
         If one of these keys is not present, it is simply ignored.
+    :key defaults:
+        Dictionary with the default search terms in case an argument is
+        omitted. Type: Zuul.Fallbacks.
     :key tenants:
         Name of the tenants to query. Type: AttributeListValue[str].
     :key jobs:
