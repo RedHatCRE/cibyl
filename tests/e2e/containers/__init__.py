@@ -35,18 +35,23 @@ class ComposedContainer(ABC):
         )
 
     def __enter__(self):
-        self._container.start()
-        self._wait_until_ready()
-        self._on_ready()
-
+        self.start()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._container.stop()
+        self.stop()
 
     @abstractmethod
     def _wait_until_ready(self):
         raise NotImplementedError
+
+    def start(self):
+        self._container.start()
+        self._wait_until_ready()
+        self._on_ready()
+
+    def stop(self):
+        self._container.stop()
 
     def _on_ready(self):
         # Do nothing by default

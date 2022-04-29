@@ -20,6 +20,8 @@ from cibyl.models.model import Model
 
 
 class Tenant(Model):
+    """Representation of a Zuul tenant.
+    """
     API = {
         'name': {
             'attr_type': str,
@@ -54,15 +56,24 @@ class Tenant(Model):
         return self.name == other.name
 
     def merge(self, other):
-        """
-        :param other:
+        """Adds the contents of another tenant into this one.
+
+        :param other: The other tenant.
         :type other: :class:`Tenant`
-        :return:
         """
-        for job in other.jobs:
+        for job in other.jobs.values():
             self.add_job(job)
 
     def add_job(self, job):
+        """Appends, or merges, a new child job into this tenant.
+
+        If the job already exists in this tenant, then it is not
+        overwritten. Instead, the two jobs are merged together into a
+        complete job model.
+
+        :param job: The job to be added.
+        :type job: :class:`Job`
+        """
         key = job.name.value
 
         if key in self.jobs:
