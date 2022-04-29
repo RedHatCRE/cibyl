@@ -39,7 +39,6 @@ class SystemFactory:
         :param name: A name to identify the system.
         :type name: str
         :param kwargs: Collection of data that further describes the system.
-        :type kwargs: str
         :return: A new instance.
         :rtype: :class:`cibyl.systems.system.Source`
         """
