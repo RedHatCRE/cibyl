@@ -408,7 +408,6 @@ class ElasticSearchOSP(Source):
                              for status in
                              kwargs.get('build_number').value]
 
-        results = []
         hits = []
         for job in jobs_found:
             query_body['query']['bool']['must'][0] = {
@@ -433,9 +432,6 @@ class ElasticSearchOSP(Source):
                 if results:
                     for result in results:
                         hits.append(result)
-
-        if not results:
-            return jobs_found
 
         for hit in hits:
             job_name = hit['_source']['job_name']
@@ -477,11 +473,7 @@ class ElasticSearchOSP(Source):
                 )
             )
 
-        return AttributeDictValue(
-            "jobs",
-            attr_type=Job,
-            value=jobs_found
-        )
+        return jobs_found
 
 
 class QueryTemplate():
