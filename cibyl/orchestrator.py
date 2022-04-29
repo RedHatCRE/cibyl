@@ -182,9 +182,7 @@ class Orchestrator:
                                   source_name, source_driver, speed_score)
                         try:
                             model_instances_dict = source_method(
-                                defaults=self.parser.def_args,
-                                **self.parser.ci_args,
-                                **self.parser.app_args)
+                                **self.parser.ci_args, **self.parser.app_args)
                         except SourceException as exception:
                             LOG.error("Error in source %s. %s",
                                       source_name, exception,
