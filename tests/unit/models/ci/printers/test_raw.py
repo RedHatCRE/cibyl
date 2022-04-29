@@ -23,8 +23,8 @@ from cibyl.models.ci.system import JobsSystem
 from cibyl.models.ci.test import Test
 
 
-class TestCIRawParser(TestCase):
-    """Tests for :class:`CIRawParser`.
+class TestCIRawPrinter(TestCase):
+    """Tests for :class:`CIRawPrinter`.
     """
 
     def test_str_environment(self):

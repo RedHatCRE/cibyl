@@ -50,6 +50,15 @@ class CIPrinter(Printer, ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def print_pipeline(self, pipeline):
+        """
+        :param pipeline: The pipeline.
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def print_job(self, job):
         """
         :param job: The job.
