@@ -263,6 +263,26 @@ class TestElasticsearchOSP(TestCase):
             1.000
         )
 
+        builds_kwargs = MagicMock()
+        builds_value = PropertyMock(return_value=['1', '2'])
+        type(builds_kwargs).value = builds_value
+
+        test_result_kwargs = MagicMock()
+        test_result_value = PropertyMock(return_value=['sucCess'])
+        type(test_result_kwargs).value = test_result_value
+
+        tests = self.es_api.get_tests(
+            builds=builds_kwargs,
+            test_result=test_result_kwargs,
+        )
+
+        self.assertEqual(
+            len(tests['test'].builds['2'].tests),
+            0
+        )
+        self.assertTrue('it_is_just_a_test' in
+                        tests['test'].builds['1'].tests)
+
 
 class TestQueryTemplate(TestCase):
     """Test cases for :class:`QueryTemplate`.
