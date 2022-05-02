@@ -435,7 +435,7 @@ one')
 
         for hit in hits:
             job_name = hit['_source']['job_name']
-            build_number = hit['_source']['build_num']
+            build_number = str(hit['_source']['build_num'])
             test_name = hit['_source']['test_name']
             test_status = hit['_source']['test_status']
             class_name = hit['_source'].get(
@@ -459,11 +459,6 @@ one')
                           )
                 continue
 
-            build_object = Build(
-                build_id=build_number
-            )
-
-            job_builds_found[job_name].add_build(build_object)
             job_builds_found[job_name].builds[build_number].add_test(
                 Test(
                     name=test_name,

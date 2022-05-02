@@ -249,7 +249,7 @@ class TestElasticsearchOSP(TestCase):
             self.es_api.get_tests()
 
         builds_kwargs = MagicMock()
-        builds_value = PropertyMock(return_value=['1'])
+        builds_value = PropertyMock(return_value=[])
         type(builds_kwargs).value = builds_value
 
         tests = self.es_api.get_tests(
