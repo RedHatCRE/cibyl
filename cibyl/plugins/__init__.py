@@ -20,10 +20,6 @@ from cibyl.models.ci.environment import Environment
 
 LOG = logging.getLogger(__name__)
 
-# TODO(abregman): Remove in the future and rely solely on
-#                 CLI or configuration
-DEFAULT_PLUGIN = 'openstack'
-
 
 def extend_models(plugin_name):
     try:

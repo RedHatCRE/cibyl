@@ -103,3 +103,21 @@ class TestOpenstackCLI(TestCase):
 
             main()
         self.assertIn('deployment', Job.API)
+
+    def test_openstack_cli_zuul_system_plugin_configuration(self):
+        """Test that the Deployment model is added to the Job when a Zuul
+        system is present in the configuration and openstack plugin is added
+        through the configuration.
+        """
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: zuul\n")
+            config_file.write(b"plugins:\n")
+            config_file.write(b"  - openstack\n")
+            config_file.seek(0)
+            sys.argv = ['-h', '--config', config_file.name]
+
+            main()
+        self.assertIn('deployment', Job.API)

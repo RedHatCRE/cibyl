@@ -16,7 +16,7 @@
 from unittest import TestCase
 
 from cibyl.exceptions.plugin import MissingPlugin
-from cibyl.plugins import DEFAULT_PLUGIN, extend_models
+from cibyl.plugins import extend_models
 
 
 class TestPlugin(TestCase):
@@ -24,7 +24,7 @@ class TestPlugin(TestCase):
 
     def test_extend_models(self):
         """Test extend_models method"""
-        self.assertIsNone(extend_models(DEFAULT_PLUGIN))
+        self.assertIsNone(extend_models("openstack"))
 
     def test_missing_plugin(self):
         """Test extend_models method with a non-existing plugin."""
