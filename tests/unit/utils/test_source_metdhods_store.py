@@ -31,26 +31,36 @@ class TestSourceMethodsStore(TestCase):
     def test_add_call(self):
         """Test add_call method."""
         jenkins_get_jobs = self.jenkins.get_jobs
-        self.cache.add_call(jenkins_get_jobs)
+        self.cache.add_call(jenkins_get_jobs, True)
         self.assertEqual(self.cache.cache,
-                         set([("jenkins_source", "get_jobs")]))
+                         {("jenkins_source", "get_jobs"): True})
 
     def test_add_multiple_calls(self):
         """Test add_call method."""
         jenkins_get_jobs = self.jenkins.get_jobs
         zuul_get_builds = self.zuul.get_builds
-        self.cache.add_call(jenkins_get_jobs)
-        self.cache.add_call(zuul_get_builds)
+        self.cache.add_call(jenkins_get_jobs, True)
+        self.cache.add_call(zuul_get_builds, False)
         self.assertEqual(self.cache.cache,
-                         set([("jenkins_source", "get_jobs"),
-                              ("zuul_source", "get_builds")
-                              ]))
+                         {("jenkins_source", "get_jobs"): True,
+                          ("zuul_source", "get_builds"): False})
 
     def test_has_been_called(self):
         """Test has_been_called method."""
         jenkins_get_jobs = self.jenkins.get_jobs
         zuul_get_builds = self.zuul.get_builds
-        self.cache.add_call(jenkins_get_jobs)
-        self.cache.add_call(zuul_get_builds)
+        self.cache.add_call(jenkins_get_jobs, True)
+        self.cache.add_call(zuul_get_builds, True)
         self.assertTrue(self.cache.has_been_called(jenkins_get_jobs))
         self.assertTrue(self.cache.has_been_called(zuul_get_builds))
+
+    def test_status(self):
+        """Test get_status method."""
+        jenkins_get_jobs = self.jenkins.get_jobs
+        zuul_get_builds = self.zuul.get_builds
+        self.cache.add_call(jenkins_get_jobs, True)
+        self.cache.add_call(zuul_get_builds, False)
+        self.assertTrue(self.cache.has_been_called(jenkins_get_jobs))
+        self.assertTrue(self.cache.has_been_called(zuul_get_builds))
+        self.assertTrue(self.cache.get_status(jenkins_get_jobs))
+        self.assertFalse(self.cache.get_status(zuul_get_builds))
