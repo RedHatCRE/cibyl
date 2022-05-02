@@ -32,7 +32,7 @@ class Build(Model):
         'status': {
             'attr_type': str,
             'arguments': [Argument(name='--build-status', arg_type=str,
-                                   func='get_builds',
+                                   func='get_builds', nargs='*',
                                    description="Build status")]
         },
         'duration': {

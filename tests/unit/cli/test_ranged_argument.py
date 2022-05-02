@@ -36,6 +36,8 @@ class TestRange(TestCase):
         self.assertTrue(is_valid_regex(matched_str, ">>", "4"))
         matched_str = EXPRESSION_PATTERN.search("!=4")
         self.assertTrue(is_valid_regex(matched_str, "!=", "4"))
+        matched_str = EXPRESSION_PATTERN.search("<=45")
+        self.assertTrue(is_valid_regex(matched_str, "<=", "45"))
 
     def test_Range(self):
         """Test that Range namedtuple works as intended."""

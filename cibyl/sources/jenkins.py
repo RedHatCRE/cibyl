@@ -47,7 +47,8 @@ from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
                                    STORAGE_BACKEND_PATTERN, TOPOLOGY_PATTERN,
                                    apply_filters, filter_topology,
                                    satisfy_case_insensitive_match,
-                                   satisfy_exact_match, satisfy_regex_match)
+                                   satisfy_exact_match, satisfy_range_match,
+                                   satisfy_regex_match)
 
 LOG = logging.getLogger(__name__)
 
@@ -158,7 +159,7 @@ def filter_builds(builds_found: List[Dict], **kwargs):
                                        field_to_check="number"))
 
     build_status = kwargs.get('build_status')
-    if build_status:
+    if build_status and build_status.value:
         checks_to_apply.append(partial(satisfy_case_insensitive_match,
                                        user_input=build_status,
                                        field_to_check="result"))
@@ -169,6 +170,45 @@ def filter_builds(builds_found: List[Dict], **kwargs):
         build["number"] = str(build["number"])
 
     return apply_filters(builds_found, *checks_to_apply)
+
+
+def is_test(test):
+    """Check if a given test representation corresponds to a test and not
+    to some container returned by Jenkins.
+
+    :param test: Jenkins Job representation as a dictionary
+    :type test: dict
+    :returns: Whether the test representation actually corresponds to a test
+    :rtype: bool
+    """
+    # If the test does not have a className, then it is a container
+    return bool(test['className'])
+
+
+def filter_tests(tests_found: List[Dict], **kwargs):
+    """Filter the tests obtainedfrom the Jenkins API according to
+    user input."""
+    checks_to_apply = [is_test]
+
+    tests_arg = kwargs.get('tests')
+    if tests_arg:
+        pattern = re.compile("|".join(tests_arg.value))
+        checks_to_apply.append(partial(satisfy_regex_match, pattern=pattern,
+                                       field_to_check="name"))
+
+    tests_results = kwargs.get('test_result')
+    if tests_results and tests_results.value:
+        checks_to_apply.append(partial(satisfy_case_insensitive_match,
+                                       user_input=tests_results,
+                                       field_to_check="status"))
+
+    test_durations = kwargs.get('test_duration')
+    if test_durations and test_durations.value:
+        checks_to_apply.append(partial(satisfy_range_match,
+                                       user_input=test_durations,
+                                       field_to_check="duration"))
+
+    return apply_filters(tests_found, *checks_to_apply)
 
 
 # pylint: disable=no-member
@@ -414,15 +454,12 @@ one')
                                     " %s", suit_id, job_name)
                         continue
 
-                    for test in suit['cases']:
-                        # If the test does not have a className, then it is
-                        # a container
-                        if not test['className']:
-                            continue
+                    tests_filtered = filter_tests(suit['cases'], **kwargs)
+                    for test in tests_filtered:
 
                         # Duration comes in seconds (float)
                         duration_in_ms = test.get('duration')*1000
-                        jobs_found[job_name].builds[build_id].add_test(
+                        build.add_test(
                             Test(name=test.get('name'),
                                  class_name=test.get('className'),
                                  result=test.get('status'),

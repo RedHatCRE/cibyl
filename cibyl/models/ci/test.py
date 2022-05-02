@@ -35,8 +35,9 @@ class Test(Model):
         'duration': {
             'attr_type': int,
             'arguments': [Argument(name='--test-duration', arg_type=str,
-                                   func='get_tests',
-                                   description="Test duration")]
+                                   func='get_tests', nargs='*',
+                                   ranged=True,
+                                   description="Test duration (in seconds)")]
         },
         'class_name': {
             'attr_type': int,
