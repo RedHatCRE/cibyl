@@ -84,23 +84,24 @@ def main():
                       arguments.get('log_file'),
                       arguments.get('logging'))
 
-    plugins = arguments.get('plugins')
-    if plugins:
-        for plugin in plugins:
-            extend_models(plugin)
-
     orchestrator = Orchestrator()
 
     try:
         orchestrator.load_configuration(arguments.get('config_file_path'))
     except ConfigurationNotFound as ex:
         # Check if the error is to be ignored
-        skip = arguments.get('help', False)
-
-        if not skip:
+        if not arguments.get('help', False):
             raise ex
 
     orchestrator.create_ci_environments()
+
+    # add plugins after the environments are created, since the environment
+    # might modify some of the models APIs
+    plugins = arguments.get('plugins')
+    if plugins:
+        for plugin in plugins:
+            extend_models(plugin)
+
     # Add arguments from CI & product models to the parser of the app
     for env in orchestrator.environments:
         orchestrator.extend_parser(attributes=env.API)

@@ -24,103 +24,181 @@ class TestZuul(EndToEndTest):
     """Tests queries regarding the Zuul source.
     """
 
+    zuul = OpenDevZuulContainer()
+
+    @classmethod
+    def setUpClass(cls):
+        cls.zuul.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.zuul.stop()
+
     def test_get_tenants(self):
         """Checks that tenants are retrieved with the "--tenants" flag.
         """
-        with OpenDevZuulContainer():
-            sys.argv = [
-                '',
-                '--config', 'tests/e2e/data/configs/zuul.yaml',
-                '-f', 'text',
-                '-vv',
-                '--tenants'
-            ]
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '-vv',
+            '--tenants'
+        ]
 
-            main()
+        main()
 
-            self.assertIn('Total tenants found in query: 1', self.output)
+        self.assertIn('Total tenants found in query: 2', self.output)
 
     def test_get_tenants_by_name(self):
         """Checks that tenants are retrieved with the "--tenants name" flag.
         """
-        with OpenDevZuulContainer():
-            sys.argv = [
-                '',
-                '--config', 'tests/e2e/data/configs/zuul.yaml',
-                '-f', 'text',
-                '-vv',
-                '--tenants', 'example-tenant'
-            ]
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '-vv',
+            '--tenants', 'example-tenant'
+        ]
 
-            main()
+        main()
 
-            self.assertIn('Tenant: example-tenant', self.output)
-            self.assertIn('Total tenants found in query: 1', self.output)
+        self.assertIn('Tenant: example-tenant', self.output)
+        self.assertIn('Total tenants found in query: 1', self.output)
 
     def test_no_jobs_on_tenant_query(self):
         """Checks that no 'Jobs found in tenant...' string is printed for a
         '--tenants' query.
         """
-        with OpenDevZuulContainer():
-            sys.argv = [
-                '',
-                '--config', 'tests/e2e/data/configs/zuul.yaml',
-                '-f', 'text',
-                '-vv',
-            ]
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '-vv',
+            '--tenants', 'example-tenant'
+        ]
 
-            main()
+        main()
 
-            self.assertNotIn('Total jobs found in query:', self.output)
+        self.assertNotIn(
+            "Total jobs found in tenant 'example-tenant':",
+            self.output
+        )
 
     def test_get_jobs(self):
         """Checks that jobs are retrieved with the "--jobs" flag.
         """
-        with OpenDevZuulContainer():
-            sys.argv = [
-                '',
-                '--config', 'tests/e2e/data/configs/zuul.yaml',
-                '-f', 'text',
-                '-vv',
-                '--jobs'
-            ]
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '-vv',
+            '--tenants', 'example-tenant',
+            '--jobs'
+        ]
 
-            main()
+        main()
 
-            self.assertIn('Total jobs found in query: 65', self.output)
+        self.assertIn(
+            "Total jobs found in tenant 'example-tenant': 65",
+            self.output
+        )
 
     def test_get_jobs_by_name(self):
         """Checks retrieved jobs by "--jobs name" flag.
         """
-        with OpenDevZuulContainer():
-            sys.argv = [
-                '',
-                '--config', 'tests/e2e/data/configs/zuul.yaml',
-                '-f', 'text',
-                '-vv',
-                '--jobs', 'build-docker-image'
-            ]
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '-vv',
+            '--tenants', 'example-tenant',
+            '--jobs', 'build-docker-image'
+        ]
 
-            main()
+        main()
 
-            self.assertIn('Job: build-docker-image', self.output)
-            self.assertIn('Total jobs found in query: 1', self.output)
+        self.assertIn(
+            "Job: build-docker-image",
+            self.output
+        )
+
+        self.assertIn(
+            "Total jobs found in tenant 'example-tenant': 1",
+            self.output
+        )
 
     def test_get_jobs_by_url(self):
         """Checks retrieved jobs by "--jobs --job-url url" flag.
         """
-        with OpenDevZuulContainer():
-            sys.argv = [
-                '',
-                '--config', 'tests/e2e/data/configs/zuul.yaml',
-                '-f', 'text',
-                '-vv',
-                '--jobs',
-                '--job-url',
-                'http://localhost:9000/t/example-tenant/job/build-docker-image'
-            ]
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '-vv',
+            '--tenants', 'example-tenant',
+            '--jobs', '--job-url',
+            'http://localhost:9000/t/example-tenant/job/build-docker-image'
+        ]
 
-            main()
+        main()
 
-            self.assertIn('Job: build-docker-image', self.output)
-            self.assertIn('Total jobs found in query: 1', self.output)
+        self.assertIn(
+            'Job: build-docker-image',
+            self.output
+        )
+
+        self.assertIn(
+            "Total jobs found in tenant 'example-tenant': 1",
+            self.output
+        )
+
+
+class TestZuulConfig(EndToEndTest):
+    """Tests related to how the configuration file affects the Zuul source.
+    """
+
+    zuul = OpenDevZuulContainer()
+
+    @classmethod
+    def setUpClass(cls):
+        cls.zuul.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.zuul.stop()
+
+    def test_default_tenants(self):
+        """Checks that the configuration file can define the default tenants
+        to be consulted.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul/with-tenants.yaml',
+            '-f', 'text',
+            '-vv',
+            '--jobs'
+        ]
+
+        main()
+
+        self.assertIn('Tenant: example-tenant', self.output)
+        self.assertNotIn('Tenant: example-tenant-2', self.output)
+        self.assertIn('Total tenants found in query: 1', self.output)
+
+    def test_default_tenants_are_overriden(self):
+        """Checks that the '--tenants' argument overrides the default
+        tenants define in the configuration file.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul/with-tenants.yaml',
+            '-f', 'text',
+            '-vv',
+            '--tenants'
+        ]
+
+        main()
+
+        self.assertIn('Tenant: example-tenant', self.output)
+        self.assertIn('Tenant: example-tenant-2', self.output)
+        self.assertIn('Total tenants found in query: 2', self.output)

@@ -23,9 +23,11 @@ class QueryType(Enum):
     """No data from host is requested."""
     TENANTS = 1
     """Only retrieve data concerning tenants."""
-    JOBS = 2
+    PIPELINES = 2
+    """Retrieve data concerning pipelines and above."""
+    JOBS = 3
     """Retrieve data concerning jobs and above."""
-    BUILDS = 3
+    BUILDS = 4
     """Retrieve data concerning builds and above."""
 
 

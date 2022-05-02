@@ -19,17 +19,19 @@ LOG = logging.getLogger(__name__)
 
 
 def subset(dictionary, keys):
-    """
+    """Creates a new dictionary from items from another one.
 
-    :param dictionary:
+    :param dictionary: The dictionary to extract items from.
     :type dictionary: dict
-    :param keys:
+    :param keys: The keys to get from the dictionary.
     :type keys: list
-    :return:
+    :return: The new dictionary.
+    :rtype: dict
     """
     result = {}
 
     for key in keys:
+        # Do not crash if a key is not present
         if key not in dictionary:
             message = "Ignoring key '%s' not found in dictionary: %s"
             LOG.debug(message, key, dictionary)

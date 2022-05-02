@@ -15,6 +15,8 @@
 """
 import logging
 
+from overrides import overrides
+
 from cibyl.cli.query import QueryType
 from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
@@ -56,6 +58,7 @@ class CIColoredPrinter(CIPrinter):
         """
         return self._palette
 
+    @overrides
     def print_environment(self, env):
         printer = IndentedTextBuilder()
 
@@ -67,6 +70,7 @@ class CIColoredPrinter(CIPrinter):
 
         return printer.build()
 
+    @overrides
     def print_system(self, system):
         printer = IndentedTextBuilder()
 
@@ -82,7 +86,7 @@ class CIColoredPrinter(CIPrinter):
         elif isinstance(system, ZuulSystem):
             printer.add(self._print_zuul_system(system), 1)
         else:
-            LOG.warning(f'Ignoring unknown system: {type(system).__name__}')
+            LOG.warning('Ignoring unknown system: %s', type(system).__name__)
 
         return printer.build()
 
@@ -120,6 +124,7 @@ class CIColoredPrinter(CIPrinter):
 
         return printer.build()
 
+    @overrides
     def print_tenant(self, tenant):
         result = IndentedTextBuilder()
 
@@ -130,13 +135,32 @@ class CIColoredPrinter(CIPrinter):
             result.add(self.print_job(job), 1)
 
         if self.query != QueryType.TENANTS:
-            result.add(self._palette.blue('Total jobs found in tenant '), 1)
-            result[-1].append(self._palette.underline(tenant.name))
-            result[-1].append(self._palette.blue(': '))
+            result.add(self._palette.blue("Total jobs found in tenant '"), 1)
+            result[-1].append(tenant.name)
+            result[-1].append(self._palette.blue("': "))
             result[-1].append(len(tenant.jobs))
 
         return result.build()
 
+    @overrides
+    def print_pipeline(self, pipeline):
+        result = IndentedTextBuilder()
+
+        result.add(self._palette.blue('Pipeline: '), 0)
+        result[-1].append(pipeline.name.value)
+
+        for job in pipeline.jobs.values():
+            result.add(self.print_job(job), 1)
+
+        if self.query != QueryType.PIPELINES:
+            result.add(self._palette.blue('Total jobs found in pipeline '), 1)
+            result[-1].append(self._palette.underline(pipeline.name))
+            result[-1].append(self._palette.blue(': '))
+            result[-1].append(len(pipeline.jobs))
+
+        return result.build()
+
+    @overrides
     def print_job(self, job):
         printer = IndentedTextBuilder()
 
@@ -191,6 +215,7 @@ class CIColoredPrinter(CIPrinter):
 
         return printer.build()
 
+    @overrides
     def print_build(self, build):
         printer = IndentedTextBuilder()
 
@@ -226,6 +251,7 @@ class CIColoredPrinter(CIPrinter):
 
         return printer.build()
 
+    @overrides
     def print_test(self, test):
         printer = IndentedTextBuilder()
 

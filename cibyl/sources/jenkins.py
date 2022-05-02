@@ -16,6 +16,7 @@
 
 import json
 import logging
+import os
 import re
 from functools import partial
 from typing import Dict, List
@@ -23,24 +24,26 @@ from urllib.parse import urlparse
 
 import requests
 import urllib3
+import yaml
 
+from cibyl.exceptions.cli import MissingArgument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.test import Test
+from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.node import Node
+from cibyl.plugins.openstack.package import Package
+from cibyl.plugins.openstack.service import Service
 from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.source import Source, safe_request_generic, speed_index
 from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
-                                   DVR_PATTERN_RUN, IP_PATTERN,
-                                   NETWORK_BACKEND_PATTERN, OPTIONS,
-                                   PROPERTY_PATTERN, RELEASE_PATTERN,
-                                   RELEASE_RUN, RELEASE_VERSION,
-                                   STORAGE_BACKEND_PATTERN, TLS_PATTERN_RUN,
-                                   TOPOLOGY_PATTERN, apply_filters,
-                                   filter_topology,
+                                   IP_PATTERN, NETWORK_BACKEND_PATTERN,
+                                   RELEASE_PATTERN, SERVICES_PATTERN,
+                                   STORAGE_BACKEND_PATTERN, TOPOLOGY_PATTERN,
+                                   apply_filters, filter_topology,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
 
@@ -132,9 +135,8 @@ class Jenkins(Source):
                          2: "?tree=allBuilds[number,result,duration]",
                          3: "?tree=allBuilds[number,result,duration]"}
     jobs_last_build_query = "?tree=jobs[name,url,lastBuild[number,result]]"
-    jobs_last_completed_build_query = \
-        "?tree=jobs[name,url,lastCompletedBuild[number,result,duration]]"
-    build_tests_query = "?tree=suites[cases[name,status,duration,className]]"
+    jobs_query_for_deployment = \
+        "?tree=jobs[name,url,lastCompletedBuild[number,result,description]]"
 
     # pylint: disable=too-many-arguments
     def __init__(self, url: str, username: str = None, token: str = None,
@@ -167,7 +169,8 @@ class Jenkins(Source):
 
     @safe_request
     def send_request(self, query, timeout=None, item="",
-                     api_entrypoint="/api/json", raw_response=False):
+                     api_entrypoint="/api/json", raw_response=False,
+                     url=None):
         """
             Send a request to the jenkins instance and parse its json response.
 
@@ -185,6 +188,9 @@ class Jenkins(Source):
             :param raw_response: Whether to return the text of the response
             without any processing
             :type raw_response: bool
+            :param url: url to send the request to
+            :type url: str
+
             :returns: Information from the jenkins instance
             :rtype: dict
         """
@@ -215,8 +221,10 @@ class Jenkins(Source):
 
             return url
 
+        if url is None:
+            url = generate_query_url()
         response = requests.get(
-            generate_query_url(), verify=self.cert, timeout=timeout
+            url, verify=self.cert, timeout=timeout
         )
 
         response.raise_for_status()
@@ -308,62 +316,34 @@ try reducing verbosity for quicker query")
         """
             Get tests for a Jenkins job.
 
-            :returns: container of jobs with the last completed build
-            (if any) and the tests
+            :returns: container of jobs with the selected build(s)
+             and their tests
             :rtype: :class:`AttributeDictValue`
         """
 
-        # Get the jobs with the last completed build (default behavior)
-        jobs_found = self.send_request(
-            self.jobs_last_completed_build_query)["jobs"]
-        jobs_filtered = filter_jobs(jobs_found, **kwargs)
+        if not kwargs.get('builds') and not kwargs.get('last_build'):
+            raise MissingArgument('Please specify some builds (--builds) \
+to get the tests from. Or use (--last-build) to get the tests from the last \
+one')
 
-        job_objects = {}
+        jobs_found = self.get_builds(**kwargs)
 
-        for job in jobs_filtered:
-            job_name = job.get('name')
-            if job["lastCompletedBuild"] is None:
-                LOG.warning("No completed builds found for job %s", job_name)
-                continue
-
-            job_object = Job(name=job_name, url=job.get('url'))
-            job_objects[job_name] = job_object
-
-            if kwargs.get('builds'):
-                # For specific build ids we have to fetch them
-                builds = self.send_request(item=f"job/{job_name}",
-                                           query=self.jobs_builds_query.get(
-                                               kwargs.get('verbosity'), 0))
-                builds_to_add = filter_builds(builds["allBuilds"], **kwargs)
-            else:
-                builds_to_add = filter_builds([job["lastCompletedBuild"]],
-                                              **kwargs)
-
-            if not builds_to_add:
-                LOG.warning("No builds found for job %s", job_name)
-                continue
-
-            for build in builds_to_add:
-                build_object = Build(
-                    build_id=build['number'],
-                    status=build['result'])
-
-                job_objects[job_name].add_build(build_object)
-
-                if build['result'] == 'FAILURE':
+        for job_name, job in jobs_found.items():
+            for build_id, build in job.builds.items():
+                if build.status.value == 'FAILURE':
                     LOG.warning("Build %s for job %s failed. No tests to "
-                                "fetch", build['number'], job_name)
+                                "fetch", build_id, job_name)
                     continue
 
                 # Get the tests for this build
                 try:
                     tests_found = self.send_request(
-                        item=f"job/{job_name}/{build['number']}/testReport",
+                        item=f"job/{job_name}/{build_id}/testReport",
                         query='')
                 except JenkinsError as jerr:
                     if '404' in str(jerr):
                         LOG.warning("No tests found for build %s for job %s",
-                                    build['number'], job_name)
+                                    build_id, job_name)
                         continue
                     else:
                         raise jerr
@@ -389,18 +369,20 @@ try reducing verbosity for quicker query")
                         continue
 
                     for test in suit['cases']:
+                        # If the test does not have a className, then it is
+                        # a container
                         if not test['className']:
                             continue
 
                         # Duration comes in seconds (float)
                         duration_in_ms = test.get('duration')*1000
-                        job_objects[job_name].builds[build['number']].add_test(
+                        jobs_found[job_name].builds[build_id].add_test(
                             Test(name=test.get('name'),
                                  class_name=test.get('className'),
                                  result=test.get('status'),
                                  duration=duration_in_ms))
 
-        return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
+        return AttributeDictValue("jobs", attr_type=Job, value=jobs_found)
 
     def job_missing_deployment_info(self, job: Dict[str, str]):
         """Check if a given Jenkins job has all deployment attributes.
@@ -411,7 +393,7 @@ try reducing verbosity for quicker query")
         :rtype bool:
         """
         for attr in self.deployment_attr:
-            if attr not in job:
+            if attr not in job or not job[attr]:
                 return True
         return False
 
@@ -423,7 +405,7 @@ try reducing verbosity for quicker query")
         jenkins server
         :rtype: :class:`AttributeDictValue`
         """
-        jobs_found = self.send_request(self.jobs_last_build_query)["jobs"]
+        jobs_found = self.send_request(self.jobs_query_for_deployment)["jobs"]
         jobs_found = filter_jobs(jobs_found, **kwargs)
 
         use_artifacts = True
@@ -435,7 +417,7 @@ accurate results", len(jobs_found))
 
         job_deployment_info = []
         for job in jobs_found:
-            last_build = job.get("lastBuild")
+            last_build = job.get("lastCompletedBuild")
             if use_artifacts and last_build is not None:
                 # if we have a lastBuild, we will have artifacts to pull
                 self.add_job_info_from_artifacts(job)
@@ -478,18 +460,19 @@ accurate results", len(jobs_found))
             name = job.get('name')
             job_objects[name] = Job(name=name, url=job.get('url'))
             topology = job["topology"]
-            nodes = {}
-            if topology:
+            if not job.get("nodes") and topology:
+                job["nodes"] = {}
                 for component in topology.split(","):
                     role, amount = component.split(":")
                     for i in range(int(amount)):
                         node_name = role+f"-{i}"
-                        nodes[node_name] = Node(node_name, role=role)
+                        job["nodes"][node_name] = Node(node_name, role=role)
 
-            # TODO: (jgilaber) query for services
             deployment = Deployment(job["release"],
                                     job["infra_type"],
-                                    nodes, {}, ip_version=job["ip_version"],
+                                    nodes=job.get("nodes", {}),
+                                    services=job.get("services", {}),
+                                    ip_version=job["ip_version"],
                                     topology=topology,
                                     network_backend=job["network_backend"],
                                     storage_backend=job["storage_backend"],
@@ -499,89 +482,227 @@ accurate results", len(jobs_found))
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
-    def add_job_info_from_artifacts(self, job: Dict[str, str]):
+    def add_job_info_from_artifacts(self, job: dict):
         """Add information to the job by querying the last build artifacts.
 
         :param job: Dictionary representation of a jenkins job
         :type job: dict
         """
-        possible_artifacts = ["artifacts/jp.env", ".sh/run.sh", ".envrc"]
         job_name = job['name']
-        artifact = None
-        for artifact_path in possible_artifacts:
-            artifact_url = f"job/{job_name}/lastBuild/artifact/{artifact_path}"
-            try:
-                artifact = self.send_request(item=artifact_url, query="",
-                                             api_entrypoint="",
-                                             raw_response=True)
-                break
-            except JenkinsError:
-                LOG.debug("Found no artifact %s for job %s", artifact_path,
-                          job_name)
-                continue
-
-        if artifact is None:
+        build_description = job["lastCompletedBuild"].get("description")
+        if not build_description:
             LOG.debug("Resorting to get deployment information from job name"
                       " for job %s", job_name)
             self.add_job_info_from_name(job)
             return
+        logs_url_pattern = re.compile(r'href="(.*)">Browse logs')
+        logs_url = logs_url_pattern.search(build_description)
+        if logs_url is None:
+            LOG.debug("Resorting to get deployment information from job name"
+                      " for job %s", job_name)
+            self.add_job_info_from_name(job)
+            return
+        logs_url = logs_url.group(1)
 
-        for line in artifact.split("\n"):
-            if "TOPOLOGY=" in line:
-                topology_str = detect_job_info_regex(line, PROPERTY_PATTERN,
-                                                     group_index=1)
-                topology_str = topology_str.replace('"', '')
-                topology_str = topology_str.replace("'", '')
-                job["topology"] = topology_str
-            if "--version" in line:
-                job["release"] = detect_job_info_regex(line,
-                                                       RELEASE_RUN)
-            if "PRODUCT_VERSION" in line:
-                job["release"] = detect_job_info_regex(line,
-                                                       RELEASE_VERSION)
+        artifact_path = "infrared/provision.yml"
+        artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
+        try:
+            artifact = self.send_request(item="", query="",
+                                         url=artifact_url,
+                                         raw_response=True)
+            artifact = yaml.safe_load(artifact)
+            nodes = artifact['provision']['topology'].get('nodes', {})
+            topology = []
+            for node_path, amount in nodes.items():
+                node = os.path.split(node_path)[1]
+                node = os.path.splitext(node)[0]
+                topology.append(f"{node}:{amount}")
+            job["topology"] = ",".join(topology)
 
-            if "--storage-backend" in line or "STORAGE_BACKEND" in line:
-                storage = detect_job_info_regex(line, STORAGE_BACKEND_PATTERN)
-                job["storage_backend"] = storage
+        except JenkinsError:
+            LOG.debug("Found no artifact %s for job %s", artifact_path,
+                      job_name)
 
-            if "--network-backend" in line or "NETWORK_BACKEND" in line:
-                network = detect_job_info_regex(line, NETWORK_BACKEND_PATTERN)
-                job["network_backend"] = network
+        artifact_path = "infrared/overcloud-install.yml"
+        artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
+        try:
+            artifact = self.send_request(item="", query="",
+                                         url=artifact_url,
+                                         raw_response=True)
+            artifact = yaml.safe_load(artifact)
+            overcloud = artifact.get('install', {})
+            job["release"] = overcloud.get("version", "")
+            deployment = overcloud.get('deployment', {})
+            job["infra_type"] = os.path.split(deployment.get('files', ""))[1]
+            storage = overcloud.get("storage", {})
+            job["storage_backend"] = storage.get("backend", "")
+            network = overcloud.get("network", {})
+            job["network_backend"] = network.get("backend", "")
+            ip_string = network.get("protocol", "")
+            job["ip_version"] = detect_job_info_regex(ip_string, IP_PATTERN,
+                                                      group_index=1,
+                                                      default="unknown")
+            job["dvr"] = str(network.get("dvr", ""))
+            tls = overcloud.get("tls", {})
+            job["tls_everywhere"] = str(tls.get("everywhere", ""))
 
-            if "--network-protocol" in line or "NETWORK_PROTOCOL" in line:
-                job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
-                                                          group_index=1,
-                                                          default="unknown")
-            if "--network-dvr" in line:
-                dvr_option = detect_job_info_regex(line, DVR_PATTERN_RUN,
-                                                   group_index=1)
-                job["dvr"] = ""
-                if dvr_option:
-                    job["dvr"] = str(dvr_option in ('true', 'yes'))
+        except JenkinsError:
+            LOG.debug("Found no artifact %s for job %s", artifact_path,
+                      job_name)
 
-            if "NETWORK_DVR" in line:
-                dvr_option = detect_job_info_regex(line, OPTIONS)
-                job["dvr"] = ""
-                if dvr_option:
-                    job["dvr"] = str(dvr_option in ('true', 'yes'))
+        if not job.get("topology", ""):
+            self.get_topology_from_job_name(job)
+        topology = job["topology"]
+        job["nodes"] = {}
+        if topology:
+            for component in topology.split(","):
+                role, amount = component.split(":")
+                for i in range(int(amount)):
+                    node_name = role+f"-{i}"
+                    packages = self.get_packages_node(node_name, logs_url,
+                                                      job_name)
+                    containers = self.get_containers_node(node_name,
+                                                          logs_url,
+                                                          job_name)
+                    job["nodes"][node_name] = Node(node_name, role=role,
+                                                   containers=containers,
+                                                   packages=packages)
 
-            if "--tls-everywhere" in line:
-                tls_option = detect_job_info_regex(line, TLS_PATTERN_RUN,
-                                                   group_index=1)
-                job["tls_everywhere"] = ""
-                if tls_option:
-                    job["tls_everywhere"] = str(tls_option in ('true', 'yes'))
+        artifact_path = "undercloud-0/var/log/extra/services.txt.gz"
+        artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
+        job["services"] = {}
+        try:
+            artifact = self.send_request(item="", query="",
+                                         url=artifact_url,
+                                         raw_response=True)
+            for service in SERVICES_PATTERN.findall(artifact):
+                job["services"][service] = Service(service)
 
-            if "TLS_EVERYWHERE" in line:
-                tls_option = detect_job_info_regex(line, OPTIONS)
-                job["tls_everywhere"] = ""
-                if tls_option:
-                    job["tls_everywhere"] = str(tls_option in ('true', 'yes'))
+        except JenkinsError:
+            LOG.debug("Found no artifact %s for job %s", artifact_path,
+                      job_name)
 
         if self.job_missing_deployment_info(job):
             LOG.debug("Resorting to get deployment information from job name"
                       " for job %s", job_name)
             self.add_job_info_from_name(job)
+
+    def get_packages_node(self, node_name, logs_url, job_name):
+        """Get a list of packages installed in a openstack node from the job
+        logs.
+
+        :params node_name: Name of the node to inspect
+        :type node_name: str
+        :params logs_url: Url of the job's logs
+        :type logs_url: str
+        :params job_name: Name of the job to inspect
+        :type job_name: str
+
+        :returns: Packages found in the node
+        :rtype: dict
+        """
+        artifact_path = "var/log/extra/rpm-list.txt.gz"
+        artifact_url = f"{logs_url.rstrip('/')}/{node_name}/{artifact_path}"
+        packages = {}
+        try:
+            artifact = self.send_request(item="", query="",
+                                         url=artifact_url,
+                                         raw_response=True)
+            package_list = artifact.rstrip().split("\n")
+            for package in package_list:
+                packages[package] = Package(package)
+
+        except JenkinsError:
+            LOG.debug("Found no artifact %s for job %s", artifact_path,
+                      job_name)
+        return packages
+
+    def get_packages_container(self, container_name, logs_url, job_name):
+        """Get a list of packages installed in a container from the job
+        logs.
+
+        :params container_name: Name of the container to inspect
+        :type node_name: str
+        :params logs_url: Url of the job's logs
+        :type logs_url: str
+        :params job_name: Name of the job to inspect
+        :type job_name: str
+
+        :returns: Packages found in the container
+        :rtype: dict
+        """
+        artifact_path = f"{container_name}/log/dnf.rpm.log.gz"
+        artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
+        packages = {}
+        package_pattern = re.compile(r"SUBDEBUG .*: (.*)")
+        try:
+            artifact = self.send_request(item="", query="",
+                                         url=artifact_url,
+                                         raw_response=True)
+            for package in package_pattern.findall(artifact):
+                packages[package] = Package(package)
+
+        except JenkinsError:
+            LOG.debug("Found no artifact %s for job %s", artifact_path,
+                      job_name)
+        return packages
+
+    def get_containers_node(self, node_name, logs_url, job_name):
+        """Get a list of containers used in a openstack node from the job
+        logs.
+
+        :params node_name: Name of the node to inspect
+        :type node_name: str
+        :params logs_url: Url of the job's logs
+        :type logs_url: str
+        :params job_name: Name of the job to inspect
+        :type job_name: str
+
+        :returns: Packages found in the node
+        :rtype: dict
+        """
+        artifact_path = "var/log/extra/podman/containers"
+        artifact_url = f"{logs_url}/{node_name}/{artifact_path}"
+        containers = {}
+        try:
+            artifact = self.send_request(item="", query="",
+                                         url=artifact_url,
+                                         raw_response=True)
+            names_pattern = re.compile(r'<a href=\"([\w+/\.]*)\">([\w/]*)</a>')
+            for folder in names_pattern.findall(artifact):
+                # the page listing the containers has many links, most of them
+                # point to folders with container information, which have the
+                # same text in the link and the displayed text
+                if folder[1] not in folder[0]:
+                    continue
+                container_name = folder[1].rstrip("/")
+                packages = self.get_packages_container(container_name,
+                                                       artifact_url,
+                                                       job_name)
+                containers[container_name] = Container(container_name,
+                                                       packages=packages)
+
+        except JenkinsError:
+            LOG.debug("Found no artifact %s for job %s", artifact_path,
+                      job_name)
+        return containers
+
+    def get_topology_from_job_name(self, job: Dict[str, str]):
+        """Extract the openstack topology from the job name.
+
+        :param job: Dictionary representation of a jenkins job
+        :type job: dict
+        """
+        job_name = job["name"]
+        short_topology = detect_job_info_regex(job_name,
+                                               TOPOLOGY_PATTERN)
+        if short_topology:
+            # due to the regex used, short_topology may contain a trailing
+            # underscore that should be removed
+            short_topology = short_topology.rstrip("_")
+            job["topology"] = translate_topology_string(short_topology)
+        else:
+            job["topology"] = ""
 
     def add_job_info_from_name(self, job:  Dict[str, str]):
         """Add information to the job by using regex on the job name. Check if
@@ -593,15 +714,7 @@ accurate results", len(jobs_found))
         """
         job_name = job['name']
         if "topology" not in job or not job["topology"]:
-            short_topology = detect_job_info_regex(job_name,
-                                                   TOPOLOGY_PATTERN)
-            if short_topology:
-                # due to the regex used, short_topology may contain a trailing
-                # underscore that should be removed
-                short_topology = short_topology.rstrip("_")
-                job["topology"] = translate_topology_string(short_topology)
-            else:
-                job["topology"] = ""
+            self.get_topology_from_job_name(job)
 
         if "release" not in job or not job["release"]:
             job["release"] = detect_job_info_regex(job_name,

@@ -105,7 +105,7 @@ class ElasticSearchOSP(Source):
                 size=10000
             )]
         except Exception as exception:
-            raise ElasticSearchError("Error getting the results") \
+            raise ElasticSearchError("Error getting the results.") \
                 from exception
         return hits
 

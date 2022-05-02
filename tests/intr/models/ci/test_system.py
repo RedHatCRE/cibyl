@@ -15,20 +15,69 @@
 """
 from unittest import TestCase
 
-from cibyl.models.ci.system import (BASE_SYSTEM_API, JOBS_SYSTEM_API,
-                                    ZUUL_SYSTEM_API, System)
-from cibyl.models.ci.system_factory import SystemFactory, SystemType
+from cibyl.models.ci.system import JobsSystem, System, ZuulSystem
+from cibyl.orchestrator import Orchestrator
 
 
 class TestAPI(TestCase):
-    def test_aggregated_system_api(self):
+    """Test that the System API reflects the configuration environment."""
+    def setUp(self):
+        self.config = {
+            'environments': {
+                'env3': {
+                    'system3': {
+                        'system_type': 'jenkins'},
+                    'system4': {
+                        'system_type': 'zuul'}
+                }}}
+        self.config_reverse = {
+            'environments': {
+                'env3': {
+                    'system4': {
+                        'system_type': 'zuul'},
+                    'system3': {
+                        'system_type': 'jenkins'}
+                }}}
+        self.config_jenkins = {
+            'environments': {
+                'env3': {
+                    'system3': {
+                        'system_type': 'jenkins'}}}}
+        self.config_zuul = {
+            'environments': {
+                'env3': {
+                    'system3': {
+                        'system_type': 'zuul'}}}}
+        self.orchestrator = Orchestrator()
+
+    def test_system_api_zuul_jenkins(self):
         """Checks that the creation of multiple types of systems leads to
         the combined API of all of them.
         """
-        SystemFactory.create_system(SystemType.JENKINS, 'Jenkins')
-        SystemFactory.create_system(SystemType.ZUUL, 'Zuul')
+        self.orchestrator.config.data = self.config
+        self.orchestrator.create_ci_environments()
+        self.assertEqual(System.API, ZuulSystem.API)
 
-        # Check subsets that form the System API
-        self.assertEqual(System.API, {**System.API, **BASE_SYSTEM_API})
-        self.assertEqual(System.API, {**System.API, **JOBS_SYSTEM_API})
-        self.assertEqual(System.API, {**System.API, **ZUUL_SYSTEM_API})
+    def test_system_api_zuul_jenkins_reverse_order(self):
+        """Checks that the creation of multiple types of systems leads to
+        the combined API of all of them.
+        """
+        self.orchestrator.config.data = self.config_reverse
+        self.orchestrator.create_ci_environments()
+        self.assertEqual(System.API, ZuulSystem.API)
+
+    def test_system_api_zuul(self):
+        """Checks that the creation of multiple types of systems leads to
+        the combined API of all of them.
+        """
+        self.orchestrator.config.data = self.config_zuul
+        self.orchestrator.create_ci_environments()
+        self.assertEqual(System.API, ZuulSystem.API)
+
+    def test_system_api_jenkins(self):
+        """Checks that the creation of multiple types of systems leads to
+        the combined API of all of them.
+        """
+        self.orchestrator.config.data = self.config_jenkins
+        self.orchestrator.create_ci_environments()
+        self.assertEqual(System.API, JobsSystem.API)

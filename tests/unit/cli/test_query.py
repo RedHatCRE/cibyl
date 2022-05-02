@@ -19,6 +19,9 @@ from cibyl.cli.query import QueryType, get_query_type
 
 
 class TestGetQueryType(TestCase):
+    """Tests for :func:`get_query_type`.
+    """
+
     def test_get_none(self):
         """Checks that "None" is returned if no argument is passed.
         """
