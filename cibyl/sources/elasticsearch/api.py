@@ -415,7 +415,7 @@ one')
                 }
             }
             builds = job_builds_found[job].builds
-            for build_number, _ in builds.items():
+            for build_number in builds:
                 query_body['query']['bool']['must'][1]['bool']['should'] = {
                     "match": {
                         "build_num": build_number
