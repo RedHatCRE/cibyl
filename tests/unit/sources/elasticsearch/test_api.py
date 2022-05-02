@@ -18,6 +18,7 @@ from __future__ import print_function
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
+from cibyl.exceptions.cli import MissingArgument
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP, QueryTemplate
 
 
@@ -101,9 +102,10 @@ class TestElasticsearchOSP(TestCase):
                     'job_name': 'test',
                     'job_url': 'http://domain.tld/test/',
                     'build_result': 'SUCCESS',
-                    'build_num': '2',
+                    'build_id': '1',
+                    'build_num': '1',
                     'test_name': 'it_is_just_a_test',
-                    'test_time': '0.001',
+                    'time_duration': '0.001',
                     'test_status': 'SUCCESS'
                 }
             },
@@ -112,9 +114,10 @@ class TestElasticsearchOSP(TestCase):
                     'job_name': 'test2',
                     'job_url': 'http://domain.tld/test2/',
                     'build_result': 'FAIL',
+                    'build_id': '2',
                     'build_num': '2',
                     'test_name': 'it_is_just_a_test2',
-                    'test_time': '0.0001_bad_parsed',
+                    'time_duration': '0.0001_bad_parsed',
                     'test_status': 'FAIL'
                 }
             }
@@ -239,35 +242,26 @@ class TestElasticsearchOSP(TestCase):
             is correct.
         """
         mock_query_hits.return_value = self.tests_hits
-        tests = self.es_api.get_tests()
 
-        self.assertEqual(len(tests), 2)
-        self.assertTrue('test' in tests)
-        self.assertTrue('test2' in tests)
+        # We need to pass --builds or --last-build
+        # to the get_tests method
+        with self.assertRaises(MissingArgument):
+            self.es_api.get_tests()
 
-        # There are no builds if we don't
-        # pass --build-number argument:
-        self.assertEqual(len(tests['test'].builds), 0)
-        self.assertEqual(len(tests['test2'].builds), 0)
-
-        build_number_kwargs = MagicMock()
-        build_number_value = PropertyMock(return_value=['1'])
-        type(build_number_kwargs).value = build_number_value
+        builds_kwargs = MagicMock()
+        builds_value = PropertyMock(return_value=['1'])
+        type(builds_kwargs).value = builds_value
 
         tests = self.es_api.get_tests(
-            build_number=build_number_kwargs
+            builds=builds_kwargs
         )
 
         self.assertTrue('it_is_just_a_test' in
-                        tests['test'].builds['2'].tests)
+                        tests['test'].builds['1'].tests)
         self.assertTrue(
-            tests['test'].builds['2'].tests['it_is_just_a_test'].duration,
+            tests['test'].builds['1'].tests['it_is_just_a_test'].duration,
             1.000
         )
-
-        # If test_time can't be converted to float we
-        # should skip the test
-        self.assertEqual(len(tests['test2'].builds), 0)
 
 
 class TestQueryTemplate(TestCase):

@@ -21,6 +21,7 @@ from urllib.parse import urlsplit
 from elasticsearch.helpers import scan
 
 from cibyl.cli.argument import Argument
+from cibyl.exceptions.cli import MissingArgument
 from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
@@ -373,7 +374,11 @@ class ElasticSearchOSP(Source):
             (if any) and the tests
             :rtype: :class:`AttributeDictValue`
         """
-        jobs_found = self.get_jobs(**kwargs)
+        if not kwargs.get('builds') and not kwargs.get('last_build'):
+            raise MissingArgument('Please specify some builds (--builds) \
+to get the tests from. Or use (--last-build) to get the tests from the last \
+one')
+        job_builds_found = self.get_builds(**kwargs)
         query_body = {
             "query": {
                 "bool": {
@@ -402,17 +407,15 @@ class ElasticSearchOSP(Source):
             "sort": [{"timestamp.keyword": {"order": "desc"}}]
         }
 
-        build_numbers = [status.upper()
-                         for status in
-                         kwargs.get('builds').value]
         hits = []
-        for job in jobs_found:
+        for job in job_builds_found:
             query_body['query']['bool']['must'][0] = {
                 "match": {
                     "job_name.keyword": f"{job}"
                 }
             }
-            for build_number in build_numbers:
+            builds = job_builds_found[job].builds
+            for build_number, _ in builds.items():
                 query_body['query']['bool']['must'][1]['bool']['should'] = {
                     "match": {
                         "build_num": build_number
@@ -460,8 +463,8 @@ class ElasticSearchOSP(Source):
                 build_id=build_number
             )
 
-            jobs_found[job_name].add_build(build_object)
-            jobs_found[job_name].builds[build_number].add_test(
+            job_builds_found[job_name].add_build(build_object)
+            job_builds_found[job_name].builds[build_number].add_test(
                 Test(
                     name=test_name,
                     result=test_status,
@@ -470,7 +473,7 @@ class ElasticSearchOSP(Source):
                 )
             )
 
-        return jobs_found
+        return job_builds_found
 
 
 class QueryTemplate():
