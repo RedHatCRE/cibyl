@@ -397,6 +397,12 @@ one')
             "sort": [{"timestamp.keyword": {"order": "desc"}}]
         }
 
+        test_result_argument = []
+        if 'test_result' in kwargs:
+            test_result_argument = [status.upper()
+                                    for status in
+                                    kwargs.get('test_result').value]
+
         hits = []
         for job in job_builds_found:
             query_body['query']['bool']['must'][0] = {
@@ -427,11 +433,15 @@ one')
             job_name = hit['_source']['job_name']
             build_number = str(hit['_source']['build_num'])
             test_name = hit['_source']['test_name']
-            test_status = hit['_source']['test_status']
+            test_status = hit['_source']['test_status'].upper()
             class_name = hit['_source'].get(
                 'test_class_name',
                 None
             )
+            # Check if necessary filter by Test Status:
+            if test_result_argument and \
+                    test_status not in test_result_argument:
+                continue
             # Some build is not parsed good and contains
             # More info than a time in the field
             try:

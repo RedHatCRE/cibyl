@@ -29,6 +29,7 @@ class Test(Model):
             'attr_type': str,
             'arguments': [Argument(name='--test-result', arg_type=str,
                                    func='get_tests',
+                                   nargs='*',
                                    description="Test result")]
         },
         'duration': {
