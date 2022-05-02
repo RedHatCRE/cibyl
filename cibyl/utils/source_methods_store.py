@@ -22,7 +22,7 @@ class SourceMethodsStore:
     and --build-status or --jobs and --jobs-url).
     """
     def __init__(self):
-        self.cache = set()
+        self.cache = dict()
 
     def _method_information_tuple(self, source_method):
         """Obtain a tuple representation in the format (source_name,
@@ -48,10 +48,21 @@ class SourceMethodsStore:
         """
         return self._method_information_tuple(source_method) in self.cache
 
-    def add_call(self, source_method):
-        """Add a particular source method to the call cache.
+    def add_call(self, source_method, success):
+        """Add a particular source method to the call cache, with a given
+        status.
+
+        :param source_method: Source method that is used
+        :type source_method: method
+        :param success: Whether the source method call was successful
+        :type success: bool
+        """
+        self.cache[self._method_information_tuple(source_method)] = success
+
+    def get_status(self, source_method):
+        """Return the success of a previous call to source_method.
 
         :param source_method: Source method that is used
         :type source_method: method
         """
-        self.cache.add(self._method_information_tuple(source_method))
+        return self.cache[self._method_information_tuple(source_method)]
