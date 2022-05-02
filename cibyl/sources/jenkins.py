@@ -26,6 +26,7 @@ import requests
 import urllib3
 import yaml
 
+from cibyl.exceptions.cli import MissingArgument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
@@ -134,9 +135,6 @@ class Jenkins(Source):
                          2: "?tree=allBuilds[number,result,duration]",
                          3: "?tree=allBuilds[number,result,duration]"}
     jobs_last_build_query = "?tree=jobs[name,url,lastBuild[number,result]]"
-    jobs_last_completed_build_query = \
-        "?tree=jobs[name,url,lastCompletedBuild[number,result,duration]]"
-    build_tests_query = "?tree=suites[cases[name,status,duration,className]]"
     jobs_query_for_deployment = \
         "?tree=jobs[name,url,lastCompletedBuild[number,result,description]]"
 
@@ -318,62 +316,34 @@ try reducing verbosity for quicker query")
         """
             Get tests for a Jenkins job.
 
-            :returns: container of jobs with the last completed build
-            (if any) and the tests
+            :returns: container of jobs with the selected build(s)
+             and their tests
             :rtype: :class:`AttributeDictValue`
         """
 
-        # Get the jobs with the last completed build (default behavior)
-        jobs_found = self.send_request(
-            self.jobs_last_completed_build_query)["jobs"]
-        jobs_filtered = filter_jobs(jobs_found, **kwargs)
+        if not kwargs.get('builds') and not kwargs.get('last_build'):
+            raise MissingArgument('Please specify some builds (--builds) \
+to get the tests from. Or use (--last-build) to get the tests from the last \
+one')
 
-        job_objects = {}
+        jobs_found = self.get_builds(**kwargs)
 
-        for job in jobs_filtered:
-            job_name = job.get('name')
-            if job["lastCompletedBuild"] is None:
-                LOG.warning("No completed builds found for job %s", job_name)
-                continue
-
-            job_object = Job(name=job_name, url=job.get('url'))
-            job_objects[job_name] = job_object
-
-            if kwargs.get('builds'):
-                # For specific build ids we have to fetch them
-                builds = self.send_request(item=f"job/{job_name}",
-                                           query=self.jobs_builds_query.get(
-                                               kwargs.get('verbosity'), 0))
-                builds_to_add = filter_builds(builds["allBuilds"], **kwargs)
-            else:
-                builds_to_add = filter_builds([job["lastCompletedBuild"]],
-                                              **kwargs)
-
-            if not builds_to_add:
-                LOG.warning("No builds found for job %s", job_name)
-                continue
-
-            for build in builds_to_add:
-                build_object = Build(
-                    build_id=build['number'],
-                    status=build['result'])
-
-                job_objects[job_name].add_build(build_object)
-
-                if build['result'] == 'FAILURE':
+        for job_name, job in jobs_found.items():
+            for build_id, build in job.builds.items():
+                if build.status.value == 'FAILURE':
                     LOG.warning("Build %s for job %s failed. No tests to "
-                                "fetch", build['number'], job_name)
+                                "fetch", build_id, job_name)
                     continue
 
                 # Get the tests for this build
                 try:
                     tests_found = self.send_request(
-                        item=f"job/{job_name}/{build['number']}/testReport",
+                        item=f"job/{job_name}/{build_id}/testReport",
                         query='')
                 except JenkinsError as jerr:
                     if '404' in str(jerr):
                         LOG.warning("No tests found for build %s for job %s",
-                                    build['number'], job_name)
+                                    build_id, job_name)
                         continue
                     else:
                         raise jerr
@@ -399,18 +369,20 @@ try reducing verbosity for quicker query")
                         continue
 
                     for test in suit['cases']:
+                        # If the test does not have a className, then it is
+                        # a container
                         if not test['className']:
                             continue
 
                         # Duration comes in seconds (float)
                         duration_in_ms = test.get('duration')*1000
-                        job_objects[job_name].builds[build['number']].add_test(
+                        jobs_found[job_name].builds[build_id].add_test(
                             Test(name=test.get('name'),
                                  class_name=test.get('className'),
                                  result=test.get('status'),
                                  duration=duration_in_ms))
 
-        return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
+        return AttributeDictValue("jobs", attr_type=Job, value=jobs_found)
 
     def job_missing_deployment_info(self, job: Dict[str, str]):
         """Check if a given Jenkins job has all deployment attributes.

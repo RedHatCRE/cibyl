@@ -271,15 +271,18 @@ class TestJenkinsSource(TestCase):
             Tests that the internal logic from :meth:`Jenkins.get_tests` is
             correct.
         """
+
         response = {'jobs': [{'_class': 'org..job.WorkflowRun',
-                              'name': 'ansible', 'url': 'url1',
-                              'lastCompletedBuild': {
-                                  'number': 1, 'result': 'SUCCESS',
-                                  'duration': 3.5
-                              }}]}
+                              'name': 'ansible', 'url': 'url1'}]}
+
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': 'SUCCESS'},
+                                {'number': 2, 'result': 'SUCCESS'}]}
+
         tests = {'_class': '_empty',
                  'suites': [
                     {'cases': [
+                        {'className': '', 'name': 'setUpClass (class1)'},
                         {'className': 'class1', 'duration': 1,
                          'name': 'test1', 'status': 'PASSED'},
                         {'className': 'class2', 'duration': 0,
@@ -287,9 +290,13 @@ class TestJenkinsSource(TestCase):
                         {'className': 'class2', 'duration': 2.4,
                          'name': 'test3', 'status': 'FAILED'}]}]}
 
-        self.jenkins.send_request = Mock(side_effect=[response, tests])
+        # Mock the --builds command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=['1'])
 
-        jobs = self.jenkins.get_tests()
+        self.jenkins.send_request = Mock(side_effect=[response, builds, tests])
+
+        jobs = self.jenkins.get_tests(builds=build_kwargs)
         self.assertEqual(len(jobs), 1)
         job = jobs['ansible']
         self.assertEqual(job.name.value, 'ansible')
@@ -317,14 +324,22 @@ class TestJenkinsSource(TestCase):
             Tests that the internal logic from :meth:`Jenkins.get_tests` is
             correct when there is no completed build.
         """
-        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
-                              'name': 'ansible', 'url': 'url1',
-                              'lastCompletedBuild': None}]}
 
-        self.jenkins.send_request = Mock(side_effect=[response])
+        response = {'jobs': [{'_class': 'org.job.WorkflowRun',
+                              'name': 'ansible', 'url': 'url1'}]}
 
-        jobs = self.jenkins.get_tests()
-        self.assertEqual(len(jobs), 0)
+        builds = {'_class': '_empty', 'allBuilds': []}
+
+        # Mock the --builds command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=[])
+
+        self.jenkins.send_request = Mock(side_effect=[response, builds])
+
+        jobs = self.jenkins.get_tests(builds=build_kwargs)
+        self.assertEqual(len(jobs), 1)
+        builds_found = jobs['ansible'].builds.value
+        self.assertEqual(len(builds_found), 0)
 
     def test_get_tests_for_specific_build(self):
         """
@@ -332,11 +347,7 @@ class TestJenkinsSource(TestCase):
             correct when a specific build is set.
         """
         response = {'jobs': [{'_class': 'org..job.WorkflowRun',
-                              'name': 'ansible', 'url': 'url1',
-                              'lastCompletedBuild': {
-                                  'number': 2, 'result': 'SUCCESS',
-                                  'duration': 6.8
-                              }}]}
+                              'name': 'ansible', 'url': 'url1'}]}
         builds = {'_class': '_empty',
                   'allBuilds': [{'number': 1, 'result': 'SUCCESS'},
                                 {'number': 2, 'result': 'SUCCESS'}]}
@@ -350,11 +361,11 @@ class TestJenkinsSource(TestCase):
 
         self.jenkins.send_request = Mock(side_effect=[response, builds, tests])
 
-        # Mock the --build-id command line argument
-        build_id_kwargs = MagicMock()
-        type(build_id_kwargs).value = PropertyMock(return_value=['1'])
+        # Mock the --build command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=['1'])
 
-        jobs = self.jenkins.get_tests(builds=build_id_kwargs)
+        jobs = self.jenkins.get_tests(builds=build_kwargs)
         self.assertEqual(len(jobs), 1)
         job = jobs['ansible']
         self.assertEqual(job.name.value, 'ansible')
@@ -381,16 +392,11 @@ class TestJenkinsSource(TestCase):
         """
         response = {'jobs': [{'_class': 'org..job.WorkflowRun',
                               'name': 'ansible', 'url': 'url1',
-                              'lastCompletedBuild': {
-                                  'number': 1, 'result': 'SUCCESS',
-                                  'duration': 3.5
-                              }},
+                              'lastBuild': {'number': 1, 'result': 'SUCCESS'}},
                              {'_class': 'org..job.WorkflowRun',
                               'name': 'ansible-two', 'url': 'url2',
-                              'lastCompletedBuild': {
-                                  'number': 27, 'result': 'SUCCESS',
-                                  'duration': 17.2
-                              }}]}
+                              'lastBuild': {'number': 27,
+                                            'result': 'SUCCESS'}}]}
         tests1 = {'_class': '_empty',
                   'suites': [
                     {'cases': [
@@ -411,7 +417,11 @@ class TestJenkinsSource(TestCase):
         self.jenkins.send_request = Mock(side_effect=[response, tests1,
                                                       tests27])
 
-        jobs = self.jenkins.get_tests()
+        # Mock the --build command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=[])
+
+        jobs = self.jenkins.get_tests(last_build=build_kwargs)
         self.assertEqual(len(jobs), 2)
         self.assertEqual(jobs['ansible'].name.value, 'ansible')
         self.assertEqual(jobs['ansible'].url.value, 'url1')
@@ -454,7 +464,7 @@ class TestJenkinsSource(TestCase):
         """
         response = {'jobs': [{'_class': 'org..job.WorkflowRun',
                               'name': 'ansible', 'url': 'url1',
-                              'lastCompletedBuild': {
+                              'lastBuild': {
                                   'number': 1, 'result': 'UNSTABLE',
                                   'duration': 3.5
                               }}]}
@@ -486,7 +496,11 @@ class TestJenkinsSource(TestCase):
 
         self.jenkins.send_request = Mock(side_effect=[response, tests])
 
-        jobs = self.jenkins.get_tests()
+        # Mock the --build command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=[])
+
+        jobs = self.jenkins.get_tests(last_build=build_kwargs)
         self.assertEqual(len(jobs), 1)
         job = jobs['ansible']
         self.assertEqual(job.name.value, 'ansible')
