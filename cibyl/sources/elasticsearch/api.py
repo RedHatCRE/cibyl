@@ -136,12 +136,6 @@ class ElasticSearchOSP(Source):
                 build_statuses = [status.upper()
                                   for status in
                                   kwargs.get('build_status').value]
-            build_numbers = []
-
-            if 'build_number' in kwargs:
-                build_numbers = [status.upper()
-                                 for status in
-                                 kwargs.get('build_number').value]
 
             build_id_argument = None
             if 'builds' in kwargs:
@@ -158,10 +152,6 @@ class ElasticSearchOSP(Source):
 
                 if 'build_status' in kwargs and \
                         build['_source']['build_result'] not in build_statuses:
-                    continue
-
-                if 'build_number' in kwargs and \
-                        build['_source']['build_id'] not in build_numbers:
                     continue
 
                 build_id = str(build['_source']['build_id'])
