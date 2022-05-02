@@ -13,9 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from __future__ import print_function
+
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
+from cibyl.exceptions.cli import MissingArgument
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP, QueryTemplate
 
 
@@ -72,6 +75,9 @@ class TestElasticsearchOSP(TestCase):
                             'build_url': 'http://domain.tld/test/7',
                             'ip_version': 'ipv4',
                             'network_backend': 'local_area_n',
+                            'test_name': 'it_is_just_a_test',
+                            'test_time': '0.001',
+                            'test_class_name': 'folder.file.ClassName'
                         }
                     },
                     {
@@ -84,8 +90,37 @@ class TestElasticsearchOSP(TestCase):
                             'build_url': 'http://domain.tld/test2/8',
                             'ip_version': 'ipv6',
                             'network_backend': 'local_area_n',
+                            'test_name': 'it_is_just_a_test2',
+                            'test_time': '0.0001_bad_parsed',
                         }
                     }
+        ]
+
+        self.tests_hits = [
+            {
+                '_source': {
+                    'job_name': 'test',
+                    'job_url': 'http://domain.tld/test/',
+                    'build_result': 'SUCCESS',
+                    'build_id': '1',
+                    'build_num': '1',
+                    'test_name': 'it_is_just_a_test',
+                    'time_duration': '0.001',
+                    'test_status': 'SUCCESS'
+                }
+            },
+            {
+                '_source': {
+                    'job_name': 'test2',
+                    'job_url': 'http://domain.tld/test2/',
+                    'build_result': 'FAIL',
+                    'build_id': '2',
+                    'build_num': '2',
+                    'test_name': 'it_is_just_a_test2',
+                    'time_duration': '0.0001_bad_parsed',
+                    'test_status': 'FAIL'
+                }
+            }
         ]
 
     @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
@@ -155,12 +190,12 @@ class TestElasticsearchOSP(TestCase):
         """Tests that the internal logic from
            :meth:`ElasticSearchOSP.get_builds` is correct.
         """
-        mock_query_hits.return_value = self.job_hits
+        mock_query_hits.return_value = self.build_hits
 
         jobs_argument = Mock()
         jobs_argument.value = ['test']
         jobs = self.es_api.get_jobs(jobs=jobs_argument)
-        self.assertEqual(len(jobs), 4)
+        self.assertEqual(len(jobs), 2)
 
         self.es_api.get_jobs = Mock()
         self.es_api.get_jobs.return_value = jobs
@@ -199,6 +234,34 @@ class TestElasticsearchOSP(TestCase):
         build = builds_values['2']
         self.assertEqual(build.build_id.value, '2')
         self.assertEqual(build.status.value, "FAIL")
+
+    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    def test_get_tests(self: object,
+                       mock_query_hits: object) -> None:
+        """Tests internal logic :meth:`ElasticSearchOSP.get_tests`
+            is correct.
+        """
+        mock_query_hits.return_value = self.tests_hits
+
+        # We need to pass --builds or --last-build
+        # to the get_tests method
+        with self.assertRaises(MissingArgument):
+            self.es_api.get_tests()
+
+        builds_kwargs = MagicMock()
+        builds_value = PropertyMock(return_value=[])
+        type(builds_kwargs).value = builds_value
+
+        tests = self.es_api.get_tests(
+            builds=builds_kwargs
+        )
+
+        self.assertTrue('it_is_just_a_test' in
+                        tests['test'].builds['1'].tests)
+        self.assertTrue(
+            tests['test'].builds['1'].tests['it_is_just_a_test'].duration,
+            1.000
+        )
 
 
 class TestQueryTemplate(TestCase):
