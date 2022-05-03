@@ -27,7 +27,6 @@ import urllib3
 import yaml
 
 from cibyl.cli.argument import Argument
-from cibyl.exceptions.cli import MissingArgument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
@@ -39,7 +38,8 @@ from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.service import Service
 from cibyl.plugins.openstack.utils import translate_topology_string
-from cibyl.sources.source import Source, safe_request_generic, speed_index
+from cibyl.sources.server import ServerSource
+from cibyl.sources.source import safe_request_generic, speed_index
 from cibyl.utils.dicts import subset
 from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
                                    IP_PATTERN, NETWORK_BACKEND_PATTERN,
@@ -212,7 +212,7 @@ def filter_tests(tests_found: List[Dict], **kwargs):
 
 
 # pylint: disable=no-member
-class Jenkins(Source):
+class Jenkins(ServerSource):
     """A class representation of Jenkins client."""
 
     jobs_query = "?tree=jobs[name,url]"
@@ -407,10 +407,7 @@ try reducing verbosity for quicker query")
             :rtype: :class:`AttributeDictValue`
         """
 
-        if not kwargs.get('builds') and not kwargs.get('last_build'):
-            raise MissingArgument('Please specify some builds (--builds) \
-to get the tests from. Or use (--last-build) to get the tests from the last \
-one')
+        self.check_builds_for_test(**kwargs)
 
         jobs_found = self.get_builds(**kwargs)
 

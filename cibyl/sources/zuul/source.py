@@ -18,13 +18,14 @@ from typing import List, MutableMapping
 
 from overrides import overrides
 
-from cibyl.sources.source import Source, speed_index
+from cibyl.sources.server import ServerSource
+from cibyl.sources.source import speed_index
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
 from cibyl.sources.zuul.query import handle_query
 from cibyl.utils.dicts import subset
 
 
-class Zuul(Source):
+class Zuul(ServerSource):
     """Source implementation for a Zuul host.
     """
 
@@ -64,7 +65,7 @@ class Zuul(Source):
         if url.endswith('/'):
             url = url[:-1]  # Removes last character of string
 
-        super().__init__(name, driver, url=url, **kwargs)
+        super().__init__(name=name, driver=driver, url=url, **kwargs)
 
         self._api = api
         self._fallbacks = fallbacks
