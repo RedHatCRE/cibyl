@@ -466,23 +466,12 @@ one')
                           )
                 continue
 
-            # If we filter by --test-duration then
-            # we don't accept empty time_duration
-            time_not_match = None
             if test_duration_arguments:
-                # If we don't have time_duration
-                if not test_duration:
+                if not self.match_filter_test_by_duration(
+                       test_duration,
+                       test_duration_arguments):
                     continue
-                # For every condition passed by the user
-                for test_duration_argument in test_duration_arguments:
-                    operator = RANGE_OPERATORS[test_duration_argument.operator]
-                    operand = test_duration_argument.operand
-                    if operator(test_duration, float(operand)):
-                        continue
-                    time_not_match = True
 
-            if time_not_match:
-                continue
             if test_duration:
                 test_duration *= 1000
 
@@ -496,6 +485,30 @@ one')
             )
 
         return job_builds_found
+
+    def match_filter_test_by_duration(self: object,
+                                      test_duration: float,
+                                      test_duration_arguments: list) -> bool:
+        """Match if the duration of a test pass all the
+        conditions provided by the user that are located
+        in the arguments
+
+        :params test_duration: Duration of a job
+        :type node_name: float
+        :params test_duration_arguments: Conditions provided
+        by the user
+        :type list: str
+
+        :returns: Return if match all the conditions or no
+        :rtype: bool
+        """
+        for test_duration_argument in test_duration_arguments:
+            operator = RANGE_OPERATORS[test_duration_argument.operator]
+            operand = test_duration_argument.operand
+            if operator(test_duration, float(operand)):
+                continue
+            return False
+        return True
 
 
 class QueryTemplate():
