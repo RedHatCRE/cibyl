@@ -39,6 +39,24 @@ class TestGetQueryType(TestCase):
 
         self.assertEqual(QueryType.TENANTS, get_query_type(**args))
 
+    def test_get_projects(self):
+        """Checks that "Projects" is returned for "--projects".
+        """
+        args = {
+            'projects': None
+        }
+
+        self.assertEqual(QueryType.PROJECTS, get_query_type(**args))
+
+    def test_get_pipelines(self):
+        """Checks that "Pipelines" is returned for "--pipelines".
+        """
+        args = {
+            'pipelines': None
+        }
+
+        self.assertEqual(QueryType.PIPELINES, get_query_type(**args))
+
     def test_get_jobs(self):
         """Checks that "Jobs" is returned for "--jobs", winning over
         "--tenants".
