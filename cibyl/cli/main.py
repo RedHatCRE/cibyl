@@ -22,7 +22,7 @@ from cibyl.exceptions import CibylException
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.orchestrator import Orchestrator
-from cibyl.plugins import DEFAULT_PLUGIN, extend_models
+from cibyl.plugins import extend_models
 from cibyl.utils.logger import configure_logging
 
 LOG = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ def raw_parsing(arguments):
     """
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
-            "logging": logging.INFO, "plugins": [DEFAULT_PLUGIN],
+            "logging": logging.INFO, "plugins": [],
             "debug": False, "output_style": OutputStyle.COLORIZED}
     for i, item in enumerate(arguments[1:]):
         if item in ('-c', '--config'):
@@ -95,9 +95,12 @@ def main():
 
     orchestrator.create_ci_environments()
 
+    plugins = arguments.get('plugins')
+    if not plugins:
+        # if user has not specified any plugins, read them from configuration
+        plugins = orchestrator.config.data.get('plugins', [])
     # add plugins after the environments are created, since the environment
     # might modify some of the models APIs
-    plugins = arguments.get('plugins')
     if plugins:
         for plugin in plugins:
             extend_models(plugin)
