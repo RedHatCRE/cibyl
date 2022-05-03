@@ -163,6 +163,8 @@ class CIColoredPrinter(CIPrinter):
             result[-1].append(self._palette.blue("': "))
             result[-1].append(len(project.pipelines))
 
+        return result.build()
+
     @overrides
     def print_pipeline(self, pipeline):
         result = IndentedTextBuilder()
