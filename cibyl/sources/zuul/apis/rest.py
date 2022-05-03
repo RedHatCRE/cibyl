@@ -18,7 +18,7 @@ from urllib.parse import urljoin
 from requests import HTTPError, Session
 
 from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulJobAPI,
-                                    ZuulTenantAPI)
+                                    ZuulProjectAPI, ZuulTenantAPI)
 
 
 class ZuulSession:
@@ -131,6 +131,29 @@ class ZuulJobRESTClient(ZuulJobAPI):
         )
 
 
+class ZuulProjectRESTClient(ZuulProjectAPI):
+    def __init__(self, session, tenant, project):
+        super().__init__(tenant, project)
+
+        self._session = session
+
+    def __eq__(self, other):
+        if not issubclass(type(other), ZuulProjectAPI):
+            return False
+
+        if self is other:
+            return True
+
+        return self.tenant == other.tenant and self.name == other.name
+
+    @property
+    def url(self):
+        base = self._session.host[:-1]
+        tenant = self.tenant
+
+        return f"{base}/t/{tenant.name}/project/{self.name}"
+
+
 class ZuulTenantRESTClient(ZuulTenantAPI):
     """Implementation of a Zuul client through the use of Zuul's REST-API.
     """
@@ -150,6 +173,14 @@ class ZuulTenantRESTClient(ZuulTenantAPI):
 
     def buildsets(self):
         return self._session.get(f'tenant/{self.name}/buildsets')
+
+    def projects(self):
+        result = []
+
+        for project in self._session.get(f'tenant/{self.name}/projects'):
+            result.append(ZuulProjectRESTClient(self._session, self, project))
+
+        return result
 
     def jobs(self):
         result = []

@@ -73,7 +73,22 @@ class ZuulJobAPI(ABC):
 
 
 class ZuulProjectAPI(ABC):
-    pass
+    def __init__(self, tenant, project):
+        self._tenant = tenant
+        self._project = project
+
+    @property
+    def tenant(self):
+        return self._tenant
+
+    @property
+    def name(self):
+        return self._project['name']
+
+    @property
+    @abstractmethod
+    def url(self):
+        raise NotImplementedError
 
 
 class ZuulTenantAPI(ABC):
@@ -117,6 +132,10 @@ class ZuulTenantAPI(ABC):
         :rtype: list[dict]
         :raises ZuulAPIError: If the request failed.
         """
+        raise NotImplementedError
+
+    @abstractmethod
+    def projects(self):
         raise NotImplementedError
 
     @abstractmethod
