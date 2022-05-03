@@ -143,6 +143,10 @@ class Zuul(Source):
         )
 
     @speed_index({'base': 2})
+    def get_projects(self, **kwargs):
+        pass
+
+    @speed_index({'base': 2})
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 

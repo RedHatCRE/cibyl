@@ -65,12 +65,12 @@ class TestOrchestrator(TestCase):
                             'jenkins': {
                                 'driver': 'jenkins',
                                 'url': ''
-                                },
+                            },
                             'jenkins2': {
                                 'driver': 'jenkins',
                                 'url': ''
-                                }
-                            }}}}}
+                            }
+                        }}}}}
 
     def test_orchestrator_config(self):
         """Testing Orchestrator config attribute and method"""
@@ -193,10 +193,15 @@ class TestOrchestrator(TestCase):
         self.orchestrator.create_ci_environments()
         for env in self.orchestrator.environments:
             self.orchestrator.extend_parser(attributes=env.API)
-        self.orchestrator.parser.parse(["--jobs", "--builds", "--tenants"])
+        self.orchestrator.parser.parse([
+            "--jobs", "--builds", "--tenants", "--projects", "--pipelines"
+        ])
         self.assertTrue("tenants" in self.orchestrator.parser.ci_args)
         self.assertTrue("jobs" in self.orchestrator.parser.ci_args)
         self.assertTrue("builds" in self.orchestrator.parser.ci_args)
         self.assertEqual(self.orchestrator.parser.ci_args["tenants"].level, 2)
-        self.assertEqual(self.orchestrator.parser.ci_args["jobs"].level, 3)
-        self.assertEqual(self.orchestrator.parser.ci_args["builds"].level, 4)
+        self.assertEqual(self.orchestrator.parser.ci_args["projects"].level, 3)
+        self.assertEqual(
+            self.orchestrator.parser.ci_args["pipelines"].level, 4)
+        self.assertEqual(self.orchestrator.parser.ci_args["jobs"].level, 5)
+        self.assertEqual(self.orchestrator.parser.ci_args["builds"].level, 6)

@@ -65,6 +65,21 @@ class TestZuul(EndToEndTest):
         self.assertIn('Tenant: example-tenant', self.output)
         self.assertIn('Total tenants found in query: 1', self.output)
 
+    def test_get_projects(self):
+        """Checks that projects are retrieved with the "--projects" flag.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '-vv',
+            '--projects'
+        ]
+
+        main()
+
+        self.assertIn('Total projects found in query: 2', self.output)
+
     def test_no_jobs_on_tenant_query(self):
         """Checks that no 'Jobs found in tenant...' string is printed for a
         '--tenants' query.

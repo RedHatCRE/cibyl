@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from enum import Enum
+from enum import IntEnum
 
 
-class QueryType(Enum):
+class QueryType(IntEnum):
     """Defines the hierarchy level at which a query is meant to be performed.
     """
     NONE = 0

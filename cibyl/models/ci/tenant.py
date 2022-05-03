@@ -28,18 +28,6 @@ class Tenant(Model):
             'attr_type': str,
             'arguments': []
         },
-        'jobs': {
-            'attr_type': Job,
-            'attribute_value_class': AttributeDictValue,
-            'arguments': [
-                Argument(
-                    name='--jobs',
-                    arg_type=str, nargs='*',
-                    description='Jobs belonging to tenant',
-                    func='get_jobs'
-                )
-            ]
-        },
         'projects': {
             'attr_type': Project,
             'attribute_value_class': AttributeDictValue,
@@ -51,26 +39,38 @@ class Tenant(Model):
                     func='get_projects'
                 )
             ]
+        },
+        'jobs': {
+            'attr_type': Job,
+            'attribute_value_class': AttributeDictValue,
+            'arguments': [
+                Argument(
+                    name='--jobs',
+                    arg_type=str, nargs='*',
+                    description='Jobs belonging to tenant',
+                    func='get_jobs'
+                )
+            ]
         }
     }
 
-    def __init__(self, name, jobs=None, projects=None):
+    def __init__(self, name, projects=None, jobs=None):
         # Let IDEs know this model's attributes
         self.name = None
-        self.jobs = None
         self.projects = None
+        self.jobs = None
 
         # Set up the model
-        super().__init__({'name': name, 'jobs': jobs, 'projects': projects})
+        super().__init__({'name': name, 'projects': projects, 'jobs': jobs})
 
     def __eq__(self, other):
         if not isinstance(other, Tenant):
             return False
 
-        if self.jobs != other.jobs:
+        if self.projects != other.projects:
             return False
 
-        if self.projects != other.projects:
+        if self.jobs != other.jobs:
             return False
 
         return self.name == other.name
@@ -81,30 +81,11 @@ class Tenant(Model):
         :param other: The other tenant.
         :type other: :class:`Tenant`
         """
-        for job in other.jobs.values():
-            self.add_job(job)
-
         for project in other.projects.values():
             self.add_project(project)
 
-    def add_job(self, job):
-        """Appends, or merges, a new child job into this tenant.
-
-        If the job already exists in this tenant, then it is not
-        overwritten. Instead, the two jobs are merged together into a
-        complete job model.
-
-        :param job: The job to be added.
-        :type job: :class:`Job`
-        """
-        key = job.name.value
-
-        if key in self.jobs:
-            # Extract unknown contents of job
-            self.jobs[key].merge(job)
-        else:
-            # Register brand-new job
-            self.jobs[key] = job
+        for job in other.jobs.values():
+            self.add_job(job)
 
     def add_project(self, project):
         """Appends, or merges, a new child project into this tenant.
@@ -124,3 +105,22 @@ class Tenant(Model):
         else:
             # Register brand-new project
             self.projects[key] = project
+
+    def add_job(self, job):
+        """Appends, or merges, a new child job into this tenant.
+
+        If the job already exists in this tenant, then it is not
+        overwritten. Instead, the two jobs are merged together into a
+        complete job model.
+
+        :param job: The job to be added.
+        :type job: :class:`Job`
+        """
+        key = job.name.value
+
+        if key in self.jobs:
+            # Extract unknown contents of job
+            self.jobs[key].merge(job)
+        else:
+            # Register brand-new job
+            self.jobs[key] = job
