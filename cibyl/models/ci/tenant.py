@@ -16,6 +16,7 @@
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.job import Job
+from cibyl.models.ci.project import Project
 from cibyl.models.model import Model
 
 
@@ -38,19 +39,38 @@ class Tenant(Model):
                     func='get_jobs'
                 )
             ]
+        },
+        'projects': {
+            'attr_type': Project,
+            'attribute_value_class': AttributeDictValue,
+            'arguments': [
+                Argument(
+                    name='--projects',
+                    arg_type=str, nargs='*',
+                    description='Projects belonging to tenant',
+                    func='get_projects'
+                )
+            ]
         }
     }
 
-    def __init__(self, name, jobs=None):
+    def __init__(self, name, jobs=None, projects=None):
         # Let IDEs know this model's attributes
         self.name = None
         self.jobs = None
+        self.projects = None
 
         # Set up the model
-        super().__init__({'name': name, 'jobs': jobs})
+        super().__init__({'name': name, 'jobs': jobs, 'projects': projects})
 
     def __eq__(self, other):
         if not isinstance(other, Tenant):
+            return False
+
+        if self.jobs != other.jobs:
+            return False
+
+        if self.projects != other.projects:
             return False
 
         return self.name == other.name
@@ -63,6 +83,9 @@ class Tenant(Model):
         """
         for job in other.jobs.values():
             self.add_job(job)
+
+        for project in other.projects.values():
+            self.add_project(project)
 
     def add_job(self, job):
         """Appends, or merges, a new child job into this tenant.
@@ -82,3 +105,22 @@ class Tenant(Model):
         else:
             # Register brand-new job
             self.jobs[key] = job
+
+    def add_project(self, project):
+        """Appends, or merges, a new child project into this tenant.
+
+        If the project already exists in this tenant, then it is not
+        overwritten. Instead, the two projects are merged together into a
+        complete project model.
+
+        :param project: The project to be added.
+        :type project: :class:`Project`
+        """
+        key = project.name.value
+
+        if key in self.projects:
+            # Extract unknown contents of project
+            self.projects[key].merge(project)
+        else:
+            # Register brand-new project
+            self.projects[key] = project

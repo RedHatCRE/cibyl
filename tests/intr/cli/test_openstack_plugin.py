@@ -37,7 +37,7 @@ class TestOpenstackCLI(TestCase):
         Job.API = deepcopy(self.original_job_api)
         System.API = deepcopy(self.original_system_api)
         # silence stdout and logging to avoid cluttering
-        sys.stdout = None
+        # sys.stdout = None
         logging.disable(logging.CRITICAL)
 
     def test_openstack_cli_zuul_system(self):
