@@ -131,14 +131,37 @@ class CIColoredPrinter(CIPrinter):
         result.add(self._palette.blue('Tenant: '), 0)
         result[-1].append(tenant.name.value)
 
-        for job in tenant.jobs.values():
-            result.add(self.print_job(job), 1)
+        if self.query > QueryType.TENANTS:
+            for job in tenant.jobs.values():
+                result.add(self.print_job(job), 1)
 
-        if self.query != QueryType.TENANTS:
-            result.add(self._palette.blue("Total jobs found in tenant '"), 1)
-            result[-1].append(tenant.name)
+            result.add(
+                self._palette.blue("Total jobs found in tenant '"), 1
+            )
+
+            result[-1].append(self._palette.underline(tenant.name.value))
             result[-1].append(self._palette.blue("': "))
             result[-1].append(len(tenant.jobs))
+
+        return result.build()
+
+    def print_project(self, project):
+        result = IndentedTextBuilder()
+
+        result.add(self._palette.blue('Project: '), 0)
+        result[-1].append(project.name.value)
+
+        if self.query > QueryType.PROJECTS:
+            for pipeline in project.pipelines.values():
+                result.add(self.print_pipeline(pipeline), 1)
+
+            result.add(
+                self._palette.blue("Total pipelines found in project '"), 1
+            )
+
+            result[-1].append(self._palette.underline(project.name.value))
+            result[-1].append(self._palette.blue("': "))
+            result[-1].append(len(project.pipelines))
 
         return result.build()
 
@@ -149,12 +172,15 @@ class CIColoredPrinter(CIPrinter):
         result.add(self._palette.blue('Pipeline: '), 0)
         result[-1].append(pipeline.name.value)
 
-        for job in pipeline.jobs.values():
-            result.add(self.print_job(job), 1)
+        if self.query > QueryType.PIPELINES:
+            for job in pipeline.jobs.values():
+                result.add(self.print_job(job), 1)
 
-        if self.query != QueryType.PIPELINES:
-            result.add(self._palette.blue('Total jobs found in pipeline '), 1)
-            result[-1].append(self._palette.underline(pipeline.name))
+            result.add(
+                self._palette.blue('Total jobs found in pipeline '), 1
+            )
+
+            result[-1].append(self._palette.underline(pipeline.name.value))
             result[-1].append(self._palette.blue(': '))
             result[-1].append(len(pipeline.jobs))
 

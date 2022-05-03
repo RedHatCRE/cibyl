@@ -24,7 +24,7 @@ class TestPipeline(TestCase):
     """
 
     def test_not_equal_by_type(self):
-        """Checks that if pipeline is compared with something of another
+        """Checks that if a pipeline is compared with something of another
         type, they will not be equal.
         """
         pipeline = Pipeline('pipeline')
@@ -72,7 +72,7 @@ class TestPipeline(TestCase):
 
     def test_merge_job(self):
         """Checks that a job that already exists on the pipeline gets merged
-        instead overwritten.
+        instead of overwritten.
         """
         name = 'job'
 
