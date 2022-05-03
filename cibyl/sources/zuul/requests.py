@@ -76,8 +76,14 @@ class ProjectsRequest(Request):
 
         self._tenant = tenant
 
+    def with_name(self, *name):
+        self._filters.append(lambda project: project.name in name)
+        return self
+
     def get(self):
-        pass
+        projects = apply_filters(self._tenant.projects(), *self._filters)
+
+        return [ProjectResponse(self._tenant, project) for project in projects]
 
 
 class JobsRequest(Request):
@@ -208,6 +214,9 @@ class TenantResponse:
         :rtype: str
         """
         return self._tenant.name
+
+    def projects(self):
+        return ProjectsRequest(self._tenant)
 
     def jobs(self):
         """
