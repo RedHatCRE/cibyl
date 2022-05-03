@@ -20,6 +20,7 @@ from urllib.parse import urlsplit
 
 from elasticsearch.helpers import scan
 
+from build.lib.cibyl.cli.ranged_argument import RANGE_OPERATORS
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.cli import MissingArgument
 from cibyl.exceptions.elasticsearch import ElasticSearchError
@@ -403,6 +404,10 @@ one')
                                     for status in
                                     kwargs.get('test_result').value]
 
+        test_duration_arguments = []
+        if 'test_duration' in kwargs:
+            test_duration_arguments = kwargs.get('test_duration').value
+
         hits = []
         for job in job_builds_found:
             query_body['query']['bool']['must'][0] = {
@@ -450,7 +455,7 @@ one')
                     None
                 )
                 if test_duration:
-                    test_duration = float(test_duration)*1000
+                    test_duration = float(test_duration)
             except ValueError:
                 LOG.debug("'test_time' field is not well parsed in "
                           "elasticsearch for job: %s and build ID: %s",
@@ -458,6 +463,26 @@ one')
                           build_number
                           )
                 continue
+
+            # If we filter by --test-duration then
+            # we don't accept empty time_duration
+            time_not_match = None
+            if test_duration_arguments:
+                # If we don't have time_duration
+                if not test_duration:
+                    continue
+                # For every condition passed by the user
+                for test_duration_argument in test_duration_arguments:
+                    operator = RANGE_OPERATORS[test_duration_argument.operator]
+                    operand = test_duration_argument.operand
+                    if operator(test_duration, float(operand)):
+                        continue
+                    time_not_match = True
+
+            if time_not_match:
+                continue
+            if test_duration:
+                test_duration *= 1000
 
             job_builds_found[job_name].builds[build_number].add_test(
                 Test(
