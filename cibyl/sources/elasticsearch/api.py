@@ -20,8 +20,8 @@ from urllib.parse import urlsplit
 
 from elasticsearch.helpers import scan
 
-from cibyl.cli.ranged_argument import RANGE_OPERATORS
 from cibyl.cli.argument import Argument
+from cibyl.cli.ranged_argument import RANGE_OPERATORS
 from cibyl.exceptions.cli import MissingArgument
 from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
@@ -53,8 +53,9 @@ class ElasticSearchOSP(Source):
                 host = f"{url_parsed.scheme}://{url_parsed.hostname}"
                 port = url_parsed.port
             except Exception as exception:
-                raise ElasticSearchError('The URL given is not valid') \
-                    from exception
+                raise ElasticSearchError(
+                    'The URL given is not valid'
+                ) from exception
             self.es_client = ElasticSearchClient(host, port).connect()
 
     @speed_index({'base': 1})
@@ -107,8 +108,9 @@ class ElasticSearchOSP(Source):
                 size=10000
             )]
         except Exception as exception:
-            raise ElasticSearchError("Error getting the results.") \
-                from exception
+            raise ElasticSearchError(
+                "Error getting the results."
+            ) from exception
         return hits
 
     @speed_index({'base': 2})
