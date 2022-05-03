@@ -54,10 +54,24 @@ class Pipeline(Model):
         return self.name == other.name
 
     def merge(self, other):
+        """Adds the contents of another pipeline into this one.
+
+        :param other: The other pipeline.
+        :type other: :class:`Pipeline`
+        """
         for job in other.jobs.values():
             self.add_job(job)
 
     def add_job(self, job):
+        """Appends, or merges, a new child job into this pipeline.
+
+        If the job already exists in this pipeline, then it is not
+        overwritten. Instead, the two jobs are merged together into a
+        complete job model.
+
+        :param job: The job to be added.
+        :type job: :class:`Job`
+        """
         key = job.name.value
 
         if key in self.jobs:

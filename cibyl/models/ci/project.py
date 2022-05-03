@@ -20,6 +20,8 @@ from cibyl.models.model import Model
 
 
 class Project(Model):
+    """Representation of a Zuul project.
+    """
     API = {
         'name': {
             'attr_type': str,
@@ -54,21 +56,23 @@ class Project(Model):
         return self.name == other.name
 
     def merge(self, other):
-        """
+        """Adds the contents of another project into this one.
 
-        :param other:
+        :param other: The other project.
         :type other: :class:`Project`
-        :return:
         """
         for pipeline in other.pipelines.values():
             self.add_pipeline(pipeline)
 
     def add_pipeline(self, pipeline):
-        """
+        """Appends, or merges, a new child pipeline into this project.
 
-        :param pipeline:
+        If the pipeline already exists in this project, then it is not
+        overwritten. Instead, the two pipelines are merged together into a
+        complete pipeline model.
+
+        :param pipeline: The pipeline to be added.
         :type pipeline: :class:`Pipeline`
-        :return:
         """
         key = pipeline.name.value
 
