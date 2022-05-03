@@ -17,7 +17,7 @@ import operator
 import re
 from collections import namedtuple
 
-EXPRESSION_PATTERN = re.compile(r"([<>=!]*)(\d)+")
+EXPRESSION_PATTERN = re.compile(r"([<>=!]*)(\d+)")
 
 Range = namedtuple('Range', 'operator operand')
 

@@ -93,6 +93,28 @@ def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
     return model[field_to_check].lower() in lowercase_input
 
 
+def satisfy_range_match(model: Dict[str, str], user_input: Argument,
+                        field_to_check: str):
+    """Check whether model should be included according to the user input. The
+    model should be added if the information provided in field_to_check
+    (the model name or url for example) is consistent with the range defined
+    in the user_input values.
+
+    :param model: model information obtained from jenkins
+    :type model: str
+    :param user_input: input argument specified by the user
+    :type model_urls: :class:`.Argument`
+    :param field_to_check: Job field to perform the check
+    :param field_to_check: str
+    :returns: Whether the model satisfies user input
+    :rtype: bool
+    """
+    model_value = float(model[field_to_check])
+    results = [RANGE_OPERATORS[operator](float(model_value), float(user_value))
+               for operator, user_value in user_input.value]
+    return all(results)
+
+
 def filter_topology(model: Dict[str, str], operator: str, value: str,
                     component: str):
     """Check whether model should be included according to the user input. The

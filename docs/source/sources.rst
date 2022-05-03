@@ -98,14 +98,16 @@ Arguments Matrix
    * - --test-result
      - | Test result (default: all)
        | success, failed, skipped
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
    * - --test-duration
-     - | Test duration (default: all)
-     - |:black_square_button:|
+     - | Test duration (in seconds,
+       | default: all)
+       | (Can be also range: ">=3")
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:x:|
