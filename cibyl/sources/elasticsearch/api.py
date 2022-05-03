@@ -20,7 +20,7 @@ from urllib.parse import urlsplit
 
 from elasticsearch.helpers import scan
 
-from build.lib.cibyl.cli.ranged_argument import RANGE_OPERATORS
+from cibyl.cli.ranged_argument import RANGE_OPERATORS
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.cli import MissingArgument
 from cibyl.exceptions.elasticsearch import ElasticSearchError
