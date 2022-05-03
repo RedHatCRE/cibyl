@@ -14,6 +14,7 @@
 #    under the License.
 """
 import logging
+import os
 import sys
 from copy import deepcopy
 from tempfile import NamedTemporaryFile
@@ -31,14 +32,19 @@ class TestOpenstackCLI(TestCase):
     def setUpClass(cls):
         cls.original_job_api = deepcopy(Job.API)
         cls.original_system_api = deepcopy(System.API)
+        cls._original_stdout = sys.stdout
+        # silence stdout and logging to avoid cluttering
+        logging.disable(logging.CRITICAL)
+        sys.stdout = open(os.devnull, 'w')
+
+    @classmethod
+    def tearDownClass(cls):
+        sys.stdout = cls._original_stdout
 
     def setUp(self):
         # restore Job API before each test
         Job.API = deepcopy(self.original_job_api)
         System.API = deepcopy(self.original_system_api)
-        # silence stdout and logging to avoid cluttering
-        # sys.stdout = None
-        logging.disable(logging.CRITICAL)
 
     def test_openstack_cli_zuul_system(self):
         """Test that the Deployment model is added to the Job when a Zuul
