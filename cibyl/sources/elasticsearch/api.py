@@ -21,10 +21,12 @@ from urllib.parse import urlsplit
 from elasticsearch.helpers import scan
 
 from cibyl.cli.argument import Argument
+from cibyl.exceptions.cli import MissingArgument
 from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
+from cibyl.models.ci.test import Test
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
 from cibyl.sources.source import Source, speed_index
@@ -52,7 +54,7 @@ class ElasticSearchOSP(Source):
             except Exception as exception:
                 raise ElasticSearchError('The URL given is not valid') \
                     from exception
-            self.es_client = ElasticSearchClient(host, port)
+            self.es_client = ElasticSearchClient(host, port).connect()
 
     @speed_index({'base': 1})
     def get_jobs(self: object, **kwargs: Argument) -> list:
@@ -95,16 +97,14 @@ class ElasticSearchOSP(Source):
         :return: List of hits.
         """
         try:
-            with self.es_client.connect() as es_connection:
-                LOG.info("Using the following query: {}"
-                         .format(str(query).replace("'", '"')))
-                hits = [item for item in scan(
-                    es_connection,
-                    index=index,
-                    query=query,
-                    size=10000
-                )]
-            es_connection.transport.close()
+            LOG.debug("Using the following query: {}"
+                      .format(str(query).replace("'", '"')))
+            hits = [item for item in scan(
+                self.es_client,
+                index=index,
+                query=query,
+                size=10000
+            )]
         except Exception as exception:
             raise ElasticSearchError("Error getting the results.") \
                 from exception
@@ -354,6 +354,121 @@ class ElasticSearchOSP(Source):
             job_objects[job_name].add_deployment(deployment)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
+
+    @speed_index({'base': 3})
+    def get_tests(self, **kwargs):
+        """
+            Get tests for a elasticsearch job.
+
+            :returns: container of jobs with the last completed build
+            (if any) and the tests
+            :rtype: :class:`AttributeDictValue`
+        """
+        if not kwargs.get('builds') and not kwargs.get('last_build'):
+            raise MissingArgument('Please specify some builds (--builds) \
+to get the tests from. Or use (--last-build) to get the tests from the last \
+one')
+        job_builds_found = self.get_builds(**kwargs)
+        query_body = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {},
+                        {
+                            "bool": {
+                              "should": [
+                                {}
+                              ]
+                            }
+                        },
+                        {
+                            "exists": {
+                                "field": "test_status"
+                            }
+                        },
+                        {
+                            "exists": {
+                                "field": "test_name"
+                            }
+                        }
+                    ]
+                }
+            },
+            "sort": [{"timestamp.keyword": {"order": "desc"}}]
+        }
+
+        test_result_argument = []
+        if 'test_result' in kwargs:
+            test_result_argument = [status.upper()
+                                    for status in
+                                    kwargs.get('test_result').value]
+
+        hits = []
+        for job in job_builds_found:
+            query_body['query']['bool']['must'][0] = {
+                "match": {
+                    "job_name.keyword": f"{job}"
+                }
+            }
+            builds = job_builds_found[job].builds
+            for build_number in builds:
+                query_body['query']['bool']['must'][1]['bool']['should'] = {
+                    "match": {
+                        "build_num": build_number
+                    }
+                }
+                results = self.__query_get_hits(
+                    query=query_body,
+                    index='logstash_jenkins'
+                )
+
+                # We need to process all the results because
+                # in the same build we can have different tests
+                # So we can't use '"size": 1' in the query
+                if results:
+                    for result in results:
+                        hits.append(result)
+
+        for hit in hits:
+            job_name = hit['_source']['job_name']
+            build_number = str(hit['_source']['build_num'])
+            test_name = hit['_source']['test_name']
+            test_status = hit['_source']['test_status'].upper()
+            class_name = hit['_source'].get(
+                'test_class_name',
+                None
+            )
+            # Check if necessary filter by Test Status:
+            if test_result_argument and \
+                    test_status not in test_result_argument:
+                continue
+            # Some build is not parsed good and contains
+            # More info than a time in the field
+            try:
+                test_duration = hit['_source'].get(
+                    'test_time',
+                    None
+                )
+                if test_duration:
+                    test_duration = float(test_duration)*1000
+            except ValueError:
+                LOG.debug("'test_time' field is not well parsed in "
+                          "elasticsearch for job: %s and build ID: %s",
+                          job_name,
+                          build_number
+                          )
+                continue
+
+            job_builds_found[job_name].builds[build_number].add_test(
+                Test(
+                    name=test_name,
+                    result=test_status,
+                    duration=test_duration,
+                    class_name=class_name
+                )
+            )
+
+        return job_builds_found
 
 
 class QueryTemplate():

@@ -32,7 +32,11 @@ class Deployment(Model):
             'attr_type': str,
             'arguments': [Argument(name='--release', arg_type=str,
                                    func='get_deployment', nargs='*',
-                                   description="Deployment release version")]
+                                   description="Deployment release version"),
+                          Argument(name='--spec', arg_type=str,
+                                   func='get_deployment', nargs=0,
+                                   description="Print complete openstack"
+                                   " deployment")]
         },
         'infra_type': {
             'attr_type': str,
@@ -61,7 +65,7 @@ class Deployment(Model):
             'attr_type': Service,
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--services', arg_type=str,
-                                   nargs='*',
+                                   func='get_deployment', nargs='*',
                                    description="Services in the deployment")]
         },
         'ip_version': {

@@ -45,14 +45,14 @@ class Node(Model):
             'attr_type': Container,
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--containers', arg_type=str,
-                                   nargs='*',
+                                   func='get_deployment', nargs='*',
                                    description="Containers on the node")]
         },
         'packages': {
             'attr_type': Package,
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--packages', arg_type=str,
-                                   nargs='*',
+                                   func='get_deployment', nargs='*',
                                    description="Packages in the node")]
         }
     }

@@ -189,8 +189,14 @@ class Orchestrator:
                             # we want to avoid repeating calls to the same
                             # source method if several arguments with that
                             # method are provided
-                            continue
-                        source_methods_store.add_call(source_method)
+                            if source_methods_store.get_status(source_method):
+                                # if the previous call was successful, we do
+                                # not need to query the same method again
+                                break
+                            else:
+                                # if the previous call threw an error, let's
+                                # try a different source
+                                continue
                         source_driver = source_method.__self__.get('driver')
                         source_name = source_method.__self__.get('name')
                         start_time = time.time()
@@ -201,10 +207,12 @@ class Orchestrator:
                             model_instances_dict = source_method(
                                 **self.parser.ci_args, **self.parser.app_args)
                         except SourceException as exception:
+                            source_methods_store.add_call(source_method, False)
                             LOG.error("Error in source %s. %s",
                                       source_name, exception,
                                       exc_info=debug)
                             continue
+                        source_methods_store.add_call(source_method, True)
                         end_time = time.time()
                         LOG.info("Took %.2fs to query system %s using %s",
                                  end_time-start_time, system.name.value,

@@ -23,8 +23,11 @@ import yaml
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.plugins import extend_models
+from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
+from cibyl.plugins.openstack.service import Service
 from cibyl.sources.jenkins import (Jenkins, filter_builds, filter_jobs,
+                                   filter_models_by_name, filter_nodes,
                                    safe_request)
 
 
@@ -271,15 +274,18 @@ class TestJenkinsSource(TestCase):
             Tests that the internal logic from :meth:`Jenkins.get_tests` is
             correct.
         """
+
         response = {'jobs': [{'_class': 'org..job.WorkflowRun',
-                              'name': 'ansible', 'url': 'url1',
-                              'lastCompletedBuild': {
-                                  'number': 1, 'result': 'SUCCESS',
-                                  'duration': 3.5
-                              }}]}
+                              'name': 'ansible', 'url': 'url1'}]}
+
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': 'SUCCESS'},
+                                {'number': 2, 'result': 'SUCCESS'}]}
+
         tests = {'_class': '_empty',
                  'suites': [
                     {'cases': [
+                        {'className': '', 'name': 'setUpClass (class1)'},
                         {'className': 'class1', 'duration': 1,
                          'name': 'test1', 'status': 'PASSED'},
                         {'className': 'class2', 'duration': 0,
@@ -287,9 +293,13 @@ class TestJenkinsSource(TestCase):
                         {'className': 'class2', 'duration': 2.4,
                          'name': 'test3', 'status': 'FAILED'}]}]}
 
-        self.jenkins.send_request = Mock(side_effect=[response, tests])
+        # Mock the --builds command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=['1'])
 
-        jobs = self.jenkins.get_tests()
+        self.jenkins.send_request = Mock(side_effect=[response, builds, tests])
+
+        jobs = self.jenkins.get_tests(builds=build_kwargs)
         self.assertEqual(len(jobs), 1)
         job = jobs['ansible']
         self.assertEqual(job.name.value, 'ansible')
@@ -317,14 +327,22 @@ class TestJenkinsSource(TestCase):
             Tests that the internal logic from :meth:`Jenkins.get_tests` is
             correct when there is no completed build.
         """
-        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
-                              'name': 'ansible', 'url': 'url1',
-                              'lastCompletedBuild': None}]}
 
-        self.jenkins.send_request = Mock(side_effect=[response])
+        response = {'jobs': [{'_class': 'org.job.WorkflowRun',
+                              'name': 'ansible', 'url': 'url1'}]}
 
-        jobs = self.jenkins.get_tests()
-        self.assertEqual(len(jobs), 0)
+        builds = {'_class': '_empty', 'allBuilds': []}
+
+        # Mock the --builds command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=[])
+
+        self.jenkins.send_request = Mock(side_effect=[response, builds])
+
+        jobs = self.jenkins.get_tests(builds=build_kwargs)
+        self.assertEqual(len(jobs), 1)
+        builds_found = jobs['ansible'].builds.value
+        self.assertEqual(len(builds_found), 0)
 
     def test_get_tests_for_specific_build(self):
         """
@@ -332,11 +350,7 @@ class TestJenkinsSource(TestCase):
             correct when a specific build is set.
         """
         response = {'jobs': [{'_class': 'org..job.WorkflowRun',
-                              'name': 'ansible', 'url': 'url1',
-                              'lastCompletedBuild': {
-                                  'number': 2, 'result': 'SUCCESS',
-                                  'duration': 6.8
-                              }}]}
+                              'name': 'ansible', 'url': 'url1'}]}
         builds = {'_class': '_empty',
                   'allBuilds': [{'number': 1, 'result': 'SUCCESS'},
                                 {'number': 2, 'result': 'SUCCESS'}]}
@@ -350,11 +364,11 @@ class TestJenkinsSource(TestCase):
 
         self.jenkins.send_request = Mock(side_effect=[response, builds, tests])
 
-        # Mock the --build-id command line argument
-        build_id_kwargs = MagicMock()
-        type(build_id_kwargs).value = PropertyMock(return_value=['1'])
+        # Mock the --build command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=['1'])
 
-        jobs = self.jenkins.get_tests(builds=build_id_kwargs)
+        jobs = self.jenkins.get_tests(builds=build_kwargs)
         self.assertEqual(len(jobs), 1)
         job = jobs['ansible']
         self.assertEqual(job.name.value, 'ansible')
@@ -381,16 +395,11 @@ class TestJenkinsSource(TestCase):
         """
         response = {'jobs': [{'_class': 'org..job.WorkflowRun',
                               'name': 'ansible', 'url': 'url1',
-                              'lastCompletedBuild': {
-                                  'number': 1, 'result': 'SUCCESS',
-                                  'duration': 3.5
-                              }},
+                              'lastBuild': {'number': 1, 'result': 'SUCCESS'}},
                              {'_class': 'org..job.WorkflowRun',
                               'name': 'ansible-two', 'url': 'url2',
-                              'lastCompletedBuild': {
-                                  'number': 27, 'result': 'SUCCESS',
-                                  'duration': 17.2
-                              }}]}
+                              'lastBuild': {'number': 27,
+                                            'result': 'SUCCESS'}}]}
         tests1 = {'_class': '_empty',
                   'suites': [
                     {'cases': [
@@ -411,7 +420,11 @@ class TestJenkinsSource(TestCase):
         self.jenkins.send_request = Mock(side_effect=[response, tests1,
                                                       tests27])
 
-        jobs = self.jenkins.get_tests()
+        # Mock the --build command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=[])
+
+        jobs = self.jenkins.get_tests(last_build=build_kwargs)
         self.assertEqual(len(jobs), 2)
         self.assertEqual(jobs['ansible'].name.value, 'ansible')
         self.assertEqual(jobs['ansible'].url.value, 'url1')
@@ -454,7 +467,7 @@ class TestJenkinsSource(TestCase):
         """
         response = {'jobs': [{'_class': 'org..job.WorkflowRun',
                               'name': 'ansible', 'url': 'url1',
-                              'lastCompletedBuild': {
+                              'lastBuild': {
                                   'number': 1, 'result': 'UNSTABLE',
                                   'duration': 3.5
                               }}]}
@@ -486,7 +499,11 @@ class TestJenkinsSource(TestCase):
 
         self.jenkins.send_request = Mock(side_effect=[response, tests])
 
-        jobs = self.jenkins.get_tests()
+        # Mock the --build command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=[])
+
+        jobs = self.jenkins.get_tests(last_build=build_kwargs)
         self.assertEqual(len(jobs), 1)
         job = jobs['ansible']
         self.assertEqual(job.name.value, 'ansible')
@@ -767,7 +784,12 @@ tripleo_ironic_conductor.service loaded    active     running
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
-        jobs = self.jenkins.get_deployment()
+        services = Argument("services", str, "", value=[])
+        packages = Argument("packages", str, "", value=[])
+        containers = Argument("containers", str, "", value=[])
+        jobs = self.jenkins.get_deployment(containers=containers,
+                                           services=services,
+                                           packages=packages)
         self.assertEqual(len(jobs), 3)
         for job_name, ip, release, topology in zip(job_names, ip_versions,
                                                    releases, topologies):
@@ -797,6 +819,48 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertTrue("tripleo_heat_engine" in services.value)
             self.assertTrue("tripleo_ironic_api" in services.value)
             self.assertTrue("tripleo_ironic_conductor" in services.value)
+
+    def test_get_deployment_artifacts_all_missing(self):
+        """ Test that get_deployment handles properly the case where the logs
+        do not contain the relevant information.
+        """
+        job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
+        ip_versions = ['4', '6', 'unknown']
+        releases = ['17.3', '16', '']
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastCompletedBuild': {'description':
+                                                            logs_url}})
+        services = ""
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        artifacts = [JenkinsError()]*9
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        services = Argument("services", str, "", value=[])
+        jobs = self.jenkins.get_deployment(services=services)
+        self.assertEqual(len(jobs), 3)
+        for job_name, ip, release in zip(job_names, ip_versions, releases):
+            job = jobs[job_name]
+            deployment = job.deployment.value
+            self.assertEqual(job.name.value, job_name)
+            self.assertEqual(job.url.value, "url")
+            self.assertEqual(len(job.builds.value), 0)
+            self.assertEqual(deployment.release.value, release)
+            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(deployment.topology.value, "")
+            self.assertEqual(deployment.storage_backend.value, "")
+            self.assertEqual(deployment.network_backend.value, "")
+            self.assertEqual(deployment.dvr.value, "")
+            self.assertEqual(deployment.tls_everywhere.value, "")
+            self.assertEqual(deployment.infra_type.value, "")
+            self.assertEqual(deployment.nodes.value, {})
+            self.assertEqual(deployment.services.value, {})
 
     def test_get_deployment_artifacts_missing_property(self):
         """ Test that get_deployment detects missing information from
@@ -1120,27 +1184,17 @@ tripleo_ironic_conductor.service loaded    active     running
         artifacts = [
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
-                                   "ceph", "geneve", dvr_status[0], False, "")]
-        # one call to get_packages_node and get_containers_node per node, plus
-        # one to get_services
-        artifacts.extend([JenkinsError()]*(5*2+1))
-        artifacts.extend([
+                                   "ceph", "geneve", dvr_status[0], False, ""),
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", dvr_status[1],
-                                   False, "")])
-        # one call to get_packages_node and get_containers_node per node, plus
-        # one to get_services
-        artifacts.extend([JenkinsError()]*(3*2+1))
-
-        artifacts.extend([
+                                   False, ""),
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", dvr_status[2],
-                                   False, "")])
+                                   False, "")]
         # one call to get_packages_node and get_containers_node per node, plus
         # one to get_services
-        artifacts.extend([JenkinsError()]*(4*2+1))
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1208,29 +1262,15 @@ tripleo_ironic_conductor.service loaded    active     running
         artifacts = [
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
-                                   "ceph", "geneve", False, tls_status[0], "")]
-        # one call to get_packages_node and get_containers_node per node, plus
-        # one to get_services
-        artifacts.extend([JenkinsError()]*(5*2+1))
-        artifacts.extend([
+                                   "ceph", "geneve", False, tls_status[0], ""),
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", False,
-                                   tls_status[1], "")])
-        # one call to get_packages_node and get_containers_node per node, plus
-        # one to get_services
-        artifacts.extend([JenkinsError()]*(3*2+1))
-
-        artifacts.extend([
+                                   tls_status[1], ""),
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", False,
-                                   tls_status[2], "")])
-        # one call to get_packages_node and get_containers_node per node, plus
-        # one to get_services
-        artifacts.extend([JenkinsError()]*(4*2+1))
-
-        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+                                   tls_status[2], "")]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1271,29 +1311,15 @@ tripleo_ironic_conductor.service loaded    active     running
         artifacts = [
                 get_yaml_from_topology_string(""),
                 get_yaml_overcloud(ip_versions[0], releases[0],
-                                   "ceph", "geneve", False, tls_status[0], "")]
-        # one call to get_packages_node and get_containers_node per node, plus
-        # one to get_services
-        artifacts.extend([JenkinsError()]*(5*2+1))
-        artifacts.extend([
+                                   "ceph", "geneve", False, tls_status[0], ""),
                 get_yaml_from_topology_string(""),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", False,
-                                   tls_status[1], "")])
-        # one call to get_packages_node and get_containers_node per node, plus
-        # one to get_services
-        artifacts.extend([JenkinsError()]*(3*2+1))
-
-        artifacts.extend([
+                                   tls_status[1], ""),
                 get_yaml_from_topology_string(""),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", False,
-                                   tls_status[2], "")])
-        # one call to get_packages_node and get_containers_node per node, plus
-        # one to get_services
-        artifacts.extend([JenkinsError()]*(4*2+1))
-
-        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+                                   tls_status[2], "")]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1392,7 +1418,7 @@ basesystem-11-5.el8.noarch"""
         containers_expected = ["nova_libvirt", "nova_migration_target"]
 
         self.jenkins.send_request = Mock(side_effect=[response, JenkinsError(),
-                                                      JenkinsError])
+                                                      JenkinsError()])
         base_url = "url/node/var/log/extra/podman/containers"
         urls = [base_url,
                 f"{base_url}/nova_libvirt/log/dnf.rpm.log.gz",
@@ -1409,6 +1435,259 @@ basesystem-11-5.el8.noarch"""
                                              containers_expected):
             self.assertEqual(container.name.value, container_name)
             self.assertEqual(container.packages.value, {})
+
+    def test_get_deployment_artifacts_filter_services(self):
+        """ Test that get_deployment reads properly the information obtained
+        from jenkins using artifacts.
+        """
+        job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
+        ip_versions = ['4', '6', 'unknown']
+        releases = ['17.3', '16', '']
+        topologies = ["compute:2,controller:3", "compute:1,controller:2",
+                      "compute:2,controller:2"]
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastCompletedBuild': {'description':
+                                                            logs_url}})
+        services = """
+tripleo_heat_api_cron.service loaded    active     running
+tripleo_heat_engine.service loaded    active     running
+tripleo_ironic_api.service loaded    active     running
+tripleo_ironic_conductor.service loaded    active     running
+        """
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        artifacts = [
+                get_yaml_from_topology_string(topologies[0]),
+                get_yaml_overcloud(ip_versions[0], releases[0],
+                                   "ceph", "geneve", False,
+                                   False, "path/to/ovb")]
+        # one call to get_packages_node and get_containers_node per node
+        artifacts.extend([JenkinsError()]*(5*2))
+        artifacts.extend([services])
+        artifacts.extend([
+                get_yaml_from_topology_string(topologies[1]),
+                get_yaml_overcloud(ip_versions[1], releases[1],
+                                   "ceph", "geneve", False,
+                                   False, "path/to/ovb")])
+        # one call to get_packages_node and get_containers_node per node
+        artifacts.extend([JenkinsError()]*(3*2))
+        artifacts.extend([services])
+
+        artifacts.extend([
+                get_yaml_from_topology_string(topologies[2]),
+                get_yaml_overcloud(ip_versions[2], releases[2],
+                                   "ceph", "geneve", False,
+                                   False, "path/to/ovb")])
+        # one call to get_packages_node and get_containers_node per node
+        artifacts.extend([JenkinsError()]*(4*2))
+        artifacts.extend([services])
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        services = Argument("services", str, "", value=['tripleo_heat_engine'])
+        packages = Argument("packages", str, "", value=[])
+        containers = Argument("containers", str, "", value=[])
+        jobs = self.jenkins.get_deployment(containers=containers,
+                                           services=services,
+                                           packages=packages)
+        self.assertEqual(len(jobs), 3)
+        for job_name, ip, release, topology in zip(job_names, ip_versions,
+                                                   releases, topologies):
+            job = jobs[job_name]
+            deployment = job.deployment.value
+            self.assertEqual(job.name.value, job_name)
+            self.assertEqual(job.url.value, "url")
+            self.assertEqual(len(job.builds.value), 0)
+            self.assertEqual(deployment.release.value, release)
+            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(deployment.topology.value, topology)
+            self.assertEqual(deployment.storage_backend.value, "ceph")
+            self.assertEqual(deployment.network_backend.value, "geneve")
+            self.assertEqual(deployment.dvr.value, "False")
+            self.assertEqual(deployment.tls_everywhere.value, "False")
+            self.assertEqual(deployment.infra_type.value, "ovb")
+            for component in topology.split(","):
+                role, amount = component.split(":")
+                for i in range(int(amount)):
+                    node_name = role+f"-{i}"
+                    node = Node(node_name, role)
+                    node_found = deployment.nodes[node_name]
+                    self.assertEqual(node_found.name, node.name)
+                    self.assertEqual(node_found.role, node.role)
+            services = deployment.services
+            self.assertEqual(len(services), 1)
+            self.assertTrue("tripleo_heat_engine" in services.value)
+
+    def test_get_deployment_spec_multiple_jobs(self):
+        """ Test that get_deployment fails if --spec is used with
+        multiple jobs.
+        """
+        job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastCompletedBuild': {'description':
+                                                            logs_url}})
+        self.jenkins.send_request = Mock(side_effect=[response])
+
+        spec = Argument("spec", str, "", value=[])
+        self.assertRaises(JenkinsError, self.jenkins.get_deployment, spec=spec)
+
+    def test_get_deployment_spec_one_job_no_builds(self):
+        """ Test that get_deployment fails if --spec is used with a job that
+        has no completed builds.
+        """
+        job_names = ['test_17.3_ipv4_job']
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastCompletedBuild': None})
+        self.jenkins.send_request = Mock(side_effect=[response])
+
+        spec = Argument("spec", str, "", value=[])
+        self.assertRaises(JenkinsError, self.jenkins.get_deployment, spec=spec)
+
+    def test_get_deployment_spec_correct_call(self):
+        """ Test get_deployment call with --spec and one job."""
+        job_names = ['test_17.3_ipv4_job']
+        ip_versions = ['4']
+        releases = ['17.3']
+        topologies = ["compute:2,controller:3"]
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastCompletedBuild': {'description':
+                                                            logs_url}})
+        services = """
+tripleo_heat_api_cron.service loaded    active     running
+tripleo_heat_engine.service loaded    active     running
+tripleo_ironic_api.service loaded    active     running
+tripleo_ironic_conductor.service loaded    active     running
+        """
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        artifacts = [
+                get_yaml_from_topology_string(topologies[0]),
+                get_yaml_overcloud(ip_versions[0], releases[0],
+                                   "ceph", "geneve", False,
+                                   False, "path/to/ovb")]
+        # one call to get_packages_node and get_containers_node per node
+        artifacts.extend([JenkinsError()]*(5*2))
+        artifacts.extend([services])
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        spec = Argument("spec", str, "", value=[])
+        jobs = self.jenkins.get_deployment(spec=spec)
+        self.assertEqual(len(jobs), 1)
+        for job_name, ip, release, topology in zip(job_names, ip_versions,
+                                                   releases, topologies):
+            job = jobs[job_name]
+            deployment = job.deployment.value
+            self.assertEqual(job.name.value, job_name)
+            self.assertEqual(job.url.value, "url")
+            self.assertEqual(len(job.builds.value), 0)
+            self.assertEqual(deployment.release.value, release)
+            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(deployment.topology.value, topology)
+            self.assertEqual(deployment.storage_backend.value, "ceph")
+            self.assertEqual(deployment.network_backend.value, "geneve")
+            self.assertEqual(deployment.dvr.value, "False")
+            self.assertEqual(deployment.tls_everywhere.value, "False")
+            self.assertEqual(deployment.infra_type.value, "ovb")
+            for component in topology.split(","):
+                role, amount = component.split(":")
+                for i in range(int(amount)):
+                    node_name = role+f"-{i}"
+                    node = Node(node_name, role)
+                    node_found = deployment.nodes[node_name]
+                    self.assertEqual(node_found.name, node.name)
+                    self.assertEqual(node_found.role, node.role)
+            services = deployment.services
+            self.assertEqual(len(services), 4)
+            self.assertTrue("tripleo_heat_api_cron" in services.value)
+            self.assertTrue("tripleo_heat_engine" in services.value)
+            self.assertTrue("tripleo_ironic_api" in services.value)
+            self.assertTrue("tripleo_ironic_conductor" in services.value)
+
+    def test_get_deployment_filter_containers(self):
+        """ Test get_deployment call with --containers."""
+        job_names = ['test_17.3_ipv4_job']
+        ip_versions = ['4']
+        releases = ['17.3']
+        topologies = ["compute:2,controller:3"]
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastCompletedBuild': {'description':
+                                                            logs_url}})
+        containers = """
+<a href="./nova_libvirt/">nova_libvirt/</a>
+<a href="./nova_libvirt/">nova/</a>
+<a href="./nova_migration_target/">nova_migration_target/</a>
+"""
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        artifacts = [
+                get_yaml_from_topology_string(topologies[0]),
+                get_yaml_overcloud(ip_versions[0], releases[0],
+                                   "ceph", "geneve", False,
+                                   False, "path/to/ovb")]
+        # two call to get_packages_node and get_containers_node per node
+        for _ in range(5):
+            artifacts.append(containers)
+            artifacts.append(JenkinsError())  # get_packages_container
+            artifacts.append(JenkinsError())  # get_packages_container
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        containers = Argument("containers", str, "", value=["nova_libvirt"])
+        jobs = self.jenkins.get_deployment(containers=containers)
+        self.assertEqual(len(jobs), 1)
+        for job_name, ip, release, topology in zip(job_names, ip_versions,
+                                                   releases, topologies):
+            job = jobs[job_name]
+            deployment = job.deployment.value
+            self.assertEqual(job.name.value, job_name)
+            self.assertEqual(job.url.value, "url")
+            self.assertEqual(len(job.builds.value), 0)
+            self.assertEqual(deployment.release.value, release)
+            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(deployment.topology.value, topology)
+            self.assertEqual(deployment.storage_backend.value, "ceph")
+            self.assertEqual(deployment.network_backend.value, "geneve")
+            self.assertEqual(deployment.dvr.value, "False")
+            self.assertEqual(deployment.tls_everywhere.value, "False")
+            self.assertEqual(deployment.infra_type.value, "ovb")
+            for component in topology.split(","):
+                role, amount = component.split(":")
+                for i in range(int(amount)):
+                    node_name = role+f"-{i}"
+                    node = Node(node_name, role)
+                    node_found = deployment.nodes[node_name]
+                    self.assertEqual(node_found.name, node.name)
+                    self.assertEqual(node_found.role, node.role)
+                    containers = node_found.containers.value
+                    self.assertEqual(len(containers), 1)
+                    self.assertIn("nova_libvirt", containers)
+            services = deployment.services
+            self.assertEqual(len(services), 0)
 
 
 class TestFilters(TestCase):
@@ -1582,3 +1861,30 @@ class TestFilters(TestCase):
                     {'_class': 'org..job.WorkflowRun', 'number': "5",
                      'result': 'success'}]
         self.assertEqual(builds_filtered, expected)
+
+    def test_filter_nodes(self):
+        """Test that filter_nodes filters nodes according to user input."""
+        job = {'nodes': {'node1': Node('node1', 'test',
+                                       containers={
+                                           'cont1': Container('cont1')}),
+                         'node2': Node('node2', 'test',
+                                       containers={
+                                           'cont2': Container('cont2')})}}
+        containers = Mock()
+        containers.value = ["cont2"]
+        self.assertTrue(filter_nodes(job, containers, 'containers'))
+        containers = job['nodes']['node2'].containers.value
+        self.assertEqual(containers['cont2'].name.value, 'cont2')
+        containers = job['nodes']['node1'].containers.value
+        self.assertEqual(containers, {})
+
+    def test_filter_models_by_name(self):
+        """Test that filter_models_by_name filters job according to
+        user input."""
+        job = {'services': {'service1': Service('service1'),
+                            'service2': Service('service2')}}
+        services = Mock()
+        services.value = ["service2"]
+        self.assertTrue(filter_models_by_name(job, services, 'services'))
+        self.assertEqual(len(job['services']), 1)
+        self.assertIn('service2', job['services'])
