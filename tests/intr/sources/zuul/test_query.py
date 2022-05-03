@@ -126,9 +126,9 @@ class TestHandleQuery(TestCase):
             {
                 tenant.name: Tenant(
                     tenant.name,
-                    {
+                    jobs={
                         job1.name: Job(job1.name, job1.url),
-                        job2.name: Job(job1.name, job1.url)
+                        job2.name: Job(job2.name, job1.url)
                     }
                 )
             },
@@ -168,7 +168,7 @@ class TestHandleQuery(TestCase):
             {
                 tenant.name: Tenant(
                     tenant.name,
-                    {
+                    jobs={
                         job1.name: Job(job1.name, job1.url)
                     }
                 )
@@ -212,7 +212,7 @@ class TestHandleQuery(TestCase):
             {
                 tenant.name: Tenant(
                     tenant.name,
-                    {
+                    jobs={
                         job1.name: Job(job1.name, job1.url)
                     }
                 )
@@ -262,7 +262,7 @@ class TestHandleQuery(TestCase):
             {
                 tenant.name: Tenant(
                     tenant.name,
-                    {
+                    jobs={
                         job.name: Job(
                             job.name,
                             job.url,
@@ -333,7 +333,7 @@ class TestHandleQuery(TestCase):
             {
                 tenant.name: Tenant(
                     tenant.name,
-                    {
+                    jobs={
                         job.name: Job(
                             job.name,
                             job.url,
@@ -402,7 +402,7 @@ class TestHandleQuery(TestCase):
             {
                 tenant.name: Tenant(
                     tenant.name,
-                    {
+                    jobs={
                         job.name: Job(
                             job.name,
                             job.url,
@@ -471,7 +471,7 @@ class TestHandleQuery(TestCase):
             {
                 tenant.name: Tenant(
                     tenant.name,
-                    {
+                    jobs={
                         job.name: Job(
                             job.name,
                             job.url,

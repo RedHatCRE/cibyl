@@ -126,12 +126,19 @@ class CIColoredPrinter(CIPrinter):
 
     @overrides
     def print_tenant(self, tenant):
-        result = IndentedTextBuilder()
+        def print_projects():
+            for project in tenant.projects.values():
+                result.add(self.print_project(project), 1)
 
-        result.add(self._palette.blue('Tenant: '), 0)
-        result[-1].append(tenant.name.value)
+            result.add(
+                self._palette.blue("Total projects found in tenant '"), 1
+            )
 
-        if self.query > QueryType.TENANTS:
+            result[-1].append(self._palette.underline(tenant.name))
+            result[-1].append(self._palette.blue("': "))
+            result[-1].append(len(tenant.projects))
+
+        def print_jobs():
             for job in tenant.jobs.values():
                 result.add(self.print_job(job), 1)
 
@@ -139,9 +146,18 @@ class CIColoredPrinter(CIPrinter):
                 self._palette.blue("Total jobs found in tenant '"), 1
             )
 
-            result[-1].append(self._palette.underline(tenant.name.value))
+            result[-1].append(self._palette.underline(tenant.name))
             result[-1].append(self._palette.blue("': "))
             result[-1].append(len(tenant.jobs))
+
+        result = IndentedTextBuilder()
+
+        result.add(self._palette.blue('Tenant: '), 0)
+        result[-1].append(tenant.name)
+
+        if self.query > QueryType.TENANTS:
+            print_projects()
+            print_jobs()
 
         return result.build()
 
@@ -149,7 +165,7 @@ class CIColoredPrinter(CIPrinter):
         result = IndentedTextBuilder()
 
         result.add(self._palette.blue('Project: '), 0)
-        result[-1].append(project.name.value)
+        result[-1].append(project.name)
 
         if self.query > QueryType.PROJECTS:
             for pipeline in project.pipelines.values():
@@ -159,7 +175,7 @@ class CIColoredPrinter(CIPrinter):
                 self._palette.blue("Total pipelines found in project '"), 1
             )
 
-            result[-1].append(self._palette.underline(project.name.value))
+            result[-1].append(self._palette.underline(project.name))
             result[-1].append(self._palette.blue("': "))
             result[-1].append(len(project.pipelines))
 
@@ -170,7 +186,7 @@ class CIColoredPrinter(CIPrinter):
         result = IndentedTextBuilder()
 
         result.add(self._palette.blue('Pipeline: '), 0)
-        result[-1].append(pipeline.name.value)
+        result[-1].append(pipeline.name)
 
         if self.query > QueryType.PIPELINES:
             for job in pipeline.jobs.values():
@@ -180,7 +196,7 @@ class CIColoredPrinter(CIPrinter):
                 self._palette.blue('Total jobs found in pipeline '), 1
             )
 
-            result[-1].append(self._palette.underline(pipeline.name.value))
+            result[-1].append(self._palette.underline(pipeline.name))
             result[-1].append(self._palette.blue(': '))
             result[-1].append(len(pipeline.jobs))
 
