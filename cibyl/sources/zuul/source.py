@@ -144,7 +144,7 @@ class Zuul(Source):
 
     @speed_index({'base': 2})
     def get_projects(self, **kwargs):
-        pass
+        return self.get_tenants(**kwargs)
 
     @speed_index({'base': 2})
     def get_jobs(self, **kwargs):

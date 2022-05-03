@@ -72,6 +72,10 @@ class ZuulJobAPI(ABC):
         raise NotImplementedError
 
 
+class ZuulProjectAPI(ABC):
+    pass
+
+
 class ZuulTenantAPI(ABC):
     """Interface which defines the information that can be retrieved from
     Zuul regarding a particular tenant.

@@ -42,6 +42,9 @@ class ModelBuilder:
 
         return self
 
+    def with_project(self, project):
+        pass
+
     def with_job(self, job):
         """Adds a job to the current model being built. If the job is
         already present on the model, then this is ignored. If the job's

@@ -70,6 +70,16 @@ class TenantsRequest(Request):
         return [TenantResponse(tenant) for tenant in tenants]
 
 
+class ProjectsRequest(Request):
+    def __init__(self, tenant):
+        super().__init__()
+
+        self._tenant = tenant
+
+    def get(self):
+        pass
+
+
 class JobsRequest(Request):
     """High-Level petition focused on retrieval of data related to jobs.
     """
@@ -205,6 +215,38 @@ class TenantResponse:
         :rtype: :class:`JobsRequest`
         """
         return JobsRequest(self._tenant)
+
+
+class ProjectResponse:
+    """Response for :class:`ProjectsRequest`.
+    """
+
+    def __init__(self, tenant, project):
+        """Constructor.
+
+        :param tenant: Low-Level API to access this project's tenant.
+        :type tenant: :class:`cibyl.sources.zuul.api.ZuulTenantAPI`
+        :param project: Low-Level API to access the project's data.
+        :type project: :class:`cibyl.sources.zuul.api.ZuulProjectAPI`
+        """
+        self._tenant = tenant
+        self._project = project
+
+    @property
+    def tenant(self):
+        """
+        :return: API to the project's tenant.
+        :rtype:class:`cibyl.sources.zuul.api.ZuulTenantAPI`
+        """
+        return self._tenant
+
+    @property
+    def name(self):
+        """
+        :return: The project's name.
+        :rtype: str
+        """
+        return self._project.name
 
 
 class JobResponse:

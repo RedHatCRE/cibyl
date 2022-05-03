@@ -90,6 +90,10 @@ def _get_jobs(zuul, **kwargs):
     return result
 
 
+def _get_projects(zuul, **kwargs):
+    return []
+
+
 def _get_tenants(zuul, **kwargs):
     """Query for tenants.
 
@@ -163,6 +167,10 @@ def handle_query(api, **kwargs):
     if query == QueryType.TENANTS:
         for tenant in _get_tenants(api, **kwargs):
             model.with_tenant(tenant)
+
+    if query == QueryType.PROJECTS:
+        for project in _get_projects(api, **kwargs):
+            model.with_project(project)
 
     if query == QueryType.JOBS:
         for job in _get_jobs(api, **kwargs):
