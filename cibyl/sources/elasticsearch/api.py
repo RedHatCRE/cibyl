@@ -466,11 +466,11 @@ one')
                           )
                 continue
 
-            if test_duration_arguments:
-                if not self.match_filter_test_by_duration(
-                       test_duration,
-                       test_duration_arguments):
-                    continue
+            if test_duration_arguments and \
+               not self.match_filter_test_by_duration(
+                   test_duration,
+                   test_duration_arguments):
+                continue
 
             if test_duration:
                 test_duration *= 1000
