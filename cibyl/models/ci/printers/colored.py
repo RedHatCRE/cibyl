@@ -126,18 +126,6 @@ class CIColoredPrinter(CIPrinter):
 
     @overrides
     def print_tenant(self, tenant):
-        def print_jobs():
-            for job in tenant.jobs.values():
-                result.add(self.print_job(job), 1)
-
-            result.add(
-                self._palette.blue("Total jobs found in tenant '"), 1
-            )
-
-            result[-1].append(self._palette.underline(tenant.name))
-            result[-1].append(self._palette.blue("': "))
-            result[-1].append(len(tenant.jobs))
-
         def print_projects():
             for project in tenant.projects.values():
                 result.add(self.print_project(project), 1)
@@ -150,14 +138,26 @@ class CIColoredPrinter(CIPrinter):
             result[-1].append(self._palette.blue("': "))
             result[-1].append(len(tenant.projects))
 
+        def print_jobs():
+            for job in tenant.jobs.values():
+                result.add(self.print_job(job), 1)
+
+            result.add(
+                self._palette.blue("Total jobs found in tenant '"), 1
+            )
+
+            result[-1].append(self._palette.underline(tenant.name))
+            result[-1].append(self._palette.blue("': "))
+            result[-1].append(len(tenant.jobs))
+
         result = IndentedTextBuilder()
 
         result.add(self._palette.blue('Tenant: '), 0)
         result[-1].append(tenant.name)
 
         if self.query > QueryType.TENANTS:
-            print_jobs()
             print_projects()
+            print_jobs()
 
         return result.build()
 

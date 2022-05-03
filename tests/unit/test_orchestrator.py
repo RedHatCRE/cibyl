@@ -198,5 +198,5 @@ class TestOrchestrator(TestCase):
         self.assertTrue("jobs" in self.orchestrator.parser.ci_args)
         self.assertTrue("builds" in self.orchestrator.parser.ci_args)
         self.assertEqual(self.orchestrator.parser.ci_args["tenants"].level, 2)
-        self.assertEqual(self.orchestrator.parser.ci_args["jobs"].level, 3)
-        self.assertEqual(self.orchestrator.parser.ci_args["builds"].level, 4)
+        self.assertEqual(self.orchestrator.parser.ci_args["jobs"].level, 5)
+        self.assertEqual(self.orchestrator.parser.ci_args["builds"].level, 6)
