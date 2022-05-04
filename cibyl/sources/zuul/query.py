@@ -91,7 +91,22 @@ def _get_jobs(zuul, **kwargs):
 
 
 def _get_projects(zuul, **kwargs):
-    return []
+    result = []
+
+    for tenant in _get_tenants(zuul, **kwargs):
+        projects = tenant.projects()
+
+        # Apply projects filters
+        if 'projects' in kwargs:
+            targets = kwargs['projects'].value
+
+            # An empty '--projects' means all of them.
+            if targets:
+                projects.with_name(*targets)
+
+        result += projects.get()
+
+    return result
 
 
 def _get_tenants(zuul, **kwargs):
