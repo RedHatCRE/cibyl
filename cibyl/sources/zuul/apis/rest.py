@@ -142,7 +142,15 @@ class ZuulJobRESTClient(ZuulJobAPI):
 
 
 class ZuulProjectRESTClient(ZuulProjectAPI):
+    """Implementation of a Zuul client through the use of Zuul's REST-API.
+    """
+
     def __init__(self, session, tenant, project):
+        """Constructor. See parent class for more information.
+
+        :param session: The link through which the REST-API will be contacted.
+        :type session: :class:`ZuulSession`
+        """
         super().__init__(tenant, project)
 
         self._session = session

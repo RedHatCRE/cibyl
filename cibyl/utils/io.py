@@ -17,6 +17,11 @@ from abc import ABC, abstractmethod
 
 
 class Closeable(ABC):
+    """Interface meant to release the resources hold by the object.
+    """
+
     @abstractmethod
     def close(self):
+        """Releases any resources associated to this object.
+        """
         raise NotImplementedError

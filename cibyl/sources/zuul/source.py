@@ -144,6 +144,17 @@ class Zuul(Source):
 
     @speed_index({'base': 2})
     def get_projects(self, **kwargs):
+        """Retrieves projects present on the host.
+
+        ..  seealso::
+            For kwargs keys: :func:`handle_query`
+
+        :param kwargs: All arguments from the command line.
+            These define the query to be performed.
+        :return: Resulting CI model from the query, formatted as an
+            attribute of type :class:`Tenant`.
+        :rtype: :class:`AttributeDictValue`
+        """
         return self.get_tenants(**kwargs)
 
     @speed_index({'base': 2})

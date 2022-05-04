@@ -93,6 +93,14 @@ def _get_jobs(zuul, **kwargs):
 
 
 def _get_projects(zuul, **kwargs):
+    """Query for projects.
+
+    :param zuul: API to interact with Zuul with.
+    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :param kwargs: See :func:`handle_query`.
+    :return: List of retrieved projects.
+    :rtype: list[:class:`cibyl.sources.zuul.requests.ProjectResponse`]
+    """
     result = []
 
     for tenant in _get_tenants(zuul, **kwargs):

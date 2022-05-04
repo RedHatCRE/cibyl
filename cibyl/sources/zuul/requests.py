@@ -71,16 +71,36 @@ class TenantsRequest(Request):
 
 
 class ProjectsRequest(Request):
+    """High-Level petition focused on retrieval of data related to projects.
+    """
+
     def __init__(self, tenant):
+        """Constructor.
+
+        :param tenant: Low-Level API to access this job's tenant.
+        :type tenant: :class:`cibyl.sources.zuul.api.ZuulTenantAPI`
+        """
         super().__init__()
 
         self._tenant = tenant
 
     def with_name(self, *name):
+        """Will limit request to projects with a certain name.
+
+        :param name: Name of the desired project.
+        :type name: str
+        :return: The request's instance.
+        :rtype: :class:`ProjectRequest`
+        """
         self._filters.append(lambda project: project.name in name)
         return self
 
     def get(self):
+        """Performs the request.
+
+        :return: Answer from the host.
+        :rtype: :class:`ProjectResponse`
+        """
         projects = apply_filters(self._tenant.projects(), *self._filters)
 
         return [ProjectResponse(self._tenant, project) for project in projects]

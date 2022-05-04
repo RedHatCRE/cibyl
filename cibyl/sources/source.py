@@ -82,6 +82,7 @@ class Source(AttrDict):
 
     @abstractmethod
     def teardown(self):
+        """Release any resources allocated during setup."""
         pass
 
 

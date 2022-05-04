@@ -44,6 +44,15 @@ class ModelBuilder:
         return self
 
     def with_project(self, project):
+        """Adds a project to the current model being built. If the project is
+        already present on the model, then this is ignored. If the project's
+        tenant is not on the model, then it is also added to it.
+
+        :param project: The project to add.
+        :type project: :class:`cibyl.sources.zuul.requests.ProjectResponse`
+        :return: The builder's instance.
+        :rtype: :class:`ModelBuilder`
+        """
         model = Project(project.name)
 
         # Register the project's tenant
