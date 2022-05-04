@@ -73,12 +73,41 @@ class TestZuul(EndToEndTest):
             '--config', 'tests/e2e/data/configs/zuul.yaml',
             '-f', 'text',
             '-vv',
+            '--tenants', 'example-tenant',
             '--projects'
         ]
 
         main()
 
-        self.assertIn('Total projects found in query: 2', self.output)
+        self.assertIn(
+            "Total projects found in tenant 'example-tenant': 4",
+            self.output
+        )
+
+    def test_get_projects_by_name(self):
+        """Checks that projects are retrieved with the "--projects name1
+        name2" flag.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '-vv',
+            '--tenants', 'example-tenant',
+            '--projects', 'test1'
+        ]
+
+        main()
+
+        self.assertIn(
+            "Project: test1",
+            self.output
+        )
+
+        self.assertIn(
+            "Total projects found in tenant 'example-tenant': 1",
+            self.output
+        )
 
     def test_no_jobs_on_tenant_query(self):
         """Checks that no 'Jobs found in tenant...' string is printed for a
@@ -90,6 +119,26 @@ class TestZuul(EndToEndTest):
             '-f', 'text',
             '-vv',
             '--tenants', 'example-tenant'
+        ]
+
+        main()
+
+        self.assertNotIn(
+            "Total jobs found in tenant 'example-tenant':",
+            self.output
+        )
+
+    def test_no_jobs_on_projects_query(self):
+        """Checks that no 'Jobs found in tenant...' string is printed for a
+        '--projects' query.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '-vv',
+            '--tenants', 'example-tenant',
+            '--projects'
         ]
 
         main()
