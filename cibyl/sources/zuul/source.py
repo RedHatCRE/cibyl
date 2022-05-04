@@ -40,17 +40,17 @@ class Zuul(ServerSource):
             ['tenant_1', 'tenant_2']
         """
 
-    def __init__(self, api, name, driver, url, fallbacks=None, **kwargs):
+    def __init__(self, name, driver, url, cert=None, fallbacks=None, **kwargs):
         """Constructor.
 
-        :param api: Medium of communication with host.
-        :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
         :param name: Name of the source.
         :type name: str
         :param driver: Driver used by the source.
         :type driver: str
         :param url: Address where the host is located.
         :type url: str
+        :param cert: See :meth:`ZuulRESTClient.from_url`
+        :type cert: str or None
         :param fallbacks: Default search terms to be used for missing query
             arguments.
         :type fallbacks: :class:`Zuul.Fallbacks` or None
@@ -65,9 +65,9 @@ class Zuul(ServerSource):
         if url.endswith('/'):
             url = url[:-1]  # Removes last character of string
 
-        super().__init__(name=name, driver=driver, url=url, **kwargs)
+        super().__init__(name, driver, url=url, cert=cert, **kwargs)
 
-        self._api = api
+        self._api = None
         self._fallbacks = fallbacks
 
     @staticmethod
@@ -93,9 +93,6 @@ class Zuul(ServerSource):
         :return: The instance.
         """
 
-        def new_api():
-            return ZuulRESTClient.from_url(url, cert)
-
         def new_fallbacks_from(*args):
             """
             :param args: Arguments to generate fallbacks for.
@@ -115,14 +112,17 @@ class Zuul(ServerSource):
         kwargs.setdefault('name', 'zuul-ci')
         kwargs.setdefault('driver', 'zuul')
 
-        api = new_api()
         fallbacks = new_fallbacks_from('tenants')
 
-        return Zuul(api=api, url=url, fallbacks=fallbacks, **kwargs)
+        return Zuul(url=url, cert=cert, fallbacks=fallbacks, **kwargs)
 
     @overrides
     def setup(self):
-        pass
+        self._api = ZuulRESTClient.from_url(self.url, self.cert)
+
+    @overrides
+    def teardown(self):
+        self._api.close()
 
     @speed_index({'base': 1})
     def get_tenants(self, **kwargs):
@@ -145,7 +145,18 @@ class Zuul(ServerSource):
 
     @speed_index({'base': 2})
     def get_projects(self, **kwargs):
-        pass
+        """Retrieves projects present on the host.
+
+        ..  seealso::
+            For kwargs keys: :func:`handle_query`
+
+        :param kwargs: All arguments from the command line.
+            These define the query to be performed.
+        :return: Resulting CI model from the query, formatted as an
+            attribute of type :class:`Tenant`.
+        :rtype: :class:`AttributeDictValue`
+        """
+        return self.get_tenants(**kwargs)
 
     @speed_index({'base': 2})
     def get_jobs(self, **kwargs):

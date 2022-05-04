@@ -38,6 +38,8 @@ def get_query_type(**kwargs):
 
     :param kwargs: The arguments.
     :key tenants: Query targets tenants.
+    :key projects: Query targets projects.
+    :key pipelines: Query targets pipelines.
     :key jobs: Query targets jobs.
     :key builds: Query target builds.
     :return: The lowest query level possible. For example,
@@ -49,6 +51,12 @@ def get_query_type(**kwargs):
 
     if 'tenants' in kwargs:
         result = QueryType.TENANTS
+
+    if 'projects' in kwargs:
+        result = QueryType.PROJECTS
+
+    if 'pipelines' in kwargs:
+        result = QueryType.PIPELINES
 
     if 'jobs' in kwargs:
         result = QueryType.JOBS

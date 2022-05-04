@@ -54,6 +54,29 @@ class TestModelBuilder(TestCase):
 
         self.assertNotRaises(lambda: builder.with_tenant(tenant), Exception)
 
+    def test_with_project_of_unknown_tenant(self):
+        """Checks that a new tenant is generated if a project belonging to
+        an unknown one is added.
+        """
+        tenant = Mock()
+        tenant.name = 'tenant'
+
+        project = Mock()
+        project.tenant = tenant
+
+        builder = ModelBuilder()
+        builder.with_project(project)
+
+        result = builder.assemble()
+
+        self.assertIn(project.tenant.name, result.keys())
+
+        result_tenant = result[tenant.name]
+        result_project = result_tenant.projects[project.name]
+
+        self.assertEqual(tenant.name, result_tenant.name.value)
+        self.assertEqual(project.name, result_project.name.value)
+
     def test_with_job_of_unknown_tenant(self):
         """Checks that a new tenant is generated if a job belonging to an
         unknown one is added.

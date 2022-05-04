@@ -16,6 +16,7 @@
 from abc import ABC, abstractmethod
 
 from cibyl.exceptions.source import SourceException
+from cibyl.utils.io import Closeable
 
 
 class ZuulAPIError(SourceException):
@@ -23,7 +24,7 @@ class ZuulAPIError(SourceException):
     """
 
 
-class ZuulJobAPI(ABC):
+class ZuulJobAPI(Closeable, ABC):
     """Interface which defines the information that can be retrieved from
     Zuul regarding a particular job.
     """
@@ -60,6 +61,10 @@ class ZuulJobAPI(ABC):
     @property
     @abstractmethod
     def url(self):
+        """
+        :return: URL where this job can be consulted at.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -72,7 +77,51 @@ class ZuulJobAPI(ABC):
         raise NotImplementedError
 
 
-class ZuulTenantAPI(ABC):
+class ZuulProjectAPI(Closeable, ABC):
+    """Interface which defines the information that can be retrieved from
+    Zuul regarding a particular project.
+    """
+
+    def __init__(self, tenant, project):
+        """Constructor.
+
+        :param tenant: Tenant this job belongs to.
+        :type tenant: :class:`ZuulTenantAPI`
+        :param project.: Description of the project being consulted by this
+            API. At least a field called 'name' providing the name
+            of the project is required here.
+        :type project: dict
+        """
+        self._tenant = tenant
+        self._project = project
+
+    @property
+    def tenant(self):
+        """
+        :return: The tenant this project belongs to.
+        :rtype: :class:`ZuulTenantAPI`
+        """
+        return self._tenant
+
+    @property
+    def name(self):
+        """
+        :return: Name of the project being consulted.
+        :rtype: str
+        """
+        return self._project['name']
+
+    @property
+    @abstractmethod
+    def url(self):
+        """
+        :return: URL where this project can be consulted at.
+        :rtype: str
+        """
+        raise NotImplementedError
+
+
+class ZuulTenantAPI(Closeable, ABC):
     """Interface which defines the information that can be retrieved from
     Zuul regarding a particular tenant.
     """
@@ -116,6 +165,17 @@ class ZuulTenantAPI(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def projects(self):
+        """A project is the representation of a source code that Zuul is
+        meant to interact with.
+
+        :return: Information about all projects under this tenant.
+        :rtype: list[:class:`ZuulProjectAPI`]
+        :raises ZuulAPIError: If the request failed.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def jobs(self):
         """A job describes the steps that need to be taken in order to test
         a project.
@@ -127,7 +187,7 @@ class ZuulTenantAPI(ABC):
         raise NotImplementedError
 
 
-class ZuulAPI(ABC):
+class ZuulAPI(Closeable, ABC):
     """Interface describing the actions that can be taken over Zuul's API.
     """
 

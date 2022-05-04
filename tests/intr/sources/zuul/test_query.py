@@ -18,6 +18,7 @@ from unittest.mock import Mock
 
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
+from cibyl.models.ci.project import Project
 from cibyl.models.ci.tenant import Tenant
 from cibyl.sources.zuul.query import handle_query
 
@@ -93,6 +94,77 @@ class TestHandleQuery(TestCase):
         self.assertEqual(
             {
                 tenant1.name: Tenant(tenant1.name)
+            },
+            result.value
+        )
+
+    def test_get_all_projects(self):
+        """Checks the '--projects' option.
+        """
+        project1 = Mock()
+        project1.name = 'project1'
+
+        project2 = Mock()
+        project2.name = 'project2'
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+        tenant.projects = Mock()
+        tenant.projects.return_value = [project1, project2]
+
+        api = Mock()
+        api.tenants = Mock()
+        api.tenants.return_value = [tenant]
+
+        in_projects = Mock()
+        in_projects.value = None
+
+        result = handle_query(api, projects=in_projects)
+
+        self.assertEqual(
+            {
+                tenant.name: Tenant(
+                    tenant.name,
+                    projects={
+                        project1.name: Project(project1.name),
+                        project2.name: Project(project2.name)
+                    }
+                )
+            },
+            result.value
+        )
+
+    def test_get_projects_by_name(self):
+        """Checks the '--projects name1 name2' option.
+        """
+        project1 = Mock()
+        project1.name = 'project1'
+
+        project2 = Mock()
+        project2.name = 'project2'
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+        tenant.projects = Mock()
+        tenant.projects.return_value = [project1, project2]
+
+        api = Mock()
+        api.tenants = Mock()
+        api.tenants.return_value = [tenant]
+
+        in_projects = Mock()
+        in_projects.value = [project1.name]
+
+        result = handle_query(api, projects=in_projects)
+
+        self.assertEqual(
+            {
+                tenant.name: Tenant(
+                    tenant.name,
+                    projects={
+                        project1.name: Project(project1.name)
+                    }
+                )
             },
             result.value
         )

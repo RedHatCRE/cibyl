@@ -15,13 +15,15 @@
 """
 from urllib.parse import urljoin
 
+from overrides import overrides
 from requests import HTTPError, Session
 
 from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulJobAPI,
-                                    ZuulTenantAPI)
+                                    ZuulProjectAPI, ZuulTenantAPI)
+from cibyl.utils.io import Closeable
 
 
-class ZuulSession:
+class ZuulSession(Closeable):
     """Defines a link through which to communicate with the Zuul host.
     Communication is performed through the host's REST-API. This forms the
     base class for all communication with the host.
@@ -75,6 +77,10 @@ class ZuulSession:
         self._check_request_status(request)
 
         return request.json()
+
+    @overrides
+    def close(self):
+        self._session.close()
 
     @staticmethod
     def _check_request_status(request):
@@ -130,6 +136,45 @@ class ZuulJobRESTClient(ZuulJobAPI):
             f'tenant/{self.tenant.name}/builds?job_name={self.name}'
         )
 
+    @overrides
+    def close(self):
+        self._session.close()
+
+
+class ZuulProjectRESTClient(ZuulProjectAPI):
+    """Implementation of a Zuul client through the use of Zuul's REST-API.
+    """
+
+    def __init__(self, session, tenant, project):
+        """Constructor. See parent class for more information.
+
+        :param session: The link through which the REST-API will be contacted.
+        :type session: :class:`ZuulSession`
+        """
+        super().__init__(tenant, project)
+
+        self._session = session
+
+    def __eq__(self, other):
+        if not issubclass(type(other), ZuulProjectAPI):
+            return False
+
+        if self is other:
+            return True
+
+        return self.tenant == other.tenant and self.name == other.name
+
+    @property
+    def url(self):
+        base = self._session.host[:-1]
+        tenant = self.tenant
+
+        return f"{base}/t/{tenant.name}/project/{self.name}"
+
+    @overrides
+    def close(self):
+        self._session.close()
+
 
 class ZuulTenantRESTClient(ZuulTenantAPI):
     """Implementation of a Zuul client through the use of Zuul's REST-API.
@@ -151,6 +196,14 @@ class ZuulTenantRESTClient(ZuulTenantAPI):
     def buildsets(self):
         return self._session.get(f'tenant/{self.name}/buildsets')
 
+    def projects(self):
+        result = []
+
+        for project in self._session.get(f'tenant/{self.name}/projects'):
+            result.append(ZuulProjectRESTClient(self._session, self, project))
+
+        return result
+
     def jobs(self):
         result = []
 
@@ -158,6 +211,10 @@ class ZuulTenantRESTClient(ZuulTenantAPI):
             result.append(ZuulJobRESTClient(self._session, self, job))
 
         return result
+
+    @overrides
+    def close(self):
+        self._session.close()
 
 
 class ZuulRESTClient(ZuulAPI):
@@ -198,3 +255,7 @@ class ZuulRESTClient(ZuulAPI):
             result.append(ZuulTenantRESTClient(self._session, tenant))
 
         return result
+
+    @overrides
+    def close(self):
+        self._session.close()

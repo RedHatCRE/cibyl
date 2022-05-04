@@ -16,8 +16,10 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.sources.zuul.apis.rest import (ZuulJobRESTClient, ZuulRESTClient,
-                                          ZuulSession, ZuulTenantRESTClient)
+from cibyl.sources.zuul.apis.rest import (ZuulJobRESTClient,
+                                          ZuulProjectRESTClient,
+                                          ZuulRESTClient, ZuulSession,
+                                          ZuulTenantRESTClient)
 
 
 class TestZuulSession(TestCase):
@@ -94,7 +96,7 @@ class TestZuulJobRESTClient(TestCase):
         """Checks that the user's url for the job is properly build.
         """
         job = {
-            'name': 'job'
+            'name': 'job_1'
         }
 
         session = Mock()
@@ -105,7 +107,10 @@ class TestZuulJobRESTClient(TestCase):
 
         client = ZuulJobRESTClient(session, tenant, job)
 
-        self.assertEqual('http://localhost:8080/t/tenant/job/job', client.url)
+        self.assertEqual(
+            'http://localhost:8080/t/tenant/job/job_1',
+            client.url
+        )
 
     def test_builds(self):
         """Checks that the current steps are taken to get the builds
@@ -138,6 +143,52 @@ class TestZuulJobRESTClient(TestCase):
 
         session.get.assert_called_once_with(
             f"tenant/{tenant.name}/builds?job_name={job['name']}"
+        )
+
+
+class TestZuulProjectRESTClient(TestCase):
+    def test_equality(self):
+        """Checks '__eq__'.
+        """
+        project = {
+            'name': 'project'
+        }
+
+        session = Mock()
+        tenant = Mock()
+
+        client = ZuulProjectRESTClient(session, tenant, project)
+
+        # Equality by type
+        self.assertNotEqual(Mock(), client)
+
+        # Equality by reference
+        self.assertEqual(client, client)
+
+        # Equality by contents
+        self.assertEqual(
+            ZuulProjectRESTClient(session, tenant, project),
+            client
+        )
+
+    def test_url(self):
+        """Checks that the user's url for the job is properly build.
+        """
+        project = {
+            'name': 'project_1'
+        }
+
+        session = Mock()
+        session.host = 'http://localhost:8080/'
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+
+        client = ZuulProjectRESTClient(session, tenant, project)
+
+        self.assertEqual(
+            'http://localhost:8080/t/tenant/project/project_1',
+            client.url
         )
 
 
@@ -201,6 +252,41 @@ class TestZuulTenantRESTClient(TestCase):
 
         session.get.assert_called_once_with(
             f"tenant/{tenant['name']}/buildsets"
+        )
+
+    def test_projects(self):
+        """Tests call to 'projects' end-point.
+        """
+        tenant = {
+            'name': 'tenant_1'
+        }
+
+        projects = [
+            {
+                'name': 'project_1'
+            },
+            {
+                'name': 'project_2'
+            }
+        ]
+
+        session = Mock()
+        session.get = Mock()
+
+        session.get.return_value = projects
+
+        client = ZuulTenantRESTClient(session, tenant)
+
+        self.assertEqual(
+            [
+                ZuulProjectRESTClient(session, client, projects[0]),
+                ZuulProjectRESTClient(session, client, projects[1]),
+            ],
+            client.projects()
+        )
+
+        session.get.assert_called_once_with(
+            f"tenant/{tenant['name']}/projects"
         )
 
     def test_jobs(self):

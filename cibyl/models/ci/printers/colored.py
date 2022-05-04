@@ -155,12 +155,15 @@ class CIColoredPrinter(CIPrinter):
         result.add(self._palette.blue('Tenant: '), 0)
         result[-1].append(tenant.name)
 
-        if self.query > QueryType.TENANTS:
+        if self.query >= QueryType.PROJECTS:
             print_projects()
+
+        if self.query >= QueryType.JOBS:
             print_jobs()
 
         return result.build()
 
+    @overrides
     def print_project(self, project):
         result = IndentedTextBuilder()
 

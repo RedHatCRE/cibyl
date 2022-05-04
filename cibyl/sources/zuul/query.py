@@ -72,6 +72,8 @@ def _get_jobs(zuul, **kwargs):
     result = []
 
     for tenant in _get_tenants(zuul, **kwargs):
+        # TODO: Fetch jobs in projects
+
         jobs = tenant.jobs()
 
         # Apply jobs filters
@@ -86,6 +88,33 @@ def _get_jobs(zuul, **kwargs):
             jobs.with_url(*kwargs['job_url'].value)
 
         result += jobs.get()
+
+    return result
+
+
+def _get_projects(zuul, **kwargs):
+    """Query for projects.
+
+    :param zuul: API to interact with Zuul with.
+    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :param kwargs: See :func:`handle_query`.
+    :return: List of retrieved projects.
+    :rtype: list[:class:`cibyl.sources.zuul.requests.ProjectResponse`]
+    """
+    result = []
+
+    for tenant in _get_tenants(zuul, **kwargs):
+        projects = tenant.projects()
+
+        # Apply projects filters
+        if 'projects' in kwargs:
+            targets = kwargs['projects'].value
+
+            # An empty '--projects' means all of them.
+            if targets:
+                projects.with_name(*targets)
+
+        result += projects.get()
 
     return result
 
@@ -163,6 +192,10 @@ def handle_query(api, **kwargs):
     if query == QueryType.TENANTS:
         for tenant in _get_tenants(api, **kwargs):
             model.with_tenant(tenant)
+
+    if query == QueryType.PROJECTS:
+        for project in _get_projects(api, **kwargs):
+            model.with_project(project)
 
     if query == QueryType.JOBS:
         for job in _get_jobs(api, **kwargs):
