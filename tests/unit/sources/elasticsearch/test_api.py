@@ -19,7 +19,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
 from cibyl.cli.argument import Argument
-from cibyl.exceptions.cli import MissingArgument
+from cibyl.exceptions.source import MissingArgument
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP, QueryTemplate
 
 
@@ -144,8 +144,8 @@ class TestElasticsearchOSP(TestCase):
 
     @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
     def test_get_deployment(self: object, mock_query_hits: object) -> None:
-        """Tests that the internal logic from :meth:`ElasticSearchOSP.get_deployment`
-            is correct.
+        """Tests that the internal logic from
+        :meth:`ElasticSearchOSP.get_deployment` is correct.
         """
         mock_query_hits.return_value = self.build_hits
 
@@ -155,8 +155,8 @@ class TestElasticsearchOSP(TestCase):
         # We need to mock the Argument kwargs passed. In this case
         # ip_address
         ip_address_kwargs = MagicMock()
-        ip_adress_value = PropertyMock(return_value=[])
-        type(ip_address_kwargs).value = ip_adress_value
+        ip_address_value = PropertyMock(return_value=[])
+        type(ip_address_kwargs).value = ip_address_value
 
         jobs = self.es_api.get_deployment(jobs=jobs_argument,
                                           ip_version=ip_address_kwargs)
@@ -178,8 +178,8 @@ class TestElasticsearchOSP(TestCase):
         # We need to mock the Argument kwargs passed. In this case
         # ip_address
         ip_address_kwargs = MagicMock()
-        ip_adress_value = PropertyMock(return_value=['4'])
-        type(ip_address_kwargs).value = ip_adress_value
+        ip_address_value = PropertyMock(return_value=['4'])
+        type(ip_address_kwargs).value = ip_address_value
 
         builds = self.es_api.get_deployment(jobs=jobs_argument,
                                             ip_version=ip_address_kwargs)

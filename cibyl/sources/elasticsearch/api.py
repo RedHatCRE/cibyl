@@ -22,7 +22,6 @@ from elasticsearch.helpers import scan
 
 from cibyl.cli.argument import Argument
 from cibyl.cli.ranged_argument import RANGE_OPERATORS
-from cibyl.exceptions.cli import MissingArgument
 from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
@@ -30,13 +29,14 @@ from cibyl.models.ci.job import Job
 from cibyl.models.ci.test import Test
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
-from cibyl.sources.source import Source, speed_index
+from cibyl.sources.server import ServerSource
+from cibyl.sources.source import speed_index
 from cibyl.utils.filtering import IP_PATTERN
 
 LOG = logging.getLogger(__name__)
 
 
-class ElasticSearchOSP(Source):
+class ElasticSearchOSP(ServerSource):
     """Used to perform queries in elasticsearch"""
 
     def __init__(self: object, driver: str = 'elasticsearch',
@@ -367,10 +367,8 @@ class ElasticSearchOSP(Source):
             (if any) and the tests
             :rtype: :class:`AttributeDictValue`
         """
-        if not kwargs.get('builds') and not kwargs.get('last_build'):
-            raise MissingArgument('Please specify some builds (--builds) \
-to get the tests from. Or use (--last-build) to get the tests from the last \
-one')
+        self.check_builds_for_test(**kwargs)
+
         job_builds_found = self.get_builds(**kwargs)
         query_body = {
             "query": {

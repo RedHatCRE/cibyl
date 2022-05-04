@@ -47,3 +47,12 @@ the configuration.\n{sources}"""
 class SourceException(CibylException):
     """Abstract exception to representation any error while querying a
     source."""
+
+
+class MissingArgument(SourceException):
+    """Represents a missing required argument inside a source method call."""
+
+    def __init__(self, message='Missing required argument.'):
+        """Constructor.
+        """
+        super().__init__(message)
