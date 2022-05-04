@@ -80,6 +80,10 @@ class Source(AttrDict):
         """Setup everything required for the source to become operational."""
         pass
 
+    @abstractmethod
+    def teardown(self):
+        pass
+
 
 def is_source_valid(source: Source, desired_attr: str):
     """Checks if a source can be considered valid to perform a query.

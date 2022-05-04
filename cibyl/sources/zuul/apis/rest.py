@@ -15,13 +15,15 @@
 """
 from urllib.parse import urljoin
 
+from overrides import overrides
 from requests import HTTPError, Session
 
 from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulJobAPI,
                                     ZuulProjectAPI, ZuulTenantAPI)
+from cibyl.utils.io import Closeable
 
 
-class ZuulSession:
+class ZuulSession(Closeable):
     """Defines a link through which to communicate with the Zuul host.
     Communication is performed through the host's REST-API. This forms the
     base class for all communication with the host.
@@ -75,6 +77,10 @@ class ZuulSession:
         self._check_request_status(request)
 
         return request.json()
+
+    @overrides
+    def close(self):
+        self._session.close()
 
     @staticmethod
     def _check_request_status(request):
@@ -130,6 +136,10 @@ class ZuulJobRESTClient(ZuulJobAPI):
             f'tenant/{self.tenant.name}/builds?job_name={self.name}'
         )
 
+    @overrides
+    def close(self):
+        self._session.close()
+
 
 class ZuulProjectRESTClient(ZuulProjectAPI):
     def __init__(self, session, tenant, project):
@@ -152,6 +162,10 @@ class ZuulProjectRESTClient(ZuulProjectAPI):
         tenant = self.tenant
 
         return f"{base}/t/{tenant.name}/project/{self.name}"
+
+    @overrides
+    def close(self):
+        self._session.close()
 
 
 class ZuulTenantRESTClient(ZuulTenantAPI):
@@ -189,6 +203,10 @@ class ZuulTenantRESTClient(ZuulTenantAPI):
             result.append(ZuulJobRESTClient(self._session, self, job))
 
         return result
+
+    @overrides
+    def close(self):
+        self._session.close()
 
 
 class ZuulRESTClient(ZuulAPI):
@@ -229,3 +247,7 @@ class ZuulRESTClient(ZuulAPI):
             result.append(ZuulTenantRESTClient(self._session, tenant))
 
         return result
+
+    @overrides
+    def close(self):
+        self._session.close()

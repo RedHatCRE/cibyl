@@ -123,6 +123,10 @@ class Zuul(Source):
     def setup(self):
         pass
 
+    @overrides
+    def teardown(self):
+        self._api.close()
+
     @speed_index({'base': 1})
     def get_tenants(self, **kwargs):
         """Retrieves tenants present on the host.
