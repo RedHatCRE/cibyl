@@ -68,12 +68,34 @@ class ZuulJobAPI(Closeable, ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def pipelines(self):
+        raise NotImplementedError
+
+    @abstractmethod
     def builds(self):
         """
         :return: The builds of this job.
         :rtype: list[dict]
         :raises ZuulAPIError: If the request failed.
         """
+        raise NotImplementedError
+
+
+class ZuulPipelineAPI(Closeable, ABC):
+    def __init__(self, project, pipeline):
+        self._project = project
+        self._pipeline = pipeline
+
+    @property
+    def project(self):
+        return self._project
+
+    @property
+    def name(self):
+        return self._pipeline['name']
+
+    @abstractmethod
+    def jobs(self):
         raise NotImplementedError
 
 
@@ -118,6 +140,10 @@ class ZuulProjectAPI(Closeable, ABC):
         :return: URL where this project can be consulted at.
         :rtype: str
         """
+        raise NotImplementedError
+
+    @abstractmethod
+    def pipelines(self):
         raise NotImplementedError
 
 

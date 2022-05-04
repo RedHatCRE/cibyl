@@ -17,6 +17,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.sources.zuul.apis.rest import (ZuulJobRESTClient,
+                                          ZuulPipelineRESTClient,
                                           ZuulProjectRESTClient,
                                           ZuulRESTClient, ZuulSession,
                                           ZuulTenantRESTClient)
@@ -189,6 +190,52 @@ class TestZuulProjectRESTClient(TestCase):
         self.assertEqual(
             'http://localhost:8080/t/tenant/project/project_1',
             client.url
+        )
+
+    def test_pipelines(self):
+        """Checks call to 'pipelines' end-point.
+        """
+        project = {
+            'name': 'project'
+        }
+
+        pipelines = [
+            {
+                'name': 'pipeline_1'
+            },
+            {
+                'name': 'pipeline_2'
+            }
+        ]
+
+        answer = {
+            'configs': [
+                {
+                    'pipelines': pipelines
+                }
+            ]
+        }
+
+        session = Mock()
+        session.get = Mock()
+
+        session.get.return_value = answer
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+
+        client = ZuulProjectRESTClient(session, tenant, project)
+
+        self.assertEqual(
+            [
+                ZuulPipelineRESTClient(session, client, pipelines[0]),
+                ZuulPipelineRESTClient(session, client, pipelines[1])
+            ],
+            client.pipelines()
+        )
+
+        session.get.assert_called_once_with(
+            f"tenant/{tenant.name}/project/{project['name']}"
         )
 
 

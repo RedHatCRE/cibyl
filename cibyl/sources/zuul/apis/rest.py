@@ -19,7 +19,8 @@ from overrides import overrides
 from requests import HTTPError, Session
 
 from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulJobAPI,
-                                    ZuulProjectAPI, ZuulTenantAPI)
+                                    ZuulPipelineAPI, ZuulProjectAPI,
+                                    ZuulTenantAPI)
 from cibyl.utils.io import Closeable
 
 
@@ -131,10 +132,39 @@ class ZuulJobRESTClient(ZuulJobAPI):
 
         return f"{base}/t/{tenant.name}/job/{self.name}"
 
+    @overrides
+    def pipelines(self):
+        pass
+
+    @overrides
     def builds(self):
         return self._session.get(
             f'tenant/{self.tenant.name}/builds?job_name={self.name}'
         )
+
+    @overrides
+    def close(self):
+        self._session.close()
+
+
+class ZuulPipelineRESTClient(ZuulPipelineAPI):
+    def __init__(self, session, project, pipeline):
+        super().__init__(project, pipeline)
+
+        self._session = session
+
+    def __eq__(self, other):
+        if not issubclass(type(other), ZuulPipelineAPI):
+            return False
+
+        if self is other:
+            return True
+
+        return self.project == other.project and self.name == other.name
+
+    @overrides
+    def jobs(self):
+        pass
 
     @overrides
     def close(self):
@@ -170,6 +200,27 @@ class ZuulProjectRESTClient(ZuulProjectAPI):
         tenant = self.tenant
 
         return f"{base}/t/{tenant.name}/project/{self.name}"
+
+    @overrides
+    def pipelines(self):
+        def get_configs():
+            project = self._session.get(
+                f"tenant/{self.tenant.name}/project/{self._project['name']}"
+            )
+
+            return project['configs']
+
+        result = []
+
+        for config in get_configs():
+            pipelines = config['pipelines']
+
+            for pipeline in pipelines:
+                result.append(ZuulPipelineRESTClient(
+                    self._session, self, pipeline
+                ))
+
+        return result
 
     @overrides
     def close(self):
