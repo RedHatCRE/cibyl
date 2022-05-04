@@ -113,6 +113,44 @@ class TestZuulJobRESTClient(TestCase):
             client.url
         )
 
+    def test_pipelines(self):
+        """Checks call to 'pipelines' end-point.
+        """
+        job = {
+            'name': 'job'
+        }
+
+        session = Mock()
+
+        pipeline1 = Mock()
+        pipeline1.name = 'pipeline1'
+        pipeline1.jobs = Mock()
+
+        pipeline2 = Mock()
+        pipeline2.name = 'pipeline2'
+        pipeline2.jobs = Mock()
+
+        project = Mock()
+        project.pipelines = Mock()
+        project.pipelines.return_value = [pipeline1, pipeline2]
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+        tenant.projects = Mock()
+        tenant.projects.return_value = [project]
+
+        pipeline1.jobs.return_value = [ZuulJobRESTClient(session, tenant, job)]
+        pipeline2.jobs.return_value = []
+
+        client = ZuulJobRESTClient(session, tenant, job)
+
+        self.assertEqual([pipeline1], client.pipelines())
+
+        pipeline1.jobs.assert_called_once()
+        pipeline2.jobs.assert_called_once()
+        project.pipelines.assert_called_once()
+        tenant.projects.assert_called_once()
+
     def test_builds(self):
         """Checks that the current steps are taken to get the builds
         of this job.

@@ -134,7 +134,14 @@ class ZuulJobRESTClient(ZuulJobAPI):
 
     @overrides
     def pipelines(self):
-        pass
+        result = []
+
+        for project in self.tenant.projects():
+            for pipeline in project.pipelines():
+                if self in pipeline.jobs():
+                    result.append(pipeline)
+
+        return result
 
     @overrides
     def builds(self):
