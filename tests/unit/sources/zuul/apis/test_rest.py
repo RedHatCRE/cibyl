@@ -185,6 +185,84 @@ class TestZuulJobRESTClient(TestCase):
         )
 
 
+class TestZuulPipelineRESTClient(TestCase):
+    def test_equality(self):
+        """Checks '__eq__'.
+        """
+        pipeline = {
+            'name': 'pipeline'
+        }
+
+        session = Mock()
+        project = Mock()
+
+        client = ZuulPipelineRESTClient(session, project, pipeline)
+
+        # Equality by type
+        self.assertNotEqual(Mock(), client)
+
+        # Equality by reference
+        self.assertEqual(client, client)
+
+        # Equality by contents
+        self.assertEqual(
+            ZuulPipelineRESTClient(session, project, pipeline),
+            client
+        )
+
+    def test_jobs(self):
+        """Checks call to 'jobs' end-point.
+        """
+
+        def get_job(url):
+            if url == f"tenant/{project.tenant.name}/job/{jobs[0]['name']}":
+                return jobs[0]
+
+            if url == f"tenant/{project.tenant.name}/job/{jobs[1]['name']}":
+                return jobs[1]
+
+        jobs = [
+            {
+                'name': 'job1'
+            },
+            {
+                'name': 'job2'
+            }
+        ]
+
+        pipeline = {
+            'name': 'pipeline',
+            'jobs': jobs
+        }
+
+        session = Mock()
+        session.get = Mock()
+        session.get.side_effect = get_job
+
+        project = Mock()
+        project.name = 'project'
+        project.tenant = Mock()
+        project.tenant.name = 'tenant'
+
+        client = ZuulPipelineRESTClient(session, project, pipeline)
+
+        self.assertEqual(
+            [
+                ZuulJobRESTClient(session, project.tenant, jobs[0]),
+                ZuulJobRESTClient(session, project.tenant, jobs[1])
+            ],
+            client.jobs()
+        )
+
+        session.get.assert_any_call(
+            f"tenant/{project.tenant.name}/job/{jobs[0]['name']}"
+        )
+
+        session.get.assert_any_call(
+            f"tenant/{project.tenant.name}/job/{jobs[1]['name']}"
+        )
+
+
 class TestZuulProjectRESTClient(TestCase):
     def test_equality(self):
         """Checks '__eq__'.

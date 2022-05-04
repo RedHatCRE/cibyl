@@ -171,7 +171,20 @@ class ZuulPipelineRESTClient(ZuulPipelineAPI):
 
     @overrides
     def jobs(self):
-        pass
+        result = []
+
+        for job in self._pipeline['jobs']:
+            result.append(
+                ZuulJobRESTClient(
+                    self._session,
+                    self._project.tenant,
+                    self._session.get(
+                        f"tenant/{self._project.tenant.name}/job/{job['name']}"
+                    )
+                )
+            )
+
+        return result
 
     @overrides
     def close(self):
