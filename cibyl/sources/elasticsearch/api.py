@@ -472,6 +472,7 @@ one')
                    test_duration_arguments):
                 continue
 
+            # Duration comes in seconds. Convert to ms:
             if test_duration:
                 test_duration *= 1000
 
@@ -505,9 +506,8 @@ one')
         for test_duration_argument in test_duration_arguments:
             operator = RANGE_OPERATORS[test_duration_argument.operator]
             operand = test_duration_argument.operand
-            if operator(test_duration, float(operand)):
-                continue
-            return False
+            if not operator(test_duration, float(operand)):
+                return False
         return True
 
 
