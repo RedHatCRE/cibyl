@@ -21,7 +21,7 @@ from urllib.parse import urlsplit
 from elasticsearch.helpers import scan
 
 from cibyl.cli.argument import Argument
-from cibyl.exceptions.cli import MissingArgument
+from cibyl.cli.ranged_argument import RANGE_OPERATORS
 from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.build import Build
@@ -29,13 +29,14 @@ from cibyl.models.ci.job import Job
 from cibyl.models.ci.test import Test
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
-from cibyl.sources.source import Source, speed_index
+from cibyl.sources.server import ServerSource
+from cibyl.sources.source import speed_index
 from cibyl.utils.filtering import IP_PATTERN
 
 LOG = logging.getLogger(__name__)
 
 
-class ElasticSearchOSP(Source):
+class ElasticSearchOSP(ServerSource):
     """Used to perform queries in elasticsearch"""
 
     def __init__(self: object, driver: str = 'elasticsearch',
@@ -52,8 +53,9 @@ class ElasticSearchOSP(Source):
                 host = f"{url_parsed.scheme}://{url_parsed.hostname}"
                 port = url_parsed.port
             except Exception as exception:
-                raise ElasticSearchError('The URL given is not valid') \
-                    from exception
+                raise ElasticSearchError(
+                    'The URL given is not valid'
+                ) from exception
             self.es_client = ElasticSearchClient(host, port).connect()
 
     @speed_index({'base': 1})
@@ -106,8 +108,9 @@ class ElasticSearchOSP(Source):
                 size=10000
             )]
         except Exception as exception:
-            raise ElasticSearchError("Error getting the results.") \
-                from exception
+            raise ElasticSearchError(
+                "Error getting the results."
+            ) from exception
         return hits
 
     @speed_index({'base': 2})
@@ -364,10 +367,8 @@ class ElasticSearchOSP(Source):
             (if any) and the tests
             :rtype: :class:`AttributeDictValue`
         """
-        if not kwargs.get('builds') and not kwargs.get('last_build'):
-            raise MissingArgument('Please specify some builds (--builds) \
-to get the tests from. Or use (--last-build) to get the tests from the last \
-one')
+        self.check_builds_for_test(**kwargs)
+
         job_builds_found = self.get_builds(**kwargs)
         query_body = {
             "query": {
@@ -402,6 +403,10 @@ one')
             test_result_argument = [status.upper()
                                     for status in
                                     kwargs.get('test_result').value]
+
+        test_duration_arguments = []
+        if 'test_duration' in kwargs:
+            test_duration_arguments = kwargs.get('test_duration').value
 
         hits = []
         for job in job_builds_found:
@@ -450,7 +455,7 @@ one')
                     None
                 )
                 if test_duration:
-                    test_duration = float(test_duration)*1000
+                    test_duration = float(test_duration)
             except ValueError:
                 LOG.debug("'test_time' field is not well parsed in "
                           "elasticsearch for job: %s and build ID: %s",
@@ -458,6 +463,16 @@ one')
                           build_number
                           )
                 continue
+
+            if test_duration_arguments and \
+               not self.match_filter_test_by_duration(
+                   test_duration,
+                   test_duration_arguments):
+                continue
+
+            # Duration comes in seconds. Convert to ms:
+            if test_duration:
+                test_duration *= 1000
 
             job_builds_found[job_name].builds[build_number].add_test(
                 Test(
@@ -469,6 +484,29 @@ one')
             )
 
         return job_builds_found
+
+    def match_filter_test_by_duration(self: object,
+                                      test_duration: float,
+                                      test_duration_arguments: list) -> bool:
+        """Match if the duration of a test pass all the
+        conditions provided by the user that are located
+        in the arguments
+
+        :params test_duration: Duration of a job
+        :type node_name: float
+        :params test_duration_arguments: Conditions provided
+        by the user
+        :type list: str
+
+        :returns: Return if match all the conditions or no
+        :rtype: bool
+        """
+        for test_duration_argument in test_duration_arguments:
+            operator = RANGE_OPERATORS[test_duration_argument.operator]
+            operand = test_duration_argument.operand
+            if not operator(test_duration, float(operand)):
+                return False
+        return True
 
 
 class QueryTemplate():

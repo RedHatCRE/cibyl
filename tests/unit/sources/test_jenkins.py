@@ -22,6 +22,7 @@ import yaml
 
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.jenkins import JenkinsError
+from cibyl.exceptions.source import MissingArgument, SourceException
 from cibyl.plugins import extend_models
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
@@ -738,6 +739,16 @@ class TestJenkinsSource(TestCase):
 
         tests_found = job.builds.value['1'].tests
         self.assertEqual(len(tests_found), 0)
+
+    def test_get_tests_no_builds_info(self):
+        """Test that calling get_test without build informantion raises an
+        exception."""
+        self.assertRaises(MissingArgument, self.jenkins.get_tests)
+
+    def test_get_tests_no_builds_info_general_exception(self):
+        """Test that calling get_test without build informantion raises an
+        exception."""
+        self.assertRaises(SourceException, self.jenkins.get_tests)
 
     @patch("requests.get")
     def test_send_request(self, patched_get):

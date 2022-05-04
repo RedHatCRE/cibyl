@@ -16,7 +16,9 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.sources.source import is_source_valid
+from cibyl.exceptions.source import NoSupportedSourcesFound
+from cibyl.sources.source import get_source_method, is_source_valid
+from cibyl.sources.source_factory import SourceFactory
 
 
 class TestIsSourceValid(TestCase):
@@ -52,3 +54,30 @@ class TestIsSourceValid(TestCase):
         source.func = Mock()
 
         self.assertTrue(is_source_valid(source, 'func'))
+
+
+class TestGetSourceMethod(TestCase):
+    """Test the get_source_method function from source module."""
+    def test_get_source_methods_get_builds(self):
+        """Test that get_source_method returns the correct ordering after
+        asking for get_builds method."""
+        sources = [SourceFactory.create_source("zuul", "zuul", url="url"),
+                   SourceFactory.create_source("jenkins", "jenkins",
+                                               url="url")]
+
+        sources_out = get_source_method("test_system", sources, "get_builds",
+                                        {})
+
+        # get_source_method returns tuples of (source, speed index)
+        method, score = sources_out[0]
+        self.assertEqual(method.__self__.name, "zuul")
+        self.assertEqual(score, 3)
+        method, score = sources_out[1]
+        self.assertEqual(method.__self__.name, "jenkins")
+        self.assertEqual(score, 1)
+
+    def test_get_source_no_valid_sources(self):
+        """Test that get_source_method raises an exceptions with no valid
+        source."""
+        self.assertRaises(NoSupportedSourcesFound, get_source_method,
+                          "test_system", [], "get_builds", {})

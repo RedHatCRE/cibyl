@@ -18,7 +18,8 @@ from __future__ import print_function
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
-from cibyl.exceptions.cli import MissingArgument
+from cibyl.cli.argument import Argument
+from cibyl.exceptions.source import MissingArgument
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP, QueryTemplate
 
 
@@ -105,8 +106,9 @@ class TestElasticsearchOSP(TestCase):
                     'build_id': '1',
                     'build_num': '1',
                     'test_name': 'it_is_just_a_test',
-                    'time_duration': '0.001',
-                    'test_status': 'SUCCESS'
+                    'time_duration': '720',
+                    'test_status': 'SUCCESS',
+                    'test_time': '720',
                 }
             },
             {
@@ -118,7 +120,8 @@ class TestElasticsearchOSP(TestCase):
                     'build_num': '2',
                     'test_name': 'it_is_just_a_test2',
                     'time_duration': '0.0001_bad_parsed',
-                    'test_status': 'FAIL'
+                    'test_status': 'FAIL',
+                    'test_time': '0.0001_bad_parsed',
                 }
             }
         ]
@@ -141,8 +144,8 @@ class TestElasticsearchOSP(TestCase):
 
     @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
     def test_get_deployment(self: object, mock_query_hits: object) -> None:
-        """Tests that the internal logic from :meth:`ElasticSearchOSP.get_deployment`
-            is correct.
+        """Tests that the internal logic from
+        :meth:`ElasticSearchOSP.get_deployment` is correct.
         """
         mock_query_hits.return_value = self.build_hits
 
@@ -152,8 +155,8 @@ class TestElasticsearchOSP(TestCase):
         # We need to mock the Argument kwargs passed. In this case
         # ip_address
         ip_address_kwargs = MagicMock()
-        ip_adress_value = PropertyMock(return_value=[])
-        type(ip_address_kwargs).value = ip_adress_value
+        ip_address_value = PropertyMock(return_value=[])
+        type(ip_address_kwargs).value = ip_address_value
 
         jobs = self.es_api.get_deployment(jobs=jobs_argument,
                                           ip_version=ip_address_kwargs)
@@ -175,8 +178,8 @@ class TestElasticsearchOSP(TestCase):
         # We need to mock the Argument kwargs passed. In this case
         # ip_address
         ip_address_kwargs = MagicMock()
-        ip_adress_value = PropertyMock(return_value=['4'])
-        type(ip_address_kwargs).value = ip_adress_value
+        ip_address_value = PropertyMock(return_value=['4'])
+        type(ip_address_kwargs).value = ip_address_value
 
         builds = self.es_api.get_deployment(jobs=jobs_argument,
                                             ip_version=ip_address_kwargs)
@@ -248,6 +251,7 @@ class TestElasticsearchOSP(TestCase):
         with self.assertRaises(MissingArgument):
             self.es_api.get_tests()
 
+        #
         builds_kwargs = MagicMock()
         builds_value = PropertyMock(return_value=[])
         type(builds_kwargs).value = builds_value
@@ -263,6 +267,7 @@ class TestElasticsearchOSP(TestCase):
             1.000
         )
 
+        # Test Filtering by test_result
         builds_kwargs = MagicMock()
         builds_value = PropertyMock(return_value=['1', '2'])
         type(builds_kwargs).value = builds_value
@@ -282,6 +287,25 @@ class TestElasticsearchOSP(TestCase):
         )
         self.assertTrue('it_is_just_a_test' in
                         tests['test'].builds['1'].tests)
+
+        # Test Filtering by test_duration
+        test_duration = Argument("test_duration", arg_type=str, description="",
+                                 value=[">=600"], ranged=True)
+
+        tests = self.es_api.get_tests(
+            builds=builds_kwargs,
+            test_duration=test_duration
+        )
+
+        self.assertEqual(
+            len(tests['test'].builds['1'].tests),
+            1
+        )
+
+        self.assertEqual(
+            len(tests['test'].builds['2'].tests),
+            0
+        )
 
 
 class TestQueryTemplate(TestCase):
