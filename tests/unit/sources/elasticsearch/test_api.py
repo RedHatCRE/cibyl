@@ -18,6 +18,7 @@ from __future__ import print_function
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
+from cibyl.cli.argument import Argument
 from cibyl.exceptions.cli import MissingArgument
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP, QueryTemplate
 
@@ -105,8 +106,9 @@ class TestElasticsearchOSP(TestCase):
                     'build_id': '1',
                     'build_num': '1',
                     'test_name': 'it_is_just_a_test',
-                    'time_duration': '0.001',
-                    'test_status': 'SUCCESS'
+                    'time_duration': '720',
+                    'test_status': 'SUCCESS',
+                    'test_time': '720',
                 }
             },
             {
@@ -118,7 +120,8 @@ class TestElasticsearchOSP(TestCase):
                     'build_num': '2',
                     'test_name': 'it_is_just_a_test2',
                     'time_duration': '0.0001_bad_parsed',
-                    'test_status': 'FAIL'
+                    'test_status': 'FAIL',
+                    'test_time': '0.0001_bad_parsed',
                 }
             }
         ]
@@ -248,6 +251,7 @@ class TestElasticsearchOSP(TestCase):
         with self.assertRaises(MissingArgument):
             self.es_api.get_tests()
 
+        #
         builds_kwargs = MagicMock()
         builds_value = PropertyMock(return_value=[])
         type(builds_kwargs).value = builds_value
@@ -263,6 +267,7 @@ class TestElasticsearchOSP(TestCase):
             1.000
         )
 
+        # Test Filtering by test_result
         builds_kwargs = MagicMock()
         builds_value = PropertyMock(return_value=['1', '2'])
         type(builds_kwargs).value = builds_value
@@ -282,6 +287,25 @@ class TestElasticsearchOSP(TestCase):
         )
         self.assertTrue('it_is_just_a_test' in
                         tests['test'].builds['1'].tests)
+
+        # Test Filtering by test_duration
+        test_duration = Argument("test_duration", arg_type=str, description="",
+                                 value=[">=600"], ranged=True)
+
+        tests = self.es_api.get_tests(
+            builds=builds_kwargs,
+            test_duration=test_duration
+        )
+
+        self.assertEqual(
+            len(tests['test'].builds['1'].tests),
+            1
+        )
+
+        self.assertEqual(
+            len(tests['test'].builds['2'].tests),
+            0
+        )
 
 
 class TestQueryTemplate(TestCase):
