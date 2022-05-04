@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from unittest import TestCase, skip
+from unittest import TestCase
 
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 from cibyl.sources.jenkins import Jenkins
@@ -34,12 +34,11 @@ class TestSourceFactory(TestCase):
         self.assertEqual(source.driver, "jenkins")
         self.assertEqual(source.url, "url")
 
-    @skip("Until OSPCRE-427 is fixed")
     def test_create_elasticsearch_source(self):
         """Checks that a elasticsearch source is created."""
         source = SourceFactory.create_source("elasticsearch", "elastic_source",
                                              driver="elastic",
-                                             url="http://example.com:8080")
+                                             url="url")
         self.assertTrue(isinstance(source, ElasticSearchOSP))
         self.assertEqual(source.name, "elastic_source")
         self.assertEqual(source.driver, "elastic")

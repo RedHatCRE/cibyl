@@ -39,17 +39,23 @@ LOG = logging.getLogger(__name__)
 class ElasticSearchOSP(ServerSource):
     """Used to perform queries in elasticsearch"""
 
-    def __init__(self: object, driver: str = 'elasticsearch',
+    def __init__(self, driver: str = 'elasticsearch',
                  name: str = "elasticsearch", priority: int = 0,
                  enabled: bool = True, **kwargs) -> None:
         super().__init__(name=name, driver=driver, priority=priority,
                          enabled=enabled)
-
+        self.url = kwargs.get('url')
+        self.es_client = None
         if 'elastic_client' in kwargs:
             self.es_client = kwargs.get('elastic_client')
-        else:
+
+    def setup(self):
+        """ Ensure that a connection to the elasticsearch server can be
+        established.
+        """
+        if self.es_client is None:
             try:
-                url_parsed = urlsplit(kwargs.get('url'))
+                url_parsed = urlsplit(self.url)
                 host = f"{url_parsed.scheme}://{url_parsed.hostname}"
                 port = url_parsed.port
             except Exception as exception:
@@ -62,7 +68,7 @@ class ElasticSearchOSP(ServerSource):
     def get_jobs(self: object, **kwargs: Argument) -> list:
         """Get jobs from elasticsearch
 
-            :returns: Job objects queried from elasticserach
+            :returns: Job objects queried from elasticsearch
             :rtype: :class:`AttributeDictValue`
         """
         key_filter = 'job_name'
