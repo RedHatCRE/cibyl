@@ -72,6 +72,8 @@ def _get_jobs(zuul, **kwargs):
     result = []
 
     for tenant in _get_tenants(zuul, **kwargs):
+        # TODO: Fetch jobs in projects
+
         jobs = tenant.jobs()
 
         # Apply jobs filters
