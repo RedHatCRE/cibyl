@@ -15,6 +15,7 @@
 """
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
+from cibyl.models.ci.project import Project
 from cibyl.models.ci.tenant import Tenant
 
 
@@ -43,7 +44,16 @@ class ModelBuilder:
         return self
 
     def with_project(self, project):
-        pass
+        model = Project(project.name)
+
+        # Register the project's tenant
+        self.with_tenant(project.tenant)
+
+        # Register the project
+        tenant = self._get_tenant(project.tenant.name)
+        tenant.add_project(model)
+
+        return self
 
     def with_job(self, job):
         """Adds a job to the current model being built. If the job is
@@ -57,15 +67,13 @@ class ModelBuilder:
         """
         model = Job(job.name, job.url)
 
+        # Register the job's tenant
+        self.with_tenant(job.tenant)
+
+        # Register the job
         tenant = self._get_tenant(job.tenant.name)
-
-        # Is the job's tenant on the model?
-        if not tenant:
-            # Add it then
-            self.with_tenant(job.tenant)
-            tenant = self._get_tenant(job.tenant.name)
-
         tenant.add_job(model)
+
         return self
 
     def with_build(self, build):
@@ -84,15 +92,13 @@ class ModelBuilder:
             build.data['duration']
         )
 
+        # Register the build's job
+        self.with_job(build.job)
+
+        # Register the build
         job = self._get_job(build.job.name)
-
-        # Is the build's job on the model?
-        if not job:
-            # Add it then
-            self.with_job(build.job)
-            job = self._get_job(build.job.name)
-
         job.add_build(model)
+
         return self
 
     def assemble(self):
