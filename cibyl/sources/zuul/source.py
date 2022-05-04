@@ -39,17 +39,17 @@ class Zuul(Source):
             ['tenant_1', 'tenant_2']
         """
 
-    def __init__(self, api, name, driver, url, fallbacks=None, **kwargs):
+    def __init__(self, name, driver, url, cert=None, fallbacks=None, **kwargs):
         """Constructor.
 
-        :param api: Medium of communication with host.
-        :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
         :param name: Name of the source.
         :type name: str
         :param driver: Driver used by the source.
         :type driver: str
         :param url: Address where the host is located.
         :type url: str
+        :param cert: See :meth:`ZuulRESTClient.from_url`
+        :type cert: str or None
         :param fallbacks: Default search terms to be used for missing query
             arguments.
         :type fallbacks: :class:`Zuul.Fallbacks` or None
@@ -64,9 +64,9 @@ class Zuul(Source):
         if url.endswith('/'):
             url = url[:-1]  # Removes last character of string
 
-        super().__init__(name, driver, url=url, **kwargs)
+        super().__init__(name, driver, url=url, cert=cert, **kwargs)
 
-        self._api = api
+        self._api = None
         self._fallbacks = fallbacks
 
     @staticmethod
@@ -92,9 +92,6 @@ class Zuul(Source):
         :return: The instance.
         """
 
-        def new_api():
-            return ZuulRESTClient.from_url(url, cert)
-
         def new_fallbacks_from(*args):
             """
             :param args: Arguments to generate fallbacks for.
@@ -114,14 +111,13 @@ class Zuul(Source):
         kwargs.setdefault('name', 'zuul-ci')
         kwargs.setdefault('driver', 'zuul')
 
-        api = new_api()
         fallbacks = new_fallbacks_from('tenants')
 
-        return Zuul(api=api, url=url, fallbacks=fallbacks, **kwargs)
+        return Zuul(url=url, cert=cert, fallbacks=fallbacks, **kwargs)
 
     @overrides
     def setup(self):
-        pass
+        self._api = ZuulRESTClient.from_url(self.url, self.cert)
 
     @overrides
     def teardown(self):

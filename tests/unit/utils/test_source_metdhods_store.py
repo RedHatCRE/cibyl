@@ -26,7 +26,7 @@ class TestSourceMethodsStore(TestCase):
     def setUp(self):
         self.cache = SourceMethodsStore()
         self.jenkins = Jenkins(url="", name="jenkins_source")
-        self.zuul = Zuul(api=None, name="zuul_source", driver="zuul", url="")
+        self.zuul = Zuul(name="zuul_source", driver="zuul", url="")
 
     def test_add_call(self):
         """Test add_call method."""
