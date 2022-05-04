@@ -27,7 +27,7 @@ class TestElasticSearch(EndToEndTest):
     def test_jobs(self):
         """Checks that jobs are retrieved with the "--jobs" flag.
         """
-        with ElasticSearchContainer():
+        with ElasticSearchContainer(index_name='logstash_jenkins_jobs'):
             sys.argv = [
                 '',
                 '--config', 'tests/e2e/data/configs/elasticsearch.yaml',
