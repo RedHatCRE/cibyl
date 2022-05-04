@@ -216,6 +216,10 @@ class TenantResponse:
         return self._tenant.name
 
     def projects(self):
+        """
+        :return: A request for this tenant's projects.
+        :rtype: :class:`ProjectsRequest`
+        """
         return ProjectsRequest(self._tenant)
 
     def jobs(self):
@@ -244,10 +248,10 @@ class ProjectResponse:
     @property
     def tenant(self):
         """
-        :return: API to the project's tenant.
-        :rtype:class:`cibyl.sources.zuul.api.ZuulTenantAPI`
+        :return: Response to this project's tenant.
+        :rtype: :class:`TenantResponse`
         """
-        return self._tenant
+        return TenantResponse(self._tenant)
 
     @property
     def name(self):
@@ -276,10 +280,10 @@ class JobResponse:
     @property
     def tenant(self):
         """
-        :return: API to the job's tenant.
-        :rtype:class:`cibyl.sources.zuul.api.ZuulTenantAPI`
+        :return: Response to this job's tenant.
+        :rtype: :class:`TenantResponse`
         """
-        return self._tenant
+        return TenantResponse(self._tenant)
 
     @property
     def name(self):
@@ -323,10 +327,10 @@ class BuildResponse:
     @property
     def job(self):
         """
-        :return: API to the build's job.
-        :rtype: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
+        :return: Response for this build's job.
+        :rtype: :class:`JobResponse`
         """
-        return self._job
+        return JobResponse(self._job.tenant, self._job)
 
     @property
     def data(self):
