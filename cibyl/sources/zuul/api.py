@@ -25,7 +25,7 @@ class ZuulAPIError(SourceException):
     """
 
 
-class ZuulJobAPI(Closeable, PipelinesProvider, ABC):
+class ZuulJobAPI(Closeable, ABC):
     """Interface which defines the information that can be retrieved from
     Zuul regarding a particular job.
     """
@@ -66,10 +66,6 @@ class ZuulJobAPI(Closeable, PipelinesProvider, ABC):
         :return: URL where this job can be consulted at.
         :rtype: str
         """
-        raise NotImplementedError
-
-    @abstractmethod
-    def pipelines(self):
         raise NotImplementedError
 
     @abstractmethod

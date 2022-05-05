@@ -361,9 +361,6 @@ class JobResponse:
         """
         return self._job.url
 
-    def pipelines(self):
-        return PipelinesRequest(self._job)
-
     def builds(self):
         """
         :return: A request to this job's builds.

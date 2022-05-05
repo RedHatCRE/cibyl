@@ -113,44 +113,6 @@ class TestZuulJobRESTClient(TestCase):
             client.url
         )
 
-    def test_pipelines(self):
-        """Checks call to 'pipelines' end-point.
-        """
-        job = {
-            'name': 'job'
-        }
-
-        session = Mock()
-
-        pipeline1 = Mock()
-        pipeline1.name = 'pipeline1'
-        pipeline1.jobs = Mock()
-
-        pipeline2 = Mock()
-        pipeline2.name = 'pipeline2'
-        pipeline2.jobs = Mock()
-
-        project = Mock()
-        project.pipelines = Mock()
-        project.pipelines.return_value = [pipeline1, pipeline2]
-
-        tenant = Mock()
-        tenant.name = 'tenant'
-        tenant.projects = Mock()
-        tenant.projects.return_value = [project]
-
-        pipeline1.jobs.return_value = [ZuulJobRESTClient(session, tenant, job)]
-        pipeline2.jobs.return_value = []
-
-        client = ZuulJobRESTClient(session, tenant, job)
-
-        self.assertEqual([pipeline1], client.pipelines())
-
-        pipeline1.jobs.assert_called_once()
-        pipeline2.jobs.assert_called_once()
-        project.pipelines.assert_called_once()
-        tenant.projects.assert_called_once()
-
     def test_builds(self):
         """Checks that the current steps are taken to get the builds
         of this job.
@@ -213,21 +175,15 @@ class TestZuulPipelineRESTClient(TestCase):
     def test_jobs(self):
         """Checks call to 'jobs' end-point.
         """
-
-        def get_job(url):
-            if url == f"tenant/{project.tenant.name}/job/{jobs[0]['name']}":
-                return jobs[0]
-
-            if url == f"tenant/{project.tenant.name}/job/{jobs[1]['name']}":
-                return jobs[1]
-
         jobs = [
-            {
-                'name': 'job1'
-            },
-            {
-                'name': 'job2'
-            }
+            [
+                {
+                    'name': 'job1'
+                },
+                {
+                    'name': 'job2'
+                }
+            ]
         ]
 
         pipeline = {
@@ -236,8 +192,6 @@ class TestZuulPipelineRESTClient(TestCase):
         }
 
         session = Mock()
-        session.get = Mock()
-        session.get.side_effect = get_job
 
         project = Mock()
         project.name = 'project'
@@ -248,18 +202,10 @@ class TestZuulPipelineRESTClient(TestCase):
 
         self.assertEqual(
             [
-                ZuulJobRESTClient(session, project.tenant, jobs[0]),
-                ZuulJobRESTClient(session, project.tenant, jobs[1])
+                ZuulJobRESTClient(session, project.tenant, jobs[0][0]),
+                ZuulJobRESTClient(session, project.tenant, jobs[0][1])
             ],
             client.jobs()
-        )
-
-        session.get.assert_any_call(
-            f"tenant/{project.tenant.name}/job/{jobs[0]['name']}"
-        )
-
-        session.get.assert_any_call(
-            f"tenant/{project.tenant.name}/job/{jobs[1]['name']}"
         )
 
 

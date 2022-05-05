@@ -133,17 +133,6 @@ class ZuulJobRESTClient(ZuulJobAPI):
         return f"{base}/t/{tenant.name}/job/{self.name}"
 
     @overrides
-    def pipelines(self):
-        result = []
-
-        for project in self.tenant.projects():
-            for pipeline in project.pipelines():
-                if self in pipeline.jobs():
-                    result.append(pipeline)
-
-        return result
-
-    @overrides
     def builds(self):
         return self._session.get(
             f'tenant/{self.tenant.name}/builds?job_name={self.name}'
@@ -173,10 +162,12 @@ class ZuulPipelineRESTClient(ZuulPipelineAPI):
     def jobs(self):
         result = []
 
-        for section in self._pipeline['jobs']:
-            for job in section:
+        for job in self._pipeline['jobs']:
+            for variant in job:
                 result.append(
-                    ZuulJobRESTClient(self._session, self._project.tenant, job)
+                    ZuulJobRESTClient(
+                        self._session, self._project.tenant, variant
+                    )
                 )
 
         return result
