@@ -15,6 +15,7 @@
 """
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
+from cibyl.models.ci.pipeline import Pipeline
 from cibyl.models.ci.project import Project
 from cibyl.models.ci.tenant import Tenant
 
@@ -61,6 +62,16 @@ class ModelBuilder:
         # Register the project
         tenant = self._get_tenant(project.tenant.name)
         tenant.add_project(model)
+
+        return self
+
+    def with_pipeline(self, pipeline):
+        model = Pipeline(pipeline.name)
+
+        self.with_project(pipeline.project)
+
+        project = self._get_project(pipeline.project.name)
+        project.add_pipeline(model)
 
         return self
 
@@ -127,6 +138,11 @@ class ModelBuilder:
         :rtype: :class:`Tenant` or None
         """
         return self._tenants.get(name)
+
+    def _get_project(self, name):
+        for tenant in self._tenants.values():
+            if name in tenant.projects.value:
+                return tenant.projects.value[name]
 
     def _get_job(self, name):
         """Searches the model for a certain job.
