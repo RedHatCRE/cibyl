@@ -159,6 +159,10 @@ class Zuul(ServerSource):
         return self.get_tenants(**kwargs)
 
     @speed_index({'base': 2})
+    def get_pipelines(self, **kwargs):
+        return self.get_projects(**kwargs)
+
+    @speed_index({'base': 3})
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 
@@ -173,7 +177,7 @@ class Zuul(ServerSource):
         """
         return self.get_tenants(**kwargs)
 
-    @speed_index({'base': 3})
+    @speed_index({'base': 4})
     def get_builds(self, **kwargs):
         """Retrieves builds present on the host.
 

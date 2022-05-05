@@ -173,16 +173,11 @@ class ZuulPipelineRESTClient(ZuulPipelineAPI):
     def jobs(self):
         result = []
 
-        for job in self._pipeline['jobs']:
-            result.append(
-                ZuulJobRESTClient(
-                    self._session,
-                    self._project.tenant,
-                    self._session.get(
-                        f"tenant/{self._project.tenant.name}/job/{job['name']}"
-                    )
+        for section in self._pipeline['jobs']:
+            for job in section:
+                result.append(
+                    ZuulJobRESTClient(self._session, self._project.tenant, job)
                 )
-            )
 
         return result
 
