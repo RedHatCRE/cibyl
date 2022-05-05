@@ -106,6 +106,22 @@ class ProjectsRequest(Request):
         return [ProjectResponse(project) for project in projects]
 
 
+class PipelinesRequest(Request):
+    def __init__(self, project):
+        super().__init__()
+
+        self._project = project
+
+    def with_name(self, *name):
+        self._filters.append(lambda pipeline: pipeline.name in name)
+        return self
+
+    def get(self):
+        pipelines = apply_filters(self._project.pipelines(), *self._filters)
+
+        return [PipelineResponse(pipeline) for pipeline in pipelines]
+
+
 class JobsRequest(Request):
     """High-Level petition focused on retrieval of data related to jobs.
     """
@@ -277,6 +293,22 @@ class ProjectResponse:
         :rtype: str
         """
         return self._project.name
+
+    def pipelines(self):
+        return PipelinesRequest(self._project)
+
+
+class PipelineResponse:
+    def __init__(self, pipeline):
+        self._pipeline = pipeline
+
+    @property
+    def project(self):
+        return self._pipeline.project
+
+    @property
+    def name(self):
+        return self._pipeline.name
 
 
 class JobResponse:
