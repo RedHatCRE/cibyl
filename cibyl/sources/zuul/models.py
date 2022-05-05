@@ -25,24 +25,6 @@ class ModelBuilder:
     Zuul host.
     """
 
-    class PipelineBuilder:
-        def __init__(self, parent, pipeline):
-            """
-
-            :param parent:
-            :type parent: :class:`ModelBuilder`
-            :param pipeline:
-            """
-            self._parent = parent
-            self._pipeline = pipeline
-
-        def plus_job(self, job):
-            self._pipeline.add_job(self._parent._get_job(job.name))
-            return self
-
-        def done(self):
-            return self._parent
-
     def __init__(self):
         """Constructor.
         """
@@ -54,13 +36,16 @@ class ModelBuilder:
 
         :param tenant: The tenant to add.
         :type tenant: :class:`cibyl.sources.zuul.requests.TenantResponse`
-        :return: The builder's instance.
-        :rtype: :class:`ModelBuilder`
+        :return: Model for this tenant.
+        :rtype: :class:`Tenant`
         """
-        if not self._get_tenant(tenant.name):
-            self._tenants[tenant.name] = Tenant(tenant.name)
+        model = self._tenants.get(tenant.name, Tenant(tenant.name))
 
-        return self
+        # Register the tenant
+        if tenant.name not in self._tenants:
+            self._tenants[tenant.name] = model
+
+        return model
 
     def with_project(self, project):
         """Adds a project to the current model being built. If the project is
@@ -69,31 +54,24 @@ class ModelBuilder:
 
         :param project: The project to add.
         :type project: :class:`cibyl.sources.zuul.requests.ProjectResponse`
-        :return: The builder's instance.
-        :rtype: :class:`ModelBuilder`
+        :return: Model for this project.
+        :rtype: :class:`Project`
         """
         model = Project(project.name)
 
-        # Register the project's tenant
-        self.with_tenant(project.tenant)
-
         # Register the project
-        tenant = self._get_tenant(project.tenant.name)
+        tenant = self.with_tenant(project.tenant)
         tenant.add_project(model)
 
-        return self
+        return model
 
     def with_pipeline(self, pipeline):
         model = Pipeline(pipeline.name)
 
-        # Register the pipeline's project
-        self.with_project(pipeline.project)
-
-        # Register the pipeline
-        project = self._get_project(pipeline.project.name)
+        project = self.with_project(pipeline.project)
         project.add_pipeline(model)
 
-        return ModelBuilder.PipelineBuilder(self, model)
+        return model
 
     def with_job(self, job):
         """Adds a job to the current model being built. If the job is
@@ -102,19 +80,16 @@ class ModelBuilder:
 
         :param job: The job to add.
         :type job: :class:`cibyl.sources.zuul.requests.JobResponse`
-        :return: The builder's instance.
-        :rtype: :class:`ModelBuilder`
+        :return: Model for this job.
+        :rtype: :class:`Job`
         """
         model = Job(job.name, job.url)
 
-        # Register the job's tenant
-        self.with_tenant(job.tenant)
-
         # Register the job
-        tenant = self._get_tenant(job.tenant.name)
+        tenant = self.with_tenant(job.tenant)
         tenant.add_job(model)
 
-        return self
+        return model
 
     def with_build(self, build):
         """Adds a build to the current model being built. If the build is
@@ -123,8 +98,8 @@ class ModelBuilder:
 
         :param build: The build to add.
         :type build: :class:`cibyl.sources.zuul.requests.BuildResponse`
-        :return: The builder's instance.
-        :rtype: :class:`ModelBuilder`
+        :return: Model for this build.
+        :rtype: :class:`Builder`
         """
         model = Build(
             build.data['uuid'],
@@ -132,14 +107,11 @@ class ModelBuilder:
             build.data['duration']
         )
 
-        # Register the build's job
-        self.with_job(build.job)
-
         # Register the build
-        job = self._get_job(build.job.name)
+        job = self.with_job(build.job)
         job.add_build(model)
 
-        return self
+        return model
 
     def assemble(self):
         """Generates the CI model.
@@ -148,36 +120,3 @@ class ModelBuilder:
         :rtype: dict[str, :class:`Tenant`]
         """
         return self._tenants
-
-    def _get_tenant(self, name):
-        """Searches the model for a certain tenant.
-
-        :param name: Name of the tenant.
-        :type name: str
-        :return: The tenant's model.
-        :rtype: :class:`Tenant` or None
-        """
-        return self._tenants.get(name)
-
-    def _get_project(self, name):
-        for tenant in self._tenants.values():
-            if name in tenant.projects.value:
-                return tenant.projects.value[name]
-
-    def _get_pipeline(self, name):
-        for tenant in self._tenants.values():
-            for project in tenant.projects.value:
-                if name in project.pipelines.value:
-                    return project.pipelines.value[name]
-
-    def _get_job(self, name):
-        """Searches the model for a certain job.
-
-        :param name: Name of the job.
-        :type name: str
-        :return: The job's model.
-        :rtype: :class:`Job` or None
-        """
-        for tenant in self._tenants.values():
-            if name in tenant.jobs.value:
-                return tenant.jobs.value[name]
