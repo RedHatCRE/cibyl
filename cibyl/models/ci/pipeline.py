@@ -51,6 +51,9 @@ class Pipeline(Model):
         if not isinstance(other, Pipeline):
             return False
 
+        if self.jobs != other.jobs:
+            return False
+
         return self.name == other.name
 
     def merge(self, other):
