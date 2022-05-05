@@ -100,8 +100,6 @@ class Orchestrator:
                                 **source_data
                             )
                         )
-                        if sources[-1].enabled:
-                            sources[-1].setup()
 
                     environment.add_system(
                         name=system_name,
@@ -110,7 +108,7 @@ class Orchestrator:
                     )
 
                 self.environments.append(environment)
-                self.set_system_api()
+            self.set_system_api()
         except AttributeError as exception:
             raise InvalidConfiguration from exception
 
@@ -150,16 +148,29 @@ class Orchestrator:
         return get_source_method(system.name.value, system_sources,
                                  argument.func, args=self.parser.ci_args)
 
-    def run_query(self, start_level=1):
-        """Execute query based on provided arguments."""
-        last_level = -1
-        validator = Validator(self.parser.ci_args)
-        source_methods_store = SourceMethodsStore()
+    def validate_environments(self):
+        """Validate and filter environments created from configuration file
+        according to user input."""
         # we keep only the environments consistent with the user input, this
         # should be helpful for the publisher to avoid showing unnecessary
         # information
-        self.environments, valid_systems = validator.validate_environments(
-                self.environments)
+        validator = Validator(self.parser.ci_args)
+        self.environments = validator.validate_environments(self.environments)
+
+    def setup_sources(self):
+        """Setup all enabled sources present in the environment."""
+        for env in self.environments:
+            for system in env.systems:
+                for source in system.sources:
+                    if source.enabled:
+                        source.setup()
+
+    def run_query(self, start_level=1):
+        """Execute query based on provided arguments."""
+        last_level = -1
+        source_methods_store = SourceMethodsStore()
+        valid_systems = [system for env in self.environments
+                         for system in env.systems]
         debug = self.parser.app_args.get("debug", False)
         for arg in sorted(self.parser.ci_args.values(),
                           key=operator.attrgetter('level'), reverse=True):

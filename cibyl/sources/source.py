@@ -85,6 +85,10 @@ class Source(AttrDict):
         """Release any resources allocated during setup."""
         pass
 
+    def disable(self):
+        """Set source as disabled."""
+        self.enabled = False
+
 
 def is_source_valid(source: Source, desired_attr: str):
     """Checks if a source can be considered valid to perform a query.
