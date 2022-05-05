@@ -39,7 +39,10 @@ class ModelBuilder:
         :return: Model for this tenant.
         :rtype: :class:`Tenant`
         """
-        model = self._tenants.get(tenant.name, Tenant(tenant.name))
+        model = self._tenants.get(
+            tenant.name,
+            Tenant(tenant.name)
+        )
 
         # Register the tenant
         if tenant.name not in self._tenants:
@@ -57,18 +60,31 @@ class ModelBuilder:
         :return: Model for this project.
         :rtype: :class:`Project`
         """
-        model = Project(project.name)
-
-        # Register the project
+        # Register this project's tenant
         tenant = self.with_tenant(project.tenant)
+
+        # Check if the project already exists
+        model = tenant.projects.get(
+            project.name,
+            Project(project.name)
+        )
+
+        # Register this project
         tenant.add_project(model)
 
         return model
 
     def with_pipeline(self, pipeline):
-        model = Pipeline(pipeline.name)
-
+        # Register this pipeline's project
         project = self.with_project(pipeline.project)
+
+        # Check if the pipeline already exists
+        model = project.pipelines.get(
+            pipeline.name,
+            Pipeline(pipeline.name)
+        )
+
+        # Register the pipeline
         project.add_pipeline(model)
 
         return model
@@ -83,10 +99,16 @@ class ModelBuilder:
         :return: Model for this job.
         :rtype: :class:`Job`
         """
-        model = Job(job.name, job.url)
+        # Register this job's tenant
+        tenant = self.with_tenant(job.tenant)
+
+        # Check if the job already exists
+        model = tenant.jobs.get(
+            job.name,
+            Job(job.name, job.url)
+        )
 
         # Register the job
-        tenant = self.with_tenant(job.tenant)
         tenant.add_job(model)
 
         return model
@@ -101,14 +123,20 @@ class ModelBuilder:
         :return: Model for this build.
         :rtype: :class:`Builder`
         """
-        model = Build(
+        # Register this build's job
+        job = self.with_job(build.job)
+
+        # Check if the build already exists
+        model = job.builds.get(
             build.data['uuid'],
-            build.data['result'],
-            build.data['duration']
+            Build(
+                build.data['uuid'],
+                build.data['result'],
+                build.data['duration']
+            )
         )
 
         # Register the build
-        job = self.with_job(build.job)
         job.add_build(model)
 
         return model
