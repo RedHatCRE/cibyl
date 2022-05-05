@@ -436,6 +436,78 @@ class TestHandleQuery(TestCase):
             result.value
         )
 
+    def test_get_pipelines_through_jobs(self):
+        """Checks that "--jobs" also returns the pipelines of the jobs.
+        """
+        pipeline1 = Mock()
+        pipeline1.name = 'pipeline1'
+
+        pipeline2 = Mock()
+        pipeline2.name = 'pipeline2'
+
+        pipeline3 = Mock()
+        pipeline3.name = 'pipeline3'
+
+        job = Mock()
+        job.name = 'job1'
+        job.url = 'url1'
+        job.pipelines = Mock()
+        job.pipelines.return_value = [pipeline1, pipeline2]
+
+        project = Mock()
+        project.name = 'project'
+        project.pipelines = Mock()
+        project.pipelines.return_value = [pipeline1, pipeline2, pipeline3]
+
+        tenant = Mock()
+        tenant.name = 'tenant1'
+        tenant.projects = Mock()
+        tenant.projects.return_value = [project]
+        tenant.jobs = Mock()
+        tenant.jobs.return_value = [job]
+
+        api = Mock()
+        api.tenants = Mock()
+        api.tenants.return_value = [tenant]
+
+        job.tenant = tenant
+
+        in_jobs = Mock()
+        in_jobs.value = None
+
+        result = handle_query(api, jobs=in_jobs)
+
+        self.assertEqual(
+            {
+                tenant.name: Tenant(
+                    tenant.name,
+                    projects={
+                        project.name: Project(
+                            project.name,
+                            pipelines={
+                                pipeline1.name: Pipeline(
+                                    pipeline1.name,
+                                    jobs={
+                                        job.name: Job(job.name, job.url)
+                                    }
+                                ),
+                                pipeline2.name: Pipeline(
+                                    pipeline2.name,
+                                    jobs={
+                                        job.name: Job(job.name, job.url)
+                                    }
+                                )
+                            }
+                        )
+                    },
+                    jobs={
+                        job.name: Job(job.name, job.url)
+                    }
+                )
+            },
+            result.value
+        )
+
     def test_get_all_builds(self):
         """Checks the '--builds' option.
         """
