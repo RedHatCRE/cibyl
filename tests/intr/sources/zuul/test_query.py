@@ -441,12 +441,15 @@ class TestHandleQuery(TestCase):
         """
         pipeline1 = Mock()
         pipeline1.name = 'pipeline1'
+        pipeline1.jobs = Mock()
 
         pipeline2 = Mock()
         pipeline2.name = 'pipeline2'
+        pipeline2.jobs = Mock()
 
         pipeline3 = Mock()
         pipeline3.name = 'pipeline3'
+        pipeline3.jobs = Mock()
 
         job = Mock()
         job.name = 'job1'
@@ -475,6 +478,10 @@ class TestHandleQuery(TestCase):
         pipeline1.project = project
         pipeline2.project = project
         pipeline3.project = project
+
+        pipeline1.jobs.return_value = [job]
+        pipeline2.jobs.return_value = [job]
+        pipeline3.jobs.return_value = []
 
         job.tenant = tenant
 
