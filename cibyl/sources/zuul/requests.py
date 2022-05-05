@@ -150,7 +150,7 @@ class JobsRequest(Request):
         """
         jobs = apply_filters(self._tenant.jobs(), *self._filters)
 
-        return [JobResponse(self._tenant, job) for job in jobs]
+        return [JobResponse(job) for job in jobs]
 
 
 class BuildsRequest(Request):
@@ -286,15 +286,12 @@ class JobResponse:
     """Response for a :class:`JobsRequest`.
     """
 
-    def __init__(self, tenant, job):
+    def __init__(self, job):
         """Constructor.
 
-        :param tenant: Low-Level API to access this job's tenant.
-        :type tenant: :class:`cibyl.sources.zuul.api.ZuulTenantAPI`
         :param job: Low-Level API to access the job's data.
         :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
         """
-        self._tenant = tenant
         self._job = job
 
     @property
@@ -303,7 +300,7 @@ class JobResponse:
         :return: Response to this job's tenant.
         :rtype: :class:`TenantResponse`
         """
-        return TenantResponse(self._tenant)
+        return TenantResponse(self._job.tenant)
 
     @property
     def name(self):
@@ -350,7 +347,7 @@ class BuildResponse:
         :return: Response for this build's job.
         :rtype: :class:`JobResponse`
         """
-        return JobResponse(self._job.tenant, self._job)
+        return JobResponse(self._job)
 
     @property
     def data(self):

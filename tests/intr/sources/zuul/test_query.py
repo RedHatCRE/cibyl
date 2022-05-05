@@ -189,6 +189,9 @@ class TestHandleQuery(TestCase):
         api.tenants = Mock()
         api.tenants.return_value = [tenant]
 
+        job1.tenant = tenant
+        job2.tenant = tenant
+
         in_jobs = Mock()
         in_jobs.value = None
 
@@ -231,6 +234,10 @@ class TestHandleQuery(TestCase):
         api.tenants = Mock()
         api.tenants.return_value = [tenant]
 
+        job1.tenant = tenant
+        job2.tenant = tenant
+        job3.tenant = tenant
+
         in_jobs = Mock()
         in_jobs.value = [job1.name]
 
@@ -271,6 +278,10 @@ class TestHandleQuery(TestCase):
         api = Mock()
         api.tenants = Mock()
         api.tenants.return_value = [tenant]
+
+        job1.tenant = tenant
+        job2.tenant = tenant
+        job3.tenant = tenant
 
         in_jobs = Mock()
         in_jobs.value = None
