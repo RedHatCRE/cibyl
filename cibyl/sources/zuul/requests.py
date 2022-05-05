@@ -107,17 +107,17 @@ class ProjectsRequest(Request):
 
 
 class PipelinesRequest(Request):
-    def __init__(self, project):
+    def __init__(self, provider):
         super().__init__()
 
-        self._project = project
+        self._provider = provider
 
     def with_name(self, *name):
         self._filters.append(lambda pipeline: pipeline.name in name)
         return self
 
     def get(self):
-        pipelines = apply_filters(self._project.pipelines(), *self._filters)
+        pipelines = apply_filters(self._provider.pipelines(), *self._filters)
 
         return [PipelineResponse(pipeline) for pipeline in pipelines]
 
@@ -126,15 +126,15 @@ class JobsRequest(Request):
     """High-Level petition focused on retrieval of data related to jobs.
     """
 
-    def __init__(self, tenant):
+    def __init__(self, provider):
         """Constructor.
 
-        :param tenant: Low-Level API to the tenant to get the jobs from.
-        :type tenant: :class:`cibyl.sources.zuul.api.ZuulTenantAPI`
+        :param provider: Low-Level API to the provider to get the jobs from.
+        :type provider: :class:`cibyl.sources.zuul.providers.JobsProvider`
         """
         super().__init__()
 
-        self._tenant = tenant
+        self._provider = provider
 
     def with_name(self, *name):
         """Will limit request to jobs with a certain name.
@@ -164,7 +164,7 @@ class JobsRequest(Request):
         :return: Answer from the host.
         :rtype: :class:`JobResponse`
         """
-        jobs = apply_filters(self._tenant.jobs(), *self._filters)
+        jobs = apply_filters(self._provider.jobs(), *self._filters)
 
         return [JobResponse(job) for job in jobs]
 
@@ -310,6 +310,9 @@ class PipelineResponse:
     def name(self):
         return self._pipeline.name
 
+    def jobs(self):
+        return JobsRequest(self._pipeline)
+
 
 class JobResponse:
     """Response for a :class:`JobsRequest`.
@@ -346,6 +349,9 @@ class JobResponse:
         :rtype: str
         """
         return self._job.url
+
+    def pipelines(self):
+        return PipelinesRequest(self._job)
 
     def builds(self):
         """

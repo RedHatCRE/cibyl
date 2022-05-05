@@ -16,6 +16,7 @@
 from abc import ABC, abstractmethod
 
 from cibyl.exceptions.source import SourceException
+from cibyl.sources.zuul.providers import JobsProvider, PipelinesProvider
 from cibyl.utils.io import Closeable
 
 
@@ -24,7 +25,7 @@ class ZuulAPIError(SourceException):
     """
 
 
-class ZuulJobAPI(Closeable, ABC):
+class ZuulJobAPI(Closeable, PipelinesProvider, ABC):
     """Interface which defines the information that can be retrieved from
     Zuul regarding a particular job.
     """
@@ -81,7 +82,7 @@ class ZuulJobAPI(Closeable, ABC):
         raise NotImplementedError
 
 
-class ZuulPipelineAPI(Closeable, ABC):
+class ZuulPipelineAPI(Closeable, JobsProvider, ABC):
     def __init__(self, project, pipeline):
         self._project = project
         self._pipeline = pipeline
@@ -99,7 +100,7 @@ class ZuulPipelineAPI(Closeable, ABC):
         raise NotImplementedError
 
 
-class ZuulProjectAPI(Closeable, ABC):
+class ZuulProjectAPI(Closeable, PipelinesProvider, ABC):
     """Interface which defines the information that can be retrieved from
     Zuul regarding a particular project.
     """
@@ -147,7 +148,7 @@ class ZuulProjectAPI(Closeable, ABC):
         raise NotImplementedError
 
 
-class ZuulTenantAPI(Closeable, ABC):
+class ZuulTenantAPI(Closeable, JobsProvider, ABC):
     """Interface which defines the information that can be retrieved from
     Zuul regarding a particular tenant.
     """
