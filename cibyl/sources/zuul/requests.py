@@ -77,7 +77,7 @@ class ProjectsRequest(Request):
     def __init__(self, tenant):
         """Constructor.
 
-        :param tenant: Low-Level API to access this job's tenant.
+        :param tenant: Low-Level API to the tenant to get the projects from.
         :type tenant: :class:`cibyl.sources.zuul.api.ZuulTenantAPI`
         """
         super().__init__()
@@ -129,7 +129,7 @@ class JobsRequest(Request):
     def __init__(self, tenant):
         """Constructor.
 
-        :param tenant: Low-Level API to access this job's tenant.
+        :param tenant: Low-Level API to the tenant to get the jobs from.
         :type tenant: :class:`cibyl.sources.zuul.api.ZuulTenantAPI`
         """
         super().__init__()
@@ -176,7 +176,7 @@ class BuildsRequest(Request):
     def __init__(self, job):
         """Constructor.
 
-        :param job: Low-Level API to access this build's job.
+        :param job: Low-Level API to the job to get the builds from.
         :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
         """
         super().__init__()
