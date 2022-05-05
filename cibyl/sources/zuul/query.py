@@ -60,6 +60,23 @@ def _get_builds(zuul, **kwargs):
     return result
 
 
+def _get_pipelines(zuul, **kwargs):
+    result = []
+
+    for project in _get_projects(zuul, **kwargs):
+        pipelines = project.pipelines()
+
+        if 'pipelines' in kwargs:
+            targets = kwargs['pipelines'].value
+
+            if targets:
+                pipelines.with_name(*targets)
+
+        result += pipelines.get()
+
+    return result
+
+
 def _get_jobs(zuul, **kwargs):
     """Query for jobs.
 
@@ -196,6 +213,10 @@ def handle_query(api, **kwargs):
     if query == QueryType.PROJECTS:
         for project in _get_projects(api, **kwargs):
             model.with_project(project)
+
+    if query == QueryType.PIPELINES:
+        for pipeline in _get_pipelines(api, **kwargs):
+            model.with_pipeline(pipeline)
 
     if query == QueryType.JOBS:
         for job in _get_jobs(api, **kwargs):
