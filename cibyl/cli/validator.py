@@ -97,6 +97,10 @@ class Validator:
         user_sources = self.ci_args.get("sources")
         if user_sources:
             user_sources_names = set(user_sources.value)
+            unused_sources = system_sources-user_sources_names
+            for source in system.sources:
+                if source.name in unused_sources:
+                    source.disable()
             if not user_sources_names & system_sources:
                 return False
 
@@ -227,4 +231,4 @@ class Validator:
                        for source in system.sources]
             raise NoValidSources(sources=sources)
 
-        return user_envs, user_systems
+        return user_envs

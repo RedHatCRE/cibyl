@@ -23,6 +23,14 @@ from cibyl.exceptions.source import NoValidSources
 from cibyl.orchestrator import Orchestrator
 
 
+def get_all_systems(envs):
+    """Extract all systems from environments to a flat list."""
+    systems = []
+    for env in envs:
+        systems.extend(env.systems)
+    return systems
+
+
 class TestValidator(TestCase):
     """Testing Validator class"""
 
@@ -44,6 +52,10 @@ class TestValidator(TestCase):
                         'system_type': 'zuul',
                         'sources': {
                             'zuul': {
+                                'driver': 'zuul',
+                                'url': ''
+                                },
+                            'zuul2': {
                                 'driver': 'zuul',
                                 'url': ''
                                 }
@@ -84,7 +96,8 @@ class TestValidator(TestCase):
         validator = Validator(self.ci_args)
         original_envs = self.orchestrator.environments
 
-        envs, systems = validator.validate_environments(original_envs)
+        envs = validator.validate_environments(original_envs)
+        systems = get_all_systems(envs)
         self.assertEqual(1, len(envs))
         self.assertEqual(2, len(systems))
         self.assertEqual("system3", systems[0].name.value)
@@ -104,7 +117,8 @@ class TestValidator(TestCase):
         validator = Validator(self.ci_args)
         original_envs = self.orchestrator.environments
 
-        envs, systems = validator.validate_environments(original_envs)
+        envs = validator.validate_environments(original_envs)
+        systems = get_all_systems(envs)
         self.assertEqual(1, len(envs))
         self.assertEqual(1, len(systems))
         self.assertEqual("system3", systems[0].name.value)
@@ -122,7 +136,8 @@ class TestValidator(TestCase):
         validator = Validator(self.ci_args)
         original_envs = self.orchestrator.environments
 
-        envs, systems = validator.validate_environments(original_envs)
+        envs = validator.validate_environments(original_envs)
+        systems = get_all_systems(envs)
         self.assertEqual(1, len(envs))
         self.assertEqual(1, len(systems))
         self.assertEqual("system3", systems[0].name.value)
@@ -183,12 +198,18 @@ class TestValidator(TestCase):
 
         validator = Validator(self.ci_args)
         original_envs = self.orchestrator.environments
-        envs, systems = validator.validate_environments(original_envs)
+        envs = validator.validate_environments(original_envs)
+        systems = get_all_systems(envs)
         self.assertEqual(1, len(envs))
         self.assertEqual(1, len(systems))
         self.assertEqual("system1", systems[0].name.value)
         self.assertEqual("zuul", systems[0].system_type.value)
         self.assertEqual("env1", envs[0].name.value)
+        system = systems[0]
+        self.assertEqual(2, len(system.sources.value))
+        # test that only the selected source is enabled
+        self.assertTrue(system.sources[0].enabled)
+        self.assertFalse(system.sources[1].enabled)
 
     def test_validator_validate_no_sources(self):
         """Test Validator validate_environments with no sources."""
@@ -225,7 +246,8 @@ class TestValidator(TestCase):
 
         original_envs = self.orchestrator.environments
         validator = Validator(self.ci_args)
-        envs, systems = validator.validate_environments(original_envs)
+        envs = validator.validate_environments(original_envs)
+        systems = get_all_systems(envs)
         self.assertEqual(1, len(envs))
         self.assertEqual(2, len(systems))
         self.assertEqual("env", envs[0].name.value)
