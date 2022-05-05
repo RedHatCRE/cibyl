@@ -302,9 +302,20 @@ class PipelineResponse:
     def __init__(self, pipeline):
         self._pipeline = pipeline
 
+    def __eq__(self, other):
+        if not isinstance(other, PipelineResponse):
+            return False
+
+        if self is other:
+            return True
+
+        return \
+            self.name == other.name and \
+            self.project.name == other.project.name
+
     @property
     def project(self):
-        return self._pipeline.project
+        return ProjectResponse(self._pipeline.project)
 
     @property
     def name(self):

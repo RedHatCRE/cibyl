@@ -470,6 +470,12 @@ class TestHandleQuery(TestCase):
         api.tenants = Mock()
         api.tenants.return_value = [tenant]
 
+        project.tenant = tenant
+
+        pipeline1.project = project
+        pipeline2.project = project
+        pipeline3.project = project
+
         job.tenant = tenant
 
         in_jobs = Mock()

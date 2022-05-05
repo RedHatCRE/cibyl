@@ -27,11 +27,17 @@ class ModelBuilder:
 
     class PipelineBuilder:
         def __init__(self, parent, pipeline):
+            """
+
+            :param parent:
+            :type parent: :class:`ModelBuilder`
+            :param pipeline:
+            """
             self._parent = parent
             self._pipeline = pipeline
 
         def plus_job(self, job):
-            self._pipeline.add_job(job)
+            self._pipeline.add_job(self._parent._get_job(job.name))
             return self
 
         def done(self):
