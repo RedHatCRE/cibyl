@@ -219,8 +219,15 @@ def handle_query(api, **kwargs):
             model.with_pipeline(pipeline)
 
     if query == QueryType.JOBS:
-        for job in _get_jobs(api, **kwargs):
+        pipelines = _get_pipelines(api, **kwargs)
+        jobs = _get_jobs(api, **kwargs)
+
+        for job in jobs:
             model.with_job(job)
+
+            for pipeline in job.pipelines().get():
+                if pipeline in pipelines:
+                    model.with_pipeline(pipeline).plus_job(job)
 
     if query == QueryType.BUILDS:
         for build in _get_builds(api, **kwargs):

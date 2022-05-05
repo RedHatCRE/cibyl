@@ -25,6 +25,18 @@ class ModelBuilder:
     Zuul host.
     """
 
+    class PipelineBuilder:
+        def __init__(self, parent, pipeline):
+            self._parent = parent
+            self._pipeline = pipeline
+
+        def plus_job(self, job):
+            self._pipeline.add_job(job)
+            return self
+
+        def done(self):
+            return self._parent
+
     def __init__(self):
         """Constructor.
         """
@@ -68,12 +80,14 @@ class ModelBuilder:
     def with_pipeline(self, pipeline):
         model = Pipeline(pipeline.name)
 
+        # Register the pipeline's project
         self.with_project(pipeline.project)
 
+        # Register the pipeline
         project = self._get_project(pipeline.project.name)
         project.add_pipeline(model)
 
-        return self
+        return ModelBuilder.PipelineBuilder(self, model)
 
     def with_job(self, job):
         """Adds a job to the current model being built. If the job is
@@ -143,6 +157,12 @@ class ModelBuilder:
         for tenant in self._tenants.values():
             if name in tenant.projects.value:
                 return tenant.projects.value[name]
+
+    def _get_pipeline(self, name):
+        for tenant in self._tenants.values():
+            for project in tenant.projects.value:
+                if name in project.pipelines.value:
+                    return project.pipelines.value[name]
 
     def _get_job(self, name):
         """Searches the model for a certain job.
