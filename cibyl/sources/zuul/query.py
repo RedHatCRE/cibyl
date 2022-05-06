@@ -60,31 +60,6 @@ def _get_builds(zuul, **kwargs):
     return result
 
 
-def _get_pipelines(zuul, **kwargs):
-    """Query for pipelines.
-
-    :param zuul: API to interact with Zuul with.
-    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
-    :param kwargs: See :func:`handle_query`.
-    :return: List of retrieved pipelines.
-    :rtype: list[:class:`cibyl.sources.zuul.requests.PipelineResponse`]
-    """
-    result = []
-
-    for project in _get_projects(zuul, **kwargs):
-        pipelines = project.pipelines()
-
-        if 'pipelines' in kwargs:
-            targets = kwargs['pipelines'].value
-
-            if targets:
-                pipelines.with_name(*targets)
-
-        result += pipelines.get()
-
-    return result
-
-
 def _get_jobs(zuul, **kwargs):
     """Query for jobs.
 
@@ -113,6 +88,33 @@ def _get_jobs(zuul, **kwargs):
             jobs.with_url(*kwargs['job_url'].value)
 
         result += jobs.get()
+
+    return result
+
+
+def _get_pipelines(zuul, **kwargs):
+    """Query for pipelines.
+
+    :param zuul: API to interact with Zuul with.
+    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :param kwargs: See :func:`handle_query`.
+    :return: List of retrieved pipelines.
+    :rtype: list[:class:`cibyl.sources.zuul.requests.PipelineResponse`]
+    """
+    result = []
+
+    for project in _get_projects(zuul, **kwargs):
+        pipelines = project.pipelines()
+
+        # Apply pipelines filters
+        if 'pipelines' in kwargs:
+            targets = kwargs['pipelines'].value
+
+            # An empty '--pipelines' means all of them.
+            if targets:
+                pipelines.with_name(*targets)
+
+        result += pipelines.get()
 
     return result
 
