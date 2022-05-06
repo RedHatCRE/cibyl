@@ -79,20 +79,46 @@ class ZuulJobAPI(Closeable, ABC):
 
 
 class ZuulPipelineAPI(Closeable, JobsProvider, ABC):
+    """Interface which defines the information that can be retrieved from
+    Zuul regarding a particular pipeline.
+    """
+
     def __init__(self, project, pipeline):
+        """Constructor.
+
+        :param project: Project this pipeline belongs to.
+        :type project: :class:`ZuulProjectAPI`
+        :param pipeline: Description of the pipeline being consulted by this
+            API. At least a field called 'name' providing the name
+            of the pipeline is required here.
+        :type pipeline: dict
+        """
         self._project = project
         self._pipeline = pipeline
 
     @property
     def project(self):
+        """
+        :return: The project this pipeline belongs to.
+        :rtype: :class:`ZuulProjectAPI`
+        """
         return self._project
 
     @property
     def name(self):
+        """
+        :return: Name of this pipeline.
+        :rtype: str
+        """
         return self._pipeline['name']
 
     @abstractmethod
     def jobs(self):
+        """
+        :return: The jobs on this pipeline.
+        :rtype: list[:class:`ZuulJobAPI`]
+        :raises ZuulAPIError: If the request failed.
+        """
         raise NotImplementedError
 
 
@@ -141,6 +167,11 @@ class ZuulProjectAPI(Closeable, PipelinesProvider, ABC):
 
     @abstractmethod
     def pipelines(self):
+        """
+        :return: The pipelines on this project.
+        :rtype: list[:class:`ZuulPipelineAPI`]
+        :raises ZuulAPIError: If the request failed.
+        """
         raise NotImplementedError
 
 

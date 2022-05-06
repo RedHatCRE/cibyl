@@ -32,6 +32,19 @@ class TestPipeline(TestCase):
 
         self.assertNotEqual(other, pipeline)
 
+    def test_not_equal_by_jobs(self):
+        """Checks that two pipelines are not equal if they do not hold the same jobs.
+        """
+        name = 'pipeline'
+
+        job1 = Mock()
+        job2 = Mock()
+
+        pipeline1 = Pipeline(name, [job1])
+        pipeline2 = Pipeline(name, [job2])
+
+        self.assertNotEqual(pipeline2, pipeline1)
+
     def test_equal_by_name(self):
         """Checks that two pipelines are the same if they share the same name.
         """

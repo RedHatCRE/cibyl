@@ -144,7 +144,15 @@ class ZuulJobRESTClient(ZuulJobAPI):
 
 
 class ZuulPipelineRESTClient(ZuulPipelineAPI):
+    """Implementation of a Zuul client through the use of Zuul's REST-API.
+    """
+
     def __init__(self, session, project, pipeline):
+        """Constructor. See parent class for more information.
+
+        :param session: The link through which the REST-API will be contacted.
+        :type session: :class:`ZuulSession`
+        """
         super().__init__(project, pipeline)
 
         self._session = session
@@ -209,22 +217,21 @@ class ZuulProjectRESTClient(ZuulProjectAPI):
 
     @overrides
     def pipelines(self):
-        def get_configs():
-            project = self._session.get(
-                f"tenant/{self.tenant.name}/project/{self._project['name']}"
-            )
-
-            return project['configs']
-
         result = []
 
-        for config in get_configs():
-            pipelines = config['pipelines']
+        project = self._session.get(
+            f"tenant/{self.tenant.name}/project/{self._project['name']}"
+        )
 
-            for pipeline in pipelines:
-                result.append(ZuulPipelineRESTClient(
-                    self._session, self, pipeline
-                ))
+        # Pipelines are stored under the 'configs' section of the project
+        for config in project['configs']:
+            # Each config has its own share of pipelines
+            for pipeline in config['pipelines']:
+                result.append(
+                    ZuulPipelineRESTClient(
+                        self._session, self, pipeline
+                    )
+                )
 
         return result
 

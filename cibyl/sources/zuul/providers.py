@@ -17,22 +17,44 @@ from abc import ABC, abstractmethod
 
 
 class PipelinesProvider(ABC):
+    """Represents an entity capable of retrieving information on pipelines.
+    """
+
     @property
     @abstractmethod
     def name(self):
+        """
+        :return: Name of the provider.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def pipelines(self):
+        """
+        :return: The pipelines from this entity.
+        :rtype: :class:`cibyl.sources.zuul.api.ZuulPipelineAPI`
+        """
         raise NotImplementedError
 
 
 class JobsProvider(ABC):
+    """Represents an entity capable of retrieving information on jobs.
+    """
+
     @property
     @abstractmethod
     def name(self):
+        """
+        :return: Name of the provider.
+        :rtype: str
+        """
         raise NotImplementedError
 
     @abstractmethod
     def jobs(self):
+        """
+        :return: The pipelines from this entity.
+        :rtype: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
+        """
         raise NotImplementedError

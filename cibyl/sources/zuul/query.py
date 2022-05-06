@@ -61,6 +61,14 @@ def _get_builds(zuul, **kwargs):
 
 
 def _get_pipelines(zuul, **kwargs):
+    """Query for pipelines.
+
+    :param zuul: API to interact with Zuul with.
+    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :param kwargs: See :func:`handle_query`.
+    :return: List of retrieved pipelines.
+    :rtype: list[:class:`cibyl.sources.zuul.requests.PipelineResponse`]
+    """
     result = []
 
     for project in _get_projects(zuul, **kwargs):
@@ -224,9 +232,11 @@ def handle_query(api, **kwargs):
         for job in _get_jobs(api, **kwargs):
             job_model = model.with_job(job)
 
+            # Include also the pipelines where this job is present
             for pipeline in pipelines:
                 pipeline_jobs = [j.name for j in pipeline.jobs().get()]
 
+                # Is the job on this pipeline?
                 if job.name in pipeline_jobs:
                     pipeline_model = model.with_pipeline(pipeline)
                     pipeline_model.add_job(job_model)

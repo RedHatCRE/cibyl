@@ -75,6 +75,15 @@ class ModelBuilder:
         return model
 
     def with_pipeline(self, pipeline):
+        """Adds a pipeline to the current model being built. If the pipeline is
+        already present on the model, then this is ignored. If the pipeline's
+        tenant is not on the model, then it is also added to it.
+
+        :param pipeline: The pipeline to add.
+        :type pipeline: :class:`cibyl.sources.zuul.requests.PipelineResponse`
+        :return: Model for this pipeline.
+        :rtype: :class:`Pipeline`
+        """
         # Register this pipeline's project
         project = self.with_project(pipeline.project)
 

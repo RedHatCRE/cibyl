@@ -63,7 +63,7 @@ class TenantsRequest(Request):
         """Performs the request.
 
         :return: Answer from the host.
-        :rtype: :class:`TenantResponse`
+        :rtype: list[:class:`TenantResponse`]
         """
         tenants = apply_filters(self._zuul.tenants(), *self._filters)
 
@@ -99,7 +99,7 @@ class ProjectsRequest(Request):
         """Performs the request.
 
         :return: Answer from the host.
-        :rtype: :class:`ProjectResponse`
+        :rtype: list[:class:`ProjectResponse`]
         """
         projects = apply_filters(self._tenant.projects(), *self._filters)
 
@@ -107,16 +107,37 @@ class ProjectsRequest(Request):
 
 
 class PipelinesRequest(Request):
+    """High-Level petition focused on retrieval of data related to pipelines.
+    """
+
     def __init__(self, provider):
+        """Constructor.
+
+        :param provider: Low-Level API to the provider to get the pipelines
+            from.
+        :type provider: :class:`cibyl.sources.zuul.providers.PipelinesProvider`
+        """
         super().__init__()
 
         self._provider = provider
 
     def with_name(self, *name):
+        """Will limit request to pipelines with a certain name.
+
+        :param name: Name of the desired pipeline.
+        :type name: str
+        :return: The request's instance.
+        :rtype: :class:`PipelinesRequest`
+        """
         self._filters.append(lambda pipeline: pipeline.name in name)
         return self
 
     def get(self):
+        """Performs the request.
+
+        :return: Answer from the host.
+        :rtype: list[:class:`PipelineResponse`]
+        """
         pipelines = apply_filters(self._provider.pipelines(), *self._filters)
 
         return [PipelineResponse(pipeline) for pipeline in pipelines]
@@ -162,7 +183,7 @@ class JobsRequest(Request):
         """Performs the request.
 
         :return: Answer from the host.
-        :rtype: :class:`JobResponse`
+        :rtype: list[:class:`JobResponse`]
         """
         jobs = apply_filters(self._provider.jobs(), *self._filters)
 
@@ -220,7 +241,7 @@ class BuildsRequest(Request):
         """Performs the request.
 
         :return: Answer from the host.
-        :rtype: :class:`BuildsResponse`
+        :rtype: list[:class:`BuildsResponse`]
         """
         builds = apply_filters(self._job.builds(), *self._filters)
 
@@ -299,7 +320,15 @@ class ProjectResponse:
 
 
 class PipelineResponse:
+    """Response for :class:`PipelinesRequest`.
+    """
+
     def __init__(self, pipeline):
+        """Constructor.
+
+        :param pipeline: Low-Level API to access the pipeline's data.
+        :type pipeline: :class:`cibyl.sources.zuul.api.ZuulPipelineAPI`
+        """
         self._pipeline = pipeline
 
     def __eq__(self, other):
@@ -315,13 +344,25 @@ class PipelineResponse:
 
     @property
     def project(self):
+        """
+        :return: Response to this pipeline's project.
+        :rtype: :class:`ProjectResponse`
+        """
         return ProjectResponse(self._pipeline.project)
 
     @property
     def name(self):
+        """
+        :return: Name of this pipeline.
+        :rtype: str
+        """
         return self._pipeline.name
 
     def jobs(self):
+        """
+        :return: Request for jobs belonging to this pipeline.
+        :rtype: :class:`JobsRequest`
+        """
         return JobsRequest(self._pipeline)
 
 
