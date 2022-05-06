@@ -148,6 +148,9 @@ class TestZuulJobRESTClient(TestCase):
 
 
 class TestZuulPipelineRESTClient(TestCase):
+    """Tests for :class:`ZuulPipelineRESTClient`.
+    """
+
     def test_equality(self):
         """Checks '__eq__'.
         """
@@ -210,6 +213,9 @@ class TestZuulPipelineRESTClient(TestCase):
 
 
 class TestZuulProjectRESTClient(TestCase):
+    """Tests for :class:`ZuulProjectRESTClient`.
+    """
+
     def test_equality(self):
         """Checks '__eq__'.
         """

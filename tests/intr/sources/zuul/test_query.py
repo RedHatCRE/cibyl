@@ -25,6 +25,9 @@ from cibyl.sources.zuul.query import handle_query
 
 
 class DictMock(Mock):
+    """A mock that acts as a dictionary.
+    """
+
     def __init__(self):
         super().__init__()
 

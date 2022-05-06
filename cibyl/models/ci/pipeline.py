@@ -20,6 +20,8 @@ from cibyl.models.model import Model
 
 
 class Pipeline(Model):
+    """Representation of a Zuul pipeline.
+    """
     API = {
         'name': {
             'attr_type': str,

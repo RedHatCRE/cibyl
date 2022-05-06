@@ -33,7 +33,8 @@ class TestProject(TestCase):
         self.assertNotEqual(other, project)
 
     def test_not_equal_by_pipelines(self):
-        """Checks that two projects are not equal if they do not hold the same pipelines.
+        """Checks that two projects are not equal if they do not hold the same
+        pipelines.
         """
         name = 'project'
 
