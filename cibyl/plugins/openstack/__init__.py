@@ -15,6 +15,7 @@
 """
 from cibyl.cli.argument import Argument
 from cibyl.cli.query import QuerySelector, QueryType
+from cibyl.features import add_feature_location
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.zuul.job import Job as ZuulJob
 from cibyl.plugins.openstack.deployment import Deployment
@@ -87,5 +88,11 @@ class Plugin:
         extend_job_model()
         extend_variant_model()
 
+    def register_features(self):
+        """Add the path of the features found in this plugin to the
+        features module."""
+        add_feature_location(f"{__path__[0]}/features")
+
     def extend_query_types(self):
+        """Register the plugin function to deduce the type of query."""
         QuerySelector.query_selector_functions.append(get_query_openstack)

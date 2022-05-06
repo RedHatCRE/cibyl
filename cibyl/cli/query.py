@@ -23,16 +23,20 @@ class QueryType(IntEnum):
     """
     NONE = 0
     """No data from host is requested."""
-    TENANTS = 1
+    FEATURES = 1
+    """Retrieve data using features."""
+    TENANTS = 2
     """Only retrieve data concerning tenants."""
-    PROJECTS = 2
+    PROJECTS = 3
     """Retrieve data concerning projects and above."""
-    PIPELINES = 3
+    PIPELINES = 4
     """Retrieve data concerning pipelines and above."""
-    JOBS = 4
+    JOBS = 5
     """Retrieve data concerning jobs and above."""
-    BUILDS = 5
+    BUILDS = 6
     """Retrieve data concerning builds and above."""
+    FEATURES_JOBS = 7
+    """Retrieve data using features and jobs."""
 
 
 class QuerySelector:
@@ -74,6 +78,12 @@ class QuerySelector:
         build_args = subset(kwargs, ["builds", "last_build", "build_status"])
         if build_args:
             result = QueryType.BUILDS
+
+        if 'features' in kwargs:
+            if job_args:
+                result = QueryType.FEATURES_JOBS
+            else:
+                result = QueryType.FEATURES
 
         return result
 

@@ -13,13 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from unittest import TestCase
 
 from cibyl.exceptions.plugin import MissingPlugin
 from cibyl.plugins import enable_plugins
+from tests.utils import RestoreAPIs
 
 
-class TestPlugin(TestCase):
+class TestPlugin(RestoreAPIs):
     """Test Plugins mechanism"""
 
     def test_enable_plugins(self):

@@ -123,6 +123,24 @@ class TestGetQueryType(TestCase):
 
         self.assertEqual(QueryType.NONE, get_query_type(**args))
 
+    def test_get_feature(self):
+        """Checks that "FEATURES" is returned for "--feature"."""
+        args = {
+            'features': None
+        }
+
+        self.assertEqual(QueryType.FEATURES, get_query_type(**args))
+
+    def test_get_feature_jobs(self):
+        """Checks that "FEATURES_JOBS" is returned for "--feature" and
+        "--jobs"."""
+        args = {
+            'features': None,
+            'jobs': None
+        }
+
+        self.assertEqual(QueryType.FEATURES_JOBS, get_query_type(**args))
+
 
 class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
     """Tests for :func:`get_query_type` with the openstack plugin loaded."""

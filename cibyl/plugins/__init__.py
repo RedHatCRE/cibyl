@@ -73,6 +73,7 @@ def enable_plugins(plugins: list = None):
             LOG.debug("Loading plugin: %s", plugin)
             plugin_module = get_plugin_module(plugin)
             plugin_module.Plugin().extend_models()
+            plugin_module.Plugin().register_features()
             plugin_module_path = get_plugin_module_path(plugin_module)
             extend_source(plugin_module_path)
             plugin_module.Plugin().extend_query_types()

@@ -20,6 +20,7 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.model import Model
+from cibyl.models.product.feature import Feature
 
 
 class TestSystem(unittest.TestCase):
@@ -60,6 +61,13 @@ class TestSystem(unittest.TestCase):
         """Test system export_attributes_to_source method."""
         output = self.system.export_attributes_to_source()
         self.assertEqual({}, output)
+
+    def test_add_feature(self):
+        self.system.add_feature(Feature("test", True))
+        self.assertEqual(len(self.system.features), 1)
+        feature = self.system.features["test"]
+        self.assertEqual(feature.name.value, "test")
+        self.assertEqual(feature.present.value, True)
 
 
 class TestJobsSystem(unittest.TestCase):
