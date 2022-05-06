@@ -167,24 +167,29 @@ class Orchestrator:
 
     def run_query(self, start_level=1):
         """Execute query based on provided arguments."""
-        last_level = -1
-        source_methods_store = SourceMethodsStore()
         valid_systems = [system for env in self.environments
                          for system in env.systems]
         debug = self.parser.app_args.get("debug", False)
-        for arg in sorted(self.parser.ci_args.values(),
-                          key=operator.attrgetter('level'), reverse=True):
-            if arg.level >= start_level and arg.level >= last_level:
-                if not arg.func:
-                    # if an argument does not have a function
-                    # associated, we should not consider it here, e.g.
-                    # --sources
-                    continue
-                # the validation process provides a flat list of systems
-                # because the environment information is not used from this
-                # point forward
-                for system in valid_systems:
-                    if not system.is_enabled():
+        # sort cli arguments in decreasing order by level
+        sorted_args = sorted(self.parser.ci_args.values(),
+                             key=operator.attrgetter('level'), reverse=True)
+        # the validation process provides a flat list of systems
+        # because the environment information is not used from this
+        # point forward
+        for system in valid_systems:
+            if not system.is_enabled():
+                continue
+            last_level = -1
+            source_methods_store = SourceMethodsStore()
+            # collect system-level arguments that can affect the
+            # result of the source method call
+            system_args = system.export_attributes_to_source()
+            for arg in sorted_args:
+                if arg.level >= start_level and arg.level >= last_level:
+                    if not arg.func:
+                        # if an argument does not have a function
+                        # associated, we should not consider it here, e.g.
+                        # --sources
                         continue
                     try:
                         source_methods = self.select_source_method(system, arg)
@@ -216,7 +221,8 @@ class Orchestrator:
                                   source_name, source_driver, speed_score)
                         try:
                             model_instances_dict = source_method(
-                                **self.parser.ci_args, **self.parser.app_args)
+                                **self.parser.ci_args, **self.parser.app_args,
+                                **system_args)
                         except SourceException as exception:
                             source_methods_store.add_call(source_method, False)
                             LOG.error("Error in source %s. %s",

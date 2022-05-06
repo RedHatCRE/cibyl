@@ -134,13 +134,19 @@ def filter_jobs(jobs_found: List[Dict], **kwargs):
     checks_to_apply = [is_job]
 
     jobs_arg = kwargs.get('jobs')
-    if jobs_arg:
+    if jobs_arg and jobs_arg.value:
         pattern = re.compile("|".join(jobs_arg.value))
         checks_to_apply.append(partial(satisfy_regex_match, pattern=pattern,
                                        field_to_check="name"))
 
+    jobs_scope_arg = kwargs.get('jobs_scope')
+    if jobs_scope_arg and jobs_scope_arg.value:
+        pattern = re.compile(jobs_scope_arg.value)
+        checks_to_apply.append(partial(satisfy_regex_match, pattern=pattern,
+                                       field_to_check="name"))
+
     job_urls = kwargs.get('job_url')
-    if job_urls:
+    if job_urls and job_urls.value:
         checks_to_apply.append(partial(satisfy_exact_match,
                                        user_input=job_urls,
                                        field_to_check="url"))

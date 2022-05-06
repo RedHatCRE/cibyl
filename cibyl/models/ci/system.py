@@ -134,6 +134,16 @@ class System(Model):
         """
         return self.queried.value
 
+    def export_attributes_to_source(self):
+        """Prepare system-level attributes that should be passed to the
+        sources.
+
+        :returns: Dictionary of attributes that should be passed to the sources
+        when calling on of their methods
+        :rtype: dict
+        """
+        pass
+
     def populate(self, instances):
         """Adds all models found on an attribute to this system.
 
@@ -175,7 +185,7 @@ class JobsSystem(System):
                  sources: List = None,
                  enabled: bool = True,
                  jobs: Dict[str, Job] = None,
-                 jobs_scope: str = "*"):
+                 jobs_scope: str = None):
         # Let IDEs know this class's attributes
         self.jobs = None
         self.jobs_scope = None
@@ -191,6 +201,16 @@ class JobsSystem(System):
             jobs=jobs
         )
 
+    def export_attributes_to_source(self):
+        """Prepare system-level attributes that should be passed to the
+        sources.
+
+        :returns: Dictionary of attributes that should be passed to the sources
+        when calling on of their methods
+        :rtype: dict
+        """
+        return {'jobs_scope': self.jobs_scope}
+
     def add_toplevel_model(self, model: Job):
         """Adds a top-level model to the system.
 
@@ -200,7 +220,8 @@ class JobsSystem(System):
         self.add_job(model)
 
     def add_job(self, job: Job):
-        """Adds a job to the CI system.
+        """Adds a job to the CI system. The job will only be added if it's
+        consistent with the jobs_scope attribute of the system.
 
         :param job: Job to add.
         :type job: :class:`Job`

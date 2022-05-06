@@ -143,6 +143,22 @@ class TestElasticsearchOSP(TestCase):
         self.assertEqual(jobs['test'].url.value, "http://domain.tld/test")
 
     @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    def test_get_jobs_jobs_scope(self: object, mock_query_hits: object):
+        """Tests that the internal logic from :meth:`ElasticSearchOSP.get_jobs`
+            is correct using jobs_scope argument.
+        """
+        mock_query_hits.return_value = self.job_hits
+
+        jobs_argument = Mock()
+        jobs_argument.value = 'test4'
+        jobs = self.es_api.get_jobs(jobs_scope=jobs_argument)
+
+        self.assertEqual(len(jobs), 1)
+        self.assertTrue('test4' in jobs)
+        self.assertEqual(jobs['test4'].name.value, 'test4')
+        self.assertEqual(jobs['test4'].url.value, "http://domain.tld/test4")
+
+    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
     def test_get_deployment(self: object, mock_query_hits: object) -> None:
         """Tests that the internal logic from
         :meth:`ElasticSearchOSP.get_deployment` is correct.
@@ -306,6 +322,16 @@ class TestElasticsearchOSP(TestCase):
             len(tests['test'].builds['2'].tests),
             0
         )
+
+    @patch('cibyl.sources.elasticsearch.api.ElasticSearchClient')
+    def test_setup(self, mock_client):
+        """Test setup method of ElasticSearchOSP"""
+        es_api = ElasticSearchOSP(elastic_client=None,
+                                  url="https://example.com:9200")
+        client = mock_client.return_value
+        client.connect.side_effect = None
+        es_api.setup()
+        mock_client.assert_called_with("https://example.com", 9200)
 
 
 class TestQueryTemplate(TestCase):

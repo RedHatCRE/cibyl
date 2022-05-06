@@ -73,12 +73,16 @@ class ElasticSearchOSP(ServerSource):
         """
         key_filter = 'job_name'
         jobs_to_search = []
+        jobs_scope_pattern = None
         if 'jobs' in kwargs:
             jobs_to_search = kwargs.get('jobs').value
             key_filter = 'job_name'
         if 'job_url' in kwargs:
             jobs_to_search = kwargs.get('job_url').value
             key_filter = 'job_url'
+        jobs_scope_arg = kwargs.get('jobs_scope')
+        if jobs_scope_arg and jobs_scope_arg.value:
+            jobs_scope_pattern = re.compile(jobs_scope_arg.value)
 
         query_body = QueryTemplate(key_filter, jobs_to_search).get
 
@@ -91,6 +95,8 @@ class ElasticSearchOSP(ServerSource):
         for hit in hits:
             job_name = hit['_source']['job_name']
             url = hit['_source']['job_url']
+            if jobs_scope_pattern and not jobs_scope_pattern.search(job_name):
+                continue
             job_objects[job_name] = Job(name=job_name, url=url)
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
@@ -180,7 +186,7 @@ class ElasticSearchOSP(ServerSource):
 
     def get_last_build(self: object, builds_jobs: AttributeDictValue):
         """
-            Get last build from builds. It's determinated
+            Get last build from builds. It's determined
             by the build_id
 
             :returns: container of jobs with last build information
@@ -195,7 +201,7 @@ class ElasticSearchOSP(ServerSource):
 
             last_build_number = sorted(builds.keys(), key=int)[-1]
             last_build_info = builds[last_build_number]
-            # Now we need to consturct the Job object
+            # Now we need to construct the Job object
             # with the last build object in this one
             build_object = Build(str(last_build_info.build_id),
                                  str(last_build_info.status))
