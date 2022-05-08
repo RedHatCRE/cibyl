@@ -16,6 +16,7 @@
 import logging
 import os
 from functools import partial
+from urllib.parse import urlparse
 
 from git import Repo
 
@@ -43,36 +44,51 @@ class GitSource(Source):
         super().__init__(name, driver=driver,
                          enabled=enabled, priority=priority)
         self.repos = repos
+        self.defaut_clone_dir = os.path.expanduser("~/.cibyl")
 
     def setup(self):
         """Clone the repositories specified by the 'repos' argument/field."""
         super().setup()
         for repo in self.repos:
             if repo.get('dest') is None and repo.get('url') is None:
-                message = f"Source {self.name} needs a url or \
-a destination path."
+                message = f"Source {self.name} needs a url or "\
+                    "a destination path."
                 raise GitError(message)
             if repo.get('dest') is None:
                 repo_name = os.path.split(repo.get('url'))[-1]
                 project_name = os.path.splitext(repo_name)[0]
-                repo['dest'] = os.path.join(os.path.expanduser('~'), '.cibyl',
+                repo['dest'] = os.path.join(self.defaut_clone_dir,
                                             project_name)
                 os.makedirs(repo.get('dest'), exist_ok=True)
         self.ensure_repos_present()
+
+    def _validate(self):
+        """"""
+        for repo in self.repos:
+            if repo.get('cloned'):
+                dest = repo.get('dest')
+                if os.path.exists(os.path.join(dest, ".git")):
+                    LOG.debug("Repository %s present.", dest)
+            if repo.get('url'):
+                if urlparse(repo.get('url')):
+                    LOG.debug("Valid url: %s", repo.get('url'))
+                else:
+                    LOG.debug("Url is not valid: %s", repo.get('url'))
 
     def ensure_repos_present(self):
         """Ensure that the repository with job definitions is present."""
         for repo in self.repos:
             if repo.get('cloned'):
                 continue
-            if not os.path.exists(os.path.join(repo.get('dest'), ".git")):
-                LOG.debug("cloning repository %s to %s", repo.get('url'),
-                          repo.get('dest'))
+            dest = repo.get('dest')
+            url = repo.get('url')
+            if not os.path.exists(os.path.join(dest, ".git")):
+                LOG.debug("cloning repository %s to %s", url, dest)
                 self.get_repo()
             else:
                 LOG.debug("Repository %s found in %s, pulling latest changes",
-                          repo.get('url'), repo.get('dest'))
-                self.pull_latest_changes(repo.get('dest'))
+                          url, dest)
+                self.pull_latest_changes(dest)
                 repo['cloned'] = True
 
     @safe_request
@@ -86,7 +102,10 @@ a destination path."
     def get_repo(self):
         """Download git repository for job definitions."""
         branch_options = []
-        if self.branch is not None:
-            branch_options = ["-b", self.branch]
-        Repo.clone_from(self.url, to_path=self.dest,
-                        multi_options=branch_options)
+        for repo in self.repos:
+            if repo.get('branch') is not None:
+                branch_options = ["-b", repo.get('branch')]
+            LOG.info("Clonning repo: {}".format(repo.get('url')))
+            Repo.clone_from(repo.get('url'),
+                            to_path=repo.get('dest'),
+                            multi_options=branch_options)

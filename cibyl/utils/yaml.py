@@ -14,7 +14,7 @@
 #    under the License.
 """
 import yaml
-from yaml.error import YAMLError as YAMLLoadError
+from yaml import YAMLError as YAMLLoadError
 
 
 class YAMLError(Exception):
@@ -36,3 +36,20 @@ def parse(file):
             return yaml.safe_load(buffer)
     except (OSError, YAMLLoadError) as ex:
         raise YAMLError(f"Failed to parse file: '{file}'") from ex
+
+
+def encrypted_constructor(loader: yaml.SafeLoader,
+                          node: yaml.nodes.MappingNode):
+    """
+    Construct an ecrypted token.
+    """
+    return ""
+
+
+def get_loader():
+    """
+    Add constructors to PyYAML loader.
+    """
+    loader = yaml.SafeLoader
+    loader.add_constructor("!encrypted/pkcs1-oaep", encrypted_constructor)
+    return loader
