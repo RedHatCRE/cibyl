@@ -53,7 +53,7 @@ class ModelBuilder:
         :return: The builder's instance.
         :rtype: :class:`ModelBuilder`
         """
-        model = Project(project.name)
+        model = Project(project.name, project.url)
 
         # Register the project's tenant
         self.with_tenant(project.tenant)

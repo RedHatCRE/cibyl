@@ -109,6 +109,30 @@ class TestZuul(EndToEndTest):
             self.output
         )
 
+    def test_get_project_url(self):
+        """Checks that "-v" will print a project's URL.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '--tenants', 'example-tenant',
+            '--projects', 'test1',
+            '-v'
+        ]
+
+        main()
+
+        self.assertIn(
+            "Project: test1",
+            self.output
+        )
+
+        self.assertIn(
+            "URL: http://localhost:9000/t/example-tenant/project/test1",
+            self.output
+        )
+
     def test_no_jobs_on_tenant_query(self):
         """Checks that no 'Jobs found in tenant...' string is printed for a
         '--tenants' query.

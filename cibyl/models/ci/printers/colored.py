@@ -170,6 +170,9 @@ class CIColoredPrinter(CIPrinter):
         result.add(self._palette.blue('Project: '), 0)
         result[-1].append(project.name)
 
+        if self.verbosity > 0:
+            result.add(f"URL: {project.url}", 1)
+
         if self.query > QueryType.PROJECTS:
             for pipeline in project.pipelines.values():
                 result.add(self.print_pipeline(pipeline), 1)
