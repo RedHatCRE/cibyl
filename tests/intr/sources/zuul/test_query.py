@@ -103,9 +103,11 @@ class TestHandleQuery(TestCase):
         """
         project1 = Mock()
         project1.name = 'project1'
+        project1.url = 'url1'
 
         project2 = Mock()
         project2.name = 'project2'
+        project2.url = 'url2'
 
         tenant = Mock()
         tenant.name = 'tenant'
@@ -126,8 +128,8 @@ class TestHandleQuery(TestCase):
                 tenant.name: Tenant(
                     tenant.name,
                     projects={
-                        project1.name: Project(project1.name),
-                        project2.name: Project(project2.name)
+                        project1.name: Project(project1.name, project1.url),
+                        project2.name: Project(project2.name, project2.url)
                     }
                 )
             },
@@ -139,9 +141,11 @@ class TestHandleQuery(TestCase):
         """
         project1 = Mock()
         project1.name = 'project1'
+        project1.url = 'url1'
 
         project2 = Mock()
         project2.name = 'project2'
+        project2.url = 'url2'
 
         tenant = Mock()
         tenant.name = 'tenant'
@@ -162,7 +166,7 @@ class TestHandleQuery(TestCase):
                 tenant.name: Tenant(
                     tenant.name,
                     projects={
-                        project1.name: Project(project1.name)
+                        project1.name: Project(project1.name, project1.url)
                     }
                 )
             },

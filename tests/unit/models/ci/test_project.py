@@ -27,18 +27,20 @@ class TestProject(TestCase):
         """Checks that if a project is compared with something of another
         type, they will not be equal.
         """
-        project = Project('project')
+        project = Project('project', 'url')
         other = Mock()
 
         self.assertNotEqual(other, project)
 
-    def test_equal_by_name(self):
-        """Checks that two projects are the same if they share the same name.
+    def test_equal_by_content(self):
+        """Checks that two projects are the same if they share the same
+        contents.
         """
         name = 'project'
+        url = 'url'
 
-        project1 = Project(name)
-        project2 = Project(name)
+        project1 = Project(name, url)
+        project2 = Project(name, url)
 
         self.assertEqual(project2, project1)
 
@@ -57,8 +59,8 @@ class TestProject(TestCase):
         pipeline2.name = Mock()
         pipeline2.name.value = name2
 
-        project1 = Project('project1', {name1: pipeline1})
-        project2 = Project('project2', {name2: pipeline2})
+        project1 = Project('project1', 'url1', {name1: pipeline1})
+        project2 = Project('project2', 'url2', {name2: pipeline2})
 
         project1.merge(project2)
 
@@ -81,7 +83,7 @@ class TestProject(TestCase):
         pipeline.name.value = name
         pipeline.merge = Mock()
 
-        project = Project('project', {name: pipeline})
+        project = Project('project', 'url', {name: pipeline})
 
         project.add_pipeline(pipeline)
 
