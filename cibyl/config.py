@@ -27,6 +27,7 @@ from cibyl.utils.files import get_first_available_file, is_file_available
 from cibyl.utils.net import DownloadError, download_file
 
 LOG = logging.getLogger(__name__)
+CONFIG_DOCS_URL = "https://cibyl.readthedocs.io/en/latest/configuration.html"
 
 
 def _ask_user_for_overwrite():
@@ -63,7 +64,10 @@ class Config(UserDict):
             # we assign an empty dictionary to always return the same type and
             # raise an exception
             self.data = {}
-            raise ConfigurationNotFound(f"Configuration file {file} is empty.")
+            msg = f"Configuration file {file} is empty.\n"
+            msg += f"Check the documentation at {CONFIG_DOCS_URL} for more "
+            msg += "details about the configuration syntax."
+            raise ConfigurationNotFound(msg)
 
 
 class ConfigFactory:
@@ -118,7 +122,10 @@ class ConfigFactory:
         :raise ConfigurationNotFound: If the file does not exist.
         """
         if not is_file_available(file):
-            raise ConfigurationNotFound(f'No file at: {file}')
+            msg = f"Could not find configuration file at: {file}.\n"
+            msg += f"Check the documentation at {CONFIG_DOCS_URL} for more "
+            msg += "details about the configuration syntax."
+            raise ConfigurationNotFound(msg)
 
         config = Config()
         config.load(file)
@@ -138,7 +145,9 @@ class ConfigFactory:
         file = get_first_available_file(paths)
 
         if not file:
-            msg = f'Could not find configuration file at: {paths}'
+            msg = f"Could not find configuration file at: {paths}.\n"
+            msg += f"Check the documentation at {CONFIG_DOCS_URL} for more "
+            msg += "details about the configuration syntax."
 
             raise ConfigurationNotFound(msg)
 
@@ -197,8 +206,9 @@ class ConfigFactory:
         try:
             download_file(url, dest)
         except DownloadError as ex:
-            msg = f'Configuration could not be retrieved from: {url}'
-
+            msg = f"Configuration could not be retrieved from: {url}.\n"
+            msg += f"Check the documentation at {CONFIG_DOCS_URL} for more "
+            msg += "details about the configuration syntax."
             raise ConfigurationNotFound(msg) from ex
 
         LOG.info('Download completed successfully.')
