@@ -66,7 +66,7 @@ class ModelBuilder:
         # Check if the project already exists
         model = tenant.projects.get(
             project.name,
-            Project(project.name)
+            Project(project.name, project.url)
         )
 
         # Register this project

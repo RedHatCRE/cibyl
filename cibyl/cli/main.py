@@ -113,6 +113,9 @@ def main():
     # configuration and extended based on it the parser with arguments
     # from the CI models
     orchestrator.parser.parse()
+
+    orchestrator.validate_environments()
+    orchestrator.setup_sources()
     orchestrator.run_query()
     orchestrator.publisher.publish(
         environments=orchestrator.environments,

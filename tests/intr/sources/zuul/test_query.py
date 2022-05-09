@@ -107,9 +107,11 @@ class TestHandleQuery(TestCase):
         """
         project1 = Mock()
         project1.name = 'project1'
+        project1.url = 'url1'
 
         project2 = Mock()
         project2.name = 'project2'
+        project2.url = 'url2'
 
         tenant = Mock()
         tenant.name = 'tenant'
@@ -133,8 +135,8 @@ class TestHandleQuery(TestCase):
                 tenant.name: Tenant(
                     tenant.name,
                     projects={
-                        project1.name: Project(project1.name),
-                        project2.name: Project(project2.name)
+                        project1.name: Project(project1.name, project1.url),
+                        project2.name: Project(project2.name, project2.url)
                     }
                 )
             },
@@ -146,9 +148,11 @@ class TestHandleQuery(TestCase):
         """
         project1 = Mock()
         project1.name = 'project1'
+        project1.url = 'url1'
 
         project2 = Mock()
         project2.name = 'project2'
+        project2.url = 'url2'
 
         tenant = Mock()
         tenant.name = 'tenant'
@@ -172,7 +176,7 @@ class TestHandleQuery(TestCase):
                 tenant.name: Tenant(
                     tenant.name,
                     projects={
-                        project1.name: Project(project1.name)
+                        project1.name: Project(project1.name, project1.url)
                     }
                 )
             },
@@ -190,6 +194,7 @@ class TestHandleQuery(TestCase):
 
         project = Mock()
         project.name = 'project'
+        project.url = 'url'
         project.pipelines = Mock()
         project.pipelines.return_value = [pipeline1, pipeline2]
 
@@ -219,6 +224,7 @@ class TestHandleQuery(TestCase):
                     projects={
                         project.name: Project(
                             project.name,
+                            project.url,
                             pipelines={
                                 pipeline1.name: Pipeline(pipeline1.name),
                                 pipeline2.name: Pipeline(pipeline2.name)
@@ -244,6 +250,7 @@ class TestHandleQuery(TestCase):
 
         project = Mock()
         project.name = 'project'
+        project.url = 'url'
         project.pipelines = Mock()
         project.pipelines.return_value = [pipeline1, pipeline2, pipeline3]
 
@@ -273,6 +280,7 @@ class TestHandleQuery(TestCase):
                     projects={
                         project.name: Project(
                             project.name,
+                            project.url,
                             pipelines={
                                 pipeline1.name: Pipeline(pipeline1.name)
                             }
@@ -462,6 +470,7 @@ class TestHandleQuery(TestCase):
 
         project = Mock()
         project.name = 'project'
+        project.url = 'url'
         project.pipelines = Mock()
         project.pipelines.return_value = [pipeline1, pipeline2, pipeline3]
 
@@ -500,6 +509,7 @@ class TestHandleQuery(TestCase):
                     projects={
                         project.name: Project(
                             project.name,
+                            project.url,
                             pipelines={
                                 pipeline1.name: Pipeline(
                                     pipeline1.name,

@@ -315,6 +315,14 @@ class ProjectResponse:
         """
         return self._project.name
 
+    @property
+    def url(self):
+        """
+        :return: The project's URL.
+        :rtype: str
+        """
+        return self._project.url
+
     def pipelines(self):
         return PipelinesRequest(self._project)
 

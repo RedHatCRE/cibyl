@@ -27,6 +27,10 @@ class Project(Model):
             'attr_type': str,
             'arguments': []
         },
+        'url': {
+            'attr_type': str,
+            'arguments': []
+        },
         'pipelines': {
             'attr_type': Pipeline,
             'attribute_value_class': AttributeDictValue,
@@ -41,13 +45,14 @@ class Project(Model):
         }
     }
 
-    def __init__(self, name, pipelines=None):
+    def __init__(self, name, url, pipelines=None):
         # Let IDEs know this model's attributes
         self.name = None
+        self.url = None
         self.pipelines = None
 
         # Set up the model
-        super().__init__({'name': name, 'pipelines': pipelines})
+        super().__init__({'name': name, 'url': url, 'pipelines': pipelines})
 
     def __eq__(self, other):
         if not isinstance(other, Project):
@@ -56,7 +61,7 @@ class Project(Model):
         if self.pipelines != other.pipelines:
             return False
 
-        return self.name == other.name
+        return self.name == other.name and self.url == other.url
 
     def merge(self, other):
         """Adds the contents of another project into this one.

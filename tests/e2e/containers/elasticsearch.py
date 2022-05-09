@@ -25,6 +25,7 @@ class ElasticSearchContainer(ComposedContainer):
     def __init__(self, **kwargs):
         super().__init__('tests/e2e/data/images/elasticsearch')
 
+        self._index_name = kwargs.get('index_name', 'logstash_jenkins_jobs')
         self._jenkins_mapping = kwargs.get(
             'jenkins_mapping',
             'tests/e2e/data/images/elasticsearch/jenkins.mapping.json'
@@ -45,12 +46,12 @@ class ElasticSearchContainer(ComposedContainer):
         with open(self._jenkins_mapping, 'r', encoding='utf-8') as mapping:
             # Create the index
             requests.put(
-                f'{self.url}/jenkins'
+                f'{self.url}/{self._index_name}'
             )
 
             # It is a big mapping, increase the number of possible fields
             requests.put(
-                f'{self.url}/jenkins/_settings',
+                f'{self.url}/{self._index_name}/_settings',
                 json={
                     'index.mapping.total_fields.limit': 2000
                 }
@@ -58,6 +59,6 @@ class ElasticSearchContainer(ComposedContainer):
 
             # Load the mapping
             requests.put(
-                f'{self.url}/jenkins/_mapping',
+                f'{self.url}/{self._index_name}/_mapping',
                 json=json.load(mapping)
             )

@@ -71,6 +71,22 @@ class TestOrchestrator(TestCase):
                                 'url': ''
                             }
                         }}}}}
+        self.valid_env_sources_disabled = {
+            'environments': {
+                'env1': {
+                    'system1': {
+                        'system_type': 'jenkins',
+                        'sources': {
+                            'elasticsearch': {
+                                'driver': 'elasticsearch',
+                                'url': ''
+                            },
+                            'jenkins2': {
+                                'driver': 'jenkins',
+                                'enabled': False,
+                                'url': ''
+                            }
+                        }}}}}
 
     def test_orchestrator_config(self):
         """Testing Orchestrator config attribute and method"""
@@ -205,3 +221,25 @@ class TestOrchestrator(TestCase):
             self.orchestrator.parser.ci_args["pipelines"].level, 4)
         self.assertEqual(self.orchestrator.parser.ci_args["jobs"].level, 5)
         self.assertEqual(self.orchestrator.parser.ci_args["builds"].level, 6)
+
+    def test_validate_environments(self):
+        """Test that validate_environments filters the environments."""
+        self.orchestrator.config.data = self.valid_multiple_envs_config_data
+        self.orchestrator.create_ci_environments()
+        self.orchestrator.parser.ci_args["systems"] = Mock()
+        self.orchestrator.parser.ci_args["systems"].value = ["system1"]
+        self.orchestrator.validate_environments()
+        self.assertEqual(len(self.orchestrator.environments), 1)
+        env = self.orchestrator.environments[0]
+        self.assertEqual(len(env.systems.value), 1)
+        self.assertEqual(env.name.value, 'env4')
+        self.assertEqual(env.systems[0].name.value, 'system1')
+
+    @patch("cibyl.sources.elasticsearch.api.ElasticSearchOSP.setup")
+    def test_setup_sources(self, patched_setup):
+        """Test that setup_sources calls the setup method of the sources
+        enabled in the environment."""
+        self.orchestrator.config.data = self.valid_env_sources_disabled
+        self.orchestrator.create_ci_environments()
+        self.orchestrator.setup_sources()
+        patched_setup.assert_called_once_with()
