@@ -35,10 +35,11 @@ class TestOpenstackCLI(TestCase):
         cls._original_stdout = sys.stdout
         # silence stdout and logging to avoid cluttering
         logging.disable(logging.CRITICAL)
-        sys.stdout = open(os.devnull, 'w')
+        sys.stdout = open(os.devnull, 'w', encoding='utf-8')
 
     @classmethod
     def tearDownClass(cls):
+        sys.stdout.close()
         sys.stdout = cls._original_stdout
 
     def setUp(self):

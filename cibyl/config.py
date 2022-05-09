@@ -58,6 +58,12 @@ class Config(UserDict):
         :raises YAMLError: If the file could not be parsed.
         """
         self.data = yaml.parse(file)
+        if self.data is None:
+            # if the configuration file is empty, yaml.parse will return None,
+            # we assign an empty dictionary to always return the same type and
+            # raise an exception
+            self.data = {}
+            raise ConfigurationNotFound(f"Configuration file {file} is empty.")
 
 
 class ConfigFactory:

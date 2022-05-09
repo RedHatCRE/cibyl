@@ -13,8 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from tempfile import NamedTemporaryFile
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import yaml
 
@@ -30,27 +31,33 @@ class TestConfig(TestCase):
     """Test cases for the 'Config' class.
     """
 
+    def test_empty_config(self):
+        """Test that parsing and empty configuration file raises and error."""
+        with NamedTemporaryFile() as config_file:
+            config = Config()
+            self.assertRaises(ConfigurationNotFound, config.load,
+                              config_file.name)
+
     def test_contents_are_loaded(self):
         """Checks that the contents of the loaded file are made available by
         the class.
         """
         file = 'path/to/config/file'
-        yaml = {
+        yaml_return = {
             'node_a': {
                 'name': 'Test',
                 'host': 'test_host'
             }
         }
+        with patch('cibyl.config.yaml') as yaml_patched:
 
-        cibyl.config.yaml.parse = Mock()
-        cibyl.config.yaml.parse.return_value = yaml
+            yaml_patched.parse.return_value = yaml_return
 
-        config = Config()
-        config.load(file)
+            config = Config()
+            config.load(file)
+            yaml_patched.parse.assert_called_with(file)
 
-        cibyl.config.yaml.parse.assert_called_with(file)
-
-        self.assertEqual(config, yaml)
+        self.assertEqual(config, yaml_return)
 
     def test_encrypted_constructor(self):
         self.assertEqual('', encrypted_constructor(yaml.SafeLoader,
