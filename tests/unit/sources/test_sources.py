@@ -71,7 +71,7 @@ class TestGetSourceMethod(TestCase):
         # get_source_method returns tuples of (source, speed index)
         method, score = sources_out[0]
         self.assertEqual(method.__self__.name, "zuul")
-        self.assertEqual(score, 3)
+        self.assertEqual(score, 4)
         method, score = sources_out[1]
         self.assertEqual(method.__self__.name, "jenkins")
         self.assertEqual(score, 1)

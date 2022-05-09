@@ -77,6 +77,34 @@ class TestModelBuilder(TestCase):
         self.assertEqual(tenant.name, result_tenant.name.value)
         self.assertEqual(project.name, result_project.name.value)
 
+    def test_with_pipeline_of_unknown_project(self):
+        """Checks that a new project and tenant is generated if a pipeline
+        belonging to unknown ones is added.
+        """
+        tenant = Mock()
+        tenant.name = 'tenant'
+
+        project = Mock()
+        project.tenant = tenant
+
+        pipeline = Mock()
+        pipeline.project = project
+
+        builder = ModelBuilder()
+        builder.with_pipeline(pipeline)
+
+        result = builder.assemble()
+
+        self.assertIn(tenant.name, result.keys())
+
+        result_tenant = result[tenant.name]
+        result_project = result_tenant.projects[project.name]
+        result_pipeline = result_project.pipelines[pipeline.name]
+
+        self.assertEqual(tenant.name, result_tenant.name.value)
+        self.assertEqual(project.name, result_project.name.value)
+        self.assertEqual(pipeline.name, result_pipeline.name.value)
+
     def test_with_job_of_unknown_tenant(self):
         """Checks that a new tenant is generated if a job belonging to an
         unknown one is added.

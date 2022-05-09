@@ -32,6 +32,20 @@ class TestProject(TestCase):
 
         self.assertNotEqual(other, project)
 
+    def test_not_equal_by_pipelines(self):
+        """Checks that two projects are not equal if they do not hold the same
+        pipelines.
+        """
+        name = 'project'
+
+        pipeline1 = Mock()
+        pipeline2 = Mock()
+
+        project1 = Project(name, [pipeline1])
+        project2 = Project(name, [pipeline2])
+
+        self.assertNotEqual(project2, project1)
+
     def test_equal_by_content(self):
         """Checks that two projects are the same if they share the same
         contents.

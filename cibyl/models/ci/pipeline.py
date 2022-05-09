@@ -20,6 +20,8 @@ from cibyl.models.model import Model
 
 
 class Pipeline(Model):
+    """Representation of a Zuul pipeline.
+    """
     API = {
         'name': {
             'attr_type': str,
@@ -49,6 +51,9 @@ class Pipeline(Model):
 
     def __eq__(self, other):
         if not isinstance(other, Pipeline):
+            return False
+
+        if self.jobs != other.jobs:
             return False
 
         return self.name == other.name

@@ -58,6 +58,9 @@ class Project(Model):
         if not isinstance(other, Project):
             return False
 
+        if self.pipelines != other.pipelines:
+            return False
+
         return self.name == other.name and self.url == other.url
 
     def merge(self, other):

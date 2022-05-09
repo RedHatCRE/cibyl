@@ -17,6 +17,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.sources.zuul.apis.rest import (ZuulJobRESTClient,
+                                          ZuulPipelineRESTClient,
                                           ZuulProjectRESTClient,
                                           ZuulRESTClient, ZuulSession,
                                           ZuulTenantRESTClient)
@@ -146,7 +147,75 @@ class TestZuulJobRESTClient(TestCase):
         )
 
 
+class TestZuulPipelineRESTClient(TestCase):
+    """Tests for :class:`ZuulPipelineRESTClient`.
+    """
+
+    def test_equality(self):
+        """Checks '__eq__'.
+        """
+        pipeline = {
+            'name': 'pipeline'
+        }
+
+        session = Mock()
+        project = Mock()
+
+        client = ZuulPipelineRESTClient(session, project, pipeline)
+
+        # Equality by type
+        self.assertNotEqual(Mock(), client)
+
+        # Equality by reference
+        self.assertEqual(client, client)
+
+        # Equality by contents
+        self.assertEqual(
+            ZuulPipelineRESTClient(session, project, pipeline),
+            client
+        )
+
+    def test_jobs(self):
+        """Checks call to 'jobs' end-point.
+        """
+        jobs = [
+            [
+                {
+                    'name': 'job1'
+                },
+                {
+                    'name': 'job2'
+                }
+            ]
+        ]
+
+        pipeline = {
+            'name': 'pipeline',
+            'jobs': jobs
+        }
+
+        session = Mock()
+
+        project = Mock()
+        project.name = 'project'
+        project.tenant = Mock()
+        project.tenant.name = 'tenant'
+
+        client = ZuulPipelineRESTClient(session, project, pipeline)
+
+        self.assertEqual(
+            [
+                ZuulJobRESTClient(session, project.tenant, jobs[0][0]),
+                ZuulJobRESTClient(session, project.tenant, jobs[0][1])
+            ],
+            client.jobs()
+        )
+
+
 class TestZuulProjectRESTClient(TestCase):
+    """Tests for :class:`ZuulProjectRESTClient`.
+    """
+
     def test_equality(self):
         """Checks '__eq__'.
         """
@@ -189,6 +258,52 @@ class TestZuulProjectRESTClient(TestCase):
         self.assertEqual(
             'http://localhost:8080/t/tenant/project/project_1',
             client.url
+        )
+
+    def test_pipelines(self):
+        """Checks call to 'pipelines' end-point.
+        """
+        project = {
+            'name': 'project'
+        }
+
+        pipelines = [
+            {
+                'name': 'pipeline_1'
+            },
+            {
+                'name': 'pipeline_2'
+            }
+        ]
+
+        answer = {
+            'configs': [
+                {
+                    'pipelines': pipelines
+                }
+            ]
+        }
+
+        session = Mock()
+        session.get = Mock()
+
+        session.get.return_value = answer
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+
+        client = ZuulProjectRESTClient(session, tenant, project)
+
+        self.assertEqual(
+            [
+                ZuulPipelineRESTClient(session, client, pipelines[0]),
+                ZuulPipelineRESTClient(session, client, pipelines[1])
+            ],
+            client.pipelines()
+        )
+
+        session.get.assert_called_once_with(
+            f"tenant/{tenant.name}/project/{project['name']}"
         )
 
 

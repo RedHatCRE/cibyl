@@ -19,7 +19,8 @@ from overrides import overrides
 from requests import HTTPError, Session
 
 from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulJobAPI,
-                                    ZuulProjectAPI, ZuulTenantAPI)
+                                    ZuulPipelineAPI, ZuulProjectAPI,
+                                    ZuulTenantAPI)
 from cibyl.utils.io import Closeable
 
 
@@ -131,10 +132,53 @@ class ZuulJobRESTClient(ZuulJobAPI):
 
         return f"{base}/t/{tenant.name}/job/{self.name}"
 
+    @overrides
     def builds(self):
         return self._session.get(
             f'tenant/{self.tenant.name}/builds?job_name={self.name}'
         )
+
+    @overrides
+    def close(self):
+        self._session.close()
+
+
+class ZuulPipelineRESTClient(ZuulPipelineAPI):
+    """Implementation of a Zuul client through the use of Zuul's REST-API.
+    """
+
+    def __init__(self, session, project, pipeline):
+        """Constructor. See parent class for more information.
+
+        :param session: The link through which the REST-API will be contacted.
+        :type session: :class:`ZuulSession`
+        """
+        super().__init__(project, pipeline)
+
+        self._session = session
+
+    def __eq__(self, other):
+        if not issubclass(type(other), ZuulPipelineAPI):
+            return False
+
+        if self is other:
+            return True
+
+        return self.project == other.project and self.name == other.name
+
+    @overrides
+    def jobs(self):
+        result = []
+
+        for job in self._pipeline['jobs']:
+            for variant in job:
+                result.append(
+                    ZuulJobRESTClient(
+                        self._session, self._project.tenant, variant
+                    )
+                )
+
+        return result
 
     @overrides
     def close(self):
@@ -170,6 +214,26 @@ class ZuulProjectRESTClient(ZuulProjectAPI):
         tenant = self.tenant
 
         return f"{base}/t/{tenant.name}/project/{self.name}"
+
+    @overrides
+    def pipelines(self):
+        result = []
+
+        project = self._session.get(
+            f"tenant/{self.tenant.name}/project/{self._project['name']}"
+        )
+
+        # Pipelines are stored under the 'configs' section of the project
+        for config in project['configs']:
+            # Each config has its own share of pipelines
+            for pipeline in config['pipelines']:
+                result.append(
+                    ZuulPipelineRESTClient(
+                        self._session, self, pipeline
+                    )
+                )
+
+        return result
 
     @overrides
     def close(self):

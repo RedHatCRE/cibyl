@@ -92,6 +92,33 @@ def _get_jobs(zuul, **kwargs):
     return result
 
 
+def _get_pipelines(zuul, **kwargs):
+    """Query for pipelines.
+
+    :param zuul: API to interact with Zuul with.
+    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :param kwargs: See :func:`handle_query`.
+    :return: List of retrieved pipelines.
+    :rtype: list[:class:`cibyl.sources.zuul.requests.PipelineResponse`]
+    """
+    result = []
+
+    for project in _get_projects(zuul, **kwargs):
+        pipelines = project.pipelines()
+
+        # Apply pipelines filters
+        if 'pipelines' in kwargs:
+            targets = kwargs['pipelines'].value
+
+            # An empty '--pipelines' means all of them.
+            if targets:
+                pipelines.with_name(*targets)
+
+        result += pipelines.get()
+
+    return result
+
+
 def _get_projects(zuul, **kwargs):
     """Query for projects.
 
@@ -197,9 +224,24 @@ def handle_query(api, **kwargs):
         for project in _get_projects(api, **kwargs):
             model.with_project(project)
 
+    if query == QueryType.PIPELINES:
+        for pipeline in _get_pipelines(api, **kwargs):
+            model.with_pipeline(pipeline)
+
     if query == QueryType.JOBS:
+        pipelines = _get_pipelines(api, **kwargs)
+
         for job in _get_jobs(api, **kwargs):
-            model.with_job(job)
+            job_model = model.with_job(job)
+
+            # Include also the pipelines where this job is present
+            for pipeline in pipelines:
+                pipeline_jobs = [j.name for j in pipeline.jobs().get()]
+
+                # Is the job on this pipeline?
+                if job.name in pipeline_jobs:
+                    pipeline_model = model.with_pipeline(pipeline)
+                    pipeline_model.add_job(job_model)
 
     if query == QueryType.BUILDS:
         for build in _get_builds(api, **kwargs):

@@ -18,12 +18,16 @@ from unittest.mock import Mock
 
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
+from cibyl.models.ci.pipeline import Pipeline
 from cibyl.models.ci.project import Project
 from cibyl.models.ci.tenant import Tenant
 from cibyl.sources.zuul.query import handle_query
 
 
 class DictMock(Mock):
+    """A mock that acts as a dictionary.
+    """
+
     def __init__(self):
         super().__init__()
 
@@ -118,6 +122,9 @@ class TestHandleQuery(TestCase):
         api.tenants = Mock()
         api.tenants.return_value = [tenant]
 
+        project1.tenant = tenant
+        project2.tenant = tenant
+
         in_projects = Mock()
         in_projects.value = None
 
@@ -156,6 +163,9 @@ class TestHandleQuery(TestCase):
         api.tenants = Mock()
         api.tenants.return_value = [tenant]
 
+        project1.tenant = tenant
+        project2.tenant = tenant
+
         in_projects = Mock()
         in_projects.value = [project1.name]
 
@@ -173,25 +183,142 @@ class TestHandleQuery(TestCase):
             result.value
         )
 
+    def test_get_all_pipelines(self):
+        """Checks the '--pipelines' option.
+        """
+        pipeline1 = Mock()
+        pipeline1.name = 'pipeline1'
+
+        pipeline2 = Mock()
+        pipeline2.name = 'pipeline2'
+
+        project = Mock()
+        project.name = 'project'
+        project.url = 'url'
+        project.pipelines = Mock()
+        project.pipelines.return_value = [pipeline1, pipeline2]
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+        tenant.projects = Mock()
+        tenant.projects.return_value = [project]
+
+        api = Mock()
+        api.tenants = Mock()
+        api.tenants.return_value = [tenant]
+
+        pipeline1.project = project
+        pipeline2.project = project
+
+        project.tenant = tenant
+
+        in_pipelines = Mock()
+        in_pipelines.value = None
+
+        result = handle_query(api, pipelines=in_pipelines)
+
+        self.assertEqual(
+            {
+                tenant.name: Tenant(
+                    tenant.name,
+                    projects={
+                        project.name: Project(
+                            project.name,
+                            project.url,
+                            pipelines={
+                                pipeline1.name: Pipeline(pipeline1.name),
+                                pipeline2.name: Pipeline(pipeline2.name)
+                            }
+                        )
+                    }
+                )
+            },
+            result.value
+        )
+
+    def test_get_pipelines_by_name(self):
+        """Checks the '--pipelines name1 name2' option.
+        """
+        pipeline1 = Mock()
+        pipeline1.name = 'pipeline1'
+
+        pipeline2 = Mock()
+        pipeline2.name = 'pipeline2'
+
+        pipeline3 = Mock()
+        pipeline3.name = 'pipeline3'
+
+        project = Mock()
+        project.name = 'project'
+        project.url = 'url'
+        project.pipelines = Mock()
+        project.pipelines.return_value = [pipeline1, pipeline2, pipeline3]
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+        tenant.projects = Mock()
+        tenant.projects.return_value = [project]
+
+        api = Mock()
+        api.tenants = Mock()
+        api.tenants.return_value = [tenant]
+
+        pipeline1.project = project
+        pipeline2.project = project
+
+        project.tenant = tenant
+
+        in_pipelines = Mock()
+        in_pipelines.value = [pipeline1.name]
+
+        result = handle_query(api, pipelines=in_pipelines)
+
+        self.assertEqual(
+            {
+                tenant.name: Tenant(
+                    tenant.name,
+                    projects={
+                        project.name: Project(
+                            project.name,
+                            project.url,
+                            pipelines={
+                                pipeline1.name: Pipeline(pipeline1.name)
+                            }
+                        )
+                    }
+                )
+            },
+            result.value
+        )
+
     def test_get_all_jobs(self):
         """Checks the '--jobs" option.
         """
         job1 = Mock()
         job1.name = 'job1'
         job1.url = 'url1'
+        job1.pipelines = Mock()
+        job1.pipelines.return_value = []
 
         job2 = Mock()
         job2.name = 'job2'
         job2.url = 'url2'
+        job2.pipelines = Mock()
+        job2.pipelines.return_value = []
 
         tenant = Mock()
         tenant.name = 'tenant1'
+        tenant.projects = Mock()
+        tenant.projects.return_value = []
         tenant.jobs = Mock()
         tenant.jobs.return_value = [job1, job2]
 
         api = Mock()
         api.tenants = Mock()
         api.tenants.return_value = [tenant]
+
+        job1.tenant = tenant
+        job2.tenant = tenant
 
         in_jobs = Mock()
         in_jobs.value = None
@@ -217,23 +344,35 @@ class TestHandleQuery(TestCase):
         job1 = Mock()
         job1.name = 'job1'
         job1.url = 'url1'
+        job1.pipelines = Mock()
+        job1.pipelines.return_value = []
 
         job2 = Mock()
         job2.name = 'job2'
         job2.url = 'url2'
+        job2.pipelines = Mock()
+        job2.pipelines.return_value = []
 
         job3 = Mock()
         job3.name = 'job3'
         job3.url = 'url3'
+        job3.pipelines = Mock()
+        job3.pipelines.return_value = []
 
         tenant = Mock()
         tenant.name = 'tenant1'
+        tenant.projects = Mock()
+        tenant.projects.return_value = []
         tenant.jobs = Mock()
         tenant.jobs.return_value = [job1, job2, job3]
 
         api = Mock()
         api.tenants = Mock()
         api.tenants.return_value = [tenant]
+
+        job1.tenant = tenant
+        job2.tenant = tenant
+        job3.tenant = tenant
 
         in_jobs = Mock()
         in_jobs.value = [job1.name]
@@ -258,23 +397,35 @@ class TestHandleQuery(TestCase):
         job1 = Mock()
         job1.name = 'job1'
         job1.url = 'url1'
+        job1.pipelines = Mock()
+        job1.pipelines.return_value = []
 
         job2 = Mock()
         job2.name = 'job2'
         job2.url = 'url2'
+        job2.pipelines = Mock()
+        job2.pipelines.return_value = []
 
         job3 = Mock()
         job3.name = 'job3'
         job3.url = 'url3'
+        job3.pipelines = Mock()
+        job3.pipelines.return_value = []
 
         tenant = Mock()
         tenant.name = 'tenant1'
+        tenant.projects = Mock()
+        tenant.projects.return_value = []
         tenant.jobs = Mock()
         tenant.jobs.return_value = [job1, job2, job3]
 
         api = Mock()
         api.tenants = Mock()
         api.tenants.return_value = [tenant]
+
+        job1.tenant = tenant
+        job2.tenant = tenant
+        job3.tenant = tenant
 
         in_jobs = Mock()
         in_jobs.value = None
@@ -290,6 +441,93 @@ class TestHandleQuery(TestCase):
                     tenant.name,
                     jobs={
                         job1.name: Job(job1.name, job1.url)
+                    }
+                )
+            },
+            result.value
+        )
+
+    def test_get_pipelines_through_jobs(self):
+        """Checks that "--jobs" also returns the pipelines of the jobs.
+        """
+        pipeline1 = Mock()
+        pipeline1.name = 'pipeline1'
+        pipeline1.jobs = Mock()
+
+        pipeline2 = Mock()
+        pipeline2.name = 'pipeline2'
+        pipeline2.jobs = Mock()
+
+        pipeline3 = Mock()
+        pipeline3.name = 'pipeline3'
+        pipeline3.jobs = Mock()
+
+        job = Mock()
+        job.name = 'job1'
+        job.url = 'url1'
+        job.pipelines = Mock()
+        job.pipelines.return_value = [pipeline1, pipeline2]
+
+        project = Mock()
+        project.name = 'project'
+        project.url = 'url'
+        project.pipelines = Mock()
+        project.pipelines.return_value = [pipeline1, pipeline2, pipeline3]
+
+        tenant = Mock()
+        tenant.name = 'tenant1'
+        tenant.projects = Mock()
+        tenant.projects.return_value = [project]
+        tenant.jobs = Mock()
+        tenant.jobs.return_value = [job]
+
+        api = Mock()
+        api.tenants = Mock()
+        api.tenants.return_value = [tenant]
+
+        project.tenant = tenant
+
+        pipeline1.project = project
+        pipeline2.project = project
+        pipeline3.project = project
+
+        pipeline1.jobs.return_value = [job]
+        pipeline2.jobs.return_value = [job]
+        pipeline3.jobs.return_value = []
+
+        job.tenant = tenant
+
+        in_jobs = Mock()
+        in_jobs.value = None
+
+        result = handle_query(api, jobs=in_jobs)
+
+        self.assertEqual(
+            {
+                tenant.name: Tenant(
+                    tenant.name,
+                    projects={
+                        project.name: Project(
+                            project.name,
+                            project.url,
+                            pipelines={
+                                pipeline1.name: Pipeline(
+                                    pipeline1.name,
+                                    jobs={
+                                        job.name: Job(job.name, job.url)
+                                    }
+                                ),
+                                pipeline2.name: Pipeline(
+                                    pipeline2.name,
+                                    jobs={
+                                        job.name: Job(job.name, job.url)
+                                    }
+                                )
+                            }
+                        )
+                    },
+                    jobs={
+                        job.name: Job(job.name, job.url)
                     }
                 )
             },

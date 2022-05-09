@@ -102,3 +102,6 @@ class AttributeDictValue(AttributeValue):
     def keys(self):
         """Return dictionary values"""
         return self.value.keys()
+
+    def get(self, key, default):
+        return self.value.get(key, default)

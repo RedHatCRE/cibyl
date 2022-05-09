@@ -159,6 +159,21 @@ class Zuul(ServerSource):
         return self.get_tenants(**kwargs)
 
     @speed_index({'base': 2})
+    def get_pipelines(self, **kwargs):
+        """Retrieves pipelines present on the host.
+
+        ..  seealso::
+            For kwargs keys: :func:`handle_query`
+
+        :param kwargs: All arguments from the command line.
+            These define the query to be performed.
+        :return: Resulting CI model from the query, formatted as an
+            attribute of type :class:`Tenant`.
+        :rtype: :class:`AttributeDictValue`
+        """
+        return self.get_projects(**kwargs)
+
+    @speed_index({'base': 3})
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 
@@ -173,7 +188,7 @@ class Zuul(ServerSource):
         """
         return self.get_tenants(**kwargs)
 
-    @speed_index({'base': 3})
+    @speed_index({'base': 4})
     def get_builds(self, **kwargs):
         """Retrieves builds present on the host.
 
