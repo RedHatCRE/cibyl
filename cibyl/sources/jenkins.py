@@ -145,6 +145,12 @@ def filter_jobs(jobs_found: List[Dict], **kwargs):
                                        user_input=job_urls,
                                        field_to_check="url"))
 
+    spec_jobs_name_arg = kwargs.get('spec')
+    if spec_jobs_name_arg and spec_jobs_name_arg.value:
+        checks_to_apply.append(partial(satisfy_exact_match,
+                                       user_input=spec_jobs_name_arg,
+                                       field_to_check="name"))
+
     return apply_filters(jobs_found, *checks_to_apply)
 
 
@@ -486,13 +492,28 @@ try reducing verbosity for quicker query")
         :rtype: :class:`AttributeDictValue`
         """
         jobs_found = self.send_request(self.jobs_query_for_deployment)["jobs"]
-        jobs_found = filter_jobs(jobs_found, **kwargs)
 
         spec = "spec" in kwargs
+
+        jobs_found = filter_jobs(jobs_found, **kwargs)
+
         use_artifacts = True
-        if len(jobs_found) > 1 and spec:
-            raise JenkinsError("Full Openstack specification can be shown "
-                               "only for one job, please restrict the query.")
+        if spec:
+            spec_value = kwargs["spec"].value
+            jobs_args = kwargs.get("jobs")
+            # if user called cibyl just with --spec without value and no --jobs
+            # argument, we have not enough information to pull the spec
+            spec_missing_input = not bool(spec_value) and (jobs_args is None)
+            if len(jobs_found) == 0 or spec_missing_input:
+                msg = "No job was found, please pass --spec job-name with an "
+                msg + " exact match or --jobs job-name with a valid job name "
+                msg += "or pattern."
+                raise JenkinsError(msg)
+
+            if len(jobs_found) > 1:
+                raise JenkinsError("Full Openstack specification can be shown "
+                                   "only for one job, please restrict the "
+                                   "query.")
         if len(jobs_found) > 12:
             LOG.warning("Requesting deployment information for %d jobs \
 will be based on the job name and approximate, restrict the query for more \
