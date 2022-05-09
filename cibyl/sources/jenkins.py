@@ -512,7 +512,7 @@ try reducing verbosity for quicker query")
             spec_missing_input = not bool(spec_value) and (jobs_args is None)
             if len(jobs_found) == 0 or spec_missing_input:
                 msg = "No job was found, please pass --spec job-name with an "
-                msg + " exact match or --jobs job-name with a valid job name "
+                msg += " exact match or --jobs job-name with a valid job name "
                 msg += "or pattern."
                 raise JenkinsError(msg)
 
@@ -536,9 +536,9 @@ accurate results", len(jobs_found))
                                        f" job {job['name']} but job has no "
                                        "completed build.")
                 else:
-                    self.add_job_info_from_artifacts(job, query_packages=True,
-                                                     query_containers=True,
-                                                     query_services=True)
+                    self.add_job_info_from_artifacts(job, query_packages=False,
+                                                     query_containers=False,
+                                                     query_services=False)
             elif use_artifacts and last_build is not None:
                 # if we have a lastBuild, we will have artifacts to pull
                 containers = "containers" in kwargs

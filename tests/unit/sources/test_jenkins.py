@@ -1826,12 +1826,6 @@ tripleo_ironic_conductor.service loaded    active     running
                                      'name': job_name, 'url': 'url',
                                      'lastCompletedBuild': {'description':
                                                             logs_url}})
-        services = """
-tripleo_heat_api_cron.service loaded    active     running
-tripleo_heat_engine.service loaded    active     running
-tripleo_ironic_api.service loaded    active     running
-tripleo_ironic_conductor.service loaded    active     running
-        """
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
         artifacts = [
@@ -1839,14 +1833,11 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False,
                                    False, "path/to/ovb")]
-        # one call to get_packages_node and get_containers_node per node
-        artifacts.extend([JenkinsError()]*(5*2))
-        artifacts.extend([services])
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
-        spec = Argument("spec", str, "", value=[])
-        jobs = Argument("jobs", str, "", value=["test_17.3_ipv4_job"])
+        spec = Argument("spec", str, "", value=["test_17.3_ipv4_job"])
+        jobs = Argument("jobs", str, "", value=[])
 
         jobs = self.jenkins.get_deployment(spec=spec, jobs=jobs)
         self.assertEqual(len(jobs), 1)
@@ -1874,11 +1865,7 @@ tripleo_ironic_conductor.service loaded    active     running
                     self.assertEqual(node_found.name, node.name)
                     self.assertEqual(node_found.role, node.role)
             services = deployment.services
-            self.assertEqual(len(services), 4)
-            self.assertTrue("tripleo_heat_api_cron" in services.value)
-            self.assertTrue("tripleo_heat_engine" in services.value)
-            self.assertTrue("tripleo_ironic_api" in services.value)
-            self.assertTrue("tripleo_ironic_conductor" in services.value)
+            self.assertEqual(len(services), 0)
 
     def test_get_deployment_spec_correct_call_no_jobs(self):
         """ Test get_deployment call with --spec and one job witout using the
@@ -1895,12 +1882,6 @@ tripleo_ironic_conductor.service loaded    active     running
                                      'name': job_name, 'url': 'url',
                                      'lastCompletedBuild': {'description':
                                                             logs_url}})
-        services = """
-tripleo_heat_api_cron.service loaded    active     running
-tripleo_heat_engine.service loaded    active     running
-tripleo_ironic_api.service loaded    active     running
-tripleo_ironic_conductor.service loaded    active     running
-        """
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
         artifacts = [
@@ -1908,9 +1889,6 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False,
                                    False, "path/to/ovb")]
-        # one call to get_packages_node and get_containers_node per node
-        artifacts.extend([JenkinsError()]*(5*2))
-        artifacts.extend([services])
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1941,11 +1919,7 @@ tripleo_ironic_conductor.service loaded    active     running
                     self.assertEqual(node_found.name, node.name)
                     self.assertEqual(node_found.role, node.role)
             services = deployment.services
-            self.assertEqual(len(services), 4)
-            self.assertTrue("tripleo_heat_api_cron" in services.value)
-            self.assertTrue("tripleo_heat_engine" in services.value)
-            self.assertTrue("tripleo_ironic_api" in services.value)
-            self.assertTrue("tripleo_ironic_conductor" in services.value)
+            self.assertEqual(len(services), 0)
 
     def test_get_deployment_filter_containers(self):
         """ Test get_deployment call with --containers."""
