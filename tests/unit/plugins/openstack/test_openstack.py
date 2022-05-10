@@ -13,29 +13,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from copy import deepcopy
 from unittest import TestCase
 
 from cibyl.models.ci.environment import Environment
+from cibyl.models.ci.job import Job
 from cibyl.models.ci.printers.raw import CIRawPrinter
-from cibyl.models.ci.system import JobsSystem, System
-from cibyl.models.ci.zuul.job import Job
-from cibyl.models.ci.zuul.system import ZuulSystem
-from cibyl.plugins import extend_models
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
+from tests.utils import OpenstackPluginWithJobSystem
 
 
-class TestOpenstackPlugin(TestCase):
+class TestOpenstackPlugin(OpenstackPluginWithJobSystem):
     """Test OpenStack plugin"""
-
-    @classmethod
-    def setUpClass(cls):
-        System.API = deepcopy(JobsSystem.API)
 
     def test_extend_models(self):
         """Test extend_models method"""
-        self.assertIsNone(extend_models("openstack"))
         environment = Environment("test")
         environment.add_system(name="test", system_type='jenkins')
         self.assertIn(
@@ -43,15 +35,10 @@ class TestOpenstackPlugin(TestCase):
             environment.systems[0].jobs.attr_type.API)
 
 
-class TestJobWithPlugin(TestCase):
+class TestJobWithPlugin(OpenstackPluginWithJobSystem):
     """Testing Job CI model with openstack plugin"""
 
-    @classmethod
-    def setUpClass(cls):
-        System.API = deepcopy(ZuulSystem.API)
-
     def setUp(self):
-        extend_models("openstack")
         self.deployment = Deployment(17.0, "test", {}, {})
         self.deployment2 = Deployment(17.1, "test", {}, {})
         self.job = Job("job1", "url1")

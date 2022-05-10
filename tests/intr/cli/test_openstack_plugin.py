@@ -18,15 +18,15 @@ import os
 import sys
 from copy import deepcopy
 from tempfile import NamedTemporaryFile
-from unittest import TestCase
 
 from cibyl.cli.main import main
 from cibyl.models.ci.job import Job as BaseJob
 from cibyl.models.ci.system import System
 from cibyl.models.ci.zuul.job import Job as ZuulJob
+from tests.utils import RestoreAPIs
 
 
-class TestOpenstackCLI(TestCase):
+class TestOpenstackCLI(RestoreAPIs):
     """Tests that openstack arguments are added to cli."""
 
     @classmethod
@@ -34,6 +34,7 @@ class TestOpenstackCLI(TestCase):
         cls.original_job_api = deepcopy(BaseJob.API)
         cls.original_system_api = deepcopy(System.API)
         cls._null_stdout = open(os.devnull, 'w', encoding='utf-8')
+        super().setUpClass()
         cls._original_stdout = sys.stdout
         # silence stdout and logging to avoid cluttering
         logging.disable(logging.CRITICAL)
@@ -41,6 +42,7 @@ class TestOpenstackCLI(TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        super().tearDownClass()
         sys.stdout = cls._original_stdout
         cls._null_stdout.close()
 

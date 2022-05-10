@@ -30,9 +30,9 @@ class RestoreAPIs(TestCase):
     def setUpClass(cls):
         """Setup the API of system using that of JobsSystem."""
         cls.original_job_api = deepcopy(Job.API)
-        cls.plugin_attributes = deepcopy(Job.plugin_attributes)
         cls.original_zuul_job_api = deepcopy(ZuulJob.API)
         cls.original_system_api = deepcopy(System.API)
+        cls.plugin_attributes = deepcopy(Job.plugin_attributes)
 
     @classmethod
     def tearDownClass(cls):
@@ -65,3 +65,9 @@ class OpenstackPluginWithJobSystem(JobSystemAPI):
         openstack plugin."""
         super().setUpClass()
         extend_models("openstack")
+
+    @classmethod
+    def tearDownClass(cls):
+        """Restore the original APIs of Job and System to avoid interferring
+        with other systems."""
+        super().tearDownClass()
