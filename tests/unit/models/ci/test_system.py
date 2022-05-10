@@ -56,6 +56,11 @@ class TestSystem(unittest.TestCase):
         msg_str = f"System type should be test_type, not {type_name}"
         self.assertEqual(type_name, "test_type", msg=msg_str)
 
+    def test_export_attributes_to_source(self):
+        """Test system export_attributes_to_source method."""
+        output = self.system.export_attributes_to_source()
+        self.assertIsNone(output)
+
 
 class TestJobsSystem(unittest.TestCase):
     """Test the JobsSystem class."""
@@ -63,7 +68,8 @@ class TestJobsSystem(unittest.TestCase):
     def setUp(self):
         self.name = "test"
         self.system_type = "test_type"
-        self.system = JobsSystem(self.name, self.system_type)
+        self.system = JobsSystem(self.name, self.system_type,
+                                 jobs_scope="phase1")
         self.other_system = JobsSystem(self.name, self.system_type)
 
     def test_add_job(self):
@@ -87,3 +93,9 @@ class TestJobsSystem(unittest.TestCase):
         self.assertFalse(self.system.is_queried())
         self.system.register_query()
         self.assertTrue(self.system.is_queried())
+
+    def test_export_attributes_to_source(self):
+        """Test system export_attributes_to_source method."""
+        output = self.system.export_attributes_to_source()
+        self.assertEqual(1, len(output))
+        self.assertEqual(output['jobs_scope'].value, 'phase1')

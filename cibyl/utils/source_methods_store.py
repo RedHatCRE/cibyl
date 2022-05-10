@@ -22,7 +22,7 @@ class SourceMethodsStore:
     and --build-status or --jobs and --jobs-url).
     """
     def __init__(self):
-        self.cache = dict()
+        self.cache = {}
 
     def _method_information_tuple(self, source_method):
         """Obtain a tuple representation in the format (source_name,

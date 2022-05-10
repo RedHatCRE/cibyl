@@ -1938,6 +1938,31 @@ class TestFilters(TestCase):
                     ]
         self.assertEqual(jobs_filtered, expected)
 
+    def test_filter_jobs_scope(self):
+        """
+            Test that filter_jobs filters the jobs given the user input.
+        """
+        response = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "test_jobs", 'url': 'url2',
+                     'lastBuild': {'number': 2, 'result': "FAILURE"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}}]
+        args = Mock()
+        args.value = "ans"
+        jobs_filtered = filter_jobs(response, jobs_scope=args)
+        expected = [{'_class': 'org..job.WorkflowRun',
+                     'name': "ansible", 'url': 'url1',
+                     'lastBuild': {'number': 1, 'result': "SUCCESS"}},
+                    {'_class': 'org..job.WorkflowRun',
+                     'name': "ans2", 'url': 'url3',
+                     'lastBuild': {'number': 0, 'result': "FAILURE"}},
+                    ]
+        self.assertEqual(jobs_filtered, expected)
+
     def test_filter_jobs_class(self):
         """
             Test that filter_jobs filters the jobs given the job _class.
