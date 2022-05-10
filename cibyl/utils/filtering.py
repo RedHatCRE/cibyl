@@ -14,6 +14,7 @@
 #    under the License.
 """
 import re
+import sre_constants
 from typing import Dict, Pattern
 
 from cibyl.cli.argument import Argument
@@ -138,6 +139,22 @@ def filter_topology(model: Dict[str, str], operator: str, value: str,
             _, amount = part.split(":")
             return RANGE_OPERATORS[operator](float(amount), float(value))
     return False
+
+
+def matches_regex(pattern, string):
+    """Checks if a certain text is matched by a regex pattern.
+
+    :param pattern: The pattern to test.
+    :type pattern: str
+    :param string: The text to test the pattern against.
+    :type string: str
+    :return: True if the string matched the pattern, false if not.
+    :rtype: bool
+    """
+    try:
+        return bool(re.search(pattern, string))
+    except sre_constants.error:
+        return False  # Do not crash against invalid patterns
 
 
 def apply_filters(iterable, *filters):

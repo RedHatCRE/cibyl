@@ -15,11 +15,36 @@
 """
 from unittest import TestCase
 
-from cibyl.utils.filtering import apply_filters
+from cibyl.utils.filtering import apply_filters, matches_regex
+
+
+class TestMatchesRegex(TestCase):
+    """Tests for :func:`matches_regex`.
+    """
+
+    def test_pattern_is_matches(self):
+        """Checks if a text matches a certain regex pattern.
+        """
+        pattern = '^a...s$'
+
+        self.assertTrue(matches_regex(pattern, 'alias'))
+        self.assertTrue(matches_regex(pattern, 'abyss'))
+        self.assertFalse(matches_regex(pattern, 'abs'))
+        self.assertFalse(matches_regex(pattern, 'word'))
+
+    def test_false_on_invalid_regex(self):
+        pattern = '[wod..'
+
+        self.assertFalse(matches_regex(pattern, 'something'))
 
 
 class TestApplyFilters(TestCase):
+    """Tests for :func:`apply_filters`.
+    """
+
     def test_filters_are_applied(self):
+        """Checks that the input filters are applied to the data.
+        """
         data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
         filters = [

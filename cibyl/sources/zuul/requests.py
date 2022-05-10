@@ -22,7 +22,7 @@ License:
 """
 from abc import ABC
 
-from cibyl.utils.filtering import apply_filters
+from cibyl.utils.filtering import apply_filters, matches_regex
 
 
 class Request(ABC):
@@ -49,14 +49,21 @@ class TenantsRequest(Request):
 
         self._zuul = zuul
 
-    def with_name(self, *name):
-        """Will limit request to tenants with a certain name.
+    def with_name(self, *pattern):
+        """Will limit request to tenants whose name follows a certain pattern.
 
-        :param name: Name of the desired tenant.
+        :param pattern: Regex pattern for the desired name.
+        :type pattern: str
         :return: The request's instance.
         :rtype: :class:`TenantsRequest`
         """
-        self._filters.append(lambda tenant: tenant.name in name)
+
+        def test(tenant):
+            return any(
+                matches_regex(patt, tenant.name) for patt in pattern
+            )
+
+        self._filters.append(test)
         return self
 
     def get(self):
@@ -84,15 +91,21 @@ class ProjectsRequest(Request):
 
         self._tenant = tenant
 
-    def with_name(self, *name):
-        """Will limit request to projects with a certain name.
+    def with_name(self, *pattern):
+        """Will limit request to projects whose name follows a certain pattern.
 
-        :param name: Name of the desired project.
-        :type name: str
+        :param pattern: Regex pattern for the desired name.
+        :type pattern: str
         :return: The request's instance.
         :rtype: :class:`ProjectRequest`
         """
-        self._filters.append(lambda project: project.name in name)
+
+        def test(project):
+            return any(
+                matches_regex(patt, project.name) for patt in pattern
+            )
+
+        self._filters.append(test)
         return self
 
     def get(self):
@@ -121,15 +134,22 @@ class PipelinesRequest(Request):
 
         self._provider = provider
 
-    def with_name(self, *name):
-        """Will limit request to pipelines with a certain name.
+    def with_name(self, *pattern):
+        """Will limit request to pipelines whose name follows a certain
+        pattern.
 
-        :param name: Name of the desired pipeline.
-        :type name: str
+        :param pattern: Regex pattern for the desired name.
+        :type pattern: str
         :return: The request's instance.
         :rtype: :class:`PipelinesRequest`
         """
-        self._filters.append(lambda pipeline: pipeline.name in name)
+
+        def test(pipeline):
+            return any(
+                matches_regex(patt, pipeline.name) for patt in pattern
+            )
+
+        self._filters.append(test)
         return self
 
     def get(self):
@@ -157,26 +177,38 @@ class JobsRequest(Request):
 
         self._provider = provider
 
-    def with_name(self, *name):
-        """Will limit request to jobs with a certain name.
+    def with_name(self, *pattern):
+        """Will limit request to jobs whose name follows a certain pattern.
 
-        :param name: Name of the desired job.
-        :type name: str
+        :param pattern: Regex pattern for the desired name.
+        :type pattern: str
         :return: The request's instance.
         :rtype: :class:`JobsRequest`
         """
-        self._filters.append(lambda job: job.name in name)
+
+        def test(job):
+            return any(
+                matches_regex(patt, job.name) for patt in pattern
+            )
+
+        self._filters.append(test)
         return self
 
-    def with_url(self, *url):
-        """Will limit request to jobs at a certain URL.
+    def with_url(self, *pattern):
+        """Will limit request to jobs whose url follows a certain pattern.
 
-        :param url: URL of the desired job.
-        :type url: str
+        :param pattern: Regex pattern for the desired url.
+        :type pattern: str
         :return: The request's instance.
         :rtype: :class:`JobsRequest`
         """
-        self._filters.append(lambda job: job.url in url)
+
+        def test(job):
+            return any(
+                matches_regex(patt, job.url) for patt in pattern
+            )
+
+        self._filters.append(test)
         return self
 
     def get(self):
@@ -205,26 +237,38 @@ class BuildsRequest(Request):
         self._job = job
         self._last_build_only = False
 
-    def with_uuid(self, *uuid):
-        """Will limit request to builds with a certain ID.
+    def with_uuid(self, *pattern):
+        """Will limit request to builds whose uuid follows a certain pattern.
 
-        :param uuid: ID of the desired build.
-        :type uuid: str
+        :param pattern: Regex pattern for the desired uuid.
+        :type pattern: str
         :return: The request's instance.
         :rtype: :class:`BuildsRequest`
         """
-        self._filters.append(lambda build: build['uuid'] in uuid)
+
+        def test(build):
+            return any(
+                matches_regex(patt, build['uuid']) for patt in pattern
+            )
+
+        self._filters.append(test)
         return self
 
-    def with_status(self, *status):
-        """Will limit request to builds with a certain status.
+    def with_status(self, *pattern):
+        """Will limit request to builds whose status follows a certain pattern.
 
-        :param status: Status of the desired build.
-        :type status: str
+        :param pattern: Regex pattern for the desired status.
+        :type pattern: str
         :return: The request's instance.
         :rtype: :class:`BuildsRequest`
         """
-        self._filters.append(lambda build: build['result'] in status)
+
+        def test(build):
+            return any(
+                matches_regex(patt, build['result']) for patt in pattern
+            )
+
+        self._filters.append(test)
         return self
 
     def with_last_build_only(self):

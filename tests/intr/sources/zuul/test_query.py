@@ -75,7 +75,7 @@ class TestHandleQuery(TestCase):
         )
 
     def test_get_tenants_by_name(self):
-        """Checks the '--tenant name1 name2' option.
+        """Checks the '--tenant pattern1 pattern2' option.
         """
         tenant1 = Mock()
         tenant1.name = 'tenant1'
@@ -91,7 +91,7 @@ class TestHandleQuery(TestCase):
         api.tenants.return_value = [tenant1, tenant2, tenant3]
 
         in_tenants = Mock()
-        in_tenants.value = [tenant1.name]
+        in_tenants.value = [f'({tenant1.name})']
 
         result = handle_query(api, tenants=in_tenants)
 
@@ -144,7 +144,7 @@ class TestHandleQuery(TestCase):
         )
 
     def test_get_projects_by_name(self):
-        """Checks the '--projects name1 name2' option.
+        """Checks the '--projects pattern1 pattern2' option.
         """
         project1 = Mock()
         project1.name = 'project1'
@@ -167,7 +167,7 @@ class TestHandleQuery(TestCase):
         project2.tenant = tenant
 
         in_projects = Mock()
-        in_projects.value = [project1.name]
+        in_projects.value = [f'({project1.name})']
 
         result = handle_query(api, projects=in_projects)
 
@@ -237,7 +237,7 @@ class TestHandleQuery(TestCase):
         )
 
     def test_get_pipelines_by_name(self):
-        """Checks the '--pipelines name1 name2' option.
+        """Checks the '--pipelines pattern1 pattern2' option.
         """
         pipeline1 = Mock()
         pipeline1.name = 'pipeline1'
@@ -269,7 +269,7 @@ class TestHandleQuery(TestCase):
         project.tenant = tenant
 
         in_pipelines = Mock()
-        in_pipelines.value = [pipeline1.name]
+        in_pipelines.value = [f'({pipeline1.name})']
 
         result = handle_query(api, pipelines=in_pipelines)
 
@@ -339,7 +339,7 @@ class TestHandleQuery(TestCase):
         )
 
     def test_get_jobs_by_name(self):
-        """Checks the '--jobs name1 name2" option.
+        """Checks the '--jobs pattern1 pattern2" option.
         """
         job1 = Mock()
         job1.name = 'job1'
@@ -375,7 +375,7 @@ class TestHandleQuery(TestCase):
         job3.tenant = tenant
 
         in_jobs = Mock()
-        in_jobs.value = [job1.name]
+        in_jobs.value = [f'({job1.name})']
 
         result = handle_query(api, jobs=in_jobs)
 
@@ -392,7 +392,7 @@ class TestHandleQuery(TestCase):
         )
 
     def test_get_jobs_by_url(self):
-        """Checks the '--jobs --job_url url1 url2" option.
+        """Checks the '--jobs --job_url pattern1 pattern2" option.
         """
         job1 = Mock()
         job1.name = 'job1'
@@ -431,7 +431,7 @@ class TestHandleQuery(TestCase):
         in_jobs.value = None
 
         in_urls = Mock()
-        in_urls.value = [job1.url]
+        in_urls.value = [f'({job1.url})']
 
         result = handle_query(api, jobs=in_jobs, job_url=in_urls)
 
@@ -600,7 +600,7 @@ class TestHandleQuery(TestCase):
         )
 
     def test_get_builds_by_id(self):
-        """Checks the '--builds id1 id2' option.
+        """Checks the '--builds pattern1 pattern2' option.
         """
         build1 = DictMock()
         build1['uuid'] = 'build1'
@@ -639,7 +639,7 @@ class TestHandleQuery(TestCase):
         api.tenants.return_value = [tenant]
 
         in_builds = Mock()
-        in_builds.value = [build1['uuid']]
+        in_builds.value = [f"({build1['uuid']})"]
 
         result = handle_query(api, builds=in_builds)
 
@@ -666,7 +666,7 @@ class TestHandleQuery(TestCase):
         )
 
     def test_get_builds_by_status(self):
-        """Checks the '--builds --build-status' option.
+        """Checks the '--builds --build-status pattern1 pattern2' option.
         """
         build1 = DictMock()
         build1['uuid'] = 'build1'
@@ -708,7 +708,7 @@ class TestHandleQuery(TestCase):
         in_builds.value = None
 
         in_status = Mock()
-        in_status.value = ['SUCCESS']
+        in_status.value = ['(SUCCESS)']
 
         result = handle_query(api, builds=in_builds, build_status=in_status)
 
