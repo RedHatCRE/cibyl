@@ -59,7 +59,7 @@ class TestSystem(unittest.TestCase):
     def test_export_attributes_to_source(self):
         """Test system export_attributes_to_source method."""
         output = self.system.export_attributes_to_source()
-        self.assertIsNone(output)
+        self.assertEqual({}, output)
 
 
 class TestJobsSystem(unittest.TestCase):
