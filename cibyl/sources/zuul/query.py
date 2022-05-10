@@ -20,6 +20,7 @@ import logging
 
 from cibyl.cli.query import QueryType, get_query_type
 from cibyl.models.attribute import AttributeDictValue
+from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.zuul.models import ModelBuilder
 from cibyl.sources.zuul.requests import TenantsRequest
@@ -242,6 +243,18 @@ def handle_query(api, **kwargs):
                 if job.name in pipeline_jobs:
                     pipeline_model = model.with_pipeline(pipeline)
                     pipeline_model.add_job(job_model)
+
+            # Check if the user requested variants
+            if 'variants' in kwargs:
+                for variant in job.variants().get():
+                    job_model.add_variant(
+                        Job.Variant(
+                            variant.data['parent'],
+                            variant.data['description'],
+                            variant.data['branches'],
+                            variant.data['variables']
+                        )
+                    )
 
     if query == QueryType.BUILDS:
         for build in _get_builds(api, **kwargs):
