@@ -133,6 +133,12 @@ class ZuulJobRESTClient(ZuulJobAPI):
         return f"{base}/t/{tenant.name}/job/{self.name}"
 
     @overrides
+    def variants(self):
+        return self._session.get(
+            f'tenant/{self.tenant.name}/job/{self.name}'
+        )
+
+    @overrides
     def builds(self):
         return self._session.get(
             f'tenant/{self.tenant.name}/builds?job_name={self.name}'

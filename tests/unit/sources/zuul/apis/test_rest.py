@@ -113,8 +113,41 @@ class TestZuulJobRESTClient(TestCase):
             client.url
         )
 
+    def test_variants(self):
+        """Checks that the correct steps are taken to get the variants of
+        this job.
+        """
+        job = {
+            'name': 'job'
+        }
+
+        variants = [
+            {
+                'parent': 'job'
+            },
+            {
+                'parent': 'job'
+            }
+        ]
+
+        session = Mock()
+        session.get = Mock()
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+
+        session.get.return_value = variants
+
+        client = ZuulJobRESTClient(session, tenant, job)
+
+        self.assertEqual(variants, client.variants())
+
+        session.get.assert_called_once_with(
+            f"tenant/{tenant.name}/job/{job['name']}"
+        )
+
     def test_builds(self):
-        """Checks that the current steps are taken to get the builds
+        """Checks that the correct steps are taken to get the builds
         of this job.
         """
         job = {
@@ -134,8 +167,8 @@ class TestZuulJobRESTClient(TestCase):
         session.get = Mock()
 
         tenant = Mock()
-
         tenant.name = 'tenant'
+
         session.get.return_value = builds
 
         client = ZuulJobRESTClient(session, tenant, job)

@@ -69,6 +69,14 @@ class ZuulJobAPI(Closeable, ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def variants(self):
+        """
+        :return: The variants of this job.
+        :rtype: list[dict]
+        :raises ZuulAPIError: If the request failed.
+        """
+
+    @abstractmethod
     def builds(self):
         """
         :return: The builds of this job.
