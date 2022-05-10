@@ -16,6 +16,7 @@
 import logging
 import operator
 import time
+from collections import defaultdict
 from copy import deepcopy
 
 import cibyl.exceptions.config as conf_exc
@@ -179,24 +180,26 @@ class Orchestrator:
         # sort cli arguments in decreasing order by level
         sorted_args = sorted(self.parser.ci_args.values(),
                              key=operator.attrgetter('level'), reverse=True)
-        # the validation process provides a flat list of systems
-        # because the environment information is not used from this
-        # point forward
-        for system in valid_systems:
-            if not system.is_enabled():
-                continue
-            last_level = -1
-            source_methods_store = SourceMethodsStore()
-            # collect system-level arguments that can affect the
-            # result of the source method call
-            system_args = system.export_attributes_to_source()
-            for arg in sorted_args:
-                if arg.level >= start_level and arg.level >= last_level:
-                    if not arg.func:
-                        # if an argument does not have a function
-                        # associated, we should not consider it here, e.g.
-                        # --sources
+        system_methods_stores = defaultdict(SourceMethodsStore)
+        last_level = -1
+        for arg in sorted_args:
+            if arg.level >= start_level and arg.level >= last_level:
+                if not arg.func:
+                    # if an argument does not have a function
+                    # associated, we should not consider it here, e.g.
+                    # --sources
+                    continue
+                # the validation process provides a flat list of systems
+                # because the environment information is not used from this
+                # point forward
+                for system in valid_systems:
+                    if not system.is_enabled():
                         continue
+                    system_name = system.name.value
+                    source_methods_store = system_methods_stores[system_name]
+                    # collect system-level arguments that can affect the
+                    # result of the source method call
+                    system_args = system.export_attributes_to_source()
                     try:
                         source_methods = self.select_source_method(system, arg)
                     except NoSupportedSourcesFound as exception:
@@ -219,34 +222,34 @@ class Orchestrator:
                                 # if the previous call threw an error, let's
                                 # try a different source
                                 continue
-                        source_driver = source_method.__self__.get('driver')
-                        source_name = source_method.__self__.get('name')
+                        source_info = source_information_from_method(
+                                source_method)
                         start_time = time.time()
-                        LOG.debug("Running %s method from %s of type %s and"
-                                  " speed index %d", source_method.__name__,
-                                  source_name, source_driver, speed_score)
+                        LOG.debug("Running %s and speed index %d",
+                                  source_info, speed_score)
                         try:
                             model_instances_dict = source_method(
                                 **self.parser.ci_args, **self.parser.app_args,
                                 **system_args)
                         except SourceException as exception:
                             source_methods_store.add_call(source_method, False)
-                            LOG.error("Error in source %s. %s",
-                                      source_name, exception,
+                            LOG.error("Error in %s. %s",
+                                      source_info, exception,
                                       exc_info=debug)
                             continue
                         source_methods_store.add_call(source_method, True)
                         end_time = time.time()
-                        LOG.info("Took %.2fs to query system %s using %s",
-                                 end_time-start_time, system.name.value,
-                                 source_information_from_method(source_method))
-                        # only update last_level if the query was successful
-                        last_level = arg.level
+                        LOG.debug("Took %.2fs to query system %s using %s",
+                                  end_time-start_time, system.name.value,
+                                  source_info)
                         system.populate(model_instances_dict)
                         system.register_query()
                         # if one source has provided the information, there is
                         # no need to query the rest
                         break
+                # we update last_level if the the arg has a func attribute
+                # and valid sources to query
+                last_level = arg.level
 
     def extend_parser(self, attributes, group_name='Environment',
                       level=0):
