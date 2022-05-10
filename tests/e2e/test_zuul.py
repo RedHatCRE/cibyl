@@ -57,7 +57,7 @@ class TestZuul(EndToEndTest):
             '--config', 'tests/e2e/data/configs/zuul.yaml',
             '-f', 'text',
             '-vv',
-            '--tenants', 'example-tenant'
+            '--tenants', '^(example-tenant)$'
         ]
 
         main()
@@ -73,7 +73,7 @@ class TestZuul(EndToEndTest):
             '--config', 'tests/e2e/data/configs/zuul.yaml',
             '-f', 'text',
             '-vv',
-            '--tenants', 'example-tenant',
+            '--tenants', '^(example-tenant)$',
             '--projects'
         ]
 
@@ -93,7 +93,7 @@ class TestZuul(EndToEndTest):
             '--config', 'tests/e2e/data/configs/zuul.yaml',
             '-f', 'text',
             '-vv',
-            '--tenants', 'example-tenant',
+            '--tenants', '^(example-tenant)$',
             '--projects', 'test1'
         ]
 
@@ -116,7 +116,7 @@ class TestZuul(EndToEndTest):
             '',
             '--config', 'tests/e2e/data/configs/zuul.yaml',
             '-f', 'text',
-            '--tenants', 'example-tenant',
+            '--tenants', '^(example-tenant)$',
             '--projects', 'test1',
             '-v'
         ]
@@ -142,7 +142,7 @@ class TestZuul(EndToEndTest):
             '--config', 'tests/e2e/data/configs/zuul.yaml',
             '-f', 'text',
             '-vv',
-            '--tenants', 'example-tenant'
+            '--tenants', '^(example-tenant)$'
         ]
 
         main()
@@ -161,7 +161,7 @@ class TestZuul(EndToEndTest):
             '--config', 'tests/e2e/data/configs/zuul.yaml',
             '-f', 'text',
             '-vv',
-            '--tenants', 'example-tenant',
+            '--tenants', '^(example-tenant)$',
             '--projects'
         ]
 
@@ -180,7 +180,7 @@ class TestZuul(EndToEndTest):
             '--config', 'tests/e2e/data/configs/zuul.yaml',
             '-f', 'text',
             '-vv',
-            '--tenants', 'example-tenant',
+            '--tenants', '^(example-tenant)$',
             '--jobs'
         ]
 
@@ -199,7 +199,7 @@ class TestZuul(EndToEndTest):
             '--config', 'tests/e2e/data/configs/zuul.yaml',
             '-f', 'text',
             '-vv',
-            '--tenants', 'example-tenant',
+            '--tenants', '^(example-tenant)$',
             '--jobs', 'build-docker-image'
         ]
 
@@ -223,7 +223,7 @@ class TestZuul(EndToEndTest):
             '--config', 'tests/e2e/data/configs/zuul.yaml',
             '-f', 'text',
             '-vv',
-            '--tenants', 'example-tenant',
+            '--tenants', '^(example-tenant)$',
             '--jobs', '--job-url',
             'http://localhost:9000/t/example-tenant/job/build-docker-image'
         ]

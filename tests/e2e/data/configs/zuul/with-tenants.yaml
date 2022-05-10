@@ -7,4 +7,4 @@ environments:
         osp_zuul:
           driver: zuul
           url: 'http://localhost:9000/'
-          tenants: [ 'example-tenant' ]
+          tenants: [ '^(example-tenant)$' ]
