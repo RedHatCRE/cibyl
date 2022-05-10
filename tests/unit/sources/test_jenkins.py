@@ -2185,6 +2185,26 @@ class TestFilters(TestCase):
                      'result': 'success'}]
         self.assertEqual(builds_filtered, expected)
 
+    def test_filter_builds_build_status_running_build(self):
+        """Test that filter builds filters the builds given the user input.
+        This tests simulates the case when a build is running, which sets the
+        result field to None."""
+        response = [{'_class': 'org..job.WorkflowRun', 'number': 3,
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': 4,
+                     'result': None},
+                    {'_class': 'org..job.WorkflowRun', 'number': 5,
+                     'result': 'success'}]
+        build_status = Mock()
+        build_status.value = ["success"]
+        builds_filtered = filter_builds(response,
+                                        build_status=build_status)
+        expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
+                     'result': 'SUCCESS'},
+                    {'_class': 'org..job.WorkflowRun', 'number': "5",
+                     'result': 'success'}]
+        self.assertEqual(builds_filtered, expected)
+
     def test_filter_nodes(self):
         """Test that filter_nodes filters nodes according to user input."""
         job = {'nodes': {'node1': Node('node1', 'test',
