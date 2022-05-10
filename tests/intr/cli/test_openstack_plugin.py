@@ -32,15 +32,16 @@ class TestOpenstackCLI(TestCase):
     def setUpClass(cls):
         cls.original_job_api = deepcopy(Job.API)
         cls.original_system_api = deepcopy(System.API)
+        cls._null_stdout = open(os.devnull, 'w', encoding='utf-8')
         cls._original_stdout = sys.stdout
         # silence stdout and logging to avoid cluttering
         logging.disable(logging.CRITICAL)
-        sys.stdout = open(os.devnull, 'w', encoding='utf-8')
+        sys.stdout = cls._null_stdout
 
     @classmethod
     def tearDownClass(cls):
-        sys.stdout.close()
         sys.stdout = cls._original_stdout
+        cls._null_stdout.close()
 
     def setUp(self):
         # restore Job API before each test
