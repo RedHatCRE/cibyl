@@ -6,16 +6,9 @@ Cibyl CLI is fully visible and usable only once you've setup the configuration f
 Format
 ^^^^^^
 
-The configuration file is written in YAML::
+The configuration file is written in YAML:
 
-  environments:              # List of environment files
-    example_env:             # Environment name
-      example_system:        # System name
-        system_type:         # The type of the system (e.g. jenkins, zuul)
-          sources:           # List of sources
-            example_source:  # Source name
-            driver:          # The driver to use (e.g. elasticsearch, jenkins, etc.)
-            url:             # The URL to use to connect
+.. include:: config_samples/minimal_configuration.rst
 
 Configuration Path
 ^^^^^^^^^^^^^^^^^^
@@ -26,7 +19,23 @@ By default cibyl will look for the configuration file in the following paths:
   * ``/etc/cibyl/cibyl.yaml``
 
 
+Sources
+^^^^^^^
+
+Cibyl supports multiple different types of sources. Each configured in a different way:
+
+  * `Jenkins <sources/jenkins.html>`_
+  * `Zuul API <sources/zuul_api.html>`_
+  * `Elasticsearch <sources/elasticsearch.html>`_
+  * `Zuul Definitions <sources/zuul.d.html>`_
+  * `Jenkins Job Builder <sources/jenkins-job-builder.html>`_
+
 Validate Configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The best way to validate the configuration you've added is to run the ``cibyl`` command. This should list the environments and systems specified in the configuration file.
+The best way to validate the configuration you've added is correct, is to run the ``cibyl`` command. This should list the environments and systems specified in the configuration file.
+
+Full Configuration
+^^^^^^^^^^^^^^^^^^
+
+.. include:: config_samples/full_configuration.rst

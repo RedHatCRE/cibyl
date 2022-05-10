@@ -6,17 +6,19 @@ The Elasticsearch source pulls data from the different indexes of the Elasticsea
 Usage
 ^^^^^
 
-To following is a configuration sample of how to configure the Elasticsearch source::
+To following is a configuration sample of how to configure the Elasticsearch source
 
-    environments:
-      example_environment:
-        jenkins_system:
-          system_type: jenkins
-          sources:
-            jenkins_source:
-              driver: elasticsearch
-              username: some_username
-              url: 'http://elasticsearch.example.com:9200'
+.. include:: ../config_samples/elasticsearch_configuration.rst
+
+Fields
+^^^^^^
+
+Elasticsearch should include the following fields in order to be fully operational:
+
+- job_name
+- build_number
+- build_result
+- current_build_result
 
 Plugin Support
 ^^^^^^^^^^^^^^
@@ -24,3 +26,15 @@ Plugin Support
 The Elasticsearch source is supported by the following built-in plugins:
 
   * OpenStack
+
+    - Fields
+
+      - ip_version
+
+      - network_backend
+
+      - storage_backend
+
+      - topology
+
+      - dvr
