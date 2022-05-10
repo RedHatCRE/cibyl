@@ -141,7 +141,7 @@ class System(Model):
         when calling on of their methods
         :rtype: dict
         """
-        pass
+        return {}
 
     def populate(self, instances):
         """Adds all models found on an attribute to this system.
