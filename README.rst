@@ -10,7 +10,7 @@ Installation
 
 Next, set up `configuration <http://cibyl.readthedocs.org/>`_
 
-.. include:: config_samples/minimal_configuration.rst
+.. include:: docs/source/config_samples/minimal_configuration.rst
 
 Usage
 *****

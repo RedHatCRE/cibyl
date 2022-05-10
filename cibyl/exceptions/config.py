@@ -16,21 +16,17 @@
 from cibyl.exceptions import CibylException
 
 CONFIG_DOCS_URL = "https://cibyl.readthedocs.io/en/latest/configuration.html"
+CHECK_DOCS_MSG = f"Check the documentation at {CONFIG_DOCS_URL} \
+for more information"
 
 
 class InvalidConfiguration(CibylException):
     """Invalid configuration exception"""
 
-    def __init__(self, message="""
-Invalid Configuration.
-A valid configuration should specify an environment, its system(s) and the
-system(s) details
-
-environments:
-    env_1:
-        jenkins_system:
-            system_type: jenkins"""):
-        self.message = message
+    def __init__(self):
+        self.message = f"""Invalid Configuration.
+A valid configuration should specify an environment, its system(s) and at \
+least one source for each system.\n\n{CHECK_DOCS_MSG}"""
         super().__init__(self.message)
 
 
@@ -42,8 +38,8 @@ class ConfigurationNotFound(CibylException):
             paths = f" at: {paths}"
         else:
             paths = ""
-        self.message = f"""Could not find configuration file{paths}.\n
-Check the documentation at {CONFIG_DOCS_URL} for more information"""
+        self.message = f"""Could not find configuration file{paths}.
+{CHECK_DOCS_MSG}"""
 
         super().__init__(self.message)
 
@@ -52,9 +48,8 @@ class EmptyConfiguration(CibylException):
     """Configuration file is empty exception."""
 
     def __init__(self, file):
-        self.message = f"""Configuration file {file} is empty.\n
-Check the documentation at {CONFIG_DOCS_URL} for more \
-details about the configuration syntax."""
+        self.message = f"""Configuration file {file} is empty.
+{CHECK_DOCS_MSG}"""
 
         super().__init__(self.message)
 
@@ -65,8 +60,16 @@ class InvalidSourceConfiguration(CibylException):
     def __init__(self, source_name, source_data):
         self.message = f"""Invalid source configuration.
 
-{source_name}: {source_data}
+{source_name}: {source_data}\n\n{CHECK_DOCS_MSG}"""
 
-Check the documentation at {CONFIG_DOCS_URL} for more information"""
+        super().__init__(self.message)
+
+
+class NonSupportedSourceKey(CibylException):
+    """Configuration section key is not supported."""
+
+    def __init__(self, source_type, key):
+        self.message = f"""The following key in "{source_type}" source type \
+is not supported: {key}\n\n{CHECK_DOCS_MSG}"""
 
         super().__init__(self.message)

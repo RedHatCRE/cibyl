@@ -13,8 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import re
 from enum import Enum
 
+from cibyl.exceptions.config import NonSupportedSourceKey
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
@@ -49,19 +51,25 @@ class SourceFactory:
         :return: A new instance.
         :rtype: :class:`cibyl.sources.source.Source`
         """
-        if source_type == SourceType.JENKINS:
-            return Jenkins(name=name, **kwargs)
+        try:
+            if source_type == SourceType.JENKINS:
+                return Jenkins(name=name, **kwargs)
 
-        if source_type == SourceType.ZUUL:
-            return Zuul.new_source(name=name, **kwargs)
+            if source_type == SourceType.ZUUL:
+                return Zuul.new_source(name=name, **kwargs)
 
-        if source_type == SourceType.ELASTICSEARCH:
-            return ElasticSearchOSP(name=name, **kwargs)
+            if source_type == SourceType.ELASTICSEARCH:
+                return ElasticSearchOSP(name=name, **kwargs)
 
-        if source_type == SourceType.JENKINS_JOB_BUILDER:
-            return JenkinsJobBuilder(name=name, **kwargs)
+            if source_type == SourceType.JENKINS_JOB_BUILDER:
+                return JenkinsJobBuilder(name=name, **kwargs)
 
-        if source_type == SourceType.ZUUL_D:
-            return ZuulD(name=name, **kwargs)
+            if source_type == SourceType.ZUUL_D:
+                return ZuulD(name=name, **kwargs)
+        except TypeError as ex:
+            re_result = re.search(r'unexpected keyword argument (.*)',
+                                  ex.args[0])
+            if re_result:
+                raise NonSupportedSourceKey(source_type, re_result.group(1))
 
         raise NotImplementedError(f"Unknown source type '{source_type}'")
