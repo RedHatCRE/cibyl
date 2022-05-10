@@ -18,10 +18,10 @@ import operator
 import time
 from copy import deepcopy
 
+import cibyl.exceptions.config as conf_exc
 from cibyl.cli.parser import Parser
 from cibyl.cli.validator import Validator
 from cibyl.config import Config, ConfigFactory
-from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.exceptions.source import (NoSupportedSourcesFound, NoValidSources,
                                      SourceException)
 from cibyl.models.ci.environment import Environment
@@ -78,6 +78,16 @@ class Orchestrator:
         """Loads the configuration of the application."""
         self.config = ConfigFactory.from_path(path)
 
+    def get_source(self, source_name, source_data):
+        try:
+            return SourceFactory.create_source(
+                    source_data.get('driver'),
+                    source_name,
+                    **source_data)
+        except AttributeError as exception:
+            raise conf_exc.InvalidSourceConfiguration(
+                source_name, source_data) from exception
+
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""
         try:
@@ -95,12 +105,7 @@ class Orchestrator:
 
                     for source_name, source_data in sources_dict.items():
                         sources.append(
-                            SourceFactory.create_source(
-                                source_data.get('driver'),
-                                source_name,
-                                **source_data
-                            )
-                        )
+                            self.get_source(source_name, source_data))
 
                     environment.add_system(
                         name=system_name,
@@ -111,7 +116,7 @@ class Orchestrator:
                 self.environments.append(environment)
             self.set_system_api()
         except AttributeError as exception:
-            raise InvalidConfiguration from exception
+            raise conf_exc.InvalidConfiguration from exception
 
     def set_system_api(self):
         """Modify the System API depending on the type of systems present in
