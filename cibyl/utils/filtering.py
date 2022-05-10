@@ -152,7 +152,7 @@ def matches_regex(pattern, string):
     :rtype: bool
     """
     try:
-        return bool(re.match(pattern, string))
+        return bool(re.search(pattern, string))
     except sre_constants.error:
         return False  # Do not crash against invalid patterns
 
