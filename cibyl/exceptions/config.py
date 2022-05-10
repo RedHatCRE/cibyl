@@ -15,6 +15,8 @@
 """
 from cibyl.exceptions import CibylException
 
+CONFIG_DOCS_URL = "https://cibyl.readthedocs.io/en/latest/configuration.html"
+
 
 class InvalidConfiguration(CibylException):
     """Invalid configuration exception"""
@@ -34,3 +36,37 @@ environments:
 
 class ConfigurationNotFound(CibylException):
     """Configuration file not found exception"""
+
+    def __init__(self, paths):
+        if paths:
+            paths = f" at: {paths}"
+        else:
+            paths = ""
+        self.message = f"""Could not find configuration file{paths}.\n
+Check the documentation at {CONFIG_DOCS_URL} for more information"""
+
+        super().__init__(self.message)
+
+
+class EmptyConfiguration(CibylException):
+    """Configuration file is empty exception."""
+
+    def __init__(self, file):
+        self.message = f"""Configuration file {file} is empty.\n
+Check the documentation at {CONFIG_DOCS_URL} for more \
+details about the configuration syntax."""
+
+        super().__init__(self.message)
+
+
+class InvalidSourceConfiguration(CibylException):
+    """Invalid source configuration exception."""
+
+    def __init__(self, source_name, source_data):
+        self.message = f"""Invalid source configuration.
+
+{source_name}: {source_data}
+
+Check the documentation at {CONFIG_DOCS_URL} for more information"""
+
+        super().__init__(self.message)
