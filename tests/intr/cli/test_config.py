@@ -19,7 +19,7 @@ from tempfile import NamedTemporaryFile
 from unittest import TestCase
 
 from cibyl.cli.main import main
-from cibyl.exceptions.config import ConfigurationNotFound
+from cibyl.exceptions.config import EmptyConfiguration
 
 
 class TestConfig(TestCase):
@@ -35,4 +35,4 @@ class TestConfig(TestCase):
                 '--config', config_file.name
             ]
 
-            self.assertRaises(ConfigurationNotFound, main)
+            self.assertRaises(EmptyConfiguration, main)

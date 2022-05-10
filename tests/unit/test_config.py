@@ -22,7 +22,7 @@ import yaml
 import cibyl.config
 from cibyl.config import Config, ConfigFactory
 from cibyl.exceptions.cli import AbortedByUserError
-from cibyl.exceptions.config import ConfigurationNotFound
+from cibyl.exceptions.config import ConfigurationNotFound, EmptyConfiguration
 from cibyl.utils.net import DownloadError
 from cibyl.utils.yaml import encrypted_constructor, get_loader
 
@@ -35,7 +35,7 @@ class TestConfig(TestCase):
         """Test that parsing and empty configuration file raises and error."""
         with NamedTemporaryFile() as config_file:
             config = Config()
-            self.assertRaises(ConfigurationNotFound, config.load,
+            self.assertRaises(EmptyConfiguration, config.load,
                               config_file.name)
 
     def test_contents_are_loaded(self):

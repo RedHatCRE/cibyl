@@ -21,13 +21,12 @@ import rfc3987
 
 from cibyl.cli.interactions import ask_yes_no_question
 from cibyl.exceptions.cli import AbortedByUserError
-from cibyl.exceptions.config import ConfigurationNotFound
+from cibyl.exceptions.config import ConfigurationNotFound, EmptyConfiguration
 from cibyl.utils import yaml
 from cibyl.utils.files import get_first_available_file, is_file_available
 from cibyl.utils.net import DownloadError, download_file
 
 LOG = logging.getLogger(__name__)
-CONFIG_DOCS_URL = "https://cibyl.readthedocs.io/en/latest/configuration.html"
 
 
 def _ask_user_for_overwrite():
@@ -64,10 +63,7 @@ class Config(UserDict):
             # we assign an empty dictionary to always return the same type and
             # raise an exception
             self.data = {}
-            msg = f"Configuration file {file} is empty.\n"
-            msg += f"Check the documentation at {CONFIG_DOCS_URL} for more "
-            msg += "details about the configuration syntax."
-            raise ConfigurationNotFound(msg)
+            raise EmptyConfiguration(file)
 
 
 class ConfigFactory:
@@ -122,10 +118,7 @@ class ConfigFactory:
         :raise ConfigurationNotFound: If the file does not exist.
         """
         if not is_file_available(file):
-            msg = f"Could not find configuration file at: {file}.\n"
-            msg += f"Check the documentation at {CONFIG_DOCS_URL} for more "
-            msg += "details about the configuration syntax."
-            raise ConfigurationNotFound(msg)
+            raise ConfigurationNotFound(file)
 
         config = Config()
         config.load(file)
@@ -145,11 +138,7 @@ class ConfigFactory:
         file = get_first_available_file(paths)
 
         if not file:
-            msg = f"Could not find configuration file at: {paths}.\n"
-            msg += f"Check the documentation at {CONFIG_DOCS_URL} for more "
-            msg += "details about the configuration syntax."
-
-            raise ConfigurationNotFound(msg)
+            raise ConfigurationNotFound(paths)
 
         return ConfigFactory.from_file(file)
 
@@ -206,10 +195,7 @@ class ConfigFactory:
         try:
             download_file(url, dest)
         except DownloadError as ex:
-            msg = f"Configuration could not be retrieved from: {url}.\n"
-            msg += f"Check the documentation at {CONFIG_DOCS_URL} for more "
-            msg += "details about the configuration syntax."
-            raise ConfigurationNotFound(msg) from ex
+            raise ConfigurationNotFound(url) from ex
 
         LOG.info('Download completed successfully.')
 
