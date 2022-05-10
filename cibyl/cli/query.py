@@ -58,7 +58,7 @@ def get_query_type(**kwargs):
     if 'pipelines' in kwargs:
         result = QueryType.PIPELINES
 
-    if 'jobs' in kwargs:
+    if 'jobs' in kwargs or 'spec' in kwargs:
         result = QueryType.JOBS
 
     if 'builds' in kwargs:
