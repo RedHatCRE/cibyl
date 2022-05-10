@@ -17,7 +17,8 @@
 import unittest
 
 from cibyl.models.ci.environment import Environment
-from cibyl.models.ci.system import JobsSystem, ZuulSystem
+from cibyl.models.ci.system import JobsSystem
+from cibyl.models.ci.zuul.system import ZuulSystem
 
 
 class TestEnvironment(unittest.TestCase):

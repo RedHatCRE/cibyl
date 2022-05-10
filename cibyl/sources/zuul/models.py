@@ -15,9 +15,9 @@
 """
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.job import Job
-from cibyl.models.ci.pipeline import Pipeline
-from cibyl.models.ci.project import Project
-from cibyl.models.ci.tenant import Tenant
+from cibyl.models.ci.zuul.pipeline import Pipeline
+from cibyl.models.ci.zuul.project import Project
+from cibyl.models.ci.zuul.tenant import Tenant
 
 
 class ModelBuilder:

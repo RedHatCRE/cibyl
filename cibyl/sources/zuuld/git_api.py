@@ -10,7 +10,7 @@ import yaml
 from cibyl.exceptions.zuul import RateLimitException
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.job import Job
-from cibyl.models.ci.tenant import Tenant
+from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.git import GitSource
 from cibyl.utils.yaml import get_loader
 

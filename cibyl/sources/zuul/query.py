@@ -20,7 +20,7 @@ import logging
 
 from cibyl.cli.query import QueryType, get_query_type
 from cibyl.models.attribute import AttributeDictValue
-from cibyl.models.ci.tenant import Tenant
+from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.zuul.models import ModelBuilder
 from cibyl.sources.zuul.requests import TenantsRequest
 

@@ -21,7 +21,8 @@ from cibyl.cli.query import QueryType
 from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
 from cibyl.models.ci.printers import CIPrinter
-from cibyl.models.ci.system import JobsSystem, ZuulSystem
+from cibyl.models.ci.system import JobsSystem
+from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
 from cibyl.utils.colors import DefaultPalette
