@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.models.ci.project import Project
+from cibyl.models.ci.zuul.project import Project
 
 
 class TestProject(TestCase):

@@ -15,7 +15,7 @@
 """
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue
-from cibyl.models.ci.pipeline import Pipeline
+from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.model import Model
 
 

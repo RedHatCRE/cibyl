@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.models.ci.pipeline import Pipeline
+from cibyl.models.ci.zuul.pipeline import Pipeline
 
 
 class TestPipeline(TestCase):

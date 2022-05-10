@@ -25,8 +25,9 @@ from cibyl.exceptions.config import InvalidConfiguration
 from cibyl.exceptions.source import (NoSupportedSourcesFound, NoValidSources,
                                      SourceException)
 from cibyl.models.ci.environment import Environment
-from cibyl.models.ci.system import JobsSystem, System, ZuulSystem
+from cibyl.models.ci.system import JobsSystem, System
 from cibyl.models.ci.system_factory import SystemType
+from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.publisher import Publisher
 from cibyl.sources.source import get_source_method
 from cibyl.sources.source_factory import SourceFactory

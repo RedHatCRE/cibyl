@@ -21,7 +21,6 @@ from cibyl.cli.argument import Argument
 from cibyl.exceptions.model import NonSupportedModelType
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.job import Job
-from cibyl.models.ci.tenant import Tenant
 from cibyl.models.model import Model
 from cibyl.sources.source import Source
 
@@ -211,45 +210,3 @@ class JobsSystem(System):
             self.jobs[key].merge(job)
         else:
             self.jobs[key] = job
-
-
-class ZuulSystem(System):
-    """Model a system with :class:`Tenant` as its top-level model.
-    """
-    API = deepcopy(System.API)
-    API.update({'tenants': {'attr_type': Tenant,
-                            'attribute_value_class': AttributeDictValue,
-                            'arguments': [
-                                Argument(name='--tenants', arg_type=str,
-                                         nargs='*',
-                                         description='System tenants',
-                                         func='get_tenants')]}})
-
-    def __init__(self,
-                 name,
-                 system_type='zuul',
-                 sources=None,
-                 enabled=True,
-                 tenants=None):
-        # Let IDEs know this class's attributes
-        self.tenants = None
-
-        # Set up model
-        super().__init__(
-            name=name,
-            system_type=system_type,
-            top_level_model=Tenant,
-            sources=sources,
-            enabled=enabled,
-            tenants=tenants
-        )
-
-    def add_toplevel_model(self, model):
-        key = model.name.value
-
-        if key in self.tenants:
-            # Extract unknown contents of tenant
-            self.tenants[key].merge(model)
-        else:
-            # Add a brand-new tenant
-            self.tenants[key] = model
