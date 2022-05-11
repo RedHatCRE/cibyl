@@ -53,7 +53,7 @@ class TestParser(TestCase):
 
     def test_parser_parse_args(self):
         """Testing parser extend method"""
-        self.parser.parse()
+        self.parser.parse({})
         self.assertEqual(self.parser.app_args, {'debug': False,
                                                 'plugin': 'openstack',
                                                 'output_style': 'colorized',

@@ -100,15 +100,13 @@ class Parser:
         :param arguments: Arguments to parse
         :type arguments: list
         """
-        # First item is the namespace of the parsed known arguments (we ignore
-        # the arguments we are not familiar with)
-        known_arguments = self.argument_parser.parse_known_args(arguments)[0]
+        arguments = vars(self.argument_parser.parse_args(arguments))
         # Keep only the used arguments
-        self.ci_args = {arg_name: arg_value for arg_name, arg_value in vars(
-            known_arguments).items() if isinstance(arg_value, Argument)}
-        self.app_args = {arg_name: arg_value for arg_name, arg_value in vars(
-            known_arguments).items() if arg_value is not None and not
-            isinstance(arg_value, Argument)}
+        self.ci_args = {arg_name: arg_value for arg_name, arg_value in
+                        arguments.items() if isinstance(arg_value, Argument)}
+        self.app_args = {arg_name: arg_value for arg_name, arg_value in
+                         arguments.items() if arg_value is not None and not
+                         isinstance(arg_value, Argument)}
 
     def get_group(self, group_name: str):
         """Returns the argument parser group based on a given group_name
