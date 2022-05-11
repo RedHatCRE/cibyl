@@ -51,8 +51,9 @@ class OSColoredPrinter(OSPrinter):
 
         printer.add(self._palette.blue('Openstack deployment: '), 0)
 
-        printer.add(self._palette.blue('Release: '), 1)
-        printer[-1].append(deployment.release.value)
+        if deployment.release.value:
+            printer.add(self._palette.blue('Release: '), 1)
+            printer[-1].append(deployment.release.value)
 
         if deployment.infra_type.value:
             printer.add(self._palette.blue('Infra type: '), 1)
@@ -128,7 +129,7 @@ class OSColoredPrinter(OSPrinter):
     def print_service(self, service):
         printer = IndentedTextBuilder()
 
-        printer.add('Service name: ', 0)
+        printer.add(self._palette.blue('Service name: '), 0)
         printer[-1].append(service.name.value)
 
         if self.verbosity > 0:

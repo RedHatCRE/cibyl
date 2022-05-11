@@ -831,10 +831,13 @@ class TestJenkinsSourceOpenstackPlugin(TestCase):
                                      'lastBuild': None})
 
         self.jenkins.send_request = Mock(side_effect=[response])
-        arg = Mock()
-        arg.value = []
+        args = {
+            "release": Argument("release", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "topology": Argument("topology", str, "", value=[]),
+        }
 
-        jobs = self.jenkins.get_deployment(ip_version=arg)
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
         for job_name, ip, release, topology, node_list in zip(job_names,
                                                               ip_versions,
@@ -877,10 +880,13 @@ class TestJenkinsSourceOpenstackPlugin(TestCase):
                                      'lastBuild': None})
 
         self.jenkins.send_request = Mock(side_effect=[response])
-        arg = Mock()
-        arg.value = []
 
-        jobs = self.jenkins.get_deployment(ip_version=arg)
+        args = {
+            "release": Argument("release", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "topology": Argument("topology", str, "", value=[]),
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
         for job_name, ip, release, topology in zip(job_names, ip_versions,
                                                    releases, topologies):
@@ -915,7 +921,12 @@ class TestJenkinsSourceOpenstackPlugin(TestCase):
         self.jenkins.add_job_info_from_name = Mock(
                 side_effect=self.jenkins.add_job_info_from_name)
 
-        jobs = self.jenkins.get_deployment()
+        args = {
+            "topology": Argument("topology", str, "", value=[]),
+            "release": Argument("release", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.jenkins.add_job_info_from_name.assert_called()
         self.assertEqual(len(jobs), 3)
         for job_name, ip, release, topology in zip(job_names, ip_versions,
@@ -952,7 +963,12 @@ class TestJenkinsSourceOpenstackPlugin(TestCase):
         self.jenkins.add_job_info_from_name = Mock(
                 side_effect=self.jenkins.add_job_info_from_name)
 
-        jobs = self.jenkins.get_deployment()
+        args = {
+            "topology": Argument("topology", str, "", value=[]),
+            "release": Argument("release", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.jenkins.add_job_info_from_name.assert_called()
         self.assertEqual(len(jobs), 3)
         for job_name, ip, release, topology in zip(job_names, ip_versions,
@@ -1019,12 +1035,21 @@ tripleo_ironic_conductor.service loaded    active     running
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
-        services = Argument("services", str, "", value=[])
-        packages = Argument("packages", str, "", value=[])
-        containers = Argument("containers", str, "", value=[])
-        jobs = self.jenkins.get_deployment(containers=containers,
-                                           services=services,
-                                           packages=packages)
+        args = {
+            "services": Argument("services", str, "", value=[]),
+            "packages": Argument("packages", str, "", value=[]),
+            "containers": Argument("containers", str, "", value=[]),
+            "topology": Argument("topology", str, "", value=[]),
+            "release": Argument("release", str, "", value=[]),
+            "infra_type": Argument("infra_type", str, "", value=[]),
+            "nodes": Argument("nodes", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "dvr": Argument("dvr", str, "", value=[]),
+            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
+            "network_backend": Argument("network_backend", str, "", value=[]),
+            "storage_backend": Argument("storage_backend", str, "", value=[])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
         for job_name, ip, release, topology in zip(job_names, ip_versions,
                                                    releases, topologies):
@@ -1070,15 +1095,19 @@ tripleo_ironic_conductor.service loaded    active     running
                                      'name': job_name, 'url': 'url',
                                      'lastCompletedBuild': {'description':
                                                             logs_url}})
-        services = ""
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
         artifacts = [JenkinsError()]*9
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
-        services = Argument("services", str, "", value=[])
-        jobs = self.jenkins.get_deployment(services=services)
+        args = {
+            "release": Argument("release", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "topology": Argument("topology", str, "", value=[]),
+            "services": Argument("services", str, "", value=[])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
         for job_name, ip, release in zip(job_names, ip_versions, releases):
             job = jobs[job_name]
@@ -1117,8 +1146,13 @@ tripleo_ironic_conductor.service loaded    active     running
             ]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+        args = {
+            "release": Argument("release", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "topology": Argument("topology", str, "", value=[]),
+        }
 
-        jobs = self.jenkins.get_deployment()
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
         for job_name, ip, release, topology in zip(job_names, ip_versions,
                                                    releases, topologies):
@@ -1141,11 +1175,12 @@ tripleo_ironic_conductor.service loaded    active     running
                                      'name': job_name, 'url': 'url',
                                      'lastBuild': None})
 
+        args = {
+            "ip_version": Argument("ip_version", str, "", value=["4"])
+        }
         self.jenkins.send_request = Mock(side_effect=[response])
-        arg = Mock()
-        arg.value = ["4"]
 
-        jobs = self.jenkins.get_deployment(ip_version=arg)
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
         job_name = 'test_17.3_ipv4_job'
         job = jobs[job_name]
@@ -1153,7 +1188,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
-        self.assertEqual(deployment.release.value, "17.3")
+        self.assertEqual(deployment.release.value, "")
         self.assertEqual(deployment.ip_version.value, "4")
         self.assertEqual(deployment.topology.value, "")
 
@@ -1169,10 +1204,11 @@ tripleo_ironic_conductor.service loaded    active     running
                                      'lastBuild': None})
 
         self.jenkins.send_request = Mock(side_effect=[response])
-        arg = Mock()
-        arg.value = [topology_value]
+        args = {
+            "topology": Argument("topology", str, "", value=[topology_value])
+        }
 
-        jobs = self.jenkins.get_deployment(topology=arg)
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
         job_name = 'test_17.3_ipv4_job_2comp_1cont'
         job = jobs[job_name]
@@ -1180,8 +1216,8 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
-        self.assertEqual(deployment.release.value, "17.3")
-        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(deployment.release.value, "")
+        self.assertEqual(deployment.ip_version.value, "")
         self.assertEqual(deployment.topology.value, topology_value)
 
     def test_get_deployment_filter_release(self):
@@ -1189,17 +1225,17 @@ tripleo_ironic_conductor.service loaded    active     running
         job_names = ['test_17.3_ipv4_job_2comp_1cont',
                      'test_16_ipv6_job_1comp_2cont', 'test_job']
         response = {'jobs': [{'_class': 'folder'}]}
-        topology_value = "compute:2,controller:1"
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
                                      'lastBuild': None})
 
         self.jenkins.send_request = Mock(side_effect=[response])
-        arg = Mock()
-        arg.value = ["17.3"]
 
-        jobs = self.jenkins.get_deployment(release=arg)
+        args = {
+            "release": Argument("release", str, "", value=["17.3"])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
         job_name = 'test_17.3_ipv4_job_2comp_1cont'
         job = jobs[job_name]
@@ -1208,8 +1244,8 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "17.3")
-        self.assertEqual(deployment.ip_version.value, "4")
-        self.assertEqual(deployment.topology.value, topology_value)
+        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(deployment.topology.value, "")
 
     def test_get_deployment_filter_topology_ip_version(self):
         """Test that get_deployment filters by topology and ip version."""
@@ -1223,19 +1259,18 @@ tripleo_ironic_conductor.service loaded    active     running
                                      'lastBuild': None})
 
         self.jenkins.send_request = Mock(side_effect=[response])
-        arg = Mock()
-        arg.value = [topology_value]
-        arg_ip = Mock()
-        arg_ip.value = ["6"]
+        args = {
+            "ip_version": Argument("ip_version", str, "", value=["6"]),
+            "topology": Argument("topology", str, "", value=[topology_value])
+        }
 
-        jobs = self.jenkins.get_deployment(topology=arg, ip_version=arg_ip)
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 0)
 
     def test_get_deployment_filter_network_backend(self):
         """Test that get_deployment filters by network backend."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont_geneve',
                      'test_16_ipv6_job_1comp_2cont_vxlan', 'test_job']
-        topology_value = "compute:2,controller:1"
         response = {'jobs': [{'_class': 'folder'}]}
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
@@ -1243,10 +1278,11 @@ tripleo_ironic_conductor.service loaded    active     running
                                      'lastBuild': None})
 
         self.jenkins.send_request = Mock(side_effect=[response])
-        arg = Mock()
-        arg.value = ["geneve"]
-
-        jobs = self.jenkins.get_deployment(network_backend=arg)
+        args = {
+            "network_backend": Argument("network_backend", str, "",
+                                        value=["geneve"])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
         job_name = 'test_17.3_ipv4_job_2comp_1cont_geneve'
         job = jobs[job_name]
@@ -1254,16 +1290,15 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
-        self.assertEqual(deployment.release.value, "17.3")
-        self.assertEqual(deployment.ip_version.value, "4")
-        self.assertEqual(deployment.topology.value, topology_value)
+        self.assertEqual(deployment.release.value, "")
+        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(deployment.topology.value, "")
         self.assertEqual(deployment.network_backend.value, "geneve")
 
     def test_get_deployment_filter_storage_backend(self):
         """Test that get_deployment filters by storage backend."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont_geneve_swift',
                      'test_16_ipv6_job_1comp_2cont_lvm', 'test_job']
-        topology_value = "compute:2,controller:1"
         response = {'jobs': [{'_class': 'folder'}]}
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
@@ -1271,10 +1306,12 @@ tripleo_ironic_conductor.service loaded    active     running
                                      'lastBuild': None})
 
         self.jenkins.send_request = Mock(side_effect=[response])
-        arg = Mock()
-        arg.value = ["swift"]
+        args = {
+            "storage_backend": Argument("storage_backend", str, "",
+                                        value=["swift"])
+        }
 
-        jobs = self.jenkins.get_deployment(storage_backend=arg)
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
         job_name = 'test_17.3_ipv4_job_2comp_1cont_geneve_swift'
         job = jobs[job_name]
@@ -1282,11 +1319,11 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
-        self.assertEqual(deployment.release.value, "17.3")
-        self.assertEqual(deployment.ip_version.value, "4")
-        self.assertEqual(deployment.topology.value, topology_value)
+        self.assertEqual(deployment.release.value, "")
+        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(deployment.topology.value, "")
         self.assertEqual(deployment.storage_backend.value, "swift")
-        self.assertEqual(deployment.network_backend.value, "geneve")
+        self.assertEqual(deployment.network_backend.value, "")
 
     def test_get_deployment_filter_controller(self):
         """Test that get_deployment filters by controller."""
@@ -1300,8 +1337,8 @@ tripleo_ironic_conductor.service loaded    active     running
                                      'lastBuild': None})
 
         self.jenkins.send_request = Mock(side_effect=[response])
-        arg = Argument("compute", arg_type=str, description="", value=["<2"],
-                       ranged=True)
+        arg = Argument("controllers", arg_type=str, description="",
+                       value=["<2"], ranged=True)
 
         jobs = self.jenkins.get_deployment(controllers=arg)
         self.assertEqual(len(jobs), 1)
@@ -1311,8 +1348,8 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
-        self.assertEqual(deployment.release.value, "17.3")
-        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(deployment.release.value, "")
+        self.assertEqual(deployment.ip_version.value, "")
         self.assertEqual(deployment.topology.value, topology_value)
 
     def test_get_deployment_filter_computes(self):
@@ -1338,15 +1375,14 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
-        self.assertEqual(deployment.release.value, "17.3")
-        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(deployment.release.value, "")
+        self.assertEqual(deployment.ip_version.value, "")
         self.assertEqual(deployment.topology.value, topology_value)
 
     def test_get_deployment_filter_infra_type(self):
         """Test that get_deployment filters by infra type."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont_ovb',
                      'test_16_ipv6_job_1comp_2cont_virt', 'test_job']
-        topology_value = "compute:2,controller:1"
         response = {'jobs': [{'_class': 'folder'}]}
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
@@ -1354,10 +1390,11 @@ tripleo_ironic_conductor.service loaded    active     running
                                      'lastBuild': None})
 
         self.jenkins.send_request = Mock(side_effect=[response])
-        arg = Argument("infra_type", arg_type=str, description="",
-                       value=["ovb"])
+        args = {
+            "infra_type": Argument("infra_type", str, "", value=["ovb"])
+        }
 
-        jobs = self.jenkins.get_deployment(infra_type=arg)
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
         job_name = 'test_17.3_ipv4_job_2comp_1cont_ovb'
         job = jobs[job_name]
@@ -1365,16 +1402,15 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
-        self.assertEqual(deployment.release.value, "17.3")
-        self.assertEqual(deployment.ip_version.value, "4")
-        self.assertEqual(deployment.topology.value, topology_value)
+        self.assertEqual(deployment.release.value, "")
+        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(deployment.topology.value, "")
         self.assertEqual(deployment.infra_type.value, "ovb")
 
     def test_get_deployment_filter_dvr(self):
         """Test that get_deployment filters by dvr."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont_no_dvr',
                      'test_16_ipv6_job_1comp_2cont_dvr', 'test_job']
-        topology_value = "compute:2,controller:1"
         response = {'jobs': [{'_class': 'folder'}]}
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
@@ -1382,10 +1418,11 @@ tripleo_ironic_conductor.service loaded    active     running
                                      'lastBuild': None})
 
         self.jenkins.send_request = Mock(side_effect=[response])
-        arg = Argument("dvr", arg_type=str, description="",
-                       value=["False"])
 
-        jobs = self.jenkins.get_deployment(dvr=arg)
+        args = {
+            "dvr": Argument("dvr", str, "", value=["False"])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
         job_name = 'test_17.3_ipv4_job_2comp_1cont_no_dvr'
         job = jobs[job_name]
@@ -1393,9 +1430,9 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
-        self.assertEqual(deployment.release.value, "17.3")
-        self.assertEqual(deployment.ip_version.value, "4")
-        self.assertEqual(deployment.topology.value, topology_value)
+        self.assertEqual(deployment.release.value, "")
+        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(deployment.topology.value, "")
         self.assertEqual(deployment.dvr.value, "False")
 
     def test_get_deployment_artifacts_dvr(self):
@@ -1433,7 +1470,18 @@ tripleo_ironic_conductor.service loaded    active     running
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
-        jobs = self.jenkins.get_deployment()
+        args = {
+            "topology": Argument("topology", str, "", value=[]),
+            "release": Argument("release", str, "", value=[]),
+            "infra_type": Argument("infra_type", str, "", value=[]),
+            "nodes": Argument("nodes", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "dvr": Argument("dvr", str, "", value=[]),
+            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
+            "network_backend": Argument("network_backend", str, "", value=[]),
+            "storage_backend": Argument("storage_backend", str, "", value=[])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
         for job_name, ip, release, topology, dvr in zip(job_names, ip_versions,
                                                         releases, topologies,
@@ -1452,7 +1500,6 @@ tripleo_ironic_conductor.service loaded    active     running
         """Test that get_deployment filters by tls_everywhere."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont_tls',
                      'test_16_ipv6_job_1comp_2cont', 'test_job']
-        topology_value = "compute:2,controller:1"
         response = {'jobs': [{'_class': 'folder'}]}
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
@@ -1460,10 +1507,12 @@ tripleo_ironic_conductor.service loaded    active     running
                                      'lastBuild': None})
 
         self.jenkins.send_request = Mock(side_effect=[response])
-        arg = Argument("tls-everywhere", arg_type=str, description="",
-                       value=["True"])
 
-        jobs = self.jenkins.get_deployment(tls_everywhere=arg)
+        args = {
+            "tls_everywhere": Argument("tls_everywhere", str, "",
+                                       value=["True"])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
         job_name = 'test_17.3_ipv4_job_2comp_1cont_tls'
         job = jobs[job_name]
@@ -1471,9 +1520,9 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
-        self.assertEqual(deployment.release.value, "17.3")
-        self.assertEqual(deployment.ip_version.value, "4")
-        self.assertEqual(deployment.topology.value, topology_value)
+        self.assertEqual(deployment.release.value, "")
+        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(deployment.topology.value, "")
         self.assertEqual(deployment.tls_everywhere.value, "True")
 
     def test_get_deployment_artifacts_tls(self):
@@ -1509,7 +1558,18 @@ tripleo_ironic_conductor.service loaded    active     running
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
-        jobs = self.jenkins.get_deployment()
+        args = {
+            "topology": Argument("topology", str, "", value=[]),
+            "release": Argument("release", str, "", value=[]),
+            "infra_type": Argument("infra_type", str, "", value=[]),
+            "nodes": Argument("nodes", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "dvr": Argument("dvr", str, "", value=[]),
+            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
+            "network_backend": Argument("network_backend", str, "", value=[]),
+            "storage_backend": Argument("storage_backend", str, "", value=[])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
         for job_name, ip, release, topology, tls in zip(job_names, ip_versions,
                                                         releases, topologies,
@@ -1558,7 +1618,15 @@ tripleo_ironic_conductor.service loaded    active     running
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
-        jobs = self.jenkins.get_deployment()
+        args = {
+            "topology": Argument("topology", str, "", value=[]),
+            "release": Argument("release", str, "", value=[]),
+            "infra_type": Argument("infra_type", str, "", value=[]),
+            "nodes": Argument("nodes", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "tls_everywhere": Argument("tls_everywhere", str, "", value=[])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
         for job_name, ip, release, topology, tls in zip(job_names, ip_versions,
                                                         releases, topologies,
@@ -1724,12 +1792,22 @@ tripleo_ironic_conductor.service loaded    active     running
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
-        services = Argument("services", str, "", value=['tripleo_heat_engine'])
-        packages = Argument("packages", str, "", value=[])
-        containers = Argument("containers", str, "", value=[])
-        jobs = self.jenkins.get_deployment(containers=containers,
-                                           services=services,
-                                           packages=packages)
+        args = {
+            "containers": Argument("containers", str, "", value=[]),
+            "packages": Argument("packages", str, "", value=[]),
+            "services": Argument("services", str, "",
+                                 value=['tripleo_heat_engine']),
+            "topology": Argument("topology", str, "", value=[]),
+            "release": Argument("release", str, "", value=[]),
+            "infra_type": Argument("infra_type", str, "", value=[]),
+            "nodes": Argument("nodes", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "dvr": Argument("dvr", str, "", value=[]),
+            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
+            "network_backend": Argument("network_backend", str, "", value=[]),
+            "storage_backend": Argument("storage_backend", str, "", value=[])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
         for job_name, ip, release, topology in zip(job_names, ip_versions,
                                                    releases, topologies):
@@ -1868,7 +1946,7 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertEqual(len(services), 0)
 
     def test_get_deployment_spec_correct_call_no_jobs(self):
-        """ Test get_deployment call with --spec and one job witout using the
+        """ Test get_deployment call with --spec and one job without using the
         jobs argument."""
         job_names = ['test_17.3_ipv4_job']
         ip_versions = ['4']
@@ -1955,8 +2033,19 @@ tripleo_ironic_conductor.service loaded    active     running
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
-        containers = Argument("containers", str, "", value=["nova_libvirt"])
-        jobs = self.jenkins.get_deployment(containers=containers)
+        args = {
+            "containers": Argument("release", str, "", value=["nova_libvirt"]),
+            "topology": Argument("topology", str, "", value=[]),
+            "release": Argument("release", str, "", value=[]),
+            "infra_type": Argument("infra_type", str, "", value=[]),
+            "nodes": Argument("nodes", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "dvr": Argument("dvr", str, "", value=[]),
+            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
+            "network_backend": Argument("network_backend", str, "", value=[]),
+            "storage_backend": Argument("storage_backend", str, "", value=[])
+        }
+        jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
         for job_name, ip, release, topology in zip(job_names, ip_versions,
                                                    releases, topologies):
