@@ -13,22 +13,14 @@ Configuration
 
 In order to use Cibyl's CLI, you should set up configuration first in ``~/.config/cibyl.yaml``.
 
-Configuration is structured as follows::
+Configuration is structured as follows
 
-  environments:
-    example_env:
-      example_system:
-        system_type: jenkins
-        sources:
-          osp_jenkins:
-            driver: jenkins
-            url: 'https://some.jenkins.com'
-            cert: False
-            username: example_username  # Required specifically by Jenkins
-            token: example_token        # Required specifically by Jenkins
+.. include:: config_samples/minimal_configuration.rst
 
-Each type of system will require a different set of parameters in order to start using/querying it.
-For more information on how to set up configuration for CLI usage, read the `configuration <configuration.html#configuration>`_ section.
+.. note:: | Red Hat OpenStack user? use the following command to set up the configuration:
+          | wget https://url.corp.redhat.com/cibyl-config -O ~/.config/cibyl.yaml
+
+For more information on how to set up the configuration, read the `configuration <configuration.html#configuration>`_ section.
 
 Usage - CLI
 -----------

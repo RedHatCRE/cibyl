@@ -34,7 +34,7 @@ class Deployment(Model):
                                    func='get_deployment', nargs='*',
                                    description="Deployment release version"),
                           Argument(name='--spec', arg_type=str,
-                                   func='get_deployment', nargs=0,
+                                   func='get_deployment', nargs='*',
                                    description="Print complete openstack"
                                    " deployment")]
         },
