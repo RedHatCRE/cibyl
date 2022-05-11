@@ -247,14 +247,7 @@ def handle_query(api, **kwargs):
             # Check if the user requested variants
             if 'variants' in kwargs:
                 for variant in job.variants().get():
-                    job_model.add_variant(
-                        Job.Variant(
-                            variant.data['parent'],
-                            variant.data['description'],
-                            variant.data['branches'],
-                            variant.data['variables']
-                        )
-                    )
+                    job_model.add_variant(Job.Variant.from_data(variant.data))
 
     if query == QueryType.BUILDS:
         for build in _get_builds(api, **kwargs):

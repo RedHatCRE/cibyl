@@ -65,6 +65,15 @@ class Job(BaseJob):
                 }
             )
 
+        @staticmethod
+        def from_data(data):
+            return Job.Variant(
+                parent=data.get('parent', 'Unknown'),
+                description=data.get('description'),
+                branches=data.get('branches'),
+                variables=data.get('variables')
+            )
+
         def __eq__(self, other):
             if not isinstance(other, Job.Variant):
                 return False
