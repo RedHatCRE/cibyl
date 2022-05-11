@@ -15,7 +15,7 @@
 """
 import os
 from copy import deepcopy
-from unittest import TestCase
+from unittest import TestCase, skip
 
 from cibyl.sources.zuuld.git_api import ZuulLocal
 
@@ -57,6 +57,7 @@ class TestZuulGitAPI(TestCase):
                           if i.endswith(".yaml") or i.endswith(".yml")]
         self.assertEqual(zuuld_files, expected_files)
 
+    @skip('Depends on a repository that no longer has the needed contents.')
     def test_zuuld_repos_with_parse_file(self):
         data = ZuulLocal(self.valid)
         yaml_file = os.path.join(self.path, "zuul.d",

@@ -17,7 +17,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.models.ci.build import Build
-from cibyl.models.ci.job import Job
+from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
