@@ -111,7 +111,7 @@ class IndentedTextBuilder:
         for line in self._lines:
             indentation = line.level * self.spaces_per_tab * ' '
 
-            # Some texts may contain more that one line inside. Those lines
+            # Some texts may contain more than one line inside. Those lines
             # must all be indented to keep the structure.
             for chunk in line.text.split('\n'):
                 result += f'{indentation}{chunk}\n'

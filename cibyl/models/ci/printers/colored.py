@@ -222,6 +222,10 @@ class CIColoredPrinter(CIPrinter):
                 printer.add(self._palette.blue('URL: '), 1)
                 printer[-1].append(job.url.value)
 
+        if job.variants.value:
+            for variant in job.variants:
+                printer.add(self.print_variant(variant), 1)
+
         if job.builds.value:
             for build in job.builds.values():
                 printer.add(self.print_build(build), 1)
@@ -262,6 +266,30 @@ class CIColoredPrinter(CIPrinter):
                         'Ignoring unknown plugin type: %s', type(value)
                     )
                     continue
+
+        return printer.build()
+
+    @overrides
+    def print_variant(self, variant):
+        printer = IndentedTextBuilder()
+
+        printer.add(self._palette.blue('Variant: '), 0)
+
+        printer.add(self._palette.blue('Description: '), 1)
+        printer[-1].append(variant.description)
+
+        printer.add(self._palette.blue('Parent: '), 1)
+        printer[-1].append(variant.parent)
+
+        printer.add(self._palette.blue('Branches: '), 1)
+        for branch in variant.branches:
+            printer.add('- ', 2)
+            printer[-1].append(branch)
+
+        printer.add(self._palette.blue('Variables: '), 1)
+        for key, value in variant.variables.items():
+            printer.add(self._palette.blue(f'{key}: '), 2)
+            printer[-1].append(value)
 
         return printer.build()
 
