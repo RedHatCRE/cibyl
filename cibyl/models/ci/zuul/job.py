@@ -23,12 +23,12 @@ from cibyl.models.model import Model
 
 class Job(BaseJob):
     """
-    @DynamicAttrs: Ignores attributes added on runtime
+    @DynamicAttrs: Contains attributes added on runtime.
     """
 
     class Variant(Model):
         """
-        @DynamicAttrs: Ignores attributes added on runtime
+        @DynamicAttrs: Contains attributes added on runtime.
         """
         API = {
             'parent': {

@@ -240,6 +240,29 @@ class TestZuul(EndToEndTest):
             self.output
         )
 
+    def test_job_variants(self):
+        """Checks retrieved variants by "--jobs --variants" flag.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '--tenants', '^(example-tenant)$',
+            '--jobs', 'build-docker-image',
+            '--variants'
+        ]
+
+        main()
+
+        self.assertIn(
+            """
+                    Job: build-docker-image
+                      Variant: 
+                        Description: Build a docker image.
+            """,
+            self.output
+        )
+
 
 class TestZuulConfig(EndToEndTest):
     """Tests related to how the configuration file affects the Zuul source.
