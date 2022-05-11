@@ -660,7 +660,8 @@ accurate results", len(jobs_found))
                                          url=artifact_url,
                                          raw_response=True)
             artifact = yaml.safe_load(artifact)
-            nodes = artifact['provision']['topology'].get('nodes', {})
+            provision = artifact.get('provision', {})
+            nodes = provision.get('topology', {}).get('nodes', {})
             topology = []
             for node_path, amount in nodes.items():
                 node = os.path.split(node_path)[1]

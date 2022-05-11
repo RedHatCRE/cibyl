@@ -60,6 +60,6 @@ class TestZuulGitAPI(TestCase):
     def test_zuuld_repos_with_parse_file(self):
         data = ZuulLocal(self.valid)
         yaml_file = os.path.join(self.path, "zuul.d",
-                                 "ansible-galaxy.yaml")
+                                 "ansible.yaml")
         yaml_data = data._parse_file(yaml_file)
-        self.assertIn('job', yaml_data[0].keys())
+        self.assertIn('project-template', yaml_data[0].keys())
