@@ -13,11 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from copy import deepcopy
 from unittest import TestCase
 
 from cibyl.models.ci.environment import Environment
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.printers.raw import CIRawPrinter
+from cibyl.models.ci.system import System, JobsSystem
 from cibyl.plugins import extend_models
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
@@ -25,6 +27,10 @@ from cibyl.plugins.openstack.utils import translate_topology_string
 
 class TestOpenstackPlugin(TestCase):
     """Test OpenStack plugin"""
+
+    @classmethod
+    def setUpClass(cls):
+        System.API = deepcopy(JobsSystem.API)
 
     def test_extend_models(self):
         """Test extend_models method"""
@@ -38,6 +44,10 @@ class TestOpenstackPlugin(TestCase):
 
 class TestJobWithPlugin(TestCase):
     """Testing Job CI model with openstack plugin"""
+
+    @classmethod
+    def setUpClass(cls):
+        System.API = deepcopy(JobsSystem.API)
 
     def setUp(self):
         extend_models("openstack")
