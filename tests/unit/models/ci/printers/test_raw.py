@@ -17,10 +17,10 @@ from unittest import TestCase
 
 from cibyl.models.ci.build import Build
 from cibyl.models.ci.environment import Environment
-from cibyl.models.ci.job import Job
 from cibyl.models.ci.printers.raw import CIRawPrinter
 from cibyl.models.ci.system import JobsSystem
 from cibyl.models.ci.test import Test
+from cibyl.models.ci.zuul.job import Job
 
 
 class TestCIRawPrinter(TestCase):
@@ -100,8 +100,8 @@ class TestCIRawPrinter(TestCase):
         job_name = 'test-job'
         job_url = 'http://ci_system/test-job'
 
-        job1 = Job(name=job_name)
-        job2 = Job(name=job_name)
+        job1 = Job(name=job_name, url=job_url)
+        job2 = Job(name=job_name, url=job_url)
 
         printer = CIRawPrinter()
 
@@ -167,7 +167,7 @@ class TestCIRawPrinter(TestCase):
         """Test system str for a system with jobs and builds."""
         system = JobsSystem("test", "test_type")
         build = Build("1", "SUCCESS")
-        job = Job("test_job")
+        job = Job("test_job", 'test_url')
         job.add_build(build)
         system.add_job(job)
         system.register_query()

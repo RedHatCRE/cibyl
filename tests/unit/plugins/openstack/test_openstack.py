@@ -17,9 +17,10 @@ from copy import deepcopy
 from unittest import TestCase
 
 from cibyl.models.ci.environment import Environment
-from cibyl.models.ci.job import Job
 from cibyl.models.ci.printers.raw import CIRawPrinter
 from cibyl.models.ci.system import System, JobsSystem
+from cibyl.models.ci.zuul.job import Job
+from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.plugins import extend_models
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
@@ -47,7 +48,7 @@ class TestJobWithPlugin(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        System.API = deepcopy(JobsSystem.API)
+        System.API = deepcopy(ZuulSystem.API)
 
     def setUp(self):
         extend_models("openstack")
@@ -90,7 +91,7 @@ class TestJobWithPlugin(TestCase):
 
 class TestOpenstackPluginUtils(TestCase):
     """Test openstack plugin utils module."""
-    def test_translate_toplogy_string(self):
+    def test_translate_topology_string(self):
         """Test normal usage of translate_topology_string function."""
         input_str = "1comp_2cont_2ceph_3freeipa_5net_1novactl"
         expected = "compute:1,controller:2,ceph:2,freeipa:3,networker:5,"
@@ -98,14 +99,14 @@ class TestOpenstackPluginUtils(TestCase):
         output = translate_topology_string(input_str)
         self.assertEqual(expected, output)
 
-    def test_translate_toplogy_string_non_existing(self):
+    def test_translate_topology_string_non_existing(self):
         """Test test_translate_toplogy_string with an unknown type."""
         input_str = "1comp_2cont_2ceph_3freeipa_1unk"
         expected = "compute:1,controller:2,ceph:2,freeipa:3,unk:1"
         output = translate_topology_string(input_str)
         self.assertEqual(expected, output)
 
-    def test_translate_toplogy_string_malformed_component(self):
+    def test_translate_topology_string_malformed_component(self):
         """Test test_translate_toplogy_string with an malformed comonent."""
         input_str = "1comp_2cont_2ceph_3freeipa_unk"
         expected = "compute:1,controller:2,ceph:2,freeipa:3"
