@@ -15,6 +15,7 @@
 """
 from overrides import overrides
 
+from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeListValue, AttributeDictValue
 from cibyl.models.ci.job import Job as BaseJob
 from cibyl.models.model import Model
@@ -82,7 +83,12 @@ class Job(BaseJob):
         'variants': {
             'attr_type': Variant,
             'attribute_value_class': AttributeListValue,
-            'arguments': []
+            'arguments': [
+                Argument(
+                    name='--variants', arg_type=None, nargs=0,
+                    func='get_jobs', description='Fetch job variants'
+                )
+            ]
         }
     }
 
