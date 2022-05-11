@@ -90,6 +90,8 @@ def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
     :returns: Whether the model satisfies user input
     :rtype: bool
     """
+    if model[field_to_check] is None:
+        return False
     lowercase_input = [status.lower() for status in user_input.value]
     return model[field_to_check].lower() in lowercase_input
 
