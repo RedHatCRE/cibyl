@@ -22,6 +22,7 @@ from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
 from cibyl.models.ci.printers import CIPrinter
 from cibyl.models.ci.system import JobsSystem
+from cibyl.models.ci.zuul.job import Job as ZuulJob
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
@@ -222,9 +223,10 @@ class CIColoredPrinter(CIPrinter):
                 printer.add(self._palette.blue('URL: '), 1)
                 printer[-1].append(job.url.value)
 
-        if job.variants.value:
-            for variant in job.variants:
-                printer.add(self.print_variant(variant), 1)
+        if isinstance(job, ZuulJob):
+            if job.variants.value:
+                for variant in job.variants:
+                    printer.add(self.print_variant(variant), 1)
 
         if job.builds.value:
             for build in job.builds.values():
