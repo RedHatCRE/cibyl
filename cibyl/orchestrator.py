@@ -233,9 +233,9 @@ class Orchestrator:
                                 **system_args)
                         except SourceException as exception:
                             source_methods_store.add_call(source_method, False)
-                            LOG.error("Error in %s. %s",
-                                      source_info, exception,
-                                      exc_info=debug)
+                            LOG.error("Error in %s with system %s. %s",
+                                      source_info, system.name.value,
+                                      exception, exc_info=debug)
                             continue
                         source_methods_store.add_call(source_method, True)
                         end_time = time.time()
