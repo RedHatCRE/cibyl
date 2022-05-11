@@ -53,7 +53,7 @@ Index
    :caption: Sources
 
    sources/jenkins
-   sources/zuul
+   sources/zuul_api
    sources/jenkins-job-builder
    sources/elasticsearch
    sources/zuul.d

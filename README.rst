@@ -1,25 +1,16 @@
 CIbyl
 =====
 
-Cibyl is a command-line interface and REST API for querying CI environments and systems.
+Cibyl is a command-line interface and REST API for querying CI/CD environments and systems.
 
 Installation
 ************
 
 ``pip install git+https://github.com/rhos-infra/cibyl.git``
 
-Next, set up `configuration <http://cibyl.readthedocs.org/>`_::
+Next, set up `configuration <http://cibyl.readthedocs.org/>`_
 
-  environments:
-      example_env:
-        example_system:
-          system_type: jenkins
-          sources:
-            osp_jenkins:
-              driver: jenkins
-              url: 'https://some.jenkins.com'
-              username: example_username  # Required specifically by Jenkins
-              token: example_token        # Required specifically by Jenkins
+.. include:: config_samples/minimal_configuration.rst
 
 Usage
 *****

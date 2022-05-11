@@ -1,22 +1,15 @@
 Jenkins Job Builder
 ===================
 
-"Jenkins Job Builder" is the source for obtaining information
+"Jenkins Job Builder" is the source for obtaining information from jenkins job definitions repositories.
+It's supported only with Jenkins CI/CD system.
 
 Usage
 ^^^^^
 
-To following is a configuration sample of how to configure the 'Jenkins Job Builder' source::
+To following is a configuration sample of how to configure the 'Jenkins Job Builder' source
 
-    environments:
-      example_environment:
-        jenkins_system:
-          system_type: jenkins
-          sources:
-            jjb_source:
-              driver: jenkins_job_builder
-              repos:
-                  - url: 'https://jjb_repo_example.git'
+.. include:: ../config_samples/jjb_configuration.rst
 
 Plugin Support
 ^^^^^^^^^^^^^^
