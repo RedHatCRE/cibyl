@@ -73,7 +73,7 @@ class TestOSRawPrinter(TestCase):
         self.assertIn(tls_everywhere, result)
         self.assertIn("Service name:", result)
         self.assertIn('nova', result)
-        self.assertIn("Node name:", result)
+        self.assertIn("Nodes:", result)
         self.assertIn('controller-0', result)
 
     def test_print_node(self):
@@ -89,7 +89,7 @@ class TestOSRawPrinter(TestCase):
 
         result = printer.print_node(node)
 
-        self.assertIn(f"Node name: {name}", result)
+        self.assertIn(f"- {name}", result)
         self.assertIn(f"  Role: {role}", result)
         self.assertIn("  Container: container", result)
         self.assertIn("    Image: image", result)
