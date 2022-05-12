@@ -16,6 +16,7 @@
 import sys
 
 from cibyl.cli.main import main
+from cibyl.utils.strings import IndentedTextBuilder
 from tests.e2e.containers.zuul import OpenDevZuulContainer
 from tests.e2e.fixtures import EndToEndTest
 
@@ -254,12 +255,17 @@ class TestZuul(EndToEndTest):
 
         main()
 
+        expected = IndentedTextBuilder()
+        expected.add('Environment: env_1', 0)
+        expected.add('System: zuul_system', 1)
+        expected.add('Tenant: example-tenant', 2)
+        expected.add('Jobs: ', 3)
+        expected.add('Job: build-docker-image', 4)
+        expected.add('Variant: ', 5)
+        expected.add('Description: Build a docker image.', 6)
+
         self.assertIn(
-            """
-                    Job: build-docker-image
-                      Variant: 
-                        Description: Build a docker image.
-            """,
+            expected.build(),
             self.output
         )
 

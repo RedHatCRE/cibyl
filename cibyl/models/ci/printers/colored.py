@@ -84,9 +84,9 @@ class CIColoredPrinter(CIPrinter):
 
         # Print type specific contents
         if isinstance(system, JobsSystem):
-            printer.add(self._print_jobs_system(system), 1)
+            printer.add(self._print_jobs_system(system), 0)
         elif isinstance(system, ZuulSystem):
-            printer.add(self._print_zuul_system(system), 1)
+            printer.add(self._print_zuul_system(system), 0)
         else:
             LOG.warning('Ignoring unknown system: %s', type(system).__name__)
 
@@ -129,8 +129,10 @@ class CIColoredPrinter(CIPrinter):
     @overrides
     def print_tenant(self, tenant):
         def print_projects():
+            result.add(self._palette.blue('Projects: '), 1)
+
             for project in tenant.projects.values():
-                result.add(self.print_project(project), 1)
+                result.add(self.print_project(project), 2)
 
             result.add(
                 self._palette.blue("Total projects found in tenant '"), 1
@@ -141,8 +143,10 @@ class CIColoredPrinter(CIPrinter):
             result[-1].append(len(tenant.projects))
 
         def print_jobs():
+            result.add(self._palette.blue('Jobs: '), 1)
+
             for job in tenant.jobs.values():
-                result.add(self.print_job(job), 1)
+                result.add(self.print_job(job), 2)
 
             result.add(
                 self._palette.blue("Total jobs found in tenant '"), 1
@@ -157,11 +161,11 @@ class CIColoredPrinter(CIPrinter):
         result.add(self._palette.blue('Tenant: '), 0)
         result[-1].append(tenant.name)
 
-        if self.query >= QueryType.PROJECTS:
-            print_projects()
-
         if self.query >= QueryType.JOBS:
             print_jobs()
+
+        if self.query >= QueryType.PROJECTS:
+            print_projects()
 
         return result.build()
 
