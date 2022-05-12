@@ -184,7 +184,7 @@ class TestOrchestrator(TestCase):
         """Test that the source_information_from_method methods provides the
         correct representation of the source."""
         source = Source(name="source", driver="driver")
-        expected = "source source of type driver using method setup"
+        expected = "source source of type driver"
         output = source_information_from_method(source.setup)
         self.assertEqual(expected, output)
 
