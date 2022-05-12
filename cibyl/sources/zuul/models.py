@@ -122,6 +122,28 @@ class ModelBuilder:
 
         return model
 
+    def with_variant(self, variant):
+        """Adds a job variant to the current model being built. The variant
+        will always be added, as there is no index to identify if it is already
+        present on the model. So, watch out for duplicates. If the variant's
+        job is not on the model, then it is also added.
+
+        :param variant: The variant to add.
+        :type variant: :class:`cibyl.sources.zuul.requests.VariantResponse`
+        :return: Model for this variant
+        :rtype: :class:`Job.Variant`
+        """
+        # Register this variant's job
+        job = self.with_job(variant.job)
+
+        # Generate the variant's model
+        model = Job.Variant.from_data(variant.data)
+
+        # Register the variant
+        job.add_variant(model)
+
+        return model
+
     def with_build(self, build):
         """Adds a build to the current model being built. If the build is
         already present on the model, then this is ignored. If the build's
@@ -130,7 +152,7 @@ class ModelBuilder:
         :param build: The build to add.
         :type build: :class:`cibyl.sources.zuul.requests.BuildResponse`
         :return: Model for this build.
-        :rtype: :class:`Builder`
+        :rtype: :class:`Build`
         """
         # Register this build's job
         job = self.with_job(build.job)
