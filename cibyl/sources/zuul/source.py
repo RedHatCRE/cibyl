@@ -40,7 +40,8 @@ class Zuul(ServerSource):
             ['tenant_1', 'tenant_2']
         """
 
-    def __init__(self, name, driver, url, cert=None, fallbacks=None, **kwargs):
+    def __init__(self, name, driver, url, cert=None,
+                 fallbacks=None, tenants=None):
         """Constructor.
 
         :param name: Name of the source.
@@ -54,8 +55,8 @@ class Zuul(ServerSource):
         :param fallbacks: Default search terms to be used for missing query
             arguments.
         :type fallbacks: :class:`Zuul.Fallbacks` or None
-        :param kwargs: Additional parameters that define the source.
-        :type kwargs: Any
+        :param tenants: List of tenants
+        :type tenants: list
         """
         # Handle optional parameters
         if not fallbacks:
@@ -65,10 +66,11 @@ class Zuul(ServerSource):
         if url.endswith('/'):
             url = url[:-1]  # Removes last character of string
 
-        super().__init__(name, driver, url=url, cert=cert, **kwargs)
+        super().__init__(name, driver, url=url, cert=cert)
 
         self._api = None
         self._fallbacks = fallbacks
+        self.tenants = tenants
 
     @staticmethod
     def new_source(url, cert=None, **kwargs):

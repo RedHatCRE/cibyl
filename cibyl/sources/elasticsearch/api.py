@@ -41,13 +41,12 @@ class ElasticSearchOSP(ServerSource):
 
     def __init__(self, driver: str = 'elasticsearch',
                  name: str = "elasticsearch", priority: int = 0,
-                 enabled: bool = True, **kwargs) -> None:
+                 elastic_client: object = None,
+                 enabled: bool = True, url: str = None) -> None:
         super().__init__(name=name, driver=driver, priority=priority,
                          enabled=enabled)
-        self.url = kwargs.get('url')
-        self.es_client = None
-        if 'elastic_client' in kwargs:
-            self.es_client = kwargs.get('elastic_client')
+        self.url = url
+        self.es_client = elastic_client
 
     def setup(self):
         """ Ensure that a connection to the elasticsearch server can be
