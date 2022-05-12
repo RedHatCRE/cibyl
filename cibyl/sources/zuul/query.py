@@ -19,8 +19,8 @@ License:
 import logging
 
 from cibyl.cli.query import QueryType, get_query_type
+from cibyl.exceptions import CibylNotImplementedException
 from cibyl.models.attribute import AttributeDictValue
-from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.zuul.models import ModelBuilder
 from cibyl.sources.zuul.requests import TenantsRequest
@@ -291,7 +291,7 @@ def handle_query(zuul, **kwargs):
     handler = handlers.get(query)
 
     if not handler:
-        raise NotImplementedError(f'Unsupported query: {query}')
+        raise CibylNotImplementedException(f'Unsupported query: {query}')
 
     model = handler(zuul, **kwargs)
 
