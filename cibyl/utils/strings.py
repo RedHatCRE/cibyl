@@ -79,6 +79,9 @@ class IndentedTextBuilder:
     def __len__(self):
         return len(self._lines)
 
+    def pop(self, index=-1):
+        return self._lines.pop(index)
+
     @property
     def spaces_per_tab(self):
         """

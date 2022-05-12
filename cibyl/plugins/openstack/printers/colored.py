@@ -50,47 +50,63 @@ class OSColoredPrinter(OSPrinter):
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('Openstack deployment: '), 0)
+        is_empty_deployment = True
 
         if deployment.release.value:
+            is_empty_deployment = False
             printer.add(self._palette.blue('Release: '), 1)
             printer[-1].append(deployment.release.value)
 
         if deployment.infra_type.value:
+            is_empty_deployment = False
             printer.add(self._palette.blue('Infra type: '), 1)
             printer[-1].append(deployment.infra_type)
 
-        if deployment.ip_version.value:
+        ip_version = deployment.ip_version.value
+        if ip_version and ip_version != "unknown":
+            is_empty_deployment = False
             printer.add(self._palette.blue('IP version: '), 1)
             printer[-1].append(deployment.ip_version)
 
         if deployment.topology.value:
+            is_empty_deployment = False
             printer.add(self._palette.blue('Topology: '), 1)
             printer[-1].append(deployment.topology)
 
         if deployment.network_backend.value:
+            is_empty_deployment = False
             printer.add(self._palette.blue('Network backend: '), 1)
             printer[-1].append(deployment.network_backend)
 
         if deployment.storage_backend.value:
+            is_empty_deployment = False
             printer.add(self._palette.blue('Storage backend: '), 1)
             printer[-1].append(deployment.storage_backend)
 
         if deployment.dvr.value:
+            is_empty_deployment = False
             printer.add(self._palette.blue('DVR: '), 1)
             printer[-1].append(deployment.dvr)
 
         if deployment.tls_everywhere.value:
+            is_empty_deployment = False
             printer.add(self._palette.blue('TLS everywhere: '), 1)
             printer[-1].append(deployment.tls_everywhere)
 
         if deployment.nodes.values():
+            is_empty_deployment = False
             printer.add(self._palette.blue('Nodes: '), 1)
             for node in deployment.nodes.values():
                 printer.add(self.print_node(node), 2)
 
         for service in deployment.services.values():
+            is_empty_deployment = False
             printer.add(self.print_service(service), 1)
 
+        if is_empty_deployment:
+            # remove the "Openstack deployment" line
+            printer.pop()
+            printer.add("No openstack information associated with this job", 1)
         return printer.build()
 
     def print_node(self, node):
