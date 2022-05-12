@@ -269,21 +269,6 @@ class TestZuul(EndToEndTest):
             self.output
         )
 
-
-class TestZuulConfig(EndToEndTest):
-    """Tests related to how the configuration file affects the Zuul source.
-    """
-
-    zuul = OpenDevZuulContainer()
-
-    @classmethod
-    def setUpClass(cls):
-        cls.zuul.start()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.zuul.stop()
-
     def test_default_tenants(self):
         """Checks that the configuration file can define the default tenants
         to be consulted.
@@ -302,7 +287,7 @@ class TestZuulConfig(EndToEndTest):
         self.assertNotIn('Tenant: example-tenant-2', self.output)
         self.assertIn('Total tenants found in query: 1', self.output)
 
-    def test_default_tenants_are_overriden(self):
+    def test_default_tenants_are_overridden(self):
         """Checks that the '--tenants' argument overrides the default
         tenants define in the configuration file.
         """
