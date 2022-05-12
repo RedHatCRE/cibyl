@@ -195,8 +195,7 @@ class TestOrchestrator(TestCase):
         self.orchestrator.create_ci_environments()
         for env in self.orchestrator.environments:
             self.orchestrator.extend_parser(attributes=env.API)
-        self.orchestrator.parser.parse(["--jobs", "--builds", "--tenants"])
-        self.assertFalse("tenants" in self.orchestrator.parser.ci_args)
+        self.orchestrator.parser.parse(["--jobs", "--builds"])
         self.assertTrue("jobs" in self.orchestrator.parser.ci_args)
         self.assertTrue("builds" in self.orchestrator.parser.ci_args)
         self.assertEqual(self.orchestrator.parser.ci_args["jobs"].level, 2)

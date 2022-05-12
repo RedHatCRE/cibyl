@@ -125,7 +125,7 @@ class Job(BaseJob):
             ]
         }
     }
-    """Defines the data that composes this model and where it is retrieved 
+    """Defines the data that composes this model and where it is retrieved
     from.
     """
 

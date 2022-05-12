@@ -48,7 +48,8 @@ def safe_request_generic(request, custom_error):
             return request(*args, **kwargs)
         except requests.exceptions.SSLError as ex:
             raise custom_error(
-                "Please set certificates in order to connect to the system"
+                "Please set certificates in order to connect to the system \
+or add 'certs: False' to the configuration"
             ) from ex
         except requests.exceptions.ConnectionError as ex:
             raise custom_error(
@@ -56,8 +57,12 @@ def safe_request_generic(request, custom_error):
                 "details are correct."
             ) from ex
         except requests.exceptions.HTTPError as ex:
+            extra_info = "."
+            if ex.response.status_code:
+                extra_info = " - Unauthorized. Check login details"
             raise custom_error(
-                 f"Got response {ex.response.status_code} from target host."
+                 f"Got response {ex.response.status_code} from target \
+host{extra_info}"
             ) from ex
         except Exception as ex:
             raise custom_error('Failure on request to target host.'
