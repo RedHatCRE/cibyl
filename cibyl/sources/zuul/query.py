@@ -61,6 +61,10 @@ def _get_builds(zuul, **kwargs):
     return result
 
 
+def _get_variants(job, **kwargs):
+    return job.variants().get()
+
+
 def _get_jobs(zuul, **kwargs):
     """Query for jobs.
 
@@ -215,8 +219,36 @@ def _handle_pipelines_query(zuul, **kwargs):
     return model
 
 
+def _get_pipeline_jobs(pipeline):
+    return [job.name for job in pipeline.jobs().get()]
+
+
 def _handle_jobs_query(zuul, **kwargs):
     model = ModelBuilder()
+
+    jobs = _get_jobs(zuul, **kwargs)
+    pipelines = _get_pipelines(zuul, **kwargs)
+
+    for job in jobs:
+        # Check if the user requested variants
+        if 'variants' in kwargs:
+            for variant in _get_variants(job, **kwargs):
+                model.with_variant(variant)
+
+        # Check if the user requested builds
+        if 'builds' in kwargs:
+            for build in _get_builds(zuul, **kwargs):
+                model.with_build(build)
+
+        # Include also the pipelines where this job is present
+        for pipeline in pipelines:
+            if job.name in _get_pipeline_jobs(pipeline):
+                model \
+                    .with_pipeline(pipeline) \
+                    .add_job(model.with_job(job))
+
+        # In case nothing before has, register the job
+        model.with_job(job)
 
     return model
 

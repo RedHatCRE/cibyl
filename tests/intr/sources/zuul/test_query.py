@@ -637,8 +637,12 @@ class TestHandleQuery(TestCase):
         tenant.name = 'tenant'
         tenant.jobs = Mock()
         tenant.jobs.return_value = [job]
+        tenant.projects = Mock()
+        tenant.projects.return_value = [project]
 
         job.tenant = tenant
+        pipeline.project = project
+        project.tenant = tenant
 
         build1.job = job
         build2.job = job
@@ -667,7 +671,7 @@ class TestHandleQuery(TestCase):
                                         job.name: Job(
                                             job.name,
                                             job.url,
-                                            {
+                                            builds={
                                                 build1['uuid']: Build(
                                                     build1['uuid'],
                                                     build1['result'],
@@ -681,6 +685,24 @@ class TestHandleQuery(TestCase):
                                             }
                                         )
                                     }
+                                )
+                            }
+                        )
+                    },
+                    jobs={
+                        job.name: Job(
+                            job.name,
+                            job.url,
+                            builds={
+                                build1['uuid']: Build(
+                                    build1['uuid'],
+                                    build1['result'],
+                                    build1['duration']
+                                ),
+                                build2['uuid']: Build(
+                                    build2['uuid'],
+                                    build2['result'],
+                                    build2['duration']
                                 )
                             }
                         )
@@ -718,6 +740,8 @@ class TestHandleQuery(TestCase):
         tenant.name = 'tenant'
         tenant.jobs = Mock()
         tenant.jobs.return_value = [job]
+        tenant.projects = Mock()
+        tenant.projects.return_value = []
 
         job.tenant = tenant
 
@@ -742,7 +766,7 @@ class TestHandleQuery(TestCase):
                         job.name: Job(
                             job.name,
                             job.url,
-                            {
+                            builds={
                                 build1['uuid']: Build(
                                     build1['uuid'],
                                     build1['result'],
@@ -784,6 +808,8 @@ class TestHandleQuery(TestCase):
         tenant.name = 'tenant'
         tenant.jobs = Mock()
         tenant.jobs.return_value = [job]
+        tenant.projects = Mock()
+        tenant.projects.return_value = []
 
         job.tenant = tenant
 
@@ -811,7 +837,7 @@ class TestHandleQuery(TestCase):
                         job.name: Job(
                             job.name,
                             job.url,
-                            {
+                            builds={
                                 build2['uuid']: Build(
                                     build2['uuid'],
                                     build2['result'],
@@ -853,6 +879,8 @@ class TestHandleQuery(TestCase):
         tenant.name = 'tenant'
         tenant.jobs = Mock()
         tenant.jobs.return_value = [job]
+        tenant.projects = Mock()
+        tenant.projects.return_value = []
 
         job.tenant = tenant
 
@@ -880,7 +908,7 @@ class TestHandleQuery(TestCase):
                         job.name: Job(
                             job.name,
                             job.url,
-                            {
+                            builds={
                                 build1['uuid']: Build(
                                     build1['uuid'],
                                     build1['result'],
