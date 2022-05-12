@@ -19,6 +19,8 @@ import requests
 from testcontainers.compose import DockerCompose
 from testcontainers.core.waiting_utils import wait_container_is_ready
 
+from cibyl.exceptions import CibylNotImplementedException
+
 
 @wait_container_is_ready()
 def wait_for(url):
@@ -43,7 +45,7 @@ class ComposedContainer(ABC):
 
     @abstractmethod
     def _wait_until_ready(self):
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     def start(self):
         self._container.start()

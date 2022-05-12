@@ -15,6 +15,7 @@
 """
 from abc import ABC, abstractmethod
 
+from cibyl.exceptions import CibylNotImplementedException
 from cibyl.output import Printer
 
 
@@ -29,7 +30,7 @@ class CIPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def print_system(self, system):
@@ -38,7 +39,7 @@ class CIPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def print_tenant(self, tenant):
@@ -47,7 +48,7 @@ class CIPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def print_project(self, project):
@@ -56,7 +57,7 @@ class CIPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def print_pipeline(self, pipeline):
@@ -65,7 +66,7 @@ class CIPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def print_job(self, job):
@@ -74,7 +75,7 @@ class CIPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def print_build(self, build):
@@ -83,7 +84,7 @@ class CIPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def print_test(self, test):
@@ -92,4 +93,4 @@ class CIPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException

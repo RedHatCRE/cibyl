@@ -18,7 +18,7 @@ import sys
 
 from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import get_query_type
-from cibyl.exceptions import CibylException
+from cibyl.exceptions import CibylException, CibylNotImplementedException
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.orchestrator import Orchestrator
@@ -65,7 +65,7 @@ def raw_parsing(arguments):
 
             try:
                 args["output_style"] = OutputStyle.from_key(arg)
-            except NotImplementedError:
+            except CibylNotImplementedException:
                 raise InvalidArgument(f'Unknown format: {arg}')
 
     return args

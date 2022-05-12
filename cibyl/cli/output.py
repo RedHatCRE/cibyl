@@ -15,6 +15,8 @@
 """
 from enum import Enum
 
+from cibyl.exceptions import CibylNotImplementedException
+
 
 class OutputStyle(Enum):
     """Lists all supported output formats by the CLI.
@@ -36,11 +38,12 @@ class OutputStyle(Enum):
         :type key: Any
         :return: The correspondent style.
         :rtype: :class:`OutputStyle`
-        :raise NotImplementedError: If no style is present for the given key.
+        :raise CibylNotImplementedException: If no style is present for the
+        given key.
         """
         if key == 'text':
             return OutputStyle.TEXT
         elif key == 'colorized':
             return OutputStyle.COLORIZED
         else:
-            raise NotImplementedError(f'Unknown format: {key}')
+            raise CibylNotImplementedException(f'Unknown format: {key}')

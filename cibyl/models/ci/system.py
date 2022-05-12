@@ -18,6 +18,7 @@ from copy import deepcopy
 from typing import Dict, List, Type
 
 from cibyl.cli.argument import Argument
+from cibyl.exceptions import CibylNotImplementedException
 from cibyl.exceptions.model import NonSupportedModelType
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.job import Job
@@ -99,7 +100,7 @@ class System(Model):
         depending on the system type so it is left empty and will be overloaded
         by each type.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     def add_source(self, source):
         """Add a source to the CI system.
