@@ -47,8 +47,10 @@ def source_information_from_method(source_method):
     :rtype: str
     """
     source = source_method.__self__
-    info_str = f"source {source.name} of type {source.driver} using method "
-    return info_str+f"{source_method.__name__}"
+    info_str = f"source {source.name} of type {source.driver}"
+    if LOG.getEffectiveLevel() <= logging.DEBUG:
+        info_str += f" using method {source_method.__name__}"
+    return info_str
 
 
 class Orchestrator:
@@ -239,9 +241,9 @@ class Orchestrator:
                             continue
                         source_methods_store.add_call(source_method, True)
                         end_time = time.time()
-                        LOG.debug("Took %.2fs to query system %s using %s",
-                                  end_time-start_time, system.name.value,
-                                  source_info)
+                        LOG.info("Took %.2fs to query system %s using %s",
+                                 end_time-start_time, system.name.value,
+                                 source_info)
                         system.populate(model_instances_dict)
                         system.register_query()
                         # if one source has provided the information, there is

@@ -14,6 +14,8 @@
 #    under the License.
 """
 from cibyl.cli.argument import Argument
+from cibyl.models.ci.job import Job
+from cibyl.models.ci.zuul.job import Job as ZuulJob
 from cibyl.plugins.openstack.deployment import Deployment
 
 
@@ -32,21 +34,16 @@ class Plugin:
         'deployment': {'add_method': 'add_deployment'}
         }
 
-    def _extend(self, model_name):
-        for _, attr_value in model_name.items():
-            if 'attr_type' in attr_value.keys() and \
-               attr_value['attr_type'].__name__ == "Job":
-                attr_value['attr_type'].API['deployment'] = {
-                    'attr_type': Deployment,
-                    'arguments': [Argument(
-                        name="--deployment",
-                        arg_type=str,
-                        nargs="*",
-                        description="Openstack deployment")]}
-                attr_value['attr_type'].plugin_attributes.update(
-                        self.plugin_attributes_to_add)
-                setattr(attr_value['attr_type'], 'add_deployment',
-                        add_deployment)
-
-            if hasattr(attr_value['attr_type'], 'API'):
-                self._extend(attr_value['attr_type'].API)
+    def _extend(self):
+        for job_class in [Job, ZuulJob]:
+            job_class.API['deployment'] = {
+                'attr_type': Deployment,
+                'arguments': [Argument(
+                    name="--deployment",
+                    arg_type=str,
+                    nargs="*",
+                    description="Openstack deployment")]}
+            job_class.plugin_attributes.update(
+                    self.plugin_attributes_to_add)
+            setattr(job_class, 'add_deployment',
+                    add_deployment)

@@ -246,10 +246,6 @@ class CIColoredPrinter(CIPrinter):
 
             # Check if the plugin is installed
             if not attribute.value:
-                LOG.debug(
-                    'Could not retrieve value for %s on %s.',
-                    plugin, job.name.value
-                )
                 continue
 
             if isinstance(attribute, AttributeValue):

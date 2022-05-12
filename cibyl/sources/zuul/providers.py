@@ -15,6 +15,8 @@
 """
 from abc import ABC, abstractmethod
 
+from cibyl.exceptions import CibylNotImplementedException
+
 
 class PipelinesProvider(ABC):
     """Represents an entity capable of retrieving information on pipelines.
@@ -27,7 +29,7 @@ class PipelinesProvider(ABC):
         :return: Name of the provider.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def pipelines(self):
@@ -35,7 +37,7 @@ class PipelinesProvider(ABC):
         :return: The pipelines from this entity.
         :rtype: :class:`cibyl.sources.zuul.api.ZuulPipelineAPI`
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
 
 class JobsProvider(ABC):
@@ -49,7 +51,7 @@ class JobsProvider(ABC):
         :return: Name of the provider.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def jobs(self):
@@ -57,4 +59,4 @@ class JobsProvider(ABC):
         :return: The pipelines from this entity.
         :rtype: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException

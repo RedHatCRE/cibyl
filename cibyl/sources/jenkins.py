@@ -56,6 +56,24 @@ safe_request = partial(safe_request_generic, custom_error=JenkinsError)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
+def should_query_for_nodes_topology(**kwargs):
+    """Check the user cli arguments to ascertain whether we should query for
+    nodes and the topology value of a deployment.
+    :returns: Whether we should query for nodes and topology
+    :rtype: bool, bool
+    """
+    spec = "spec" in kwargs
+    query_nodes = "nodes" in kwargs or "controllers" in kwargs
+    query_nodes |= "computes" in kwargs
+    query_nodes |= "packages" in kwargs or "containers" in kwargs
+    # query_topology stores whether there is any argument that will require
+    # the topology to be queried, which might be the topology itself, or
+    # any information about the nodes, containers or packages or the spec
+    # argument
+    query_topology = "topology" in kwargs or spec or query_nodes
+    return query_nodes, query_topology
+
+
 def filter_nodes(job: dict, user_input: Argument, field_to_check: str):
     """Check whether job should be included according to the user input. The
     model should be added if the node models provided in the field designated
@@ -536,20 +554,12 @@ accurate results", len(jobs_found))
                                        f" job {job['name']} but job has no "
                                        "completed build.")
                 else:
-                    self.add_job_info_from_artifacts(job, query_packages=False,
-                                                     query_containers=False,
-                                                     query_services=False)
+                    self.add_job_info_from_artifacts(job, **kwargs)
             elif use_artifacts and last_build is not None:
                 # if we have a lastBuild, we will have artifacts to pull
-                containers = "containers" in kwargs
-                packages = "packages" in kwargs
-                services = "services" in kwargs
-                self.add_job_info_from_artifacts(job,
-                                                 query_packages=packages,
-                                                 query_containers=containers,
-                                                 query_services=services)
+                self.add_job_info_from_artifacts(job, **kwargs)
             else:
-                self.add_job_info_from_name(job)
+                self.add_job_info_from_name(job, **kwargs)
             job_deployment_info.append(job)
 
         checks_to_apply = []
@@ -599,7 +609,7 @@ accurate results", len(jobs_found))
         for job in job_deployment_info:
             name = job.get('name')
             job_objects[name] = Job(name=name, url=job.get('url'))
-            topology = job["topology"]
+            topology = job.get("topology", "")
             if not job.get("nodes") and topology:
                 job["nodes"] = {}
                 for component in topology.split(","):
@@ -607,71 +617,67 @@ accurate results", len(jobs_found))
                     for i in range(int(amount)):
                         node_name = role+f"-{i}"
                         job["nodes"][node_name] = Node(node_name, role=role)
-
-            deployment = Deployment(job["release"],
-                                    job["infra_type"],
+            network_backend = job.get("network_backend", "")
+            storage_backend = job.get("storage_backend", "")
+            tls_everywhere = job.get("tls_everywhere", "")
+            deployment = Deployment(job.get("release", ""),
+                                    job.get("infra_type", ""),
                                     nodes=job.get("nodes", {}),
                                     services=job.get("services", {}),
-                                    ip_version=job["ip_version"],
+                                    ip_version=job.get("ip_version", ""),
                                     topology=topology,
-                                    network_backend=job["network_backend"],
-                                    storage_backend=job["storage_backend"],
-                                    dvr=job["dvr"],
-                                    tls_everywhere=job["tls_everywhere"])
+                                    network_backend=network_backend,
+                                    storage_backend=storage_backend,
+                                    dvr=job.get("dvr", ""),
+                                    tls_everywhere=tls_everywhere)
             job_objects[name].add_deployment(deployment)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
-    def add_job_info_from_artifacts(self, job: dict,
-                                    query_packages: bool = False,
-                                    query_services: bool = False,
-                                    query_containers: bool = False):
+    def add_job_info_from_artifacts(self, job: dict, **kwargs):
         """Add information to the job by querying the last build artifacts.
 
         :param job: Dictionary representation of a jenkins job
         :type job: dict
-        :param query_packages: Whether to provide package information
-        :type query_packages: bool
-        :param query_containers: Whether to provide container information
-        :type query_containers: bool
-        :param query_services: Whether to provide services information
-        :type query_services: bool
         """
+        spec = "spec" in kwargs
+        query_nodes, query_topology = should_query_for_nodes_topology(**kwargs)
         job_name = job['name']
         build_description = job["lastCompletedBuild"].get("description")
         if not build_description:
             LOG.debug("Resorting to get deployment information from job name"
                       " for job %s", job_name)
-            self.add_job_info_from_name(job)
+            self.add_job_info_from_name(job, **kwargs)
             return
         logs_url_pattern = re.compile(r'href="(.*)">Browse logs')
         logs_url = logs_url_pattern.search(build_description)
         if logs_url is None:
             LOG.debug("Resorting to get deployment information from job name"
                       " for job %s", job_name)
-            self.add_job_info_from_name(job)
+            self.add_job_info_from_name(job, **kwargs)
             return
         logs_url = logs_url.group(1)
 
-        artifact_path = "infrared/provision.yml"
-        artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
-        try:
-            artifact = self.send_request(item="", query="",
-                                         url=artifact_url,
-                                         raw_response=True)
-            artifact = yaml.safe_load(artifact)
-            provision = artifact.get('provision', {})
-            nodes = provision.get('topology', {}).get('nodes', {})
-            topology = []
-            for node_path, amount in nodes.items():
-                node = os.path.split(node_path)[1]
-                node = os.path.splitext(node)[0]
-                topology.append(f"{node}:{amount}")
-            job["topology"] = ",".join(topology)
+        if query_topology:
+            artifact_path = "infrared/provision.yml"
+            artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
+            try:
+                artifact = self.send_request(item="", query="",
+                                             url=artifact_url,
+                                             raw_response=True)
+                artifact = yaml.safe_load(artifact)
+                provision = artifact.get('provision', {})
+                nodes = provision.get('topology', {}).get('nodes', {})
+                topology = []
+                for node_path, amount in nodes.items():
+                    node = os.path.split(node_path)[1]
+                    node = os.path.splitext(node)[0]
+                    topology.append(f"{node}:{amount}")
+                job["topology"] = ",".join(topology)
 
-        except JenkinsError:
-            LOG.debug("Found no artifact %s for job %s", artifact_path,
-                      job_name)
+            except JenkinsError:
+                LOG.debug("Found no artifact %s for job %s", artifact_path,
+                          job_name)
 
         artifact_path = "infrared/overcloud-install.yml"
         artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
@@ -681,52 +687,63 @@ accurate results", len(jobs_found))
                                          raw_response=True)
             artifact = yaml.safe_load(artifact)
             overcloud = artifact.get('install', {})
-            job["release"] = overcloud.get("version", "")
+            if "release" in kwargs or spec:
+                job["release"] = overcloud.get("version", "")
             deployment = overcloud.get('deployment', {})
-            job["infra_type"] = os.path.split(deployment.get('files', ""))[1]
+            if "infra_type" in kwargs or spec:
+                infra = os.path.split(deployment.get('files', ""))[1]
+                job["infra_type"] = infra
             storage = overcloud.get("storage", {})
-            job["storage_backend"] = storage.get("backend", "")
+            if "storage_backend" in kwargs or spec:
+                job["storage_backend"] = storage.get("backend", "")
             network = overcloud.get("network", {})
-            job["network_backend"] = network.get("backend", "")
+            if "network_backend" in kwargs or spec:
+                job["network_backend"] = network.get("backend", "")
             ip_string = network.get("protocol", "")
-            job["ip_version"] = detect_job_info_regex(ip_string, IP_PATTERN,
-                                                      group_index=1,
-                                                      default="unknown")
-            job["dvr"] = str(network.get("dvr", ""))
-            tls = overcloud.get("tls", {})
-            job["tls_everywhere"] = str(tls.get("everywhere", ""))
+            if "network_backend" in kwargs or spec:
+                job["ip_version"] = detect_job_info_regex(ip_string,
+                                                          IP_PATTERN,
+                                                          group_index=1,
+                                                          default="unknown")
+            if "dvr" in kwargs or spec:
+                job["dvr"] = str(network.get("dvr", ""))
+            if "tls_everywhere" in kwargs or spec:
+                tls = overcloud.get("tls", {})
+                job["tls_everywhere"] = str(tls.get("everywhere", ""))
 
         except JenkinsError:
             LOG.debug("Found no artifact %s for job %s", artifact_path,
                       job_name)
-
-        if not job.get("topology", ""):
-            self.get_topology_from_job_name(job)
-        topology = job["topology"]
-        job["nodes"] = {}
-        if topology:
-            for component in topology.split(","):
-                role, amount = component.split(":")
-                for i in range(int(amount)):
-                    node_name = role+f"-{i}"
-                    containers = {}
-                    packages = {}
-                    if query_packages:
-                        packages = self.get_packages_node(node_name,
-                                                          logs_url,
-                                                          job_name)
-                    if query_containers:
-                        containers = self.get_containers_node(node_name,
-                                                              logs_url,
-                                                              job_name)
-                    job["nodes"][node_name] = Node(node_name, role=role,
-                                                   containers=containers,
-                                                   packages=packages)
+        if query_topology:
+            if not job.get("topology", ""):
+                self.get_topology_from_job_name(job)
+            topology = job["topology"]
+            if query_nodes:
+                job["nodes"] = {}
+                if topology:
+                    for component in topology.split(","):
+                        role, amount = component.split(":")
+                        for i in range(int(amount)):
+                            node_name = role+f"-{i}"
+                            container = {}
+                            packages = {}
+                            if "packages" in kwargs and not spec:
+                                packages = self.get_packages_node(node_name,
+                                                                  logs_url,
+                                                                  job_name)
+                            if "containers" in kwargs and not spec:
+                                container = self.get_containers_node(node_name,
+                                                                     logs_url,
+                                                                     job_name)
+                            node = Node(node_name, role=role,
+                                        containers=container,
+                                        packages=packages)
+                            job["nodes"][node_name] = node
 
         artifact_path = "undercloud-0/var/log/extra/services.txt.gz"
         artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
         job["services"] = {}
-        if query_services:
+        if "services" in kwargs and not spec:
             try:
                 artifact = self.send_request(item="", query="",
                                              url=artifact_url,
@@ -741,7 +758,7 @@ accurate results", len(jobs_found))
         if self.job_missing_deployment_info(job):
             LOG.debug("Resorting to get deployment information from job name"
                       " for job %s", job_name)
-            self.add_job_info_from_name(job)
+            self.add_job_info_from_name(job, **kwargs)
 
     def get_packages_node(self, node_name, logs_url, job_name):
         """Get a list of packages installed in a openstack node from the job
@@ -860,50 +877,62 @@ accurate results", len(jobs_found))
         else:
             job["topology"] = ""
 
-    def add_job_info_from_name(self, job:  Dict[str, str]):
+    def add_job_info_from_name(self, job:  Dict[str, str], **kwargs):
         """Add information to the job by using regex on the job name. Check if
         properties exist before adding them in case it's used as fallback when
         artifacts do not contain all the necessary information.
 
         :param job: Dictionary representation of a jenkins job
         :type job: dict
+        :param spec: Whether to provide full spec information
+        :type spec: bool
         """
+        spec = "spec" in kwargs
         job_name = job['name']
-        if "topology" not in job or not job["topology"]:
+        _, query_topology = should_query_for_nodes_topology(**kwargs)
+        missing_topology = "topology" not in job or not job["topology"]
+        if missing_topology and query_topology:
             self.get_topology_from_job_name(job)
 
-        if "release" not in job or not job["release"]:
+        missing_release = "release" not in job or not job["release"]
+        if missing_release and ("release" in kwargs or spec):
             job["release"] = detect_job_info_regex(job_name,
                                                    RELEASE_PATTERN)
 
-        if "infra_type" not in job or not job["infra_type"]:
+        missing_infra_type = "infra_type" not in job or not job["infra_type"]
+        if missing_infra_type and ("infra_type" in kwargs or spec):
             infra_type = detect_job_info_regex(job_name,
                                                DEPLOYMENT_PATTERN)
             if not infra_type and "virt" in job_name:
                 infra_type = "virt"
             job["infra_type"] = infra_type
 
-        if "network_backend" not in job or not job["network_backend"]:
+        missing_network_backend = not bool(job.get("network_backend", ""))
+        if missing_network_backend and ("network_backend" in kwargs or spec):
             network_backend = detect_job_info_regex(job_name,
                                                     NETWORK_BACKEND_PATTERN)
             job["network_backend"] = network_backend
 
-        if "storage_backend" not in job or not job["storage_backend"]:
+        missing_storage_backend = not bool(job.get("storage_backend", ""))
+        if missing_storage_backend and ("storage_backend" in kwargs or spec):
             storage_backend = detect_job_info_regex(job_name,
                                                     STORAGE_BACKEND_PATTERN)
             job["storage_backend"] = storage_backend
 
-        if "ip_version" not in job or not job["ip_version"]:
+        missing_ip_version = "ip_version" not in job or not job["ip_version"]
+        if missing_ip_version and ("ip_version" in kwargs or spec):
             job["ip_version"] = detect_job_info_regex(job_name, IP_PATTERN,
                                                       group_index=1,
                                                       default="unknown")
-        if "dvr" not in job or not job["dvr"]:
+        missing_dvr = "dvr" not in job or not job["dvr"]
+        if missing_dvr and ("dvr" in kwargs or spec):
             dvr = detect_job_info_regex(job_name, DVR_PATTERN_NAME)
             job["dvr"] = ""
             if dvr:
                 job["dvr"] = str(dvr == "dvr")
 
-        if "tls_everywhere" not in job or not job["tls_everywhere"]:
+        missing_tls_everywhere = not bool(job.get("tls_everywhere", ""))
+        if missing_tls_everywhere and ("tls_everywhere" in kwargs or spec):
             # some jobs have TLS in their name as upper case
             job["tls_everywhere"] = ""
             if "tls" in job_name.lower():

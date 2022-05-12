@@ -14,6 +14,7 @@
 #    under the License.
 """
 from cibyl.cli.output import OutputStyle
+from cibyl.exceptions import CibylNotImplementedException
 from cibyl.models.ci.printers.colored import CIColoredPrinter
 from cibyl.models.ci.printers.raw import CIRawPrinter
 
@@ -34,12 +35,13 @@ class CIPrinterFactory:
         :type verbosity: int
         :return: The printer.
         :rtype: :class:`cibyl.models.ci.printers.CIPrinter`
-        :raise NotImplementedError: If there is not printer for the desired
-            style.
+        :raise CibylNotImplementedException: If there is not printer for the
+        desired style.
         """
         if style == OutputStyle.TEXT:
             return CIRawPrinter(query, verbosity)
         elif style == OutputStyle.COLORIZED:
             return CIColoredPrinter(query, verbosity)
         else:
-            raise NotImplementedError(f'Unknown output style: {style}')
+            msg = f'Unknown output style: {style}'
+            raise CibylNotImplementedException(msg)

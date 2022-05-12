@@ -15,6 +15,7 @@
 """
 from abc import ABC, abstractmethod
 
+from cibyl.exceptions import CibylNotImplementedException
 from cibyl.exceptions.source import SourceException
 from cibyl.sources.zuul.providers import JobsProvider, PipelinesProvider
 from cibyl.utils.io import Closeable
@@ -66,7 +67,7 @@ class ZuulJobAPI(Closeable, ABC):
         :return: URL where this job can be consulted at.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def variants(self):
@@ -75,7 +76,7 @@ class ZuulJobAPI(Closeable, ABC):
         :rtype: list[dict]
         :raises ZuulAPIError: If the request failed.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def builds(self):
@@ -84,7 +85,7 @@ class ZuulJobAPI(Closeable, ABC):
         :rtype: list[dict]
         :raises ZuulAPIError: If the request failed.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
 
 class ZuulPipelineAPI(Closeable, JobsProvider, ABC):
@@ -128,7 +129,7 @@ class ZuulPipelineAPI(Closeable, JobsProvider, ABC):
         :rtype: list[:class:`ZuulJobAPI`]
         :raises ZuulAPIError: If the request failed.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
 
 class ZuulProjectAPI(Closeable, PipelinesProvider, ABC):
@@ -172,7 +173,7 @@ class ZuulProjectAPI(Closeable, PipelinesProvider, ABC):
         :return: URL where this project can be consulted at.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def pipelines(self):
@@ -181,7 +182,7 @@ class ZuulProjectAPI(Closeable, PipelinesProvider, ABC):
         :rtype: list[:class:`ZuulPipelineAPI`]
         :raises ZuulAPIError: If the request failed.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
 
 class ZuulTenantAPI(Closeable, JobsProvider, ABC):
@@ -215,7 +216,7 @@ class ZuulTenantAPI(Closeable, JobsProvider, ABC):
         :rtype: list[dict]
         :raises ZuulAPIError: If the request failed.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def buildsets(self):
@@ -225,7 +226,7 @@ class ZuulTenantAPI(Closeable, JobsProvider, ABC):
         :rtype: list[dict]
         :raises ZuulAPIError: If the request failed.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def projects(self):
@@ -236,7 +237,7 @@ class ZuulTenantAPI(Closeable, JobsProvider, ABC):
         :rtype: list[:class:`ZuulProjectAPI`]
         :raises ZuulAPIError: If the request failed.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def jobs(self):
@@ -247,7 +248,7 @@ class ZuulTenantAPI(Closeable, JobsProvider, ABC):
         :rtype: list[:class:`ZuulJobAPI`]
         :raises ZuulAPIError: If the request failed.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
 
 class ZuulAPI(Closeable, ABC):
@@ -263,7 +264,7 @@ class ZuulAPI(Closeable, ABC):
         :rtype: dict
         :raises ZuulAPIError: If the request failed.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def tenants(self):
@@ -274,4 +275,4 @@ class ZuulAPI(Closeable, ABC):
         :rtype: list[:class:`ZuulTenantAPI`]
         :raises ZuulAPIError: If the request failed.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
