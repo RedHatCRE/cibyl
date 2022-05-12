@@ -15,6 +15,8 @@
 """
 from abc import ABC, abstractmethod
 
+from cibyl.exceptions import CibylNotImplementedException
+
 
 class Closeable(ABC):
     """Interface meant to release the resources hold by the object.
@@ -24,4 +26,4 @@ class Closeable(ABC):
     def close(self):
         """Releases any resources associated to this object.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException

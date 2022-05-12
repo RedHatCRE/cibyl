@@ -18,7 +18,7 @@ import sys
 
 from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import get_query_type
-from cibyl.exceptions import CibylException
+from cibyl.exceptions import CibylException, CibylNotImplementedException
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.orchestrator import Orchestrator
@@ -38,7 +38,7 @@ def raw_parsing(arguments):
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
             "logging": logging.INFO, "plugins": [],
-            "debug": False, "output_style": OutputStyle.COLORIZED}
+            "debug": False, "output_style": "colorized"}
     for i, item in enumerate(arguments[1:]):
         if item in ('-c', '--config'):
             args['config_file_path'] = arguments[i + 2]
@@ -61,14 +61,22 @@ def raw_parsing(arguments):
                 plugins.append(argument)
             args["plugins"] = plugins
         elif item in ('-f', '--output-format'):
-            arg = arguments[i + 2]
+            args["output_style"] = arguments[i + 2]
 
-            try:
-                args["output_style"] = OutputStyle.from_key(arg)
-            except NotImplementedError:
-                raise InvalidArgument(f'Unknown format: {arg}')
-
+    if not args['debug']:
+        CibylException.setup_quiet_exceptions()
+    setup_output_format(args)
     return args
+
+
+def setup_output_format(args):
+    """Parse the OutputStyle specified by the user."""
+    user_output_format = args["output_style"]
+    try:
+        args["output_style"] = OutputStyle.from_key(user_output_format)
+    except CibylNotImplementedException:
+        msg = f'Unknown output format: {user_output_format}'
+        raise InvalidArgument(msg) from None
 
 
 def main():
@@ -78,8 +86,6 @@ def main():
     # to run the app parser only once, after we update it with the loaded
     # arguments from the CI models based on the loaded configuration file
     arguments = raw_parsing(sys.argv)
-    if not arguments['debug']:
-        CibylException.setup_quiet_exceptions()
     configure_logging(arguments.get('log_mode'),
                       arguments.get('log_file'),
                       arguments.get('logging'))
