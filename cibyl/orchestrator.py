@@ -15,6 +15,7 @@
 """
 import logging
 import operator
+import re
 import time
 from collections import defaultdict
 from copy import deepcopy
@@ -23,6 +24,7 @@ import cibyl.exceptions.config as conf_exc
 from cibyl.cli.parser import Parser
 from cibyl.cli.validator import Validator
 from cibyl.config import Config, ConfigFactory
+from cibyl.exceptions.config import NonSupportedSystemKey
 from cibyl.exceptions.source import (NoSupportedSourcesFound, NoValidSources,
                                      SourceException)
 from cibyl.models.ci.base.environment import Environment
@@ -91,6 +93,20 @@ class Orchestrator:
             raise conf_exc.InvalidSourceConfiguration(
                 source_name, source_data) from exception
 
+    def add_system_to_environment(self, environment,
+                                  system_name, sources, single_system):
+        try:
+            environment.add_system(
+                name=system_name,
+                sources=sources,
+                **single_system
+            )
+        except TypeError as ex:
+            re_result = re.search(r'unexpected keyword argument (.*)',
+                                  ex.args[0])
+            if re_result:
+                raise NonSupportedSystemKey(system_name, re_result.group(1))
+
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""
         try:
@@ -110,11 +126,8 @@ class Orchestrator:
                         sources.append(
                             self.get_source(source_name, source_data))
 
-                    environment.add_system(
-                        name=system_name,
-                        sources=sources,
-                        **single_system
-                    )
+                    self.add_system_to_environment(environment, system_name,
+                                                   sources, single_system)
 
                 self.environments.append(environment)
             self.set_system_api()

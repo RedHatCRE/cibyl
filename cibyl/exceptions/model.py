@@ -14,6 +14,7 @@
 #    under the License.
 """
 from cibyl.exceptions import CibylException
+from cibyl.exceptions.config import CHECK_DOCS_MSG
 from cibyl.utils.colors import Colors
 
 
@@ -31,15 +32,14 @@ class NoValidSystem(CibylException):
     """Exception for a case when no valid system is found."""
 
     def __init__(self, valid_systems=None):
-        self.message = """No valid system defined."""
+        self.message = """No valid system(s) defined."""
         if valid_systems:
             self.message += "\nPlease use one of the following available"
             self.message += " systems:\n"
             for system_name in valid_systems:
                 self.message += f"  {Colors.blue(system_name)}\n"
         else:
-            self.message += "\nPlease ensure the specified systems are present"
-            self.message += " in the configuration."
+            self.message += f"\n{CHECK_DOCS_MSG}"
         super().__init__(self.message)
 
 

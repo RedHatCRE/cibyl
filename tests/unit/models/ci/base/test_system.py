@@ -98,4 +98,4 @@ class TestJobsSystem(unittest.TestCase):
         """Test system export_attributes_to_source method."""
         output = self.system.export_attributes_to_source()
         self.assertEqual(1, len(output))
-        self.assertEqual(output['jobs_scope'].value, 'phase1')
+        self.assertEqual(output['jobs_scope'], 'phase1')
