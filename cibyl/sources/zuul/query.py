@@ -32,7 +32,7 @@ def _get_builds(zuul, **kwargs):
     """Query for builds.
 
     :param zuul: API to interact with Zuul with.
-    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :type zuul: :class:`cibyl.sources.zuul.api.ZuulAPI`
     :param kwargs: See :func:`handle_query`.
     :return: List of retrieved builds.
     :rtype: list[:class:`cibyl.sources.zuul.requests.BuildResponse`]
@@ -65,7 +65,7 @@ def _get_jobs(zuul, **kwargs):
     """Query for jobs.
 
     :param zuul: API to interact with Zuul with.
-    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :type zuul: :class:`cibyl.sources.zuul.api.ZuulAPI`
     :param kwargs: See :func:`handle_query`.
     :return: List of retrieved jobs.
     :rtype: list[:class:`cibyl.sources.zuul.requests.JobResponse`]
@@ -97,7 +97,7 @@ def _get_pipelines(zuul, **kwargs):
     """Query for pipelines.
 
     :param zuul: API to interact with Zuul with.
-    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :type zuul: :class:`cibyl.sources.zuul.api.ZuulAPI`
     :param kwargs: See :func:`handle_query`.
     :return: List of retrieved pipelines.
     :rtype: list[:class:`cibyl.sources.zuul.requests.PipelineResponse`]
@@ -124,7 +124,7 @@ def _get_projects(zuul, **kwargs):
     """Query for projects.
 
     :param zuul: API to interact with Zuul with.
-    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :type zuul: :class:`cibyl.sources.zuul.api.ZuulAPI`
     :param kwargs: See :func:`handle_query`.
     :return: List of retrieved projects.
     :rtype: list[:class:`cibyl.sources.zuul.requests.ProjectResponse`]
@@ -151,7 +151,7 @@ def _get_tenants(zuul, **kwargs):
     """Query for tenants.
 
     :param zuul: API to interact with Zuul with.
-    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :type zuul: :class:`cibyl.sources.zuul.api.ZuulAPI`
     :param kwargs: See :func:`handle_query`.
     :return: List of retrieved tenants.
     :rtype: list[:class:`cibyl.sources.zuul.requests.TenantResponse`]
@@ -188,12 +188,45 @@ def _get_tenants(zuul, **kwargs):
     return tenants.get()
 
 
-def handle_query(api, **kwargs):
+def _handle_tenants_query(zuul, **kwargs):
+    model = ModelBuilder()
+
+    for tenant in _get_tenants(zuul, **kwargs):
+        model.with_tenant(tenant)
+
+    return model
+
+
+def _handle_projects_query(zuul, **kwargs):
+    model = ModelBuilder()
+
+    for project in _get_projects(zuul, **kwargs):
+        model.with_project(project)
+
+    return model
+
+
+def _handle_pipelines_query(zuul, **kwargs):
+    model = ModelBuilder()
+
+    for pipeline in _get_pipelines(zuul, **kwargs):
+        model.with_pipeline(pipeline)
+
+    return model
+
+
+def _handle_jobs_query(zuul, **kwargs):
+    model = ModelBuilder()
+
+    return model
+
+
+def handle_query(zuul, **kwargs):
     """Generates and performs a query on a Zuul host based on the given
     arguments.
 
-    :param api: API to interact with Zuul with.
-    :type api: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :param zuul: API to interact with Zuul with.
+    :type zuul: :class:`cibyl.sources.zuul.api.ZuulAPI`
     :param kwargs: Arguments that define the query that will be performed.
         If one of these keys is not present, it is simply ignored.
     :key defaults:
@@ -214,44 +247,21 @@ def handle_query(api, **kwargs):
     :return: Attribute assembled for usage by Cibyl.
     :rtype: :class:`AttributeDictValue`
     """
-    model = ModelBuilder()
+    handlers = {
+        QueryType.TENANTS: _handle_tenants_query,
+        QueryType.PROJECTS: _handle_projects_query,
+        QueryType.PIPELINES: _handle_pipelines_query,
+        QueryType.JOBS: _handle_jobs_query,
+        QueryType.BUILDS: _handle_jobs_query
+    }
+
     query = get_query_type(**kwargs)
+    handler = handlers.get(query)
 
-    if query == QueryType.TENANTS:
-        for tenant in _get_tenants(api, **kwargs):
-            model.with_tenant(tenant)
+    if not handler:
+        raise NotImplementedError(f'Unsupported query: {query}')
 
-    if query == QueryType.PROJECTS:
-        for project in _get_projects(api, **kwargs):
-            model.with_project(project)
-
-    if query == QueryType.PIPELINES:
-        for pipeline in _get_pipelines(api, **kwargs):
-            model.with_pipeline(pipeline)
-
-    if query == QueryType.JOBS:
-        pipelines = _get_pipelines(api, **kwargs)
-
-        for job in _get_jobs(api, **kwargs):
-            job_model = model.with_job(job)
-
-            # Include also the pipelines where this job is present
-            for pipeline in pipelines:
-                pipeline_jobs = [j.name for j in pipeline.jobs().get()]
-
-                # Is the job on this pipeline?
-                if job.name in pipeline_jobs:
-                    pipeline_model = model.with_pipeline(pipeline)
-                    pipeline_model.add_job(job_model)
-
-            # Check if the user requested variants
-            if 'variants' in kwargs:
-                for variant in job.variants().get():
-                    job_model.add_variant(Job.Variant.from_data(variant.data))
-
-    if query == QueryType.BUILDS:
-        for build in _get_builds(api, **kwargs):
-            model.with_build(build)
+    model = handler(zuul, **kwargs)
 
     # Format the result
     return AttributeDictValue(
