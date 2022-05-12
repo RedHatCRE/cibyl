@@ -84,7 +84,7 @@ class CIPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def print_build(self, build):

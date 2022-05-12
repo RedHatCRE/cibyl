@@ -76,7 +76,7 @@ class ZuulJobAPI(Closeable, ABC):
         :rtype: list[dict]
         :raises ZuulAPIError: If the request failed.
         """
-        raise NotImplementedError
+        raise CibylNotImplementedException
 
     @abstractmethod
     def builds(self):

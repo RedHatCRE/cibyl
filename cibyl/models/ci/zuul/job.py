@@ -139,8 +139,14 @@ class Job(BaseJob):
 
     @overrides
     def merge(self, other):
+        # Merging with oneself will never end, avoid at all costs.
+        if self is other:
+            return
+
+        # Do the standard merge
         super().merge(other)
 
+        # Add additional steps for this type
         for variant in other.variants:
             self.add_variant(variant)
 

@@ -261,8 +261,9 @@ class TestZuul(EndToEndTest):
         expected.add('Tenant: example-tenant', 2)
         expected.add('Jobs: ', 3)
         expected.add('Job: build-docker-image', 4)
-        expected.add('Variant: ', 5)
-        expected.add('Description: Build a docker image.', 6)
+        expected.add('Variants: ', 5)
+        expected.add('Variant: ', 6)
+        expected.add('Description: Build a docker image.', 7)
 
         self.assertIn(
             expected.build(),
