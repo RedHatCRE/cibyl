@@ -229,12 +229,16 @@ class CIColoredPrinter(CIPrinter):
 
         if isinstance(job, ZuulJob):
             if job.variants.value:
+                printer.add(self._palette.blue('Variants: '), 1)
+
                 for variant in job.variants:
-                    printer.add(self.print_variant(variant), 1)
+                    printer.add(self.print_variant(variant), 2)
 
         if job.builds.value:
+            printer.add(self._palette.blue('Builds: '), 1)
+
             for build in job.builds.values():
-                printer.add(self.print_build(build), 1)
+                printer.add(self.print_build(build), 2)
 
         for plugin in job.plugin_attributes:
             # Plugins are installed as part of the model
