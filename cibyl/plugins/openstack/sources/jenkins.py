@@ -112,7 +112,7 @@ class Jenkins:
     deployment_attr = ["topology", "release",
                        "network_backend", "storage_backend",
                        "infra_type", "dvr", "ip_version",
-                       "tls_everywhere"]
+                       "tls_everywhere", "ml2_driver"]
 
     def add_job_info_from_name(self, job:  Dict[str, str], **kwargs):
         """Add information to the job by using regex on the job name. Check if
@@ -306,6 +306,7 @@ accurate results", len(jobs_found))
                                     nodes=job.get("nodes", {}),
                                     services=job.get("services", {}),
                                     ip_version=job.get("ip_version", ""),
+                                    ml2_driver=job.get("ml2_driver", ""),
                                     topology=topology,
                                     network_backend=network_backend,
                                     storage_backend=storage_backend,
@@ -391,6 +392,12 @@ accurate results", len(jobs_found))
             if "tls_everywhere" in kwargs or spec:
                 tls = overcloud.get("tls", {})
                 job["tls_everywhere"] = str(tls.get("everywhere", ""))
+            if "ml2_driver" in kwargs or spec:
+                job["ml2_driver"] = ""
+                if network.get("ovn"):
+                    job["ml2_driver"] = "ovn"
+                if network.get("ovs"):
+                    job["ml2_driver"] = "ovs"
 
         except JenkinsError:
             LOG.debug("Found no artifact %s for job %s", artifact_path,
