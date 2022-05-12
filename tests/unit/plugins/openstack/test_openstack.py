@@ -18,7 +18,7 @@ from unittest import TestCase
 
 from cibyl.models.ci.environment import Environment
 from cibyl.models.ci.printers.raw import CIRawPrinter
-from cibyl.models.ci.system import System, JobsSystem
+from cibyl.models.ci.system import JobsSystem, System
 from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.plugins import extend_models

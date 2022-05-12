@@ -16,8 +16,8 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.models.attribute import AttributeListValue, AttributeValue, \
-    AttributeDictValue
+from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
+                                    AttributeValue)
 from cibyl.models.ci.zuul.job import Job
 
 
