@@ -50,6 +50,6 @@ class ElasticSearchClient:
         if not es_client.ping():
             raise ElasticSearchError(f"Error connecting to "
                                      f"Elasticsearch: {self.address}")
-        LOG.info(f"Connection established successfully with elasticsearch"
-                 f" instance: {self.address}")
+        LOG.debug(f"Connection established successfully with elasticsearch"
+                  f" instance: {self.address}")
         return es_client
