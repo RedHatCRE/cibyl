@@ -22,12 +22,14 @@ from cibyl.models.model import Model
 
 
 class Job(BaseJob):
-    """
+    """Representation of job of a zuul environment.
+
     @DynamicAttrs: Contains attributes added on runtime.
     """
 
     class Variant(Model):
-        """
+        """Representation of a job variant on a zuul environment.
+
         @DynamicAttrs: Contains attributes added on runtime.
         """
         API = {
@@ -50,12 +52,25 @@ class Job(BaseJob):
                 'arguments': []
             }
         }
+        """Defines the elements that compose this model.
+        """
 
         def __init__(self,
                      parent,
                      description=None,
                      branches=None,
                      variables=None):
+            """Constructor.
+
+            :param parent: Name of the parent job of this variant.
+            :type: parent: str
+            :param description: Description of the variant.
+            :type description: str
+            :param branches: Branches the variant targets.
+            :type branches: list[str]
+            :param variables: Preset of variables that define the variant.
+            :type variables: dict[str, Any]
+            """
             super().__init__(
                 {
                     'parent': parent,
@@ -67,6 +82,16 @@ class Job(BaseJob):
 
         @staticmethod
         def from_data(data):
+            """Builds a variant from the data fetched from the input.
+
+            ..  seealso::
+                :meth:`Job.Variant.__init__` for expected data.
+
+            :param data: Random set of data.
+            :type data: dict[str, Any]
+            :return: The variant instance.
+            :rtype: :class:`Job.Variant`
+            """
             return Job.Variant(
                 parent=data.get('parent', 'Unknown'),
                 description=data.get('description'),
@@ -100,8 +125,16 @@ class Job(BaseJob):
             ]
         }
     }
+    """Defines the data that composes this model and where it is retrieved 
+    from.
+    """
 
     def __init__(self, name, url, variants=None, builds=None):
+        """Constructor. See parent constructor for more info.
+
+        :param variants: Variant that derive this job.
+        :type variants: list[:class:`Job.Variant`]
+        """
         super().__init__(name, url, builds, variants=variants)
 
     @overrides
@@ -112,4 +145,10 @@ class Job(BaseJob):
             self.add_variant(variant)
 
     def add_variant(self, variant):
+        """Adds a new variant to this job. No check is performed to see if
+        this job is the parent of the added variant.
+
+        :param variant: The variant.
+        :type variant: :class:`Job.Variant`
+        """
         self.variants.append(variant)
