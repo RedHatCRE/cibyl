@@ -82,8 +82,10 @@ class OSColoredPrinter(OSPrinter):
             printer.add(self._palette.blue('TLS everywhere: '), 1)
             printer[-1].append(deployment.tls_everywhere)
 
-        for node in deployment.nodes.values():
-            printer.add(self.print_node(node), 1)
+        if deployment.nodes.values():
+            printer.add(self._palette.blue('Nodes: '), 1)
+            for node in deployment.nodes.values():
+                printer.add(self.print_node(node), 2)
 
         for service in deployment.services.values():
             printer.add(self.print_service(service), 1)
@@ -93,7 +95,7 @@ class OSColoredPrinter(OSPrinter):
     def print_node(self, node):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('Node name: '), 0)
+        printer.add(self._palette.blue('- '), 0)
         printer[-1].append(node.name.value)
 
         if self.verbosity > 0:
