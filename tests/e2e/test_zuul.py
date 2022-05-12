@@ -16,6 +16,7 @@
 import sys
 
 from cibyl.cli.main import main
+from cibyl.utils.strings import IndentedTextBuilder
 from tests.e2e.containers.zuul import OpenDevZuulContainer
 from tests.e2e.fixtures import EndToEndTest
 
@@ -240,20 +241,33 @@ class TestZuul(EndToEndTest):
             self.output
         )
 
+    def test_job_variants(self):
+        """Checks retrieved variants by "--jobs --variants" flag.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '--tenants', '^(example-tenant)$',
+            '--jobs', 'build-docker-image',
+            '--variants'
+        ]
 
-class TestZuulConfig(EndToEndTest):
-    """Tests related to how the configuration file affects the Zuul source.
-    """
+        main()
 
-    zuul = OpenDevZuulContainer()
+        expected = IndentedTextBuilder()
+        expected.add('Environment: env_1', 0)
+        expected.add('System: zuul_system', 1)
+        expected.add('Tenant: example-tenant', 2)
+        expected.add('Jobs: ', 3)
+        expected.add('Job: build-docker-image', 4)
+        expected.add('Variant: ', 5)
+        expected.add('Description: Build a docker image.', 6)
 
-    @classmethod
-    def setUpClass(cls):
-        cls.zuul.start()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.zuul.stop()
+        self.assertIn(
+            expected.build(),
+            self.output
+        )
 
     def test_default_tenants(self):
         """Checks that the configuration file can define the default tenants
@@ -273,7 +287,7 @@ class TestZuulConfig(EndToEndTest):
         self.assertNotIn('Tenant: example-tenant-2', self.output)
         self.assertIn('Total tenants found in query: 1', self.output)
 
-    def test_default_tenants_are_overriden(self):
+    def test_default_tenants_are_overridden(self):
         """Checks that the '--tenants' argument overrides the default
         tenants define in the configuration file.
         """

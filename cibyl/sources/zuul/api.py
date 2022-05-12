@@ -70,6 +70,15 @@ class ZuulJobAPI(Closeable, ABC):
         raise CibylNotImplementedException
 
     @abstractmethod
+    def variants(self):
+        """
+        :return: The variants of this job.
+        :rtype: list[dict]
+        :raises ZuulAPIError: If the request failed.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def builds(self):
         """
         :return: The builds of this job.

@@ -52,7 +52,7 @@ class Job(Model):
     }
 
     def __init__(self, name: str, url: str = None,
-                 builds: Dict[str, Build] = None):
+                 builds: Dict[str, Build] = None, **kwargs):
         # Let IDEs know this class's attributes
         self.name = None
         self.url = None
@@ -60,7 +60,7 @@ class Job(Model):
 
         # Set up model
         super().__init__({'name': name, 'url': url,
-                          'builds': builds})
+                          'builds': builds, **kwargs})
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):

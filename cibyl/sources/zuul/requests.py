@@ -222,6 +222,32 @@ class JobsRequest(Request):
         return [JobResponse(job) for job in jobs]
 
 
+class VariantsRequest(Request):
+    """High-Level petition focused on retrieval of data related to a job's
+    variants.
+    """
+
+    def __init__(self, job):
+        """Constructor.
+
+        :param job: Low-Level API to the job to get the variants from.
+        :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
+        """
+        super().__init__()
+
+        self._job = job
+
+    def get(self):
+        """Performs the request.
+
+        :return: Answer from the host.
+        :rtype: list[:class:`VariantResponse`]
+        """
+        variants = self._job.variants()
+
+        return [VariantResponse(self._job, variant) for variant in variants]
+
+
 class BuildsRequest(Request):
     """High-Level petition focused on retrieval of data related to builds.
     """
@@ -454,12 +480,51 @@ class JobResponse:
         """
         return self._job.url
 
+    def variants(self):
+        """
+        :return: A request to this job's variants.
+        :rtype: :class:`VariantsRequest`
+        """
+        return VariantsRequest(self._job)
+
     def builds(self):
         """
         :return: A request to this job's builds.
         :rtype: :class:`BuildsRequest`
         """
         return BuildsRequest(self._job)
+
+
+class VariantResponse:
+    """Response for a :class:`VariantsRequest`.
+    """
+
+    def __init__(self, job, variant):
+        """Constructor.
+
+        :param job: Low-Level API to access this variant's job.
+        :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
+        :param variant: Raw data for this variant.
+        :type variant: dict[str, Any]
+        """
+        self._job = job
+        self._variant = variant
+
+    @property
+    def job(self):
+        """
+        :return: Response for this variant's job.
+        :rtype: :class:`JobResponse`
+        """
+        return JobResponse(self._job)
+
+    @property
+    def data(self):
+        """
+        :return: Raw data of this variant
+        :rtype: dict[str, Any]
+        """
+        return self._variant
 
 
 class BuildResponse:

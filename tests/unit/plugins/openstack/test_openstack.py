@@ -18,17 +18,16 @@ from unittest import TestCase
 from cibyl.models.ci.environment import Environment
 from cibyl.models.ci.job import Job
 from cibyl.models.ci.printers.raw import CIRawPrinter
-from cibyl.plugins import extend_models
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
+from tests.utils import OpenstackPluginWithJobSystem
 
 
-class TestOpenstackPlugin(TestCase):
+class TestOpenstackPlugin(OpenstackPluginWithJobSystem):
     """Test OpenStack plugin"""
 
     def test_extend_models(self):
         """Test extend_models method"""
-        self.assertIsNone(extend_models("openstack"))
         environment = Environment("test")
         environment.add_system(name="test", system_type='jenkins')
         self.assertIn(
@@ -36,11 +35,10 @@ class TestOpenstackPlugin(TestCase):
             environment.systems[0].jobs.attr_type.API)
 
 
-class TestJobWithPlugin(TestCase):
+class TestJobWithPlugin(OpenstackPluginWithJobSystem):
     """Testing Job CI model with openstack plugin"""
 
     def setUp(self):
-        extend_models("openstack")
         self.deployment = Deployment(17.0, "test", {}, {})
         self.deployment2 = Deployment(17.1, "test", {}, {})
         self.job = Job("job1", "url1")
@@ -80,7 +78,7 @@ class TestJobWithPlugin(TestCase):
 
 class TestOpenstackPluginUtils(TestCase):
     """Test openstack plugin utils module."""
-    def test_translate_toplogy_string(self):
+    def test_translate_topology_string(self):
         """Test normal usage of translate_topology_string function."""
         input_str = "1comp_2cont_2ceph_3freeipa_5net_1novactl"
         expected = "compute:1,controller:2,ceph:2,freeipa:3,networker:5,"
@@ -88,14 +86,14 @@ class TestOpenstackPluginUtils(TestCase):
         output = translate_topology_string(input_str)
         self.assertEqual(expected, output)
 
-    def test_translate_toplogy_string_non_existing(self):
+    def test_translate_topology_string_non_existing(self):
         """Test test_translate_toplogy_string with an unknown type."""
         input_str = "1comp_2cont_2ceph_3freeipa_1unk"
         expected = "compute:1,controller:2,ceph:2,freeipa:3,unk:1"
         output = translate_topology_string(input_str)
         self.assertEqual(expected, output)
 
-    def test_translate_toplogy_string_malformed_component(self):
+    def test_translate_topology_string_malformed_component(self):
         """Test test_translate_toplogy_string with an malformed comonent."""
         input_str = "1comp_2cont_2ceph_3freeipa_unk"
         expected = "compute:1,controller:2,ceph:2,freeipa:3"

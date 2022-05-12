@@ -78,6 +78,15 @@ class CIPrinter(Printer, ABC):
         raise CibylNotImplementedException
 
     @abstractmethod
+    def print_variant(self, variant):
+        """
+        :param variant: The variant.
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def print_build(self, build):
         """
         :param build: The build.

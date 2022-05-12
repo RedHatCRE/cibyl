@@ -18,33 +18,37 @@ import os
 import sys
 from copy import deepcopy
 from tempfile import NamedTemporaryFile
-from unittest import TestCase
 
 from cibyl.cli.main import main
-from cibyl.models.ci.job import Job
+from cibyl.models.ci.job import Job as BaseJob
 from cibyl.models.ci.system import System
+from cibyl.models.ci.zuul.job import Job as ZuulJob
+from tests.utils import RestoreAPIs
 
 
-class TestOpenstackCLI(TestCase):
+class TestOpenstackCLI(RestoreAPIs):
     """Tests that openstack arguments are added to cli."""
 
     @classmethod
     def setUpClass(cls):
-        cls.original_job_api = deepcopy(Job.API)
+        cls.original_job_api = deepcopy(BaseJob.API)
         cls.original_system_api = deepcopy(System.API)
+        cls._null_stdout = open(os.devnull, 'w', encoding='utf-8')
+        super().setUpClass()
         cls._original_stdout = sys.stdout
         # silence stdout and logging to avoid cluttering
         logging.disable(logging.CRITICAL)
-        sys.stdout = open(os.devnull, 'w', encoding='utf-8')
+        sys.stdout = cls._null_stdout
 
     @classmethod
     def tearDownClass(cls):
-        sys.stdout.close()
+        super().tearDownClass()
         sys.stdout = cls._original_stdout
+        cls._null_stdout.close()
 
     def setUp(self):
         # restore Job API before each test
-        Job.API = deepcopy(self.original_job_api)
+        BaseJob.API = deepcopy(self.original_job_api)
         System.API = deepcopy(self.original_system_api)
 
     def test_openstack_cli_zuul_system(self):
@@ -60,7 +64,7 @@ class TestOpenstackCLI(TestCase):
             sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
 
             main()
-        self.assertIn('deployment', Job.API)
+        self.assertIn('deployment', ZuulJob.API)
 
     def test_openstack_cli_jenkins_system(self):
         """Test that the Deployment model is added to the Job when a Jenkins
@@ -75,7 +79,7 @@ class TestOpenstackCLI(TestCase):
             sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
 
             main()
-        self.assertIn('deployment', Job.API)
+        self.assertIn('deployment', BaseJob.API)
 
     def test_openstack_cli_zuul_jenkins_system(self):
         """Test that the Deployment model is added to the Job when a Jenkins
@@ -92,7 +96,7 @@ class TestOpenstackCLI(TestCase):
             sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
 
             main()
-        self.assertIn('deployment', Job.API)
+        self.assertIn('deployment', ZuulJob.API)
 
     def test_openstack_cli_jenkins_zuul_system(self):
         """Test that the Deployment model is added to the Job when a Jenkins
@@ -109,7 +113,7 @@ class TestOpenstackCLI(TestCase):
             sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
 
             main()
-        self.assertIn('deployment', Job.API)
+        self.assertIn('deployment', ZuulJob.API)
 
     def test_openstack_cli_zuul_system_plugin_configuration(self):
         """Test that the Deployment model is added to the Job when a Zuul
@@ -127,4 +131,4 @@ class TestOpenstackCLI(TestCase):
             sys.argv = ['-h', '--config', config_file.name]
 
             main()
-        self.assertIn('deployment', Job.API)
+        self.assertIn('deployment', ZuulJob.API)

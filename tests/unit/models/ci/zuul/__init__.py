@@ -13,18 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import logging
-
-from cibyl.exceptions.plugin import MissingPlugin
-
-LOG = logging.getLogger(__name__)
-
-
-def extend_models(plugin_name):
-    try:
-        LOG.info("Loading plugin: %s", plugin_name)
-        loaded_plugin = __import__(f"cibyl.plugins.{plugin_name}",
-                                   fromlist=[''])
-        loaded_plugin.Plugin()._extend()
-    except (ImportError, ModuleNotFoundError):
-        raise MissingPlugin(plugin_name) from None

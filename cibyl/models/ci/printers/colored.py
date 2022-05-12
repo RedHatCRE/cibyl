@@ -22,6 +22,7 @@ from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
 from cibyl.models.ci.printers import CIPrinter
 from cibyl.models.ci.system import JobsSystem
+from cibyl.models.ci.zuul.job import Job as ZuulJob
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
@@ -83,9 +84,9 @@ class CIColoredPrinter(CIPrinter):
 
         # Print type specific contents
         if isinstance(system, JobsSystem):
-            printer.add(self._print_jobs_system(system), 1)
+            printer.add(self._print_jobs_system(system), 0)
         elif isinstance(system, ZuulSystem):
-            printer.add(self._print_zuul_system(system), 1)
+            printer.add(self._print_zuul_system(system), 0)
         else:
             LOG.warning('Ignoring unknown system: %s', type(system).__name__)
 
@@ -128,8 +129,10 @@ class CIColoredPrinter(CIPrinter):
     @overrides
     def print_tenant(self, tenant):
         def print_projects():
+            result.add(self._palette.blue('Projects: '), 1)
+
             for project in tenant.projects.values():
-                result.add(self.print_project(project), 1)
+                result.add(self.print_project(project), 2)
 
             result.add(
                 self._palette.blue("Total projects found in tenant '"), 1
@@ -140,8 +143,10 @@ class CIColoredPrinter(CIPrinter):
             result[-1].append(len(tenant.projects))
 
         def print_jobs():
+            result.add(self._palette.blue('Jobs: '), 1)
+
             for job in tenant.jobs.values():
-                result.add(self.print_job(job), 1)
+                result.add(self.print_job(job), 2)
 
             result.add(
                 self._palette.blue("Total jobs found in tenant '"), 1
@@ -156,11 +161,11 @@ class CIColoredPrinter(CIPrinter):
         result.add(self._palette.blue('Tenant: '), 0)
         result[-1].append(tenant.name)
 
-        if self.query >= QueryType.PROJECTS:
-            print_projects()
-
         if self.query >= QueryType.JOBS:
             print_jobs()
+
+        if self.query >= QueryType.PROJECTS:
+            print_projects()
 
         return result.build()
 
@@ -222,6 +227,11 @@ class CIColoredPrinter(CIPrinter):
                 printer.add(self._palette.blue('URL: '), 1)
                 printer[-1].append(job.url.value)
 
+        if isinstance(job, ZuulJob):
+            if job.variants.value:
+                for variant in job.variants:
+                    printer.add(self.print_variant(variant), 1)
+
         if job.builds.value:
             for build in job.builds.values():
                 printer.add(self.print_build(build), 1)
@@ -258,6 +268,30 @@ class CIColoredPrinter(CIPrinter):
                         'Ignoring unknown plugin type: %s', type(value)
                     )
                     continue
+
+        return printer.build()
+
+    @overrides
+    def print_variant(self, variant):
+        printer = IndentedTextBuilder()
+
+        printer.add(self._palette.blue('Variant: '), 0)
+
+        printer.add(self._palette.blue('Description: '), 1)
+        printer[-1].append(variant.description)
+
+        printer.add(self._palette.blue('Parent: '), 1)
+        printer[-1].append(variant.parent)
+
+        printer.add(self._palette.blue('Branches: '), 1)
+        for branch in variant.branches:
+            printer.add('- ', 2)
+            printer[-1].append(branch)
+
+        printer.add(self._palette.blue('Variables: '), 1)
+        for key, value in variant.variables.items():
+            printer.add(self._palette.blue(f'{key}: '), 2)
+            printer[-1].append(value)
 
         return printer.build()
 

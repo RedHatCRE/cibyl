@@ -15,7 +15,6 @@
 """
 # pylint: disable=no-member
 import json
-from copy import deepcopy
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 
@@ -24,14 +23,13 @@ import yaml
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.exceptions.source import MissingArgument, SourceException
-from cibyl.models.ci.system import JobsSystem, System
-from cibyl.plugins import extend_models
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.service import Service
 from cibyl.sources.jenkins import (Jenkins, filter_builds, filter_jobs,
                                    filter_models_by_name, filter_nodes,
                                    safe_request)
+from tests.utils import OpenstackPluginWithJobSystem
 
 
 def get_yaml_from_topology_string(topology):
@@ -798,16 +796,8 @@ class TestJenkinsSource(TestCase):
         )
 
 
-class TestJenkinsSourceOpenstackPlugin(TestCase):
+class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
     """Tests for :class:`Jenkins` with openstack plugin."""
-
-    @classmethod
-    def setUpClass(cls):
-
-        System.API = deepcopy(JobsSystem.API)
-        # call openstack plugin to ensure that get_deployment tests can always
-        # run
-        extend_models("openstack")
 
     def setUp(self):
         self.jenkins = Jenkins("url", "user", "token")

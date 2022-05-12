@@ -17,7 +17,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.models.ci.build import Build
-from cibyl.models.ci.job import Job
+from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
@@ -528,6 +528,75 @@ class TestHandleQuery(TestCase):
                     },
                     jobs={
                         job.name: Job(job.name, job.url)
+                    }
+                )
+            },
+            result.value
+        )
+
+    def test_get_job_variants(self):
+        """Checks the '--variants' options.
+        """
+        variant1 = {
+            'parent': 'job1',
+        }
+
+        variant2 = {
+            'parent': 'job2',
+        }
+
+        job1 = Mock()
+        job1.name = 'job1'
+        job1.url = 'url1'
+        job1.pipelines = Mock()
+        job1.pipelines.return_value = []
+        job1.variants = Mock()
+        job1.variants.return_value = [variant1]
+
+        job2 = Mock()
+        job2.name = 'job2'
+        job2.url = 'url2'
+        job2.pipelines = Mock()
+        job2.pipelines.return_value = []
+        job2.variants = Mock()
+        job2.variants.return_value = [variant2]
+
+        tenant = Mock()
+        tenant.name = 'tenant1'
+        tenant.projects = Mock()
+        tenant.projects.return_value = []
+        tenant.jobs = Mock()
+        tenant.jobs.return_value = [job1, job2]
+
+        api = Mock()
+        api.tenants = Mock()
+        api.tenants.return_value = [tenant]
+
+        job1.tenant = tenant
+        job2.tenant = tenant
+
+        in_jobs = Mock()
+        in_jobs.value = None
+
+        result = handle_query(api, jobs=in_jobs, variants=None)
+
+        self.assertEqual(
+            {
+                tenant.name: Tenant(
+                    tenant.name,
+                    jobs={
+                        job1.name: Job(
+                            job1.name, job1.url,
+                            variants=[
+                                Job.Variant.from_data(variant1)
+                            ]
+                        ),
+                        job2.name: Job(
+                            job2.name, job1.url,
+                            variants=[
+                                Job.Variant.from_data(variant2)
+                            ]
+                        )
                     }
                 )
             },

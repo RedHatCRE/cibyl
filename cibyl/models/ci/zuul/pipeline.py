@@ -15,7 +15,7 @@
 """
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue
-from cibyl.models.ci.job import Job
+from cibyl.models.ci.zuul.job import Job
 from cibyl.models.model import Model
 
 
