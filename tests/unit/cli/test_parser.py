@@ -18,7 +18,7 @@ from unittest import TestCase
 
 from cibyl.cli.argument import Argument
 from cibyl.cli.parser import Parser
-from cibyl.models.ci.environment import Environment
+from cibyl.models.ci.base.environment import Environment
 
 
 class TestParser(TestCase):

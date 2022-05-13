@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.models.ci.build import Build
+from cibyl.models.ci.base.build import Build
 from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project

@@ -20,10 +20,10 @@ from overrides import overrides
 from cibyl.cli.query import QueryType
 from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
-from cibyl.models.ci.printers import CIPrinter
-from cibyl.models.ci.system import JobsSystem
+from cibyl.models.ci.base.system import JobsSystem
 from cibyl.models.ci.zuul.job import Job as ZuulJob
 from cibyl.models.ci.zuul.system import ZuulSystem
+from cibyl.outputs.cli.ci.printer import CIPrinter
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
 from cibyl.utils.colors import DefaultPalette

@@ -17,7 +17,7 @@ import logging
 
 from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
-from cibyl.models.ci.printers.factory import CIPrinterFactory
+from cibyl.outputs.cli.ci.factory import CIPrinterFactory
 
 LOG = logging.getLogger(__name__)
 

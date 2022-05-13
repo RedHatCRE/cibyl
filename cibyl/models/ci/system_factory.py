@@ -16,7 +16,7 @@
 from enum import Enum
 
 from cibyl.exceptions import CibylNotImplementedException
-from cibyl.models.ci.system import JobsSystem
+from cibyl.models.ci.base.system import JobsSystem
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.utils.dicts import subset
 

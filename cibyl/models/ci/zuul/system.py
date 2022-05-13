@@ -17,7 +17,7 @@ from copy import deepcopy
 
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue
-from cibyl.models.ci.system import System
+from cibyl.models.ci.base.system import System
 from cibyl.models.ci.zuul.tenant import Tenant
 
 

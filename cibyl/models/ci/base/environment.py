@@ -16,7 +16,7 @@
 # pylint: disable=no-member
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeListValue
-from cibyl.models.ci.system import System
+from cibyl.models.ci.base.system import System
 from cibyl.models.ci.system_factory import SystemFactory
 from cibyl.models.model import Model
 

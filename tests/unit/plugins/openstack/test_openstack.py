@@ -15,9 +15,9 @@
 """
 from unittest import TestCase
 
-from cibyl.models.ci.environment import Environment
-from cibyl.models.ci.job import Job
-from cibyl.models.ci.printers.raw import CIRawPrinter
+from cibyl.models.ci.base.environment import Environment
+from cibyl.models.ci.base.job import Job
+from cibyl.outputs.cli.ci.base.raw import CIRawPrinter
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
 from tests.utils import OpenstackPluginWithJobSystem

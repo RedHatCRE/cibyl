@@ -29,9 +29,9 @@ import yaml
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue
-from cibyl.models.ci.build import Build
-from cibyl.models.ci.job import Job
-from cibyl.models.ci.test import Test
+from cibyl.models.ci.base.build import Build
+from cibyl.models.ci.base.job import Job
+from cibyl.models.ci.base.test import Test
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.node import Node

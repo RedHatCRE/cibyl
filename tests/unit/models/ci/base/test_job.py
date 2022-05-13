@@ -15,8 +15,8 @@
 """
 import unittest
 
-from cibyl.models.ci.build import Build
-from cibyl.models.ci.job import Job
+from cibyl.models.ci.base.build import Build
+from cibyl.models.ci.base.job import Job
 
 
 # pylint: disable=no-member

@@ -24,9 +24,9 @@ from cibyl.cli.argument import Argument
 from cibyl.cli.ranged_argument import RANGE_OPERATORS
 from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
-from cibyl.models.ci.build import Build
-from cibyl.models.ci.job import Job
-from cibyl.models.ci.test import Test
+from cibyl.models.ci.base.build import Build
+from cibyl.models.ci.base.job import Job
+from cibyl.models.ci.base.test import Test
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
 from cibyl.sources.server import ServerSource

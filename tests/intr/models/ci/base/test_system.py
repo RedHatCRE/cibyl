@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from cibyl.models.ci.system import JobsSystem, System
+from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.orchestrator import Orchestrator
 

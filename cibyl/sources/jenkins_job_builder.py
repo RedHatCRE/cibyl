@@ -24,7 +24,7 @@ from pathlib import Path
 
 from cibyl.exceptions.jenkins_job_builder import JenkinsJobBuilderError
 from cibyl.models.attribute import AttributeDictValue
-from cibyl.models.ci.job import Job
+from cibyl.models.ci.base.job import Job
 from cibyl.sources.git import GitSource
 from cibyl.sources.source import safe_request_generic, speed_index
 
