@@ -13,17 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from overrides import overrides
-
-from cibyl.models.ci.zuul.system import ZuulSystem
-from cibyl.outputs.cli.ci.systems.base.colored import ColoredBaseSystemPrinter
-from cibyl.outputs.cli.ci.systems.zuul.colored import ColoredZuulSystemPrinter
+from cibyl.outputs.cli.ci.systems.printer import CISystemPrinter
 
 
-class CISystemPrinterFactory:
-    @overrides
-    def from_system(self, system):
-        if isinstance(system, ZuulSystem):
-            return ColoredZuulSystemPrinter()
-
-        return ColoredBaseSystemPrinter()
+class ColoredBaseSystemPrinter(CISystemPrinter):
+    def print_system(self, system):
+        pass
