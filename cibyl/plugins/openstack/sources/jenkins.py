@@ -444,6 +444,10 @@ accurate results", len(jobs_found))
                           job_name)
 
         if self.job_missing_deployment_info(job):
+            if spec:
+                LOG.warning("Some logs are missing for job %s, information "
+                            "will be retrieved from the job name, but will "
+                            "be incomplete", job_name)
             LOG.debug("Resorting to get deployment information from job name"
                       " for job %s", job_name)
             self.add_job_info_from_name(job, **kwargs)
