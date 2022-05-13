@@ -39,6 +39,13 @@ class SourceFactory:
     """
 
     @staticmethod
+    def extend_source(source):
+        if source.__name__ == 'Jenkins':
+            for attr_name in [a for a in dir(source)
+                              if not a.startswith('__')]:
+                setattr(Jenkins, attr_name, getattr(source, attr_name))
+
+    @staticmethod
     def create_source(source_type, name, **kwargs):
         """Builds a new source.
 

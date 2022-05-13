@@ -22,6 +22,7 @@ from unittest.mock import patch
 
 from cibyl.cli.main import main
 from cibyl.exceptions.jenkins import JenkinsError
+from cibyl.plugins.openstack.sources.jenkins import Jenkins as OSPJenkins
 from cibyl.sources.jenkins import Jenkins
 from cibyl.utils.source_methods_store import SourceMethodsStore
 
@@ -46,7 +47,7 @@ class TestOrchestrator(TestCase):
            return_value="")
     @patch.object(SourceMethodsStore, '_method_information_tuple')
     @patch.object(Jenkins, 'get_jobs', side_effect=JenkinsError)
-    @patch.object(Jenkins, 'get_deployment', side_effect=JenkinsError)
+    @patch.object(OSPJenkins, 'get_deployment', side_effect=JenkinsError)
     def test_args_level(self, jenkins_deployment, jenkins_jobs, store_mock,
                         _):
         """Test that the args level is updated properly in run_query."""
