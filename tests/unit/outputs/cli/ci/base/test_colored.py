@@ -20,11 +20,12 @@ from cibyl.models.ci.base.environment import Environment
 from cibyl.models.ci.base.system import JobsSystem
 from cibyl.models.ci.base.test import Test
 from cibyl.models.ci.zuul.job import Job
-from cibyl.outputs.cli.ci.base.raw import RawBasePrinter
+from cibyl.outputs.cli.ci.base.colored import ColoredBasePrinter
+from cibyl.utils.colors import ClearText
 
 
-class TestCIRawPrinter(TestCase):
-    """Tests for :class:`CIRawPrinter`.
+class TestColoredBasePrinter(TestCase):
+    """Tests for :class:`ColoredBasePrinter`.
     """
 
     def test_str_environment(self):
@@ -33,7 +34,7 @@ class TestCIRawPrinter(TestCase):
         name = "test_env"
         env = Environment(name)
 
-        printer = RawBasePrinter()
+        printer = ColoredBasePrinter(palette=ClearText())
 
         self.assertIn("Environment: ", printer.print_environment(env))
         self.assertIn(name, printer.print_environment(env))
@@ -47,7 +48,7 @@ class TestCIRawPrinter(TestCase):
         build1 = Build(build_id=build_id)
         build2 = Build(build_id=build_id)
 
-        printer = RawBasePrinter()
+        printer = ColoredBasePrinter(palette=ClearText())
 
         self.assertIn('Build: ', printer.print_build(build1))
         self.assertIn(build_id, printer.print_build(build1))
@@ -71,7 +72,7 @@ class TestCIRawPrinter(TestCase):
         build.status.value = "SUCCESS"
         build.duration.value = 60000
 
-        printer = RawBasePrinter(verbosity=2)
+        printer = ColoredBasePrinter(palette=ClearText(), verbosity=2)
         result = printer.print_build(build)
 
         self.assertIn('Build: ', result)
@@ -88,7 +89,7 @@ class TestCIRawPrinter(TestCase):
             build = Build(build_id='build')
             build.status.value = status
 
-            printer = RawBasePrinter()
+            printer = ColoredBasePrinter(palette=ClearText())
             result = printer.print_build(build)
 
             self.assertIn('Status: ', result)
@@ -103,7 +104,7 @@ class TestCIRawPrinter(TestCase):
         job1 = Job(name=job_name, url=job_url)
         job2 = Job(name=job_name, url=job_url)
 
-        printer = RawBasePrinter()
+        printer = ColoredBasePrinter(palette=ClearText())
 
         self.assertIn('Job: ', printer.print_job(job1))
         self.assertIn('Job: ', printer.print_job(job2))
@@ -126,7 +127,7 @@ class TestCIRawPrinter(TestCase):
         test1 = Test(name=name)
         test2 = Test(name=name)
 
-        printer = RawBasePrinter(verbosity=2)
+        printer = ColoredBasePrinter(palette=ClearText(), verbosity=2)
 
         self.assertIn('Test: ', printer.print_test(test1))
         self.assertIn(name, printer.print_test(test1))
@@ -152,7 +153,7 @@ class TestCIRawPrinter(TestCase):
         """
         results = ["SUCCESS", "FAILURE", "UNSTABLE", "SKIPPED"]
 
-        printer = RawBasePrinter(verbosity=2)
+        printer = ColoredBasePrinter(palette=ClearText(), verbosity=2)
 
         for result in results:
             test = Test(name='test')
@@ -172,7 +173,7 @@ class TestCIRawPrinter(TestCase):
         system.add_job(job)
         system.register_query()
 
-        printer = RawBasePrinter(verbosity=0)
+        printer = ColoredBasePrinter(palette=ClearText(), verbosity=0)
 
         output = printer.print_system(system)
         expected = """System: test

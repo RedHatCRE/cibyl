@@ -17,9 +17,10 @@ from unittest import TestCase
 
 from cibyl.models.ci.base.environment import Environment
 from cibyl.models.ci.base.job import Job
-from cibyl.outputs.cli.ci.base.raw import RawBasePrinter
+from cibyl.outputs.cli.ci.base.colored import ColoredBasePrinter
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
+from cibyl.utils.colors import ClearText
 from tests.utils import OpenstackPluginWithJobSystem
 
 
@@ -61,7 +62,7 @@ class TestJobWithPlugin(OpenstackPluginWithJobSystem):
         """Test string representation of Job with deployment."""
         self.job.add_deployment(self.deployment)
 
-        printer = RawBasePrinter(verbosity=2)
+        printer = ColoredBasePrinter(palette=ClearText(), verbosity=2)
         result = printer.print_job(self.job)
 
         self.assertIn("Release: ", result)
@@ -69,7 +70,7 @@ class TestJobWithPlugin(OpenstackPluginWithJobSystem):
 
     def test_str_no_deployment(self):
         """Test string representation of Job without deployment."""
-        printer = RawBasePrinter(verbosity=2)
+        printer = ColoredBasePrinter(palette=ClearText(), verbosity=2)
         result = printer.print_job(self.job)
 
         self.assertNotIn("Release: ", result)

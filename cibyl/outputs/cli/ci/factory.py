@@ -16,7 +16,7 @@
 from cibyl.cli.output import OutputStyle
 from cibyl.exceptions import CibylNotImplementedException
 from cibyl.outputs.cli.ci.base.colored import ColoredBasePrinter
-from cibyl.outputs.cli.ci.base.raw import RawBasePrinter
+from cibyl.utils.colors import ClearText
 
 
 class CIPrinterFactory:
@@ -35,11 +35,11 @@ class CIPrinterFactory:
         :type verbosity: int
         :return: The printer.
         :rtype: :class:`cibyl.models.ci.printers.CIPrinter`
-        :raise CibylNotImplementedException: If there is not printer for the
+        :raise CibylNotImplementedException: If there is no printer for the
         desired style.
         """
         if style == OutputStyle.TEXT:
-            return RawBasePrinter(query, verbosity)
+            return ColoredBasePrinter(query, verbosity, ClearText())
         elif style == OutputStyle.COLORIZED:
             return ColoredBasePrinter(query, verbosity)
         else:
