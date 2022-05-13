@@ -16,7 +16,7 @@
 from abc import ABC, abstractmethod
 
 from cibyl.exceptions import CibylNotImplementedException
-from cibyl.output import Printer
+from cibyl.outputs.cli.printer import Printer
 
 
 class OSPrinter(Printer, ABC):

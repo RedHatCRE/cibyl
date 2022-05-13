@@ -15,8 +15,8 @@
 """
 from cibyl.cli.output import OutputStyle
 from cibyl.exceptions import CibylNotImplementedException
-from cibyl.models.ci.printers.colored import CIColoredPrinter
-from cibyl.models.ci.printers.raw import CIRawPrinter
+from cibyl.outputs.cli.ci.base.colored import CIColoredPrinter
+from cibyl.outputs.cli.ci.base.raw import CIRawPrinter
 
 
 class CIPrinterFactory:

@@ -21,7 +21,7 @@ from cibyl.cli.argument import Argument
 from cibyl.exceptions import CibylNotImplementedException
 from cibyl.exceptions.model import NonSupportedModelType
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
-from cibyl.models.ci.job import Job
+from cibyl.models.ci.base.job import Job
 from cibyl.models.model import Model
 from cibyl.sources.source import Source
 

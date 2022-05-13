@@ -16,8 +16,8 @@
 # pylint: disable=no-member
 import unittest
 
-from cibyl.models.ci.environment import Environment
-from cibyl.models.ci.system import JobsSystem
+from cibyl.models.ci.base.environment import Environment
+from cibyl.models.ci.base.system import JobsSystem
 from cibyl.models.ci.zuul.system import ZuulSystem
 
 

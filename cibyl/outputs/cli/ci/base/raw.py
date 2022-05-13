@@ -14,7 +14,7 @@
 #    under the License.
 """
 from cibyl.cli.query import QueryType
-from cibyl.models.ci.printers.colored import CIColoredPrinter
+from cibyl.outputs.cli.ci.base.colored import CIColoredPrinter
 from cibyl.utils.colors import ClearText
 
 

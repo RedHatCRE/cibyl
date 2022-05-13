@@ -20,7 +20,7 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 from cibyl.models.attribute import AttributeDictValue
-from cibyl.models.ci.job import Job
+from cibyl.models.ci.base.job import Job
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 
 

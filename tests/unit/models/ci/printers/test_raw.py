@@ -15,12 +15,12 @@
 """
 from unittest import TestCase
 
-from cibyl.models.ci.build import Build
-from cibyl.models.ci.environment import Environment
-from cibyl.models.ci.printers.raw import CIRawPrinter
-from cibyl.models.ci.system import JobsSystem
-from cibyl.models.ci.test import Test
+from cibyl.models.ci.base.build import Build
+from cibyl.models.ci.base.environment import Environment
+from cibyl.models.ci.base.system import JobsSystem
+from cibyl.models.ci.base.test import Test
 from cibyl.models.ci.zuul.job import Job
+from cibyl.outputs.cli.ci.base.raw import CIRawPrinter
 
 
 class TestCIRawPrinter(TestCase):

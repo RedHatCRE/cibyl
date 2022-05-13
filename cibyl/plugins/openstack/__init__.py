@@ -14,7 +14,7 @@
 #    under the License.
 """
 from cibyl.cli.argument import Argument
-from cibyl.models.ci.job import Job
+from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.zuul.job import Job as ZuulJob
 from cibyl.plugins.openstack.deployment import Deployment
 

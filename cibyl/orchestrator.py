@@ -25,8 +25,8 @@ from cibyl.cli.validator import Validator
 from cibyl.config import Config, ConfigFactory
 from cibyl.exceptions.source import (NoSupportedSourcesFound, NoValidSources,
                                      SourceException)
-from cibyl.models.ci.environment import Environment
-from cibyl.models.ci.system import JobsSystem, System
+from cibyl.models.ci.base.environment import Environment
+from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.system_factory import SystemType
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.publisher import Publisher

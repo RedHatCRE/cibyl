@@ -16,8 +16,8 @@
 # pylint: disable=no-member
 import unittest
 
-from cibyl.models.ci.build import Build
-from cibyl.models.ci.test import Test
+from cibyl.models.ci.base.build import Build
+from cibyl.models.ci.base.test import Test
 
 
 class TestBuild(unittest.TestCase):

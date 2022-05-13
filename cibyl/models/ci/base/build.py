@@ -18,7 +18,7 @@ from typing import Dict
 
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue
-from cibyl.models.ci.test import Test
+from cibyl.models.ci.base.test import Test
 from cibyl.models.model import Model
 
 

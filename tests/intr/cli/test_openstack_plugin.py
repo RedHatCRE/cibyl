@@ -20,8 +20,8 @@ from copy import deepcopy
 from tempfile import NamedTemporaryFile
 
 from cibyl.cli.main import main
-from cibyl.models.ci.job import Job as BaseJob
-from cibyl.models.ci.system import System
+from cibyl.models.ci.base.job import Job as BaseJob
+from cibyl.models.ci.base.system import System
 from cibyl.models.ci.zuul.job import Job as ZuulJob
 from tests.utils import RestoreAPIs
 

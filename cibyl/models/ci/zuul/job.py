@@ -17,7 +17,7 @@ from overrides import overrides
 
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
-from cibyl.models.ci.job import Job as BaseJob
+from cibyl.models.ci.base.job import Job as BaseJob
 from cibyl.models.model import Model
 
 

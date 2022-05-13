@@ -16,8 +16,8 @@
 from copy import deepcopy
 from unittest import TestCase
 
-from cibyl.models.ci.job import Job
-from cibyl.models.ci.system import JobsSystem, System
+from cibyl.models.ci.base.job import Job
+from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.zuul.job import Job as ZuulJob
 from cibyl.plugins import extend_models
 
