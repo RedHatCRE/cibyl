@@ -72,7 +72,6 @@ class CIColoredPrinter(CIPrinter):
 
         return printer.build()
 
-    @overrides
     def print_system(self, system):
         printer = IndentedTextBuilder()
 
@@ -126,7 +125,6 @@ class CIColoredPrinter(CIPrinter):
 
         return printer.build()
 
-    @overrides
     def print_tenant(self, tenant):
         def print_projects():
             result.add(self._palette.blue('Projects: '), 1)
@@ -169,7 +167,6 @@ class CIColoredPrinter(CIPrinter):
 
         return result.build()
 
-    @overrides
     def print_project(self, project):
         result = IndentedTextBuilder()
 
@@ -194,7 +191,6 @@ class CIColoredPrinter(CIPrinter):
 
         return result.build()
 
-    @overrides
     def print_pipeline(self, pipeline):
         result = IndentedTextBuilder()
 
@@ -215,7 +211,6 @@ class CIColoredPrinter(CIPrinter):
 
         return result.build()
 
-    @overrides
     def print_job(self, job):
         printer = IndentedTextBuilder()
 
@@ -275,7 +270,6 @@ class CIColoredPrinter(CIPrinter):
 
         return printer.build()
 
-    @overrides
     def print_variant(self, variant):
         printer = IndentedTextBuilder()
 
@@ -299,7 +293,6 @@ class CIColoredPrinter(CIPrinter):
 
         return printer.build()
 
-    @overrides
     def print_build(self, build):
         printer = IndentedTextBuilder()
 
@@ -335,7 +328,6 @@ class CIColoredPrinter(CIPrinter):
 
         return printer.build()
 
-    @overrides
     def print_test(self, test):
         printer = IndentedTextBuilder()
 
