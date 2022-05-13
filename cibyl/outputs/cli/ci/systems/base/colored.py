@@ -18,12 +18,9 @@ import logging
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
-from cibyl.models.attribute import AttributeValue, AttributeListValue, \
-    AttributeDictValue
+from cibyl.outputs.cli.ci.systems.common.jobs import get_plugin_section
 from cibyl.outputs.cli.ci.systems.printer import CISystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
-from cibyl.plugins.openstack import Deployment
-from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
 
@@ -67,43 +64,10 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
                 printer[-1].append(job.url.value)
 
         if job.builds.value:
-            printer.add(self._palette.blue('Builds: '), 1)
-
             for build in job.builds.values():
-                printer.add(self.print_build(build), 2)
+                printer.add(self.print_build(build), 1)
 
-        for plugin in job.plugin_attributes:
-            # Plugins are installed as part of the model
-            attribute = getattr(job, plugin)
-
-            # Check if the plugin is installed
-            if not attribute.value:
-                continue
-
-            if isinstance(attribute, AttributeValue):
-                values = [attribute.value]
-            elif isinstance(attribute, AttributeListValue):
-                values = attribute.value
-            elif isinstance(attribute, AttributeDictValue):
-                values = attribute.value.values()
-            else:
-                LOG.warning(
-                    'Ignoring unknown attribute type: %s', type(attribute)
-                )
-                continue
-
-            for value in values:
-                if isinstance(value, Deployment):
-                    os_printer = OSColoredPrinter(
-                        self.query, self.verbosity, self.palette
-                    )
-
-                    printer.add(os_printer.print_deployment(value), 1)
-                else:
-                    LOG.warning(
-                        'Ignoring unknown plugin type: %s', type(value)
-                    )
-                    continue
+        printer.add(get_plugin_section(self, job), 1)
 
         return printer.build()
 

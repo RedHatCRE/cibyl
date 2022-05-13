@@ -17,6 +17,7 @@ from overrides import overrides
 
 from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.systems.base.colored import ColoredBaseSystemPrinter
+from cibyl.outputs.cli.ci.systems.common.jobs import get_plugin_section
 from cibyl.utils.strings import IndentedTextBuilder
 
 
@@ -133,18 +134,31 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
     @overrides
     def print_job(self, job):
-        def print_variants():
-            printer = IndentedTextBuilder()
+        printer = IndentedTextBuilder()
 
-            if job.variants.value:
-                printer.add(self._palette.blue('Variants: '), 0)
+        printer.add(self._palette.blue('Job: '), 0)
+        printer[-1].append(job.name.value)
 
-                for variant in job.variants:
-                    printer.add(self.print_variant(variant), 1)
+        if self.verbosity > 0:
+            if job.url.value:
+                printer.add(self._palette.blue('URL: '), 1)
+                printer[-1].append(job.url.value)
 
-            return printer.build()
+        if job.variants.value:
+            printer.add(self._palette.blue('Variants: '), 1)
 
-        return super().print_job(job)
+            for variant in job.variants:
+                printer.add(self.print_variant(variant), 2)
+
+        if job.builds.value:
+            printer.add(self._palette.blue('Builds: '), 1)
+
+            for build in job.builds.values():
+                printer.add(self.print_build(build), 2)
+
+        printer.add(get_plugin_section(self, job), 1)
+
+        return printer.build()
 
     def print_variant(self, variant):
         printer = IndentedTextBuilder()
