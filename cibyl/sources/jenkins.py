@@ -158,8 +158,8 @@ def filter_jobs(jobs_found: List[Dict], **kwargs):
                                        field_to_check="name"))
 
     jobs_scope_arg = kwargs.get('jobs_scope')
-    if jobs_scope_arg and jobs_scope_arg.value:
-        pattern = re.compile(jobs_scope_arg.value)
+    if jobs_scope_arg:
+        pattern = re.compile(jobs_scope_arg)
         checks_to_apply.append(partial(satisfy_regex_match, pattern=pattern,
                                        field_to_check="name"))
 

@@ -2107,9 +2107,7 @@ class TestFilters(TestCase):
                     {'_class': 'org..job.WorkflowRun',
                      'name': "ans2", 'url': 'url3',
                      'lastBuild': {'number': 0, 'result': "FAILURE"}}]
-        args = Mock()
-        args.value = "ans"
-        jobs_filtered = filter_jobs(response, jobs_scope=args)
+        jobs_filtered = filter_jobs(response, jobs_scope="ans")
         expected = [{'_class': 'org..job.WorkflowRun',
                      'name': "ansible", 'url': 'url1',
                      'lastBuild': {'number': 1, 'result': "SUCCESS"}},

@@ -80,8 +80,8 @@ class ElasticSearchOSP(ServerSource):
             jobs_to_search = kwargs.get('job_url').value
             key_filter = 'job_url'
         jobs_scope_arg = kwargs.get('jobs_scope')
-        if jobs_scope_arg and jobs_scope_arg.value:
-            jobs_scope_pattern = re.compile(jobs_scope_arg.value)
+        if jobs_scope_arg:
+            jobs_scope_pattern = re.compile(jobs_scope_arg)
 
         query_body = QueryTemplate(key_filter, jobs_to_search).get
 
