@@ -13,17 +13,30 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from overrides import overrides
-
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.outputs.cli.ci.systems.base.colored import ColoredBaseSystemPrinter
 from cibyl.outputs.cli.ci.systems.zuul.colored import ColoredZuulSystemPrinter
 
 
-class CISystemPrinterFactory:
-    @overrides
+class ColoredSystemPrinterFactory:
+    def __init__(self, parent):
+        """
+
+        :param parent:
+        :type parent: :class:`cibyl.outputs.cli.ci.colored.CIColoredPrinter`
+        """
+        self._parent = parent
+
     def from_system(self, system):
         if isinstance(system, ZuulSystem):
-            return ColoredZuulSystemPrinter()
+            return ColoredZuulSystemPrinter(
+                query=self._parent.query,
+                verbosity=self._parent.verbosity,
+                palette=self._parent.palette
+            )
 
-        return ColoredBaseSystemPrinter()
+        return ColoredBaseSystemPrinter(
+            query=self._parent.query,
+            verbosity=self._parent.verbosity,
+            palette=self._parent.palette
+        )

@@ -16,7 +16,7 @@
 from cibyl.cli.output import OutputStyle
 from cibyl.exceptions import CibylNotImplementedException
 from cibyl.outputs.cli.ci.colored import CIColoredPrinter
-from cibyl.outputs.cli.ci.systems.factory import CISystemPrinterFactory
+from cibyl.outputs.cli.ci.systems.factory import ColoredSystemPrinterFactory
 from cibyl.utils.colors import ClearText
 
 
@@ -43,14 +43,12 @@ class CIPrinterFactory:
             return CIColoredPrinter(
                 query=query,
                 verbosity=verbosity,
-                palette=ClearText(),
-                system_printer_factory=CISystemPrinterFactory()
+                palette=ClearText()
             )
         elif style == OutputStyle.COLORIZED:
             return CIColoredPrinter(
                 query=query,
-                verbosity=verbosity,
-                system_printer_factory=CISystemPrinterFactory()
+                verbosity=verbosity
             )
         else:
             msg = f'Unknown output style: {style}'

@@ -16,8 +16,8 @@
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
-from cibyl.outputs.cli.ci.factory import CISystemPrinterFactory
 from cibyl.outputs.cli.ci.printer import CIPrinter
+from cibyl.outputs.cli.ci.systems.factory import ColoredSystemPrinterFactory
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.colors import DefaultPalette
 from cibyl.utils.strings import IndentedTextBuilder
@@ -28,8 +28,11 @@ class CIColoredPrinter(CIPrinter, ColoredPrinter):
                  query=QueryType.NONE,
                  verbosity=0,
                  palette=DefaultPalette(),
-                 system_printer_factory=CISystemPrinterFactory()):
+                 system_printer_factory=None):
         super().__init__(query, verbosity, palette)
+
+        if not system_printer_factory:
+            system_printer_factory = ColoredSystemPrinterFactory(self)
 
         self._system_printer_factory = system_printer_factory
 
