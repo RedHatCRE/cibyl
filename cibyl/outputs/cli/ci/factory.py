@@ -16,12 +16,11 @@
 from cibyl.cli.output import OutputStyle
 from cibyl.exceptions import CibylNotImplementedException
 from cibyl.outputs.cli.ci.colored import CIColoredPrinter
-from cibyl.outputs.cli.ci.systems.factory import ColoredSystemPrinterFactory
 from cibyl.utils.colors import ClearText
 
 
 class CIPrinterFactory:
-    """Factory for :class:`CIPrinter`.
+    """Factory for all types of :class:`CIPrinter`.
     """
 
     @staticmethod

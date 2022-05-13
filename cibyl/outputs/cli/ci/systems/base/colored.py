@@ -28,8 +28,18 @@ LOG = logging.getLogger(__name__)
 
 
 class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
+    """Default printer for all system models. This one is decorated with
+    colors for easier read.
+    """
+
     @overrides
     def print_system(self, system):
+        """
+        :param system: The system.
+        :type system: :class:`cibyl.models.ci.base.system.JobsSystem`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('System: '), 0)
@@ -53,6 +63,12 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
         return printer.build()
 
     def print_job(self, job):
+        """
+        :param job: The job.
+        :type job: :class:`cibyl.models.ci.base.job.Job`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('Job: '), 0)
@@ -72,6 +88,12 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
         return printer.build()
 
     def print_build(self, build):
+        """
+        :param build: The build.
+        :type build: :class:`cibyl.models.ci.base.build.Build`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('Build: '), 0)
@@ -107,6 +129,12 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
         return printer.build()
 
     def print_test(self, test):
+        """
+        :param test: The test.
+        :type test: :class:`cibyl.models.ci.base.test.Test`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('Test: '), 0)

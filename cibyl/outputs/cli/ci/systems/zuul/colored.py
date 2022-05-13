@@ -24,6 +24,12 @@ from cibyl.utils.strings import IndentedTextBuilder
 class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
     @overrides
     def print_system(self, system):
+        """
+        :param system: The system.
+        :type system: :class:`cibyl.models.ci.zuul.system.ZuulSystem`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('System: '), 0)
@@ -47,6 +53,13 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         return printer.build()
 
     def print_tenant(self, tenant):
+        """
+        :param tenant: The tenant.
+        :type tenant: :class:`cibyl.models.ci.zuul.tenant.Tenant`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
+
         def print_projects():
             result.add(self._palette.blue('Projects: '), 1)
 
@@ -89,6 +102,12 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         return result.build()
 
     def print_project(self, project):
+        """
+        :param project: The project.
+        :type project: :class:`cibyl.models.ci.zuul.project.Project`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         result = IndentedTextBuilder()
 
         result.add(self._palette.blue('Project: '), 0)
@@ -113,6 +132,12 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         return result.build()
 
     def print_pipeline(self, pipeline):
+        """
+        :param pipeline: The pipeline.
+        :type pipeline: :class:`cibyl.models.ci.zuul.pipeline.Pipeline`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         result = IndentedTextBuilder()
 
         result.add(self._palette.blue('Pipeline: '), 0)
@@ -134,6 +159,12 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
     @overrides
     def print_job(self, job):
+        """
+        :param job: The job.
+        :type job: :class:`cibyl.models.ci.zuul.job.Job`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('Job: '), 0)
@@ -161,6 +192,12 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         return printer.build()
 
     def print_variant(self, variant):
+        """
+        :param variant: The variant.
+        :type variant: :class:`cibyl.models.ci.zuul.job.Job.Variant`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('Variant: '), 0)

@@ -15,26 +15,18 @@
 """
 from overrides import overrides
 
-from cibyl.cli.query import QueryType
+from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.outputs.cli.ci.printer import CIPrinter
-from cibyl.outputs.cli.ci.systems.factory import ColoredSystemPrinterFactory
+from cibyl.outputs.cli.ci.systems.base.colored import ColoredBaseSystemPrinter
+from cibyl.outputs.cli.ci.systems.zuul.colored import ColoredZuulSystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
-from cibyl.utils.colors import DefaultPalette
 from cibyl.utils.strings import IndentedTextBuilder
 
 
 class CIColoredPrinter(CIPrinter, ColoredPrinter):
-    def __init__(self,
-                 query=QueryType.NONE,
-                 verbosity=0,
-                 palette=DefaultPalette(),
-                 system_printer_factory=None):
-        super().__init__(query, verbosity, palette)
-
-        if not system_printer_factory:
-            system_printer_factory = ColoredSystemPrinterFactory(self)
-
-        self._system_printer_factory = system_printer_factory
+    """Prints a whole CI model hierarchy decorating the output with colors
+    for easier read.
+    """
 
     @overrides
     def print_environment(self, env):
@@ -44,8 +36,28 @@ class CIColoredPrinter(CIPrinter, ColoredPrinter):
         printer[0].append(env.name.value)
 
         for system in env.systems:
-            system_printer = self._system_printer_factory.from_system(system)
-
-            printer.add(system_printer.print_system(system), 1)
+            printer.add(self._print_system(system), 1)
 
         return printer.build()
+
+    def _print_system(self, system):
+        """
+        :param system: The system.
+        :type system: :class:`cibyl.models.ci.base.system.System`
+        :return: Textual representation of the system.
+        :rtype: str
+        """
+
+        def get_printer():
+            # Check specialized printers
+            if isinstance(system, ZuulSystem):
+                return ColoredZuulSystemPrinter(
+                    self.query, self.verbosity, self.palette
+                )
+
+            # Go with the default printer
+            return ColoredBaseSystemPrinter(
+                self.query, self.verbosity, self.palette
+            )
+
+        return get_printer().print_system(system)

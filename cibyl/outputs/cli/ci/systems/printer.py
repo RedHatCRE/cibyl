@@ -20,9 +20,15 @@ from cibyl.outputs.cli.printer import Printer
 
 
 class CISystemPrinter(Printer, ABC):
-    """Base class for all printers for a CI model tree.
+    """Base class for all printers for a CI system.
     """
 
     @abstractmethod
     def print_system(self, system):
+        """
+        :param system: The system.
+        :type system: :class:`cibyl.models.ci.base.system.System`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         raise CibylNotImplementedException

@@ -56,6 +56,9 @@ class Printer(ABC):
 
 
 class ColoredPrinter(Printer):
+    """Base class for output styles based around coloring.
+    """
+
     def __init__(self,
                  query=QueryType.NONE,
                  verbosity=0,
