@@ -15,8 +15,8 @@
 """
 from cibyl.cli.output import OutputStyle
 from cibyl.exceptions import CibylNotImplementedException
-from cibyl.outputs.cli.ci.base.colored import CIColoredPrinter
-from cibyl.outputs.cli.ci.base.raw import CIRawPrinter
+from cibyl.outputs.cli.ci.base.colored import ColoredBasePrinter
+from cibyl.outputs.cli.ci.base.raw import RawBasePrinter
 
 
 class CIPrinterFactory:
@@ -39,9 +39,9 @@ class CIPrinterFactory:
         desired style.
         """
         if style == OutputStyle.TEXT:
-            return CIRawPrinter(query, verbosity)
+            return RawBasePrinter(query, verbosity)
         elif style == OutputStyle.COLORIZED:
-            return CIColoredPrinter(query, verbosity)
+            return ColoredBasePrinter(query, verbosity)
         else:
             msg = f'Unknown output style: {style}'
             raise CibylNotImplementedException(msg)

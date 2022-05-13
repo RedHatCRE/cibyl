@@ -14,11 +14,11 @@
 #    under the License.
 """
 from cibyl.cli.query import QueryType
-from cibyl.outputs.cli.ci.base.colored import CIColoredPrinter
+from cibyl.outputs.cli.ci.base.colored import ColoredBasePrinter
 from cibyl.utils.colors import ClearText
 
 
-class CIRawPrinter(CIColoredPrinter):
+class RawBasePrinter(ColoredBasePrinter):
     """Same as :class:`CIColoredPrinter`, but this one removes all color
     decoration, leaving only the raw text.
     """

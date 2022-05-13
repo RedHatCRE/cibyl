@@ -20,7 +20,7 @@ from cibyl.models.ci.base.environment import Environment
 from cibyl.models.ci.base.system import JobsSystem
 from cibyl.models.ci.base.test import Test
 from cibyl.models.ci.zuul.job import Job
-from cibyl.outputs.cli.ci.base.raw import CIRawPrinter
+from cibyl.outputs.cli.ci.base.raw import RawBasePrinter
 
 
 class TestCIRawPrinter(TestCase):
@@ -33,7 +33,7 @@ class TestCIRawPrinter(TestCase):
         name = "test_env"
         env = Environment(name)
 
-        printer = CIRawPrinter()
+        printer = RawBasePrinter()
 
         self.assertIn("Environment: ", printer.print_environment(env))
         self.assertIn(name, printer.print_environment(env))
@@ -47,7 +47,7 @@ class TestCIRawPrinter(TestCase):
         build1 = Build(build_id=build_id)
         build2 = Build(build_id=build_id)
 
-        printer = CIRawPrinter()
+        printer = RawBasePrinter()
 
         self.assertIn('Build: ', printer.print_build(build1))
         self.assertIn(build_id, printer.print_build(build1))
@@ -71,7 +71,7 @@ class TestCIRawPrinter(TestCase):
         build.status.value = "SUCCESS"
         build.duration.value = 60000
 
-        printer = CIRawPrinter(verbosity=2)
+        printer = RawBasePrinter(verbosity=2)
         result = printer.print_build(build)
 
         self.assertIn('Build: ', result)
@@ -88,7 +88,7 @@ class TestCIRawPrinter(TestCase):
             build = Build(build_id='build')
             build.status.value = status
 
-            printer = CIRawPrinter()
+            printer = RawBasePrinter()
             result = printer.print_build(build)
 
             self.assertIn('Status: ', result)
@@ -103,7 +103,7 @@ class TestCIRawPrinter(TestCase):
         job1 = Job(name=job_name, url=job_url)
         job2 = Job(name=job_name, url=job_url)
 
-        printer = CIRawPrinter()
+        printer = RawBasePrinter()
 
         self.assertIn('Job: ', printer.print_job(job1))
         self.assertIn('Job: ', printer.print_job(job2))
@@ -126,7 +126,7 @@ class TestCIRawPrinter(TestCase):
         test1 = Test(name=name)
         test2 = Test(name=name)
 
-        printer = CIRawPrinter(verbosity=2)
+        printer = RawBasePrinter(verbosity=2)
 
         self.assertIn('Test: ', printer.print_test(test1))
         self.assertIn(name, printer.print_test(test1))
@@ -152,7 +152,7 @@ class TestCIRawPrinter(TestCase):
         """
         results = ["SUCCESS", "FAILURE", "UNSTABLE", "SKIPPED"]
 
-        printer = CIRawPrinter(verbosity=2)
+        printer = RawBasePrinter(verbosity=2)
 
         for result in results:
             test = Test(name='test')
@@ -172,7 +172,7 @@ class TestCIRawPrinter(TestCase):
         system.add_job(job)
         system.register_query()
 
-        printer = CIRawPrinter(verbosity=0)
+        printer = RawBasePrinter(verbosity=0)
 
         output = printer.print_system(system)
         expected = """System: test

@@ -33,7 +33,7 @@ from cibyl.utils.time import as_minutes
 LOG = logging.getLogger(__name__)
 
 
-class CIColoredPrinter(CIPrinter):
+class ColoredBasePrinter(CIPrinter):
     """Provides a human-readable representation of CI models decorated with
     coloring for easier readability.
     """
