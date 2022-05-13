@@ -98,6 +98,11 @@ class OSColoredPrinter(OSPrinter):
             printer.add(self._palette.blue('Storage backend: '), 1)
             printer[-1].append(deployment.storage_backend)
 
+        if deployment.ironic_inspector.value:
+            is_empty_deployment = False
+            printer.add(self._palette.blue('Ironic inspector: '), 1)
+            printer[-1].append(deployment.ironic_inspector)
+
         if deployment.nodes.values():
             is_empty_deployment = False
             printer.add(self._palette.blue('Nodes: '), 1)

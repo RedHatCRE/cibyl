@@ -203,6 +203,10 @@ class Jenkins(ServerSource):
         self.username = username
         self.token = token
         self.cert = cert
+        self.deployment_attr = ["topology", "release",
+                                "network_backend", "storage_backend",
+                                "infra_type", "dvr", "ip_version",
+                                "tls_everywhere", "ironic_inspector"]
 
     @safe_request
     def send_request(self, query, timeout=None, item="",

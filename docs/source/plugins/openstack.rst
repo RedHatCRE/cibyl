@@ -122,6 +122,14 @@ Arguments Matrix
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
+   * - --ironic-instpector
+     - | Does the deployment use
+       | Ironic in the overcloud
+     - |:ballot_box_with_check:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
    * - --tls-everywhere
      - | Does the deployment uses
        | TLS on all hosts

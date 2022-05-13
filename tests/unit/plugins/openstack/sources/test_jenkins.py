@@ -52,7 +52,8 @@ def get_yaml_from_topology_string(topology):
 
 
 def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
-                       tls_everywhere, infra_type, ml2_driver=None):
+                       tls_everywhere, infra_type, ml2_driver=None,
+                       ironic_inspector=None):
     """Provide a yaml representation for the paremeters obtained from an
     infrared overcloud-install.yml file.
 
@@ -90,6 +91,8 @@ def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
     if tls_everywhere != "":
         tls = {"everywhere": tls_everywhere}
         overcloud["tls"] = tls
+    if ironic_inspector:
+        overcloud["ironic_inspector"] = True
     return yaml.dump({"install": overcloud})
 
 
@@ -722,6 +725,67 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.topology.value, "")
         self.assertEqual(deployment.dvr.value, "False")
 
+    def test_get_deployment_artifacts_ironic_inspector(self):
+        """ Test that get_deployment filters by ironic_inspector."""
+        job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
+        ip_versions = ['4', '6', 'unknown']
+        releases = ['17.3', '16', '']
+        dvr_status = ['True', 'True', '']
+        topologies = ["compute:2,controller:3", "compute:1,controller:2",
+                      "compute:2,controller:2"]
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastCompletedBuild': {'description':
+                                                            logs_url}})
+        artifacts = [
+                get_yaml_from_topology_string(topologies[0]),
+                get_yaml_overcloud(ip_versions[0], releases[0],
+                                   "ceph", "geneve", dvr_status[0], False, "",
+                                   ironic_inspector=True),
+                get_yaml_from_topology_string(topologies[1]),
+                get_yaml_overcloud(ip_versions[1], releases[1],
+                                   "ceph", "geneve", dvr_status[1],
+                                   False, "", ironic_inspector=False),
+                get_yaml_from_topology_string(topologies[2]),
+                get_yaml_overcloud(ip_versions[2], releases[2],
+                                   "ceph", "geneve", dvr_status[2],
+                                   False, "")]
+        # one call to get_packages_node and get_containers_node per node, plus
+        # one to get_services
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        args = {
+            "topology": Argument("topology", str, "", value=[]),
+            "release": Argument("release", str, "", value=[]),
+            "infra_type": Argument("infra_type", str, "", value=[]),
+            "nodes": Argument("nodes", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "dvr": Argument("dvr", str, "", value=[]),
+            "ironic_inspector": Argument("ironic_inspector", str, "",
+                                         value=["True"]),
+            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
+            "network_backend": Argument("network_backend", str, "", value=[]),
+            "storage_backend": Argument("storage_backend", str, "", value=[])
+        }
+        jobs = self.jenkins.get_deployment(**args)
+        self.assertEqual(len(jobs), 1)
+        job_name = "test_17.3_ipv4_job"
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, releases[0])
+        self.assertEqual(deployment.ip_version.value, ip_versions[0])
+        self.assertEqual(deployment.topology.value, topologies[0])
+        self.assertEqual(deployment.dvr.value, dvr_status[0])
+        self.assertEqual(deployment.ironic_inspector.value, "True")
+
     def test_get_deployment_artifacts_dvr(self):
         """ Test that get_deployment reads properly the information obtained
         from jenkins using artifacts.
@@ -1234,7 +1298,7 @@ tripleo_ironic_conductor.service loaded    active     running
 
         spec = Argument("spec", str, "", value=[])
         msg = "No job was found, please pass --spec job-name with an "
-        msg + " exact match or --jobs job-name with a valid job name "
+        msg += " exact match or --jobs job-name with a valid job name "
         msg += "or pattern."
         self.assertRaises(JenkinsError, self.jenkins.get_deployment, spec=spec,
                           msg=msg)
@@ -1259,7 +1323,8 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb")]
+                                   False, "path/to/ovb",
+                                   ironic_inspector=False)]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1283,6 +1348,7 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertEqual(deployment.dvr.value, "False")
             self.assertEqual(deployment.tls_everywhere.value, "False")
             self.assertEqual(deployment.infra_type.value, "ovb")
+            self.assertEqual(deployment.ironic_inspector.value, "False")
             for component in topology.split(","):
                 role, amount = component.split(":")
                 for i in range(int(amount)):

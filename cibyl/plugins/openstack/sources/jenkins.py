@@ -301,6 +301,7 @@ accurate results", len(jobs_found))
             network_backend = job.get("network_backend", "")
             storage_backend = job.get("storage_backend", "")
             tls_everywhere = job.get("tls_everywhere", "")
+            ironic_inspector = job.get("ironic_inspector", "")
             deployment = Deployment(job.get("release", ""),
                                     job.get("infra_type", ""),
                                     nodes=job.get("nodes", {}),
@@ -311,6 +312,7 @@ accurate results", len(jobs_found))
                                     network_backend=network_backend,
                                     storage_backend=storage_backend,
                                     dvr=job.get("dvr", ""),
+                                    ironic_inspector=ironic_inspector,
                                     tls_everywhere=tls_everywhere)
             job_objects[name].add_deployment(deployment)
 
@@ -396,6 +398,9 @@ accurate results", len(jobs_found))
                 job["ml2_driver"] = "ovn"
                 if network.get("ovs"):
                     job["ml2_driver"] = "ovs"
+            if "ironic_inspector" in kwargs or spec:
+                job["ironic_inspector"] = str(overcloud.get("ironic_inspector",
+                                                            False))
 
         except JenkinsError:
             LOG.debug("Found no artifact %s for job %s", artifact_path,

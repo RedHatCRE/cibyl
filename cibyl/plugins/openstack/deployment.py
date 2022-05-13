@@ -103,6 +103,14 @@ class Deployment(Model):
                                    description="Whether tls-everywhere is "
                                                "used in the deployment")]
         },
+        'ironic_inspector': {
+            'attr_type': str,
+            'arguments': [Argument(name='--ironic-inspector', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Whether ironic inspector is "
+                                               "used in the deployment "
+                                               "overcloud")]
+        },
         'network_backend': {
             'attr_type': str,
             'arguments': [Argument(name='--network-backend', arg_type=str,
@@ -124,14 +132,15 @@ class Deployment(Model):
                  ip_version: str = None, topology: str = None,
                  network_backend: str = None, storage_backend: str = None,
                  dvr: str = None, tls_everywhere: str = None,
-                 ml2_driver: str = None):
+                 ml2_driver: str = None, ironic_inspector: str = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
                           'ip_version': ip_version, 'topology': topology,
                           'network_backend': network_backend,
                           'storage_backend': storage_backend,
                           'dvr': dvr, 'tls_everywhere': tls_everywhere,
-                          'ml2_driver': ml2_driver})
+                          'ml2_driver': ml2_driver,
+                          'ironic_inspector': ironic_inspector})
 
     def add_node(self, node: Node):
         """Add a node to the deployment.
@@ -178,6 +187,8 @@ class Deployment(Model):
             self.tls_everywhere.value = other.tls_everywhere.value
         if not self.ml2_driver.value:
             self.ml2_driver.value = other.ml2_driver.value
+        if not self.ironic_inspector.value:
+            self.ironic_inspector.value = other.ironic_inspector.value
         for node in other.nodes.values():
             self.add_node(node)
         for service in other.services.values():
