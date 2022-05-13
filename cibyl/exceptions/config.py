@@ -73,3 +73,13 @@ class NonSupportedSourceKey(CibylException):
 is not supported: {key}\n\n{CHECK_DOCS_MSG}"""
 
         super().__init__(self.message)
+
+
+class NonSupportedSystemKey(CibylException):
+    """Configuration section key is not supported."""
+
+    def __init__(self, source_type, key):
+        self.message = f"""The following key in "{source_type}" system type \
+is not supported: {key}\n\n{CHECK_DOCS_MSG}"""
+
+        super().__init__(self.message)
