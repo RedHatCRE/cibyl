@@ -13,3 +13,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from abc import ABC, abstractmethod
+
+from cibyl.exceptions import CibylNotImplementedException
+from cibyl.outputs.cli.printer import Printer
+
+
+class CISystemPrinter(Printer, ABC):
+    """Base class for all printers for a CI model tree.
+    """
+
+    @abstractmethod
+    def print_system(self, system):
+        raise CibylNotImplementedException

@@ -13,3 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+
+
+class CISystemPrinterFactory:
+    def from_system(self, system):
+        pass
