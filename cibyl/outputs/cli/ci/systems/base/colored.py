@@ -18,7 +18,8 @@ import logging
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
-from cibyl.outputs.cli.ci.systems.common.jobs import get_plugin_section
+from cibyl.outputs.cli.ci.systems.common.jobs import (get_plugin_section,
+                                                      has_plugin_section)
 from cibyl.outputs.cli.ci.systems.printer import CISystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
@@ -83,7 +84,8 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
             for build in job.builds.values():
                 printer.add(self.print_build(build), 1)
 
-        printer.add(get_plugin_section(self, job), 1)
+        if has_plugin_section(job):
+            printer.add(get_plugin_section(self, job), 1)
 
         return printer.build()
 

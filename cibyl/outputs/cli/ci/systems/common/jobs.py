@@ -24,6 +24,20 @@ from cibyl.utils.strings import IndentedTextBuilder
 LOG = logging.getLogger(__name__)
 
 
+def has_plugin_section(job):
+    """Checks whether a job is worth having a plugins' section for.
+    If it is not, most likely calling :func:`get_plugin_section` ends in an
+    empty string.
+
+    :param job: The job to check.
+    :type job: :class:`cibyl.models.ci.base.job.Job`
+    :return: True if you should get the plugins' section for this job,
+        False if not.
+    :rtype: bool
+    """
+    return job.plugin_attributes
+
+
 def get_plugin_section(printer, job):
     """Gets the text describing the plugins that affect a job.
 
