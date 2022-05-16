@@ -31,7 +31,7 @@ def get_status_section(palette, build):
         lambda: palette.underline(build.status.value)
     )()
 
-    text.add(palette.blue('Status: '), 1)
+    text.add(palette.blue('Status: '), 0)
     text[-1].append(status)
 
     return text.build()
@@ -40,7 +40,7 @@ def get_status_section(palette, build):
 def get_duration_section(palette, build):
     text = IndentedTextBuilder()
 
-    text.add(palette.blue('Duration: '), 1)
+    text.add(palette.blue('Duration: '), 0)
     text[-1].append(f'{as_minutes(build.duration.value):.4f}min')
 
     return text.build()

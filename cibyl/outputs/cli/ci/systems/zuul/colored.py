@@ -124,7 +124,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
         if self.query > QueryType.PROJECTS:
             for pipeline in project.pipelines.values():
-                result.add(self.print_pipeline(pipeline), 1)
+                result.add(self.print_pipeline(project, pipeline), 1)
 
             result.add(
                 self._palette.blue("Total pipelines found in project '"), 1
@@ -136,7 +136,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
         return result.build()
 
-    def print_pipeline(self, pipeline):
+    def print_pipeline(self, project, pipeline):
         """
         :param pipeline: The pipeline.
         :type pipeline: :class:`cibyl.models.ci.zuul.pipeline.Pipeline`
@@ -150,7 +150,9 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
         if self.query > QueryType.PIPELINES:
             for job in pipeline.jobs.values():
-                result.add(self.print_job(job), 1)
+                result.add(
+                    self._print_job_for_pipeline(project, pipeline, job), 1
+                )
 
             result.add(
                 self._palette.blue('Total jobs found in pipeline '), 1
@@ -251,5 +253,30 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         if build.tests.value:
             for test in build.tests.values():
                 printer.add(self.print_test(test), 1)
+
+        return printer.build()
+
+    def _print_job_for_pipeline(self, project, pipeline, job):
+        def print_build():
+            printer.add(self._palette.blue('Build: '), 1)
+            printer[-1].append(build.build_id.value)
+
+            if build.status.value:
+                printer.add(get_status_section(self.palette, build), 2)
+
+        printer = IndentedTextBuilder()
+
+        printer.add(self._palette.blue('Job: '), 0)
+        printer[-1].append(job.name.value)
+
+        if job.builds.value:
+            for build in job.builds.values():
+                if build.project.value != project.name.value:
+                    continue
+
+                if build.pipeline.value != pipeline.name.value:
+                    continue
+
+                print_build()
 
         return printer.build()
