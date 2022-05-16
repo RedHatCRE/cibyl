@@ -15,7 +15,6 @@
 """
 from enum import Enum
 
-from cibyl.exceptions import CibylNotImplementedException
 from cibyl.models.ci.base.system import JobsSystem
 from cibyl.models.ci.zuul.system import ZuulSystem
 
@@ -52,4 +51,4 @@ class SystemFactory:
             return ZuulSystem(name=name, system_type=system_type, **kwargs)
 
         msg = f"Unknown system type '{system_type}'"
-        raise CibylNotImplementedException(msg)
+        raise NotImplementedError(msg)

@@ -15,7 +15,6 @@
 """
 from abc import ABC, abstractmethod
 
-from cibyl.exceptions import CibylNotImplementedException
 from cibyl.outputs.cli.printer import Printer
 
 
@@ -31,4 +30,4 @@ class CISystemPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise CibylNotImplementedException
+        raise NotImplementedError

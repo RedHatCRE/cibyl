@@ -14,7 +14,6 @@
 #    under the License.
 """
 from cibyl.cli.output import OutputStyle
-from cibyl.exceptions import CibylNotImplementedException
 from cibyl.outputs.cli.ci.colored import CIColoredPrinter
 from cibyl.utils.colors import ClearText
 
@@ -35,7 +34,7 @@ class CIPrinterFactory:
         :type verbosity: int
         :return: The printer.
         :rtype: :class:`cibyl.models.ci.printers.CIPrinter`
-        :raise CibylNotImplementedException: If there is no printer for the
+        :raise NotImplementedError: If there is no printer for the
         desired style.
         """
         if style == OutputStyle.TEXT:
@@ -51,4 +50,4 @@ class CIPrinterFactory:
             )
         else:
             msg = f'Unknown output style: {style}'
-            raise CibylNotImplementedException(msg)
+            raise NotImplementedError(msg)

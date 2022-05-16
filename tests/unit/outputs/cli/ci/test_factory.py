@@ -17,7 +17,6 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.cli.output import OutputStyle
-from cibyl.exceptions import CibylNotImplementedException
 from cibyl.outputs.cli.ci.factory import CIPrinterFactory
 from cibyl.utils.colors import ClearText, DefaultPalette
 
@@ -29,7 +28,7 @@ class TestCIPrinterFactory(TestCase):
 
         factory = CIPrinterFactory()
 
-        with self.assertRaises(CibylNotImplementedException):
+        with self.assertRaises(NotImplementedError):
             factory.from_style(-1, query, verbosity)
 
     def test_returns_clear_text_printer(self):
