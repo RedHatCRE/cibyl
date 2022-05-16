@@ -609,11 +609,15 @@ class TestHandleQuery(TestCase):
         build1 = DictMock()
         build1['uuid'] = 'build1'
         build1['result'] = 'SUCCESS'
+        build1['project'] = 'project'
+        build1['pipeline'] = 'pipeline'
         build1['duration'] = 1000
 
         build2 = DictMock()
         build2['uuid'] = 'build2'
         build2['result'] = 'SUCCESS'
+        build2['project'] = 'project'
+        build2['pipeline'] = 'pipeline'
         build2['duration'] = 1000
 
         job = Mock()
@@ -718,16 +722,22 @@ class TestHandleQuery(TestCase):
         build1 = DictMock()
         build1['uuid'] = 'build1'
         build1['result'] = 'SUCCESS'
+        build1['project'] = 'project'
+        build1['pipeline'] = 'pipeline'
         build1['duration'] = 1000
 
         build2 = DictMock()
         build2['uuid'] = 'build2'
         build2['result'] = 'SUCCESS'
+        build2['project'] = 'project'
+        build2['pipeline'] = 'pipeline'
         build2['duration'] = 1000
 
         build3 = DictMock()
         build3['uuid'] = 'build3'
         build3['result'] = 'SUCCESS'
+        build3['project'] = 'project'
+        build3['pipeline'] = 'pipeline'
         build3['duration'] = 1000
 
         job = Mock()
@@ -786,16 +796,22 @@ class TestHandleQuery(TestCase):
         build1 = DictMock()
         build1['uuid'] = 'build1'
         build1['result'] = 'FAILURE'
+        build1['project'] = 'project'
+        build1['pipeline'] = 'pipeline'
         build1['duration'] = 1000
 
         build2 = DictMock()
         build2['uuid'] = 'build2'
         build2['result'] = 'SUCCESS'
+        build2['project'] = 'project'
+        build2['pipeline'] = 'pipeline'
         build2['duration'] = 1000
 
         build3 = DictMock()
         build3['uuid'] = 'build3'
         build3['result'] = 'FAILURE'
+        build3['project'] = 'project'
+        build3['pipeline'] = 'pipeline'
         build3['duration'] = 1000
 
         job = Mock()
@@ -857,16 +873,22 @@ class TestHandleQuery(TestCase):
         build1 = DictMock()
         build1['uuid'] = 'build1'
         build1['result'] = 'FAILURE'
+        build1['project'] = 'project'
+        build1['pipeline'] = 'pipeline'
         build1['duration'] = 1000
 
         build2 = DictMock()
         build2['uuid'] = 'build2'
         build2['result'] = 'SUCCESS'
+        build2['project'] = 'project'
+        build2['pipeline'] = 'pipeline'
         build2['duration'] = 1000
 
         build3 = DictMock()
         build3['uuid'] = 'build3'
         build3['result'] = 'FAILURE'
+        build3['project'] = 'project'
+        build3['pipeline'] = 'pipeline'
         build3['duration'] = 1000
 
         job = Mock()
