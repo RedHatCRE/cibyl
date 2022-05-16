@@ -20,21 +20,10 @@ from cibyl.utils.colors import Colors
 
 class CibylException(Exception):
     """Parent class for all cibyl exceptions for easier control of the
-    exceptions' representation."""
+    exceptions' representation.
+    """
+
     def __init__(self, message=''):
-        """Constructor."""
-        super().__init__(*[message])
-
-    @staticmethod
-    def setup_quiet_exceptions():
-        """Sets up quiet exceptions, without tracebacks, if they are
-        of the type CibylException
+        """Constructor.
         """
-
-        def quiet_hook(kind, message, traceback):
-            if CibylException in kind.__bases__:
-                print(Colors.red(f'{message}'))
-            else:
-                sys.__excepthook__(kind, message, traceback)
-
-        sys.excepthook = quiet_hook
+        self.message = message

@@ -23,6 +23,7 @@ from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.orchestrator import Orchestrator
 from cibyl.plugins import extend_models
+from cibyl.utils.colors import Colors
 from cibyl.utils.logger import configure_logging
 
 LOG = logging.getLogger(__name__)
@@ -63,9 +64,8 @@ def raw_parsing(arguments):
         elif item in ('-f', '--output-format'):
             args["output_style"] = arguments[i + 2]
 
-    if not args['debug']:
-        CibylException.setup_quiet_exceptions()
     setup_output_format(args)
+
     return args
 
 
@@ -123,12 +123,18 @@ def run_cibyl():
 
 def main():
     """CLI main entry."""
+    debug = False
+
+    if '--debug' in sys.argv:
+        debug = True
+
     try:
         run_cibyl()
     except CibylException as ex:
-        raise ex
-    except Exception as ex:
-        raise CibylException from ex
+        if debug:
+            raise ex
+
+        print(Colors.red(ex.message))
 
 
 if __name__ == "__main__":

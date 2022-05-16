@@ -35,7 +35,7 @@ class ConfigurationNotFound(CibylException):
 
     def __init__(self, paths):
         if paths:
-            paths = f" at: {paths}"
+            paths = f" at: '{paths}'"
         else:
             paths = ""
         self.message = f"""Could not find configuration file{paths}.
