@@ -79,7 +79,8 @@ def setup_output_format(args):
         raise InvalidArgument(msg) from None
 
 
-def run_cibyl():
+def main():
+    """CLI main entry."""
     # We parse it from sys.argv instead of argparse parser because we want
     # to run the app parser only once, after we update it with the loaded
     # arguments from the CI models based on the loaded configuration file
@@ -127,11 +128,6 @@ def run_cibyl():
             raise ex
 
         print(Colors.red(ex.message))
-
-
-def main():
-    """CLI main entry."""
-    run_cibyl()
 
 
 if __name__ == "__main__":
