@@ -233,6 +233,14 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         printer.add(self._palette.blue('Build: '), 0)
         printer[0].append(build.build_id.value)
 
+        if build.project.value:
+            printer.add(self._palette.blue('Project: '), 1)
+            printer[-1].append(build.project.value)
+
+        if build.pipeline.value:
+            printer.add(self._palette.blue('Pipeline: '), 1)
+            printer[-1].append(build.pipeline.value)
+
         if build.status.value:
             printer.add(get_status_section(self.palette, build), 1)
 
