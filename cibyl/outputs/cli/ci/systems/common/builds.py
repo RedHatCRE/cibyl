@@ -41,6 +41,6 @@ def get_duration_section(palette, build):
     text = IndentedTextBuilder()
 
     text.add(palette.blue('Duration: '), 1)
-    text[-1].append(f'{as_minutes(build.duration.value):.2f}m')
+    text[-1].append(f'{as_minutes(build.duration.value):.4f}min')
 
     return text.build()
