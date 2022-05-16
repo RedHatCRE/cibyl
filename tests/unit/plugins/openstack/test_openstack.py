@@ -17,9 +17,11 @@ from unittest import TestCase
 
 from cibyl.models.ci.base.environment import Environment
 from cibyl.models.ci.base.job import Job
-from cibyl.outputs.cli.ci.base.raw import CIRawPrinter
+from cibyl.outputs.cli.ci.systems.base.colored import \
+    ColoredBaseSystemPrinter as JobPrinter
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string
+from cibyl.utils.colors import ClearText
 from tests.utils import OpenstackPluginWithJobSystem
 
 
@@ -61,7 +63,7 @@ class TestJobWithPlugin(OpenstackPluginWithJobSystem):
         """Test string representation of Job with deployment."""
         self.job.add_deployment(self.deployment)
 
-        printer = CIRawPrinter(verbosity=2)
+        printer = JobPrinter(palette=ClearText(), verbosity=2)
         result = printer.print_job(self.job)
 
         self.assertIn("Release: ", result)
@@ -69,7 +71,7 @@ class TestJobWithPlugin(OpenstackPluginWithJobSystem):
 
     def test_str_no_deployment(self):
         """Test string representation of Job without deployment."""
-        printer = CIRawPrinter(verbosity=2)
+        printer = JobPrinter(palette=ClearText(), verbosity=2)
         result = printer.print_job(self.job)
 
         self.assertNotIn("Release: ", result)
@@ -78,6 +80,7 @@ class TestJobWithPlugin(OpenstackPluginWithJobSystem):
 
 class TestOpenstackPluginUtils(TestCase):
     """Test openstack plugin utils module."""
+
     def test_translate_topology_string(self):
         """Test normal usage of translate_topology_string function."""
         input_str = "1comp_2cont_2ceph_3freeipa_5net_1novactl"

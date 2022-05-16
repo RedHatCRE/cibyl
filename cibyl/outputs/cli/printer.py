@@ -16,13 +16,16 @@
 from abc import ABC
 
 from cibyl.cli.query import QueryType
+from cibyl.utils.colors import DefaultPalette
 
 
 class Printer(ABC):
     """Base class for all implementations of an output style.
     """
 
-    def __init__(self, query=QueryType.NONE, verbosity=0):
+    def __init__(self,
+                 query=QueryType.NONE,
+                 verbosity=0):
         """Constructor.
 
         :param query: Type of query requested by the user. Determines how
@@ -50,3 +53,31 @@ class Printer(ABC):
         :rtype: int
         """
         return self._verbosity
+
+
+class ColoredPrinter(Printer):
+    """Base class for output styles based around coloring.
+    """
+
+    def __init__(self,
+                 query=QueryType.NONE,
+                 verbosity=0,
+                 palette=DefaultPalette()):
+        """Constructor.
+
+        See parents for more information.
+
+        :param palette: Palette of colors to be used.
+        :type palette: :class:`cibyl.utils.colors.ColorPalette`
+        """
+        super().__init__(query, verbosity)
+
+        self._palette = palette
+
+    @property
+    def palette(self):
+        """
+        :return: The palette currently in use.
+        :rtype: :class:`cibyl.utils.colors.ColorPalette`
+        """
+        return self._palette

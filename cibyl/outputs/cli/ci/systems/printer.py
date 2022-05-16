@@ -13,19 +13,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.cli.query import QueryType
-from cibyl.outputs.cli.ci.base.colored import CIColoredPrinter
-from cibyl.utils.colors import ClearText
+from abc import ABC, abstractmethod
+
+from cibyl.exceptions import CibylNotImplementedException
+from cibyl.outputs.cli.printer import Printer
 
 
-class CIRawPrinter(CIColoredPrinter):
-    """Same as :class:`CIColoredPrinter`, but this one removes all color
-    decoration, leaving only the raw text.
+class CISystemPrinter(Printer, ABC):
+    """Base class for all printers for a CI system.
     """
 
-    def __init__(self, query=QueryType.NONE, verbosity=0):
-        """Constructor.
-
-        See parents for more information.
+    @abstractmethod
+    def print_system(self, system):
         """
-        super().__init__(query, verbosity, ClearText())
+        :param system: The system.
+        :type system: :class:`cibyl.models.ci.base.system.System`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
+        raise CibylNotImplementedException
