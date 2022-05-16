@@ -49,11 +49,12 @@ class Build(Model):
     }
 
     def __init__(self, build_id: str, status: str = None,
-                 duration: int = None, tests: Dict[str, Test] = None):
+                 duration: int = None, tests: Dict[str, Test] = None,
+                 **kwargs):
         if status is not None:
             status = status.upper()
         super().__init__({'build_id': build_id, 'status': status,
-                          'duration': duration, 'tests': tests})
+                          'duration': duration, 'tests': tests, **kwargs})
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
