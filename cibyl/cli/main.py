@@ -79,9 +79,7 @@ def setup_output_format(args):
         raise InvalidArgument(msg) from None
 
 
-def main():
-    """CLI main entry."""
-
+def run_cibyl():
     # We parse it from sys.argv instead of argparse parser because we want
     # to run the app parser only once, after we update it with the loaded
     # arguments from the CI models based on the loaded configuration file
@@ -89,18 +87,14 @@ def main():
     configure_logging(arguments.get('log_mode'),
                       arguments.get('log_file'),
                       arguments.get('logging'))
-
     orchestrator = Orchestrator()
-
     try:
         orchestrator.load_configuration(arguments.get('config_file_path'))
     except ConfigurationNotFound as ex:
         # Check if the error is to be ignored
         if not arguments.get('help', False):
             raise ex
-
     orchestrator.create_ci_environments()
-
     plugins = arguments.get('plugins')
     if not plugins:
         # if user has not specified any plugins, read them from configuration
@@ -110,16 +104,13 @@ def main():
     if plugins:
         for plugin in plugins:
             extend_models(plugin)
-
     # Add arguments from CI & product models to the parser of the app
     for env in orchestrator.environments:
         orchestrator.extend_parser(attributes=env.API)
-
     # We can parse user's arguments only after we have loaded the
     # configuration and extended based on it the parser with arguments
     # from the CI models
     orchestrator.parser.parse()
-
     orchestrator.validate_environments()
     orchestrator.setup_sources()
     orchestrator.run_query()
@@ -128,6 +119,16 @@ def main():
         style=arguments["output_style"],
         query=get_query_type(**orchestrator.parser.ci_args),
         verbosity=orchestrator.parser.app_args.get('verbosity'))
+
+
+def main():
+    """CLI main entry."""
+    try:
+        run_cibyl()
+    except CibylException as ex:
+        raise ex
+    except Exception as ex:
+        raise CibylException from ex
 
 
 if __name__ == "__main__":
