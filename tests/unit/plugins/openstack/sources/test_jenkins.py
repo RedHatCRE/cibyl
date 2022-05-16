@@ -93,8 +93,6 @@ def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
     return yaml.dump({"install": overcloud})
 
 
-
-
 class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
     """Tests for :class:`Jenkins` with openstack plugin."""
 
@@ -807,11 +805,11 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", dvr_status[0], False, "",
-                                   ml2_driver="ovn"),
+                                   ml2_driver="ovs"),
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", dvr_status[1],
-                                   False, "", ml2_driver="ovs"),
+                                   False, "", ml2_driver="ovn"),
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", dvr_status[2],
@@ -828,7 +826,7 @@ tripleo_ironic_conductor.service loaded    active     running
             "nodes": Argument("nodes", str, "", value=[]),
             "ip_version": Argument("ip_version", str, "", value=[]),
             "dvr": Argument("dvr", str, "", value=[]),
-            "ml2_driver": Argument("ml2_driver", str, "", value=["ovn"]),
+            "ml2_driver": Argument("ml2_driver", str, "", value=["ovs"]),
             "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
             "network_backend": Argument("network_backend", str, "", value=[]),
             "storage_backend": Argument("storage_backend", str, "", value=[])
@@ -845,7 +843,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.ip_version.value, ip_versions[0])
         self.assertEqual(deployment.topology.value, topologies[0])
         self.assertEqual(deployment.dvr.value, dvr_status[0])
-        self.assertEqual(deployment.ml2_driver.value, "ovn")
+        self.assertEqual(deployment.ml2_driver.value, "ovs")
 
     def test_get_deployment_filter_tls(self):
         """Test that get_deployment filters by tls_everywhere."""

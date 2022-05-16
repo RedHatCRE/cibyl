@@ -393,9 +393,7 @@ accurate results", len(jobs_found))
                 tls = overcloud.get("tls", {})
                 job["tls_everywhere"] = str(tls.get("everywhere", ""))
             if "ml2_driver" in kwargs or spec:
-                job["ml2_driver"] = ""
-                if network.get("ovn"):
-                    job["ml2_driver"] = "ovn"
+                job["ml2_driver"] = "ovn"
                 if network.get("ovs"):
                     job["ml2_driver"] = "ovs"
 
