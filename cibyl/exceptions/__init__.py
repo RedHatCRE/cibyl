@@ -38,7 +38,3 @@ class CibylException(Exception):
                 sys.__excepthook__(kind, message, traceback)
 
         sys.excepthook = quiet_hook
-
-
-class CibylNotImplementedException(CibylException, NotImplementedError):
-    """Custom NotImplementedError that inherits the quiet_extensions setup."""

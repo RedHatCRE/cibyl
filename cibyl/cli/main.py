@@ -18,7 +18,7 @@ import sys
 
 from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import get_query_type
-from cibyl.exceptions import CibylException, CibylNotImplementedException
+from cibyl.exceptions import CibylException
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.orchestrator import Orchestrator
@@ -74,7 +74,7 @@ def setup_output_format(args):
     user_output_format = args["output_style"]
     try:
         args["output_style"] = OutputStyle.from_key(user_output_format)
-    except CibylNotImplementedException:
+    except NotImplementedError:
         msg = f'Unknown output format: {user_output_format}'
         raise InvalidArgument(msg) from None
 

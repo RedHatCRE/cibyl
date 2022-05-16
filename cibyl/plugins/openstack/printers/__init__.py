@@ -15,7 +15,6 @@
 """
 from abc import ABC, abstractmethod
 
-from cibyl.exceptions import CibylNotImplementedException
 from cibyl.outputs.cli.printer import Printer
 
 
@@ -30,7 +29,7 @@ class OSPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise CibylNotImplementedException
+        raise NotImplementedError
 
     @abstractmethod
     def print_deployment(self, deployment):
@@ -39,7 +38,7 @@ class OSPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise CibylNotImplementedException
+        raise NotImplementedError
 
     @abstractmethod
     def print_node(self, node):
@@ -48,7 +47,7 @@ class OSPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise CibylNotImplementedException
+        raise NotImplementedError
 
     @abstractmethod
     def print_package(self, package):
@@ -57,7 +56,7 @@ class OSPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise CibylNotImplementedException
+        raise NotImplementedError
 
     @abstractmethod
     def print_service(self, service):
@@ -66,4 +65,4 @@ class OSPrinter(Printer, ABC):
         :return: Textual representation of the provided model.
         :rtype: str
         """
-        raise CibylNotImplementedException
+        raise NotImplementedError

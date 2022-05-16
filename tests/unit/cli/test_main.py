@@ -19,7 +19,6 @@ from unittest.mock import Mock
 import cibyl
 from cibyl.cli.main import raw_parsing
 from cibyl.cli.output import OutputStyle
-from cibyl.exceptions import CibylNotImplementedException
 from cibyl.exceptions.cli import InvalidArgument
 
 
@@ -67,7 +66,7 @@ class TestRawParsing(TestCase):
         """
 
         def raise_error(_):
-            raise CibylNotImplementedException
+            raise NotImplementedError
 
         output = 'invalid'
 
