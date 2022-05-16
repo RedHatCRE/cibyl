@@ -32,7 +32,8 @@ class TestConfig(TestCase):
         with NamedTemporaryFile() as config_file:
             sys.argv = [
                 '',
-                '--config', config_file.name
+                '--config', config_file.name,
+                '--debug'
             ]
 
             self.assertRaises(EmptyConfiguration, main)

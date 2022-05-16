@@ -13,9 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import sys
-
-from cibyl.utils.colors import Colors
 
 
 class CibylException(Exception):
@@ -25,5 +22,8 @@ class CibylException(Exception):
 
     def __init__(self, message=''):
         """Constructor.
+
+        :param message: The reason for this error.
+        :type message: str
         """
         self.message = message
