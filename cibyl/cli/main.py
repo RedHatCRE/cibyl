@@ -84,57 +84,54 @@ def run_cibyl():
     # to run the app parser only once, after we update it with the loaded
     # arguments from the CI models based on the loaded configuration file
     arguments = raw_parsing(sys.argv)
-    configure_logging(arguments.get('log_mode'),
-                      arguments.get('log_file'),
-                      arguments.get('logging'))
-    orchestrator = Orchestrator()
+
     try:
-        orchestrator.load_configuration(arguments.get('config_file_path'))
-    except ConfigurationNotFound as ex:
-        # Check if the error is to be ignored
-        if not arguments.get('help', False):
+        configure_logging(arguments.get('log_mode'),
+                          arguments.get('log_file'),
+                          arguments.get('logging'))
+        orchestrator = Orchestrator()
+        try:
+            orchestrator.load_configuration(arguments.get('config_file_path'))
+        except ConfigurationNotFound as ex:
+            # Check if the error is to be ignored
+            if not arguments.get('help', False):
+                raise ex
+        orchestrator.create_ci_environments()
+        plugins = arguments.get('plugins')
+        if not plugins:
+            # if user has not specified any plugins,
+            # read them from configuration
+            plugins = orchestrator.config.data.get('plugins', [])
+        # add plugins after the environments are created, since the environment
+        # might modify some of the models APIs
+        if plugins:
+            for plugin in plugins:
+                extend_models(plugin)
+        # Add arguments from CI & product models to the parser of the app
+        for env in orchestrator.environments:
+            orchestrator.extend_parser(attributes=env.API)
+        # We can parse user's arguments only after we have loaded the
+        # configuration and extended based on it the parser with arguments
+        # from the CI models
+        orchestrator.parser.parse()
+        orchestrator.validate_environments()
+        orchestrator.setup_sources()
+        orchestrator.run_query()
+        orchestrator.publisher.publish(
+            environments=orchestrator.environments,
+            style=arguments["output_style"],
+            query=get_query_type(**orchestrator.parser.ci_args),
+            verbosity=orchestrator.parser.app_args.get('verbosity'))
+    except CibylException as ex:
+        if arguments["debug"]:
             raise ex
-    orchestrator.create_ci_environments()
-    plugins = arguments.get('plugins')
-    if not plugins:
-        # if user has not specified any plugins, read them from configuration
-        plugins = orchestrator.config.data.get('plugins', [])
-    # add plugins after the environments are created, since the environment
-    # might modify some of the models APIs
-    if plugins:
-        for plugin in plugins:
-            extend_models(plugin)
-    # Add arguments from CI & product models to the parser of the app
-    for env in orchestrator.environments:
-        orchestrator.extend_parser(attributes=env.API)
-    # We can parse user's arguments only after we have loaded the
-    # configuration and extended based on it the parser with arguments
-    # from the CI models
-    orchestrator.parser.parse()
-    orchestrator.validate_environments()
-    orchestrator.setup_sources()
-    orchestrator.run_query()
-    orchestrator.publisher.publish(
-        environments=orchestrator.environments,
-        style=arguments["output_style"],
-        query=get_query_type(**orchestrator.parser.ci_args),
-        verbosity=orchestrator.parser.app_args.get('verbosity'))
+
+        print(Colors.red(ex.message))
 
 
 def main():
     """CLI main entry."""
-    debug = False
-
-    if '--debug' in sys.argv:
-        debug = True
-
-    try:
-        run_cibyl()
-    except CibylException as ex:
-        if debug:
-            raise ex
-
-        print(Colors.red(ex.message))
+    run_cibyl()
 
 
 if __name__ == "__main__":
