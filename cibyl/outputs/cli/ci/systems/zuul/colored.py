@@ -64,10 +64,11 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         """
 
         def print_projects():
-            result.add(self._palette.blue('Projects: '), 1)
+            if tenant.projects.value:
+                result.add(self._palette.blue('Projects: '), 1)
 
-            for project in tenant.projects.values():
-                result.add(self.print_project(project), 2)
+                for project in tenant.projects.values():
+                    result.add(self.print_project(project), 2)
 
             result.add(
                 self._palette.blue("Total projects found in tenant '"), 1
@@ -78,10 +79,11 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result[-1].append(len(tenant.projects))
 
         def print_jobs():
-            result.add(self._palette.blue('Jobs: '), 1)
+            if tenant.jobs.value:
+                result.add(self._palette.blue('Jobs: '), 1)
 
-            for job in tenant.jobs.values():
-                result.add(self.print_job(job), 2)
+                for job in tenant.jobs.values():
+                    result.add(self.print_job(job), 2)
 
             result.add(
                 self._palette.blue("Total jobs found in tenant '"), 1
