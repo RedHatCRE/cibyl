@@ -30,16 +30,16 @@ class Build(BaseBuild):
 
         def __init__(self, project, pipeline, uuid, result, duration):
             """Constructor.
-            
+
             :param project: The project the build belongs to.
-            :type project: str 
+            :type project: str
             :param pipeline: Pipeline that triggered the build.
             :type pipeline: str
             :param uuid: ID of the build.
             :type uuid: str
             :param result: Result of the build.
             :type result: str
-            :param duration: Time, in seconds, that the build took to complete.
+            :param duration: Time, in ms, that the build took to complete.
             :type duration: int
             """
             self.project = project

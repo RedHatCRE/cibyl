@@ -18,6 +18,8 @@ import logging
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
+from cibyl.outputs.cli.ci.systems.common.builds import (get_duration_section,
+                                                        get_status_section)
 from cibyl.outputs.cli.ci.systems.common.jobs import (get_plugin_section,
                                                       has_plugin_section)
 from cibyl.outputs.cli.ci.systems.printer import CISystemPrinter
@@ -102,27 +104,11 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
         printer[0].append(build.build_id.value)
 
         if build.status.value:
-            status_x_color_map = {
-                'SUCCESS': lambda: self._palette.green(build.status.value),
-                'FAILURE': lambda: self._palette.red(build.status.value),
-                'UNSTABLE': lambda: self._palette.yellow(
-                    build.status.value)
-            }
-
-            status = status_x_color_map.get(
-                build.status.value,
-                lambda: self._palette.underline(build.status.value)
-            )()
-
-            printer.add(self._palette.blue('Status: '), 1)
-            printer[-1].append(status)
+            printer.add(get_status_section(self.palette, build), 1)
 
         if self.verbosity > 0:
             if build.duration.value:
-                duration = as_minutes(build.duration.value)
-
-                printer.add(self._palette.blue('Duration: '), 1)
-                printer[-1].append(f'{duration:.2f}m')
+                printer.add(get_duration_section(self.palette, build), 1)
 
         if build.tests.value:
             for test in build.tests.values():

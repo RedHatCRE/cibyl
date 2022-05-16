@@ -17,6 +17,8 @@ from overrides import overrides
 
 from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.systems.base.colored import ColoredBaseSystemPrinter
+from cibyl.outputs.cli.ci.systems.common.builds import (get_duration_section,
+                                                        get_status_section)
 from cibyl.outputs.cli.ci.systems.common.jobs import (get_plugin_section,
                                                       has_plugin_section)
 from cibyl.utils.strings import IndentedTextBuilder
@@ -219,5 +221,25 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         for key, value in variant.variables.items():
             printer.add(self._palette.blue(f'{key}: '), 2)
             printer[-1].append(value)
+
+        return printer.build()
+
+    @overrides
+    def print_build(self, build):
+        printer = IndentedTextBuilder()
+
+        printer.add(self._palette.blue('Build: '), 0)
+        printer[0].append(build.build_id.value)
+
+        if build.status.value:
+            printer.add(get_status_section(self.palette, build), 1)
+
+        if self.verbosity > 0:
+            if build.duration.value:
+                printer.add(get_duration_section(self.palette, build), 1)
+
+        if build.tests.value:
+            for test in build.tests.values():
+                printer.add(self.print_test(test), 1)
 
         return printer.build()
