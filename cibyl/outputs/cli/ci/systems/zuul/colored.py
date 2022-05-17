@@ -16,15 +16,16 @@
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
-from cibyl.outputs.cli.ci.systems.base.colored import ColoredBaseSystemPrinter
 from cibyl.outputs.cli.ci.systems.common.builds import (get_duration_section,
                                                         get_status_section)
 from cibyl.outputs.cli.ci.systems.common.jobs import (get_plugin_section,
                                                       has_plugin_section)
+from cibyl.outputs.cli.ci.systems.printer import CISystemPrinter
+from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 
 
-class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
+class ColoredZuulSystemPrinter(ColoredPrinter, CISystemPrinter):
     @overrides
     def print_system(self, system):
         """
@@ -164,7 +165,6 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
         return result.build()
 
-    @overrides
     def print_job(self, job):
         """
         :param job: The job.
@@ -228,7 +228,6 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
         return printer.build()
 
-    @overrides
     def print_build(self, build):
         printer = IndentedTextBuilder()
 
@@ -249,10 +248,6 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         if self.verbosity > 0:
             if build.duration.value:
                 printer.add(get_duration_section(self.palette, build), 1)
-
-        if build.tests.value:
-            for test in build.tests.values():
-                printer.add(self.print_test(test), 1)
 
         return printer.build()
 

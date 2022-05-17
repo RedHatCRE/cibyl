@@ -23,7 +23,7 @@ from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 
 
-class CIColoredPrinter(CIPrinter, ColoredPrinter):
+class CIColoredPrinter(ColoredPrinter, CIPrinter):
     """Prints a whole CI model hierarchy decorating the output with colors
     for easier read.
     """
