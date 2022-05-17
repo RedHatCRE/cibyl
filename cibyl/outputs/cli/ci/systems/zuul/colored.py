@@ -13,40 +13,47 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
+
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
+from cibyl.outputs.cli.ci.systems.base.colored import ColoredBaseSystemPrinter
 from cibyl.outputs.cli.ci.systems.common.builds import (get_duration_section,
                                                         get_status_section)
 from cibyl.outputs.cli.ci.systems.common.jobs import (get_plugin_section,
                                                       has_plugin_section)
-from cibyl.outputs.cli.ci.systems.printer import CISystemPrinter
-from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 
+LOG = logging.getLogger(__name__)
 
-class ColoredZuulSystemPrinter(ColoredPrinter, CISystemPrinter):
+
+class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
     @overrides
     def print_system(self, system):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('System: '), 0)
-        printer[-1].append(system.name.value)
+        # Begin with the text common to all systems
+        printer.add(super().print_system(system), 0)
 
-        if self.verbosity > 0:
-            printer[-1].append(f' (type: {system.system_type.value})')
+        # Continue with text specific for this system type
+        if self.query >= QueryType.TENANTS:
+            if hasattr(system, 'tenants'):
+                for tenant in system.tenants.values():
+                    printer.add(self.print_tenant(tenant), 1)
 
-        if self.query != QueryType.NONE:
-            for tenant in system.tenants.values():
-                printer.add(self.print_tenant(tenant), 1)
+                if system.is_queried():
+                    header = 'Total tenants found in query: '
 
-            if system.is_queried():
-                header = 'Total tenants found in query: '
-
-                printer.add(self._palette.blue(header), 1)
-                printer[-1].append(len(system.tenants))
+                    printer.add(self._palette.blue(header), 1)
+                    printer[-1].append(len(system.tenants))
+                else:
+                    printer.add(self._palette.blue('No query performed.'), 1)
             else:
-                printer.add(self._palette.blue('No query performed'), 1)
+                LOG.warning(
+                    'Requested tenant printing on a non-zuul interface. '
+                    'Ignoring...'
+                )
 
         return printer.build()
 
