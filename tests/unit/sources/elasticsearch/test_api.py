@@ -150,9 +150,7 @@ class TestElasticsearchOSP(TestCase):
         """
         mock_query_hits.return_value = self.job_hits
 
-        jobs_argument = Mock()
-        jobs_argument.value = 'test4'
-        jobs = self.es_api.get_jobs(jobs_scope=jobs_argument)
+        jobs = self.es_api.get_jobs(jobs_scope='test4')
 
         self.assertEqual(len(jobs), 1)
         self.assertTrue('test4' in jobs)

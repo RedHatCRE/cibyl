@@ -18,7 +18,6 @@ from copy import deepcopy
 from typing import Dict, List, Type
 
 from cibyl.cli.argument import Argument
-from cibyl.exceptions import CibylNotImplementedException
 from cibyl.exceptions.model import NonSupportedModelType
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.base.job import Job
@@ -71,8 +70,7 @@ class System(Model):
                  system_type: str,
                  top_level_model: Type[Model],
                  sources: List = None,
-                 enabled: bool = True,
-                 **kwargs):
+                 enabled: bool = True):
         # Let IDEs know this class's attributes
         self.name = None
         self.system_type = None
@@ -87,8 +85,7 @@ class System(Model):
                 'system_type': system_type,
                 'sources': sources,
                 'enabled': enabled,
-                'queried': False,
-                **kwargs
+                'queried': False
             }
         )
 
@@ -100,7 +97,7 @@ class System(Model):
         depending on the system type so it is left empty and will be overloaded
         by each type.
         """
-        raise CibylNotImplementedException
+        raise NotImplementedError
 
     def add_source(self, source):
         """Add a source to the CI system.
@@ -167,17 +164,14 @@ class JobsSystem(System):
     """Model a system with :class:`Job` as its top-level model.
     """
     API = deepcopy(System.API)
-    API.update({'jobs_scope': {'attr_type': str,
-                               'arguments': []},
-                'jobs': {
-                    'attr_type': Job,
-                    'attribute_value_class': AttributeDictValue,
-                    'arguments': [
-                        Argument(name='--jobs', arg_type=str,
-                                 nargs='*',
-                                 description="System jobs",
-                                 func='get_jobs')]
-    }})
+    API.update({
+        'jobs': {
+            'attr_type': Job,
+            'attribute_value_class': AttributeDictValue,
+            'arguments': [Argument(name='--jobs', arg_type=str,
+                                   nargs='*',
+                                   description="System jobs",
+                                   func='get_jobs')]}})
 
     def __init__(self,
                  name: str,
@@ -186,9 +180,8 @@ class JobsSystem(System):
                  enabled: bool = True,
                  jobs: Dict[str, Job] = None,
                  jobs_scope: str = None):
-        # Let IDEs know this class's attributes
-        self.jobs = None
-        self.jobs_scope = None
+        self.jobs = jobs
+        self.jobs_scope = jobs_scope
 
         # Set up model
         super().__init__(
@@ -197,8 +190,6 @@ class JobsSystem(System):
             top_level_model=Job,
             sources=sources,
             enabled=enabled,
-            jobs_scope=jobs_scope,
-            jobs=jobs
         )
 
     def export_attributes_to_source(self):

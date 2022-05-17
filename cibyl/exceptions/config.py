@@ -35,7 +35,7 @@ class ConfigurationNotFound(CibylException):
 
     def __init__(self, paths):
         if paths:
-            paths = f" at: {paths}"
+            paths = f" at: '{paths}'"
         else:
             paths = ""
         self.message = f"""Could not find configuration file{paths}.
@@ -70,6 +70,16 @@ class NonSupportedSourceKey(CibylException):
 
     def __init__(self, source_type, key):
         self.message = f"""The following key in "{source_type}" source type \
+is not supported: {key}\n\n{CHECK_DOCS_MSG}"""
+
+        super().__init__(self.message)
+
+
+class NonSupportedSystemKey(CibylException):
+    """Configuration section key is not supported."""
+
+    def __init__(self, source_type, key):
+        self.message = f"""The following key in "{source_type}" system type \
 is not supported: {key}\n\n{CHECK_DOCS_MSG}"""
 
         super().__init__(self.message)

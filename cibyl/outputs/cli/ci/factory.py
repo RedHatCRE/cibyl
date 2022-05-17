@@ -14,7 +14,6 @@
 #    under the License.
 """
 from cibyl.cli.output import OutputStyle
-from cibyl.exceptions import CibylNotImplementedException
 from cibyl.outputs.cli.ci.colored import CIColoredPrinter
 from cibyl.utils.colors import ClearText
 
