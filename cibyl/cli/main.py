@@ -22,7 +22,7 @@ from cibyl.exceptions import CibylException
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import ConfigurationNotFound
 from cibyl.orchestrator import Orchestrator
-from cibyl.plugins import extend_models
+from cibyl.plugins import enable_plugins
 from cibyl.utils.colors import Colors
 from cibyl.utils.logger import configure_logging
 
@@ -106,8 +106,7 @@ def main():
         # add plugins after the environments are created, since the environment
         # might modify some of the models APIs
         if plugins:
-            for plugin in plugins:
-                extend_models(plugin)
+            enable_plugins(plugins)
         # Add arguments from CI & product models to the parser of the app
         for env in orchestrator.environments:
             orchestrator.extend_parser(attributes=env.API)

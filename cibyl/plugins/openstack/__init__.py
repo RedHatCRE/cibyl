@@ -34,7 +34,7 @@ class Plugin:
         'deployment': {'add_method': 'add_deployment'}
         }
 
-    def _extend(self):
+    def extend_models(self):
         for job_class in [Job, ZuulJob]:
             job_class.API['deployment'] = {
                 'attr_type': Deployment,
