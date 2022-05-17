@@ -74,7 +74,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                 )
 
                 result[-1].append(self._palette.underline(pipeline.name))
-                result[-1].append(self._palette.blue(': '))
+                result[-1].append(self._palette.blue("': "))
                 result[-1].append(len(pipeline.jobs))
 
             return result.build()
@@ -239,14 +239,14 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                 for project in tenant.projects.values():
                     result.add(create_printer().print_project(project), 2)
 
-            result.add(
-                self._palette.blue(
-                    "Total projects found in query for tenant '"
-                ), 1
-            )
-            result[-1].append(self._palette.underline(tenant.name))
-            result[-1].append(self._palette.blue("': "))
-            result[-1].append(len(tenant.projects))
+                result.add(
+                    self._palette.blue(
+                        "Total projects found in query for tenant '"
+                    ), 1
+                )
+                result[-1].append(self._palette.underline(tenant.name))
+                result[-1].append(self._palette.blue("': "))
+                result[-1].append(len(tenant.projects))
 
         def print_jobs():
             def create_printer():
@@ -261,15 +261,15 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                 for job in tenant.jobs.values():
                     result.add(create_printer().print_job(job), 2)
 
-            result.add(
-                self._palette.blue(
-                    "Total jobs found in query for tenant '"
-                ), 1
-            )
+                result.add(
+                    self._palette.blue(
+                        "Total jobs found in query for tenant '"
+                    ), 1
+                )
 
-            result[-1].append(self._palette.underline(tenant.name))
-            result[-1].append(self._palette.blue("': "))
-            result[-1].append(len(tenant.jobs))
+                result[-1].append(self._palette.underline(tenant.name))
+                result[-1].append(self._palette.blue("': "))
+                result[-1].append(len(tenant.jobs))
 
         result = IndentedTextBuilder()
 
