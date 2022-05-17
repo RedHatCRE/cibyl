@@ -26,12 +26,10 @@ LOG = logging.getLogger(__name__)
 
 def has_plugin_section(job):
     """Checks whether a job is worth having a plugins' section for.
-    If it is not, most likely calling :func:`get_plugin_section` ends in an
-    empty string.
 
     :param job: The job to check.
     :type job: :class:`cibyl.models.ci.base.job.Job`
-    :return: True if you should get the plugins' section for this job,
+    :return: True if the job has enough data to build a plugins' section with,
         False if not.
     :rtype: bool
     """
@@ -41,6 +39,9 @@ def has_plugin_section(job):
 def get_plugin_section(printer, job):
     """Gets the text describing the plugins that affect a job.
 
+    ..  seealso::
+        See :func:`has_plugin_section`.
+
     :param printer: The printer the text will be based on. The output of
         this function will follow the styling of this.
     :type printer: :class:`cibyl.outputs.cli.printer.ColoredPrinter`
@@ -48,7 +49,12 @@ def get_plugin_section(printer, job):
     :type job: :class:`cibyl.models.ci.base.job.Job`
     :return: The description.
     :rtype: str
+    :raises ValueError: If the job does not have enough data to build the
+        section.
     """
+    if not has_plugin_section(job):
+        raise ValueError('Job is missing plugin attributes.')
+
     text = IndentedTextBuilder()
 
     for plugin in job.plugin_attributes:

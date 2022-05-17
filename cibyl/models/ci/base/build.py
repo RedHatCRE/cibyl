@@ -23,7 +23,10 @@ from cibyl.models.model import Model
 
 
 class Build(Model):
-    """General model for a job build """
+    """General model for a job build
+
+    @DynamicAttrs: Contains attributes added on runtime.
+    """
     API = {
         'build_id': {
             'attr_type': str,

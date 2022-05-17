@@ -19,7 +19,10 @@ from cibyl.models.model import Model
 
 
 class Test(Model):
-    """General model for a build test."""
+    """General model for a build test.
+
+    @DynamicAttrs: Contains attributes added on runtime.
+    """
     API = {
         'name': {
             'attr_type': str,
