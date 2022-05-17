@@ -55,7 +55,7 @@ class Printer(ABC):
         return self._verbosity
 
 
-class ColoredPrinter(Printer):
+class ColoredPrinter(Printer, ABC):
     """Base class for output styles based around coloring.
     """
 

@@ -35,8 +35,8 @@ class CIPrinterFactory:
         :type verbosity: int
         :return: The printer.
         :rtype: :class:`cibyl.models.ci.printers.CIPrinter`
-        :raise CibylNotImplementedException: If there is no printer for the
-        desired style.
+        :raise NotImplementedError: If there is no printer for the
+            desired style.
         """
         if style == OutputStyle.TEXT:
             return CIColoredPrinter(
@@ -44,11 +44,11 @@ class CIPrinterFactory:
                 verbosity=verbosity,
                 palette=ClearText()
             )
-        elif style == OutputStyle.COLORIZED:
+
+        if style == OutputStyle.COLORIZED:
             return CIColoredPrinter(
                 query=query,
                 verbosity=verbosity
             )
-        else:
-            msg = f'Unknown output style: {style}'
-            raise CibylNotImplementedException(msg)
+
+        raise NotImplementedError(f'Unknown output style: {style}')

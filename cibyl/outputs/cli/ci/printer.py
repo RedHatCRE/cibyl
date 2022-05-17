@@ -16,11 +16,10 @@
 from abc import ABC, abstractmethod
 
 from cibyl.exceptions import CibylNotImplementedException
-from cibyl.outputs.cli.printer import Printer
 
 
-class CIPrinter(Printer, ABC):
-    """Base class for all printers of a CI model tree.
+class CIPrinter(ABC):
+    """Interface for printers of a CI model hierarchy.
     """
 
     @abstractmethod
