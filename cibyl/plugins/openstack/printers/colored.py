@@ -69,19 +69,22 @@ class OSColoredPrinter(OSPrinter):
             printer[-1].append(deployment.network_backend)
 
         if deployment.ml2_driver.value:
-            is_empty_network = False
-            printer.add(self._palette.blue('ML2 driver: '), 2)
-            printer[-1].append(deployment.ml2_driver)
+            if deployment.ml2_driver.value != "N/A" or self.verbosity > 0:
+                is_empty_network = False
+                printer.add(self._palette.blue('ML2 driver: '), 2)
+                printer[-1].append(deployment.ml2_driver)
 
         if deployment.dvr.value:
-            is_empty_network = False
-            printer.add(self._palette.blue('DVR: '), 2)
-            printer[-1].append(deployment.dvr)
+            if deployment.dvr.value != "N/A" or self.verbosity > 0:
+                is_empty_network = False
+                printer.add(self._palette.blue('DVR: '), 2)
+                printer[-1].append(deployment.dvr)
 
         if deployment.tls_everywhere.value:
-            is_empty_network = False
-            printer.add(self._palette.blue('TLS everywhere: '), 2)
-            printer[-1].append(deployment.tls_everywhere)
+            if deployment.tls_everywhere.value != "N/A" or self.verbosity > 0:
+                is_empty_network = False
+                printer.add(self._palette.blue('TLS everywhere: '), 2)
+                printer[-1].append(deployment.tls_everywhere)
 
         if is_empty_network:
             printer.pop()
@@ -100,9 +103,10 @@ class OSColoredPrinter(OSPrinter):
         printer.add(self._palette.blue("Storage: "), 1)
 
         if deployment.storage_backend.value:
-            is_empty_storage = False
-            printer.add(self._palette.blue('Storage backend: '), 2)
-            printer[-1].append(deployment.storage_backend)
+            if deployment.storage_backend.value != "N/A" or self.verbosity > 0:
+                is_empty_storage = False
+                printer.add(self._palette.blue('Storage backend: '), 2)
+                printer[-1].append(deployment.storage_backend)
 
         if is_empty_storage:
             printer.pop()
@@ -121,14 +125,18 @@ class OSColoredPrinter(OSPrinter):
         printer.add(self._palette.blue("Ironic: "), 1)
 
         if deployment.ironic_inspector.value:
-            is_empty_ironic = False
-            printer.add(self._palette.blue('Ironic inspector: '), 2)
-            printer[-1].append(deployment.ironic_inspector)
+            if deployment.ironic_inspector.value != "N/A" or \
+               self.verbosity > 0:
+                is_empty_ironic = False
+                printer.add(self._palette.blue('Ironic inspector: '), 2)
+                printer[-1].append(deployment.ironic_inspector)
 
         if deployment.cleaning_network.value:
-            is_empty_ironic = False
-            printer.add(self._palette.blue('Cleaning network: '), 2)
-            printer[-1].append(deployment.cleaning_network)
+            if deployment.cleaning_network.value != "N/A" or \
+               self.verbosity > 0:
+                is_empty_ironic = False
+                printer.add(self._palette.blue('Cleaning network: '), 2)
+                printer[-1].append(deployment.cleaning_network)
 
         if is_empty_ironic:
             printer.pop()
