@@ -442,13 +442,21 @@ accurate results", len(jobs_found))
                           job_name)
 
         if self.job_missing_deployment_info(job):
-            if spec:
-                LOG.warning("Some logs are missing for job %s, information "
-                            "will be retrieved from the job name, but will "
-                            "be incomplete", job_name)
             LOG.debug("Resorting to get deployment information from job name"
                       " for job %s", job_name)
             self.add_job_info_from_name(job, **kwargs)
+            release = job.get("release")
+            query_ml2_driver = (spec or "ml2_driver" in kwargs)
+            if query_ml2_driver and release and not job.get("ml2_driver"):
+                # ovn is the default starting from OSP 15.0
+                if float(release) > 15.0:
+                    job["ml2_driver"] = "ovn"
+                else:
+                    job["ml2_driver"] = "ovs"
+                LOG.warning("Some logs are missing for job %s, information "
+                            "will be retrieved from the job name, but will "
+                            "be incomplete", job_name)
+                self.add_unable_to_find_info_message(job)
 
     def get_packages_node(self, node_name, logs_url, job_name):
         """Get a list of packages installed in a openstack node from the job
@@ -566,3 +574,14 @@ accurate results", len(jobs_found))
             job["topology"] = translate_topology_string(short_topology)
         else:
             job["topology"] = ""
+
+    def add_unable_to_find_info_message(self, job):
+        """Set a message explaining the reason for missing fields in spec.
+
+        :param job: Dictionary representation of a jenkins job
+        :type job: dict
+        """
+        message = "Unable to find information"
+        for attr in self.deployment_attr:
+            if not job.get(attr):
+                job[attr] = message

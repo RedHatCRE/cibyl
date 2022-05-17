@@ -1349,6 +1349,86 @@ tripleo_ironic_conductor.service loaded    active     running
             services = deployment.services
             self.assertEqual(len(services), 0)
 
+    def test_get_deployment_spec_no_overcloud_info(self):
+        """ Test get_deployment call with --spec and missing overcloud info."""
+        job_names = ['test_17.3_ipv4_job']
+        topologies = ["compute:2,controller:3"]
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastCompletedBuild': {'description':
+                                                            logs_url}})
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        artifacts = [
+                get_yaml_from_topology_string(topologies[0]),
+                JenkinsError]
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        spec = Argument("spec", str, "", value=["test_17.3_ipv4_job"])
+        jobs = self.jenkins.get_deployment(spec=spec)
+        self.assertEqual(len(jobs), 1)
+        job_name = "test_17.3_ipv4_job"
+        missing_info = "Unable to find information"
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "17.3")
+        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(deployment.topology.value, topologies[0])
+        self.assertEqual(deployment.storage_backend.value, missing_info)
+        self.assertEqual(deployment.network_backend.value, missing_info)
+        self.assertEqual(deployment.dvr.value, missing_info)
+        self.assertEqual(deployment.ml2_driver.value, "ovn")
+        self.assertEqual(deployment.tls_everywhere.value, missing_info)
+        self.assertEqual(deployment.infra_type.value, missing_info)
+
+    def test_get_deployment_spec_no_overcloud_info_ovs_default(self):
+        """ Test get_deployment call with --spec and missing overcloud info.
+        The osp release is set to <15.0 to test that the default ovs is
+        assigned properly"""
+        job_name = "test_14.3_ipv4_job"
+        topologies = ["compute:2,controller:3"]
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                 'name': job_name, 'url': 'url',
+                                 'lastCompletedBuild': {'description':
+                                                        logs_url}})
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        artifacts = [
+                get_yaml_from_topology_string(topologies[0]),
+                JenkinsError]
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        spec = Argument("spec", str, "", value=[job_name])
+        jobs = self.jenkins.get_deployment(spec=spec)
+        self.assertEqual(len(jobs), 1)
+        missing_info = "Unable to find information"
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "14.3")
+        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(deployment.topology.value, topologies[0])
+        self.assertEqual(deployment.storage_backend.value, missing_info)
+        self.assertEqual(deployment.network_backend.value, missing_info)
+        self.assertEqual(deployment.dvr.value, missing_info)
+        self.assertEqual(deployment.ml2_driver.value, "ovs")
+        self.assertEqual(deployment.tls_everywhere.value, missing_info)
+        self.assertEqual(deployment.infra_type.value, missing_info)
+
     def test_get_deployment_filter_containers(self):
         """ Test get_deployment call with --containers."""
         job_names = ['test_17.3_ipv4_job']
