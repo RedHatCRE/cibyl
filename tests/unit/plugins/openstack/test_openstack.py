@@ -17,7 +17,7 @@ from unittest import TestCase
 
 from cibyl.models.ci.base.environment import Environment
 from cibyl.models.ci.base.job import Job
-from cibyl.outputs.cli.ci.systems.jobs.colored import \
+from cibyl.outputs.cli.ci.system.impls.jobs.colored import \
     ColoredJobsSystemPrinter as JobPrinter
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.utils import translate_topology_string

@@ -17,7 +17,7 @@ import logging
 
 from overrides import overrides
 
-from cibyl.outputs.cli.ci.systems.printer import CISystemPrinter
+from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 

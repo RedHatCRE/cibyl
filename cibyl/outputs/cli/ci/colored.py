@@ -20,9 +20,12 @@ from overrides import overrides
 from cibyl.models.ci.base.system import JobsSystem
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.outputs.cli.ci.printer import CIPrinter
-from cibyl.outputs.cli.ci.systems.base.colored import ColoredBaseSystemPrinter
-from cibyl.outputs.cli.ci.systems.jobs.colored import ColoredJobsSystemPrinter
-from cibyl.outputs.cli.ci.systems.zuul.colored import ColoredZuulSystemPrinter
+from cibyl.outputs.cli.ci.system.impls.base.colored import \
+    ColoredBaseSystemPrinter
+from cibyl.outputs.cli.ci.system.impls.jobs.colored import \
+    ColoredJobsSystemPrinter
+from cibyl.outputs.cli.ci.system.impls.zuul.colored import \
+    ColoredZuulSystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 

@@ -16,11 +16,11 @@
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
-from cibyl.outputs.cli.ci.systems.common.builds import (get_duration_section,
-                                                        get_status_section)
-from cibyl.outputs.cli.ci.systems.common.jobs import (get_plugin_section,
-                                                      has_plugin_section)
-from cibyl.outputs.cli.ci.systems.printer import CISystemPrinter
+from cibyl.outputs.cli.ci.system.common.builds import (get_duration_section,
+                                                       get_status_section)
+from cibyl.outputs.cli.ci.system.common.jobs import (get_plugin_section,
+                                                     has_plugin_section)
+from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
