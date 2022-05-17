@@ -53,7 +53,7 @@ def get_yaml_from_topology_string(topology):
 
 def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
                        tls_everywhere, infra_type, ml2_driver=None,
-                       ironic_inspector=None):
+                       ironic_inspector=None, cleaning_network=None):
     """Provide a yaml representation for the paremeters obtained from an
     infrared overcloud-install.yml file.
 
@@ -93,6 +93,9 @@ def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
         overcloud["tls"] = tls
     if ironic_inspector:
         overcloud["ironic_inspector"] = True
+    overcloud["cleaning"] = {"network": False}
+    if cleaning_network:
+        overcloud["cleaning"]["network"] = True
     return yaml.dump({"install": overcloud})
 
 
@@ -1324,7 +1327,8 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False,
                                    False, "path/to/ovb",
-                                   ironic_inspector=False)]
+                                   ironic_inspector=False, ml2_driver="ovs",
+                                   cleaning_network=True)]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1348,7 +1352,9 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertEqual(deployment.dvr.value, "False")
             self.assertEqual(deployment.tls_everywhere.value, "False")
             self.assertEqual(deployment.infra_type.value, "ovb")
+            self.assertEqual(deployment.ml2_driver.value, "ovs")
             self.assertEqual(deployment.ironic_inspector.value, "False")
+            self.assertEqual(deployment.cleaning_network.value, "True")
             for component in topology.split(","):
                 role, amount = component.split(":")
                 for i in range(int(amount)):

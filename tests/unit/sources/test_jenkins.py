@@ -25,7 +25,6 @@ from cibyl.sources.jenkins import (Jenkins, filter_builds, filter_jobs,
                                    safe_request)
 
 
-
 class TestSafeRequestJenkinsError(TestCase):
     """Tests for :func:`safe_request`."""
 
@@ -731,8 +730,6 @@ class TestJenkinsSource(TestCase):
             f'://{self.jenkins.username}:{self.jenkins.token}@/{api_part}',
             verify=self.jenkins.cert, timeout=None
         )
-
-
 
 
 class TestFilters(TestCase):

@@ -112,7 +112,8 @@ class Jenkins:
     deployment_attr = ["topology", "release",
                        "network_backend", "storage_backend",
                        "infra_type", "dvr", "ip_version",
-                       "tls_everywhere", "ml2_driver"]
+                       "tls_everywhere", "ml2_driver",
+                       "ironic_inspector", "cleaning_network"]
 
     def add_job_info_from_name(self, job:  Dict[str, str], **kwargs):
         """Add information to the job by using regex on the job name. Check if
@@ -302,6 +303,7 @@ accurate results", len(jobs_found))
             storage_backend = job.get("storage_backend", "")
             tls_everywhere = job.get("tls_everywhere", "")
             ironic_inspector = job.get("ironic_inspector", "")
+            cleaning_network = job.get("cleaning_network", "")
             deployment = Deployment(job.get("release", ""),
                                     job.get("infra_type", ""),
                                     nodes=job.get("nodes", {}),
@@ -313,6 +315,7 @@ accurate results", len(jobs_found))
                                     storage_backend=storage_backend,
                                     dvr=job.get("dvr", ""),
                                     ironic_inspector=ironic_inspector,
+                                    cleaning_network=cleaning_network,
                                     tls_everywhere=tls_everywhere)
             job_objects[name].add_deployment(deployment)
 
@@ -401,6 +404,9 @@ accurate results", len(jobs_found))
             if "ironic_inspector" in kwargs or spec:
                 job["ironic_inspector"] = str(overcloud.get("ironic_inspector",
                                                             False))
+            if spec:
+                cleaning = overcloud.get("cleaning")
+                job["cleaning_network"] = str(cleaning.get("network", ""))
 
         except JenkinsError:
             LOG.debug("Found no artifact %s for job %s", artifact_path,

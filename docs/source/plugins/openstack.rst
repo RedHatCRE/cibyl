@@ -122,7 +122,7 @@ Arguments Matrix
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
-   * - --ironic-instpector
+   * - --ironic-inspector
      - | Does the deployment use
        | Ironic in the overcloud
      - |:ballot_box_with_check:|

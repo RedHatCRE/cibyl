@@ -125,6 +125,11 @@ class OSColoredPrinter(OSPrinter):
             printer.add(self._palette.blue('Ironic inspector: '), 2)
             printer[-1].append(deployment.ironic_inspector)
 
+        if deployment.cleaning_network.value:
+            is_empty_ironic = False
+            printer.add(self._palette.blue('Cleaning network: '), 2)
+            printer[-1].append(deployment.cleaning_network)
+
         if is_empty_ironic:
             printer.pop()
         return is_empty_ironic
