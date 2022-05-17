@@ -37,12 +37,6 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
 
     @overrides
     def print_system(self, system):
-        """
-        :param system: The system.
-        :type system: :class:`cibyl.models.ci.base.system.JobsSystem`
-        :return: Textual representation of the provided model.
-        :rtype: str
-        """
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('System: '), 0)

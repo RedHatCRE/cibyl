@@ -28,12 +28,6 @@ from cibyl.utils.strings import IndentedTextBuilder
 class ColoredZuulSystemPrinter(ColoredPrinter, CISystemPrinter):
     @overrides
     def print_system(self, system):
-        """
-        :param system: The system.
-        :type system: :class:`cibyl.models.ci.zuul.system.ZuulSystem`
-        :return: Textual representation of the provided model.
-        :rtype: str
-        """
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('System: '), 0)
