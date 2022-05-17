@@ -13,14 +13,20 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
+
 from overrides import overrides
 
+from cibyl.models.ci.base.system import JobsSystem
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.outputs.cli.ci.printer import CIPrinter
 from cibyl.outputs.cli.ci.systems.base.colored import ColoredBaseSystemPrinter
+from cibyl.outputs.cli.ci.systems.jobs.colored import ColoredJobsSystemPrinter
 from cibyl.outputs.cli.ci.systems.zuul.colored import ColoredZuulSystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
+
+LOG = logging.getLogger(__name__)
 
 
 class CIColoredPrinter(ColoredPrinter, CIPrinter):
@@ -54,6 +60,17 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
                 return ColoredZuulSystemPrinter(
                     self.query, self.verbosity, self.palette
                 )
+
+            if isinstance(system, JobsSystem):
+                return ColoredJobsSystemPrinter(
+                    self.query, self.verbosity, self.palette
+                )
+
+            LOG.warning(
+                'Custom printer not found for system of type: %s. '
+                'Continuing with default printer...',
+                type(system)
+            )
 
             # Go with the default printer
             return ColoredBaseSystemPrinter(
