@@ -31,7 +31,16 @@ LOG = logging.getLogger(__name__)
 
 
 class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
+    """Printer meant for :class:`ZuulSystem`, decorated with colors for
+    easier read.
+    """
+
     class ProjectCascade(ColoredPrinter):
+        """Printer meant for :class:`Project` and all of its children. This
+        printer focuses more on providing a high-level view of the
+        relationship between elements more than their details.
+        """
+
         def print_project(self, project):
             result = IndentedTextBuilder()
 
@@ -117,6 +126,11 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             return result.build()
 
     class JobCascade(ColoredPrinter):
+        """Printer meant for :class:`Job` and all of its children. This
+        printer focused on giving as much information as possible on each
+        element.
+        """
+
         def print_job(self, job):
             result = IndentedTextBuilder()
 

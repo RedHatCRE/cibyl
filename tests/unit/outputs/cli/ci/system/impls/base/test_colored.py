@@ -16,7 +16,6 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.system.impls.base.colored import \
     ColoredBaseSystemPrinter
 

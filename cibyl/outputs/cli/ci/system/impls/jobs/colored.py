@@ -27,6 +27,10 @@ from cibyl.utils.time import as_minutes
 
 
 class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
+    """Printer meant for :class:`JobsSystem`, decorated with colors for
+    easier read.
+    """
+
     @overrides
     def print_system(self, system):
         printer = IndentedTextBuilder()
