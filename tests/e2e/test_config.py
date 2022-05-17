@@ -20,12 +20,14 @@ from unittest.mock import Mock
 from cibyl.cli.main import main
 from tests.e2e.containers.httpd import HTTPDContainer
 from tests.e2e.fixtures import EndToEndTest
+from tests.utils.decorators import min_test_level
 
 
 class TestConfig(EndToEndTest):
     """Test for configuration loading.
     """
 
+    @min_test_level(1)
     def test_config_on_url(self):
         """Checks that a configuration file can be downloaded from a host.
         """
