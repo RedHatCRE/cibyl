@@ -89,6 +89,13 @@ class Deployment(Model):
                                    description="Whether dvr is used in the "
                                                "deployment")]
         },
+        'ml2_driver': {
+            'attr_type': str,
+            'arguments': [Argument(name='--ml2-driver', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="ML2 driver used in the "
+                                               "deployment")]
+        },
         'tls_everywhere': {
             'attr_type': str,
             'arguments': [Argument(name='--tls-everywhere', arg_type=str,
@@ -116,13 +123,15 @@ class Deployment(Model):
                  nodes: Dict[str, Node], services: Dict[str, Service],
                  ip_version: str = None, topology: str = None,
                  network_backend: str = None, storage_backend: str = None,
-                 dvr: str = None, tls_everywhere: str = None):
+                 dvr: str = None, tls_everywhere: str = None,
+                 ml2_driver: str = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
                           'ip_version': ip_version, 'topology': topology,
                           'network_backend': network_backend,
                           'storage_backend': storage_backend,
-                          'dvr': dvr, 'tls_everywhere': tls_everywhere})
+                          'dvr': dvr, 'tls_everywhere': tls_everywhere,
+                          'ml2_driver': ml2_driver})
 
     def add_node(self, node: Node):
         """Add a node to the deployment.
@@ -167,6 +176,8 @@ class Deployment(Model):
             self.dvr.value = other.dvr.value
         if not self.tls_everywhere.value:
             self.tls_everywhere.value = other.tls_everywhere.value
+        if not self.ml2_driver.value:
+            self.ml2_driver.value = other.ml2_driver.value
         for node in other.nodes.values():
             self.add_node(node)
         for service in other.services.values():

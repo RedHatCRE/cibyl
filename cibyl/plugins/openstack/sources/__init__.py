@@ -13,21 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from unittest import TestCase
-
-from cibyl.exceptions.plugin import MissingPlugin
-from cibyl.plugins import enable_plugins
-
-
-class TestPlugin(TestCase):
-    """Test Plugins mechanism"""
-
-    def test_enable_plugins(self):
-        """Test enable_plugins method"""
-        self.assertIsNone(enable_plugins(["openstack"]))
-
-    def test_missing_plugin(self):
-        """Test enable_plugins method with a non-existing plugin."""
-        self.assertRaises(MissingPlugin,
-                          enable_plugins,
-                          ["nonExistingPlugin"])

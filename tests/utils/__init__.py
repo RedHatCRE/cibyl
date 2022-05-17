@@ -19,7 +19,7 @@ from unittest import TestCase
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.zuul.job import Job as ZuulJob
-from cibyl.plugins import extend_models
+from cibyl.plugins import enable_plugins
 
 
 class RestoreAPIs(TestCase):
@@ -64,7 +64,7 @@ class OpenstackPluginWithJobSystem(JobSystemAPI):
         """Setup the API of system using that of JobsSystem and apply the
         openstack plugin."""
         super().setUpClass()
-        extend_models("openstack")
+        enable_plugins(["openstack"])
 
     @classmethod
     def tearDownClass(cls):

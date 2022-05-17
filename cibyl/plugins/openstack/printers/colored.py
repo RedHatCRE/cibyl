@@ -62,36 +62,41 @@ class OSColoredPrinter(OSPrinter):
             printer.add(self._palette.blue('Infra type: '), 1)
             printer[-1].append(deployment.infra_type)
 
+        if deployment.topology.value:
+            is_empty_deployment = False
+            printer.add(self._palette.blue('Topology: '), 1)
+            printer[-1].append(deployment.topology)
+
         ip_version = deployment.ip_version.value
         if ip_version and ip_version != "unknown":
             is_empty_deployment = False
             printer.add(self._palette.blue('IP version: '), 1)
             printer[-1].append(deployment.ip_version)
 
-        if deployment.topology.value:
-            is_empty_deployment = False
-            printer.add(self._palette.blue('Topology: '), 1)
-            printer[-1].append(deployment.topology)
-
         if deployment.network_backend.value:
             is_empty_deployment = False
             printer.add(self._palette.blue('Network backend: '), 1)
             printer[-1].append(deployment.network_backend)
-
-        if deployment.storage_backend.value:
-            is_empty_deployment = False
-            printer.add(self._palette.blue('Storage backend: '), 1)
-            printer[-1].append(deployment.storage_backend)
 
         if deployment.dvr.value:
             is_empty_deployment = False
             printer.add(self._palette.blue('DVR: '), 1)
             printer[-1].append(deployment.dvr)
 
+        if deployment.ml2_driver.value:
+            is_empty_deployment = False
+            printer.add(self._palette.blue('ML2 driver: '), 1)
+            printer[-1].append(deployment.ml2_driver)
+
         if deployment.tls_everywhere.value:
             is_empty_deployment = False
             printer.add(self._palette.blue('TLS everywhere: '), 1)
             printer[-1].append(deployment.tls_everywhere)
+
+        if deployment.storage_backend.value:
+            is_empty_deployment = False
+            printer.add(self._palette.blue('Storage backend: '), 1)
+            printer[-1].append(deployment.storage_backend)
 
         if deployment.nodes.values():
             is_empty_deployment = False
