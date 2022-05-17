@@ -46,6 +46,94 @@ class OSColoredPrinter(OSPrinter):
         """
         return self._palette
 
+    def _print_deployment_network_section(self, deployment, printer):
+        """Print the network related properties of the deployment.
+        :param deployment: Deployment model representing an Openstack
+        deployment
+        :type deployment: :class:`cibyl.plugins.openstack.deployment`
+        :param printer: Printer that provides the output representation
+        :type printer: :class:`cibyl.utils.strings.IndentedTextBuilder`
+        :returns: Whether the network section of the deployment is empty
+        """
+        is_empty_network = True
+        printer.add(self._palette.blue("Network: "), 1)
+        ip_version = deployment.ip_version.value
+        if ip_version and ip_version != "unknown":
+            is_empty_network = False
+            printer.add(self._palette.blue('IP version: '), 2)
+            printer[-1].append(deployment.ip_version)
+
+        if deployment.network_backend.value:
+            is_empty_network = False
+            printer.add(self._palette.blue('Network backend: '), 2)
+            printer[-1].append(deployment.network_backend)
+
+        if deployment.ml2_driver.value:
+            is_empty_network = False
+            printer.add(self._palette.blue('ML2 driver: '), 2)
+            printer[-1].append(deployment.ml2_driver)
+
+        if deployment.dvr.value:
+            is_empty_network = False
+            printer.add(self._palette.blue('DVR: '), 2)
+            printer[-1].append(deployment.dvr)
+
+        if deployment.tls_everywhere.value:
+            is_empty_network = False
+            printer.add(self._palette.blue('TLS everywhere: '), 2)
+            printer[-1].append(deployment.tls_everywhere)
+
+        if is_empty_network:
+            printer.pop()
+        return is_empty_network
+
+    def _print_deployment_storage_section(self, deployment, printer):
+        """Print the storage related properties of the deployment.
+        :param deployment: Deployment model representing an Openstack
+        deployment
+        :type deployment: :class:`cibyl.plugins.openstack.deployment`
+        :param printer: Printer that provides the output representation
+        :type printer: :class:`cibyl.utils.strings.IndentedTextBuilder`
+        :returns: Whether the network section of the deployment is empty
+        """
+        is_empty_storage = True
+        printer.add(self._palette.blue("Storage: "), 1)
+
+        if deployment.storage_backend.value:
+            is_empty_storage = False
+            printer.add(self._palette.blue('Storage backend: '), 2)
+            printer[-1].append(deployment.storage_backend)
+
+        if is_empty_storage:
+            printer.pop()
+        return is_empty_storage
+
+    def _print_deployment_ironic_section(self, deployment, printer):
+        """Print the ironic related properties of the deployment.
+        :param deployment: Deployment model representing an Openstack
+        deployment
+        :type deployment: :class:`cibyl.plugins.openstack.deployment`
+        :param printer: Printer that provides the output representation
+        :type printer: :class:`cibyl.utils.strings.IndentedTextBuilder`
+        :returns: Whether the network section of the deployment is empty
+        """
+        is_empty_ironic = True
+        printer.add(self._palette.blue("Ironic: "), 1)
+
+        if deployment.ironic_inspector.value:
+            is_empty_ironic = False
+            printer.add(self._palette.blue('Ironic inspector: '), 2)
+            printer[-1].append(deployment.ironic_inspector)
+
+        if deployment.cleaning_network.value:
+            is_empty_ironic = False
+            printer.add(self._palette.blue('Cleaning network: '), 2)
+            printer[-1].append(deployment.cleaning_network)
+
+        if is_empty_ironic:
+            printer.pop()
+        return is_empty_ironic
+
     def print_deployment(self, deployment):
         printer = IndentedTextBuilder()
 
@@ -67,36 +155,14 @@ class OSColoredPrinter(OSPrinter):
             printer.add(self._palette.blue('Topology: '), 1)
             printer[-1].append(deployment.topology)
 
-        ip_version = deployment.ip_version.value
-        if ip_version and ip_version != "unknown":
-            is_empty_deployment = False
-            printer.add(self._palette.blue('IP version: '), 1)
-            printer[-1].append(deployment.ip_version)
-
-        if deployment.network_backend.value:
-            is_empty_deployment = False
-            printer.add(self._palette.blue('Network backend: '), 1)
-            printer[-1].append(deployment.network_backend)
-
-        if deployment.dvr.value:
-            is_empty_deployment = False
-            printer.add(self._palette.blue('DVR: '), 1)
-            printer[-1].append(deployment.dvr)
-
-        if deployment.ml2_driver.value:
-            is_empty_deployment = False
-            printer.add(self._palette.blue('ML2 driver: '), 1)
-            printer[-1].append(deployment.ml2_driver)
-
-        if deployment.tls_everywhere.value:
-            is_empty_deployment = False
-            printer.add(self._palette.blue('TLS everywhere: '), 1)
-            printer[-1].append(deployment.tls_everywhere)
-
-        if deployment.storage_backend.value:
-            is_empty_deployment = False
-            printer.add(self._palette.blue('Storage backend: '), 1)
-            printer[-1].append(deployment.storage_backend)
+        is_empty_network = self._print_deployment_network_section(deployment,
+                                                                  printer)
+        is_empty_storage = self._print_deployment_storage_section(deployment,
+                                                                  printer)
+        is_empty_ironic = self._print_deployment_ironic_section(deployment,
+                                                                printer)
+        is_empty_deployment &= (is_empty_network and is_empty_storage and
+                                is_empty_ironic)
 
         if deployment.nodes.values():
             is_empty_deployment = False
