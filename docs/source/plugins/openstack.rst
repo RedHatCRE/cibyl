@@ -91,8 +91,16 @@ Arguments Matrix
      - |:black_square_button:|
      - |:black_square_button:|
    * - --dvr
-     - | Does the deployment uses
+     - | Does the deployment use
        | Distributed Virtual Router
+     - |:ballot_box_with_check:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+   * - --ml2-driver
+     - | Which ml2 driver does
+       | the deployment use
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|

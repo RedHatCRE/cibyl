@@ -112,7 +112,7 @@ class Jenkins:
     deployment_attr = ["topology", "release",
                        "network_backend", "storage_backend",
                        "infra_type", "dvr", "ip_version",
-                       "tls_everywhere"]
+                       "tls_everywhere", "ml2_driver"]
 
     def add_job_info_from_name(self, job:  Dict[str, str], **kwargs):
         """Add information to the job by using regex on the job name. Check if
@@ -306,6 +306,7 @@ accurate results", len(jobs_found))
                                     nodes=job.get("nodes", {}),
                                     services=job.get("services", {}),
                                     ip_version=job.get("ip_version", ""),
+                                    ml2_driver=job.get("ml2_driver", ""),
                                     topology=topology,
                                     network_backend=network_backend,
                                     storage_backend=storage_backend,
@@ -391,6 +392,10 @@ accurate results", len(jobs_found))
             if "tls_everywhere" in kwargs or spec:
                 tls = overcloud.get("tls", {})
                 job["tls_everywhere"] = str(tls.get("everywhere", ""))
+            if "ml2_driver" in kwargs or spec:
+                job["ml2_driver"] = "ovn"
+                if network.get("ovs"):
+                    job["ml2_driver"] = "ovs"
 
         except JenkinsError:
             LOG.debug("Found no artifact %s for job %s", artifact_path,
@@ -440,6 +445,18 @@ accurate results", len(jobs_found))
             LOG.debug("Resorting to get deployment information from job name"
                       " for job %s", job_name)
             self.add_job_info_from_name(job, **kwargs)
+            release = job.get("release")
+            query_ml2_driver = (spec or "ml2_driver" in kwargs)
+            if query_ml2_driver and release and not job.get("ml2_driver"):
+                # ovn is the default starting from OSP 15.0
+                if float(release) > 15.0:
+                    job["ml2_driver"] = "ovn"
+                else:
+                    job["ml2_driver"] = "ovs"
+                LOG.warning("Some logs are missing for job %s, information "
+                            "will be retrieved from the job name, but will "
+                            "be incomplete", job_name)
+                self.add_unable_to_find_info_message(job)
 
     def get_packages_node(self, node_name, logs_url, job_name):
         """Get a list of packages installed in a openstack node from the job
@@ -557,3 +574,14 @@ accurate results", len(jobs_found))
             job["topology"] = translate_topology_string(short_topology)
         else:
             job["topology"] = ""
+
+    def add_unable_to_find_info_message(self, job):
+        """Set a message explaining the reason for missing fields in spec.
+
+        :param job: Dictionary representation of a jenkins job
+        :type job: dict
+        """
+        message = "N/A"
+        for attr in self.deployment_attr:
+            if not job.get(attr):
+                job[attr] = message

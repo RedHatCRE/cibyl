@@ -20,7 +20,6 @@ from unittest.mock import Mock, call
 import yaml
 
 from cibyl.cli.argument import Argument
-from cibyl.cli.main import enable_plugins
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
@@ -53,7 +52,7 @@ def get_yaml_from_topology_string(topology):
 
 
 def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
-                       tls_everywhere, infra_type):
+                       tls_everywhere, infra_type, ml2_driver=None):
     """Provide a yaml representation for the paremeters obtained from an
     infrared overcloud-install.yml file.
 
@@ -81,6 +80,12 @@ def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
         storage = {"backend": storage_backend}
         overcloud["storage"] = storage
     network = {"backend": network_backend, "protocol": ip, "dvr": dvr}
+    if ml2_driver == "ovn":
+        network["ovn"] = True
+        network["ovs"] = False
+    elif ml2_driver == "ovs":
+        network["ovs"] = True
+        network["ovn"] = False
     overcloud["network"] = network
     if tls_everywhere != "":
         tls = {"everywhere": tls_everywhere}
@@ -92,7 +97,6 @@ class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
     """Tests for :class:`Jenkins` with openstack plugin."""
 
     def setUp(self):
-        enable_plugins(['openstack'])
         self.jenkins = Jenkins("url", "user", "token")
 
     def test_get_deployment(self):
@@ -779,6 +783,68 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertEqual(deployment.topology.value, topology)
             self.assertEqual(deployment.dvr.value, dvr)
 
+    def test_get_deployment_filter_ml2_driver(self):
+        """ Test that get_deployment filters properly according to the value of
+        the ml2_driver.
+        """
+        job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
+        ip_versions = ['4', '6', 'unknown']
+        releases = ['17.3', '16', '']
+        dvr_status = ['True', 'True', '']
+        topologies = ["compute:2,controller:3", "compute:1,controller:2",
+                      "compute:2,controller:2"]
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastCompletedBuild': {'description':
+                                                            logs_url}})
+        artifacts = [
+                get_yaml_from_topology_string(topologies[0]),
+                get_yaml_overcloud(ip_versions[0], releases[0],
+                                   "ceph", "geneve", dvr_status[0], False, "",
+                                   ml2_driver="ovs"),
+                get_yaml_from_topology_string(topologies[1]),
+                get_yaml_overcloud(ip_versions[1], releases[1],
+                                   "ceph", "geneve", dvr_status[1],
+                                   False, "", ml2_driver="ovn"),
+                get_yaml_from_topology_string(topologies[2]),
+                get_yaml_overcloud(ip_versions[2], releases[2],
+                                   "ceph", "geneve", dvr_status[2],
+                                   False, "")]
+        # one call to get_packages_node and get_containers_node per node, plus
+        # one to get_services
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        args = {
+            "topology": Argument("topology", str, "", value=[]),
+            "release": Argument("release", str, "", value=[]),
+            "infra_type": Argument("infra_type", str, "", value=[]),
+            "nodes": Argument("nodes", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "dvr": Argument("dvr", str, "", value=[]),
+            "ml2_driver": Argument("ml2_driver", str, "", value=["ovs"]),
+            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
+            "network_backend": Argument("network_backend", str, "", value=[]),
+            "storage_backend": Argument("storage_backend", str, "", value=[])
+        }
+        jobs = self.jenkins.get_deployment(**args)
+        self.assertEqual(len(jobs), 1)
+        job_name = "test_17.3_ipv4_job"
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, releases[0])
+        self.assertEqual(deployment.ip_version.value, ip_versions[0])
+        self.assertEqual(deployment.topology.value, topologies[0])
+        self.assertEqual(deployment.dvr.value, dvr_status[0])
+        self.assertEqual(deployment.ml2_driver.value, "ovs")
+
     def test_get_deployment_filter_tls(self):
         """Test that get_deployment filters by tls_everywhere."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont_tls',
@@ -1249,7 +1315,7 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb")]
+                                   False, "path/to/ovb", ml2_driver="ovn")]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1269,6 +1335,7 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertEqual(deployment.storage_backend.value, "ceph")
             self.assertEqual(deployment.network_backend.value, "geneve")
             self.assertEqual(deployment.dvr.value, "False")
+            self.assertEqual(deployment.ml2_driver.value, "ovn")
             self.assertEqual(deployment.tls_everywhere.value, "False")
             self.assertEqual(deployment.infra_type.value, "ovb")
             for component in topology.split(","):
@@ -1281,6 +1348,86 @@ tripleo_ironic_conductor.service loaded    active     running
                     self.assertEqual(node_found.role, node.role)
             services = deployment.services
             self.assertEqual(len(services), 0)
+
+    def test_get_deployment_spec_no_overcloud_info(self):
+        """ Test get_deployment call with --spec and missing overcloud info."""
+        job_names = ['test_17.3_ipv4_job']
+        topologies = ["compute:2,controller:3"]
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastCompletedBuild': {'description':
+                                                            logs_url}})
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        artifacts = [
+                get_yaml_from_topology_string(topologies[0]),
+                JenkinsError]
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        spec = Argument("spec", str, "", value=["test_17.3_ipv4_job"])
+        jobs = self.jenkins.get_deployment(spec=spec)
+        self.assertEqual(len(jobs), 1)
+        job_name = "test_17.3_ipv4_job"
+        missing_info = "N/A"
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "17.3")
+        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(deployment.topology.value, topologies[0])
+        self.assertEqual(deployment.storage_backend.value, missing_info)
+        self.assertEqual(deployment.network_backend.value, missing_info)
+        self.assertEqual(deployment.dvr.value, missing_info)
+        self.assertEqual(deployment.ml2_driver.value, "ovn")
+        self.assertEqual(deployment.tls_everywhere.value, missing_info)
+        self.assertEqual(deployment.infra_type.value, missing_info)
+
+    def test_get_deployment_spec_no_overcloud_info_ovs_default(self):
+        """ Test get_deployment call with --spec and missing overcloud info.
+        The osp release is set to <15.0 to test that the default ovs is
+        assigned properly"""
+        job_name = "test_14.3_ipv4_job"
+        topologies = ["compute:2,controller:3"]
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                 'name': job_name, 'url': 'url',
+                                 'lastCompletedBuild': {'description':
+                                                        logs_url}})
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        artifacts = [
+                get_yaml_from_topology_string(topologies[0]),
+                JenkinsError]
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        spec = Argument("spec", str, "", value=[job_name])
+        jobs = self.jenkins.get_deployment(spec=spec)
+        self.assertEqual(len(jobs), 1)
+        missing_info = "N/A"
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "14.3")
+        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(deployment.topology.value, topologies[0])
+        self.assertEqual(deployment.storage_backend.value, missing_info)
+        self.assertEqual(deployment.network_backend.value, missing_info)
+        self.assertEqual(deployment.dvr.value, missing_info)
+        self.assertEqual(deployment.ml2_driver.value, "ovs")
+        self.assertEqual(deployment.tls_everywhere.value, missing_info)
+        self.assertEqual(deployment.infra_type.value, missing_info)
 
     def test_get_deployment_filter_containers(self):
         """ Test get_deployment call with --containers."""
