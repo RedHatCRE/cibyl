@@ -732,8 +732,6 @@ class TestJenkinsSource(TestCase):
         )
 
 
-
-
 class TestFilters(TestCase):
     """Tests for filter functions in jenkins source module."""
     def test_filter_jobs(self):

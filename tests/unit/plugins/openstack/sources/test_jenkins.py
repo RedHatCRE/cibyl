@@ -1373,7 +1373,7 @@ tripleo_ironic_conductor.service loaded    active     running
         jobs = self.jenkins.get_deployment(spec=spec)
         self.assertEqual(len(jobs), 1)
         job_name = "test_17.3_ipv4_job"
-        missing_info = "Unable to find information"
+        missing_info = "N/A"
         job = jobs[job_name]
         deployment = job.deployment.value
         self.assertEqual(job.name.value, job_name)
@@ -1413,7 +1413,7 @@ tripleo_ironic_conductor.service loaded    active     running
         spec = Argument("spec", str, "", value=[job_name])
         jobs = self.jenkins.get_deployment(spec=spec)
         self.assertEqual(len(jobs), 1)
-        missing_info = "Unable to find information"
+        missing_info = "N/A"
         job = jobs[job_name]
         deployment = job.deployment.value
         self.assertEqual(job.name.value, job_name)

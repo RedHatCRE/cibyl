@@ -581,7 +581,7 @@ accurate results", len(jobs_found))
         :param job: Dictionary representation of a jenkins job
         :type job: dict
         """
-        message = "Unable to find information"
+        message = "N/A"
         for attr in self.deployment_attr:
             if not job.get(attr):
                 job[attr] = message
