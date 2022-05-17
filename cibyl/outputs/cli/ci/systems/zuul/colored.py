@@ -23,12 +23,173 @@ from cibyl.outputs.cli.ci.systems.common.builds import (get_duration_section,
                                                         get_status_section)
 from cibyl.outputs.cli.ci.systems.common.jobs import (get_plugin_section,
                                                       has_plugin_section)
+from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
 
 
 class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
+    class ProjectCascade(ColoredPrinter):
+        def print_project(self, project):
+            result = IndentedTextBuilder()
+
+            result.add(self._palette.blue('Project: '), 0)
+            result[-1].append(project.name)
+
+            if self.verbosity > 0:
+                result.add(self._palette.blue('URL: '), 1)
+                result[-1].append(project.url)
+
+            if self.query >= QueryType.PIPELINES:
+                for pipeline in project.pipelines.values():
+                    result.add(self._print_pipeline(project, pipeline), 1)
+
+                result.add(
+                    self._palette.blue(
+                        "Total pipelines found in query for project '"
+                    ), 1
+                )
+
+                result[-1].append(self._palette.underline(project.name))
+                result[-1].append(self._palette.blue("': "))
+                result[-1].append(len(project.pipelines))
+
+            return result.build()
+
+        def _print_pipeline(self, project, pipeline):
+            result = IndentedTextBuilder()
+
+            result.add(self._palette.blue('Pipeline: '), 0)
+            result[-1].append(pipeline.name)
+
+            if self.query >= QueryType.JOBS:
+                for job in pipeline.jobs.values():
+                    result.add(self._print_job(project, pipeline, job), 1)
+
+                result.add(
+                    self._palette.blue(
+                        "Total jobs found in query for pipeline '"
+                    ), 1
+                )
+
+                result[-1].append(self._palette.underline(pipeline.name))
+                result[-1].append(self._palette.blue(': '))
+                result[-1].append(len(pipeline.jobs))
+
+            return result.build()
+
+        def _print_job(self, project, pipeline, job):
+            result = IndentedTextBuilder()
+
+            result.add(self._palette.blue('Job: '), 0)
+            result[-1].append(job.name.value)
+
+            if self.query >= QueryType.BUILDS:
+                for build in job.builds.values():
+                    # This cascade only wants builds of this project
+                    if build.project.value != project.name.value:
+                        continue
+
+                    # This cascade only wants builds triggered by this pipeline
+                    if build.pipeline.value != pipeline.name.value:
+                        continue
+
+                    result.add(
+                        self._print_build(project, pipeline, job, build), 1
+                    )
+
+            return result.build()
+
+        def _print_build(self, project, pipeline, job, build):
+            # Unused, but left for future use
+            del project, pipeline, job
+
+            result = IndentedTextBuilder()
+
+            result.add(self._palette.blue('Build: '), 1)
+            result[-1].append(build.build_id.value)
+
+            if build.status.value:
+                result.add(get_status_section(self.palette, build), 2)
+
+            return result.build()
+
+    class JobCascade(ColoredPrinter):
+        def print_job(self, job):
+            result = IndentedTextBuilder()
+
+            result.add(self._palette.blue('Job: '), 0)
+            result[-1].append(job.name.value)
+
+            if self.verbosity > 0:
+                if job.url.value:
+                    result.add(self._palette.blue('URL: '), 1)
+                    result[-1].append(job.url.value)
+
+            if job.variants.value:
+                result.add(self._palette.blue('Variants: '), 1)
+
+                for variant in job.variants:
+                    result.add(self._print_variant(variant), 2)
+
+            if job.builds.value:
+                result.add(self._palette.blue('Builds: '), 1)
+
+                for build in job.builds.values():
+                    result.add(self._print_build(build), 2)
+
+            if has_plugin_section(job):
+                result.add(get_plugin_section(self, job), 1)
+
+            return result.build()
+
+        def _print_variant(self, variant):
+            result = IndentedTextBuilder()
+
+            result.add(self._palette.blue('Variant: '), 0)
+
+            result.add(self._palette.blue('Description: '), 1)
+            result[-1].append(variant.description)
+
+            result.add(self._palette.blue('Parent: '), 1)
+            result[-1].append(variant.parent)
+
+            result.add(self._palette.blue('Branches: '), 1)
+            for branch in variant.branches:
+                result.add('- ', 2)
+                result[-1].append(branch)
+
+            result.add(self._palette.blue('Variables: '), 1)
+            for key, value in variant.variables.items():
+                result.add(self._palette.blue(f'{key}: '), 2)
+                result[-1].append(value)
+
+            return result.build()
+
+        def _print_build(self, build):
+            result = IndentedTextBuilder()
+
+            result.add(self._palette.blue('Build: '), 0)
+            result[0].append(build.build_id.value)
+
+            if build.project.value:
+                result.add(self._palette.blue('Project: '), 1)
+                result[-1].append(build.project.value)
+
+            if build.pipeline.value:
+                result.add(self._palette.blue('Pipeline: '), 1)
+                result[-1].append(build.pipeline.value)
+
+            if build.status.value:
+                result.add(get_status_section(self.palette, build), 1)
+
+            if self.verbosity > 0:
+                if build.duration.value:
+                    result.add(get_duration_section(self.palette, build), 1)
+
+            return result.build()
+
     @overrides
     def print_system(self, system):
         printer = IndentedTextBuilder()
@@ -40,7 +201,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         if self.query >= QueryType.TENANTS:
             if hasattr(system, 'tenants'):
                 for tenant in system.tenants.values():
-                    printer.add(self.print_tenant(tenant), 1)
+                    printer.add(self._print_tenant(tenant), 1)
 
                 if system.is_queried():
                     header = 'Total tenants found in query: '
@@ -57,7 +218,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
         return printer.build()
 
-    def print_tenant(self, tenant):
+    def _print_tenant(self, tenant):
         """
         :param tenant: The tenant.
         :type tenant: :class:`cibyl.models.ci.zuul.tenant.Tenant`
@@ -66,29 +227,44 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         """
 
         def print_projects():
+            def create_printer():
+                return ColoredZuulSystemPrinter.ProjectCascade(
+                    self.query, self.verbosity, self.palette
+                )
+
+            # Avoid header if there are no project
             if tenant.projects.value:
                 result.add(self._palette.blue('Projects: '), 1)
 
                 for project in tenant.projects.values():
-                    result.add(self.print_project(project), 2)
+                    result.add(create_printer().print_project(project), 2)
 
             result.add(
-                self._palette.blue("Total projects found in tenant '"), 1
+                self._palette.blue(
+                    "Total projects found in query for tenant '"
+                ), 1
             )
-
             result[-1].append(self._palette.underline(tenant.name))
             result[-1].append(self._palette.blue("': "))
             result[-1].append(len(tenant.projects))
 
         def print_jobs():
+            def create_printer():
+                return ColoredZuulSystemPrinter.JobCascade(
+                    self.query, self.verbosity, self.palette
+                )
+
+            # Avoid header if there are no jobs
             if tenant.jobs.value:
                 result.add(self._palette.blue('Jobs: '), 1)
 
                 for job in tenant.jobs.values():
-                    result.add(self.print_job(job), 2)
+                    result.add(create_printer().print_job(job), 2)
 
             result.add(
-                self._palette.blue("Total jobs found in tenant '"), 1
+                self._palette.blue(
+                    "Total jobs found in query for tenant '"
+                ), 1
             )
 
             result[-1].append(self._palette.underline(tenant.name))
@@ -100,179 +276,10 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         result.add(self._palette.blue('Tenant: '), 0)
         result[-1].append(tenant.name)
 
-        if self.query >= QueryType.JOBS:
-            print_jobs()
-
         if self.query >= QueryType.PROJECTS:
             print_projects()
 
-        return result.build()
-
-    def print_project(self, project):
-        """
-        :param project: The project.
-        :type project: :class:`cibyl.models.ci.zuul.project.Project`
-        :return: Textual representation of the provided model.
-        :rtype: str
-        """
-        result = IndentedTextBuilder()
-
-        result.add(self._palette.blue('Project: '), 0)
-        result[-1].append(project.name)
-
-        if self.verbosity > 0:
-            result.add(self._palette.blue('URL: '), 1)
-            result[-1].append(project.url)
-
-        if self.query > QueryType.PROJECTS:
-            for pipeline in project.pipelines.values():
-                result.add(self.print_pipeline(project, pipeline), 1)
-
-            result.add(
-                self._palette.blue("Total pipelines found in project '"), 1
-            )
-
-            result[-1].append(self._palette.underline(project.name))
-            result[-1].append(self._palette.blue("': "))
-            result[-1].append(len(project.pipelines))
+            if self.query >= QueryType.JOBS:
+                print_jobs()
 
         return result.build()
-
-    def print_pipeline(self, project, pipeline):
-        """
-        :param pipeline: The pipeline.
-        :type pipeline: :class:`cibyl.models.ci.zuul.pipeline.Pipeline`
-        :return: Textual representation of the provided model.
-        :rtype: str
-        """
-        result = IndentedTextBuilder()
-
-        result.add(self._palette.blue('Pipeline: '), 0)
-        result[-1].append(pipeline.name)
-
-        if self.query > QueryType.PIPELINES:
-            for job in pipeline.jobs.values():
-                result.add(
-                    self._print_job_for_pipeline(project, pipeline, job), 1
-                )
-
-            result.add(
-                self._palette.blue('Total jobs found in pipeline '), 1
-            )
-
-            result[-1].append(self._palette.underline(pipeline.name))
-            result[-1].append(self._palette.blue(': '))
-            result[-1].append(len(pipeline.jobs))
-
-        return result.build()
-
-    def print_job(self, job):
-        """
-        :param job: The job.
-        :type job: :class:`cibyl.models.ci.zuul.job.Job`
-        :return: Textual representation of the provided model.
-        :rtype: str
-        """
-        printer = IndentedTextBuilder()
-
-        printer.add(self._palette.blue('Job: '), 0)
-        printer[-1].append(job.name.value)
-
-        if self.verbosity > 0:
-            if job.url.value:
-                printer.add(self._palette.blue('URL: '), 1)
-                printer[-1].append(job.url.value)
-
-        if job.variants.value:
-            printer.add(self._palette.blue('Variants: '), 1)
-
-            for variant in job.variants:
-                printer.add(self.print_variant(variant), 2)
-
-        if job.builds.value:
-            printer.add(self._palette.blue('Builds: '), 1)
-
-            for build in job.builds.values():
-                printer.add(self.print_build(build), 2)
-
-        if has_plugin_section(job):
-            printer.add(get_plugin_section(self, job), 1)
-
-        return printer.build()
-
-    def print_variant(self, variant):
-        """
-        :param variant: The variant.
-        :type variant: :class:`cibyl.models.ci.zuul.job.Job.Variant`
-        :return: Textual representation of the provided model.
-        :rtype: str
-        """
-        printer = IndentedTextBuilder()
-
-        printer.add(self._palette.blue('Variant: '), 0)
-
-        printer.add(self._palette.blue('Description: '), 1)
-        printer[-1].append(variant.description)
-
-        printer.add(self._palette.blue('Parent: '), 1)
-        printer[-1].append(variant.parent)
-
-        printer.add(self._palette.blue('Branches: '), 1)
-        for branch in variant.branches:
-            printer.add('- ', 2)
-            printer[-1].append(branch)
-
-        printer.add(self._palette.blue('Variables: '), 1)
-        for key, value in variant.variables.items():
-            printer.add(self._palette.blue(f'{key}: '), 2)
-            printer[-1].append(value)
-
-        return printer.build()
-
-    def print_build(self, build):
-        printer = IndentedTextBuilder()
-
-        printer.add(self._palette.blue('Build: '), 0)
-        printer[0].append(build.build_id.value)
-
-        if build.project.value:
-            printer.add(self._palette.blue('Project: '), 1)
-            printer[-1].append(build.project.value)
-
-        if build.pipeline.value:
-            printer.add(self._palette.blue('Pipeline: '), 1)
-            printer[-1].append(build.pipeline.value)
-
-        if build.status.value:
-            printer.add(get_status_section(self.palette, build), 1)
-
-        if self.verbosity > 0:
-            if build.duration.value:
-                printer.add(get_duration_section(self.palette, build), 1)
-
-        return printer.build()
-
-    def _print_job_for_pipeline(self, project, pipeline, job):
-        def print_build():
-            printer.add(self._palette.blue('Build: '), 1)
-            printer[-1].append(build.build_id.value)
-
-            if build.status.value:
-                printer.add(get_status_section(self.palette, build), 2)
-
-        printer = IndentedTextBuilder()
-
-        printer.add(self._palette.blue('Job: '), 0)
-        printer[-1].append(job.name.value)
-
-        if job.builds.value:
-            for build in job.builds.values():
-                if build.project.value != project.name.value:
-                    continue
-
-                if build.pipeline.value != pipeline.name.value:
-                    continue
-
-                print_build()
-
-        return printer.build()
