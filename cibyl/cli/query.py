@@ -15,6 +15,8 @@
 """
 from enum import IntEnum
 
+from cibyl.utils.dicts import subset
+
 
 class QueryType(IntEnum):
     """Defines the hierarchy level at which a query is meant to be performed.
@@ -58,10 +60,12 @@ def get_query_type(**kwargs):
     if 'pipelines' in kwargs:
         result = QueryType.PIPELINES
 
-    if 'jobs' in kwargs or 'spec' in kwargs:
+    job_args = subset(kwargs, ["jobs", "variants", "job_url"])
+    if job_args:
         result = QueryType.JOBS
 
-    if 'builds' in kwargs:
+    build_args = subset(kwargs, ["builds", "last_build", "build_status"])
+    if build_args:
         result = QueryType.BUILDS
 
     return result
