@@ -27,54 +27,60 @@ from cibyl.sources.zuul.requests import TenantsRequest
 LOG = logging.getLogger(__name__)
 
 
-def _get_builds(zuul, **kwargs):
+def _get_builds(job, **kwargs):
     """Query for builds.
 
-    :param zuul: API to interact with Zuul with.
-    :type zuul: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :param job: API to interact with the owner of the builds.
+    :type job: :class:`cibyl.sources.zuul.requests.JobResponse`
     :param kwargs: See :func:`handle_query`.
     :return: List of retrieved builds.
     :rtype: list[:class:`cibyl.sources.zuul.requests.BuildResponse`]
     """
     result = []
+    builds = job.builds()
 
-    for job in _get_jobs(zuul, **kwargs):
-        builds = job.builds()
+    # Apply builds filters
+    if 'builds' in kwargs:
+        targets = kwargs['builds'].value
 
-        # Apply builds filters
-        if 'builds' in kwargs:
-            targets = kwargs['builds'].value
+        # An empty '--builds' means all of them.
+        if targets:
+            builds.with_uuid(*targets)
 
-            # An empty '--builds' means all of them.
-            if targets:
-                builds.with_uuid(*targets)
+    if 'projects' in kwargs:
+        targets = kwargs['projects'].value
 
-        if 'projects' in kwargs:
-            targets = kwargs['projects'].value
+        # An empty '--projects' means all of them.
+        if targets:
+            builds.with_project(*targets)
 
-            # An empty '--projects' means all of them.
-            if targets:
-                builds.with_project(*targets)
+    if 'pipelines' in kwargs:
+        targets = kwargs['pipelines'].value
 
-        if 'pipelines' in kwargs:
-            targets = kwargs['pipelines'].value
+        # An empty '--pipelines' means all of them.
+        if targets:
+            builds.with_pipeline(*targets)
 
-            # An empty '--pipelines' means all of them.
-            if targets:
-                builds.with_pipeline(*targets)
+    if 'build_status' in kwargs:
+        builds.with_status(*kwargs['build_status'].value)
 
-        if 'build_status' in kwargs:
-            builds.with_status(*kwargs['build_status'].value)
+    if 'last_build' in kwargs:
+        builds.with_last_build_only()
 
-        if 'last_build' in kwargs:
-            builds.with_last_build_only()
-
-        result += builds.get()
+    result += builds.get()
 
     return result
 
 
 def _get_variants(job, **kwargs):
+    """Query for variants.
+
+    :param job: API to interact with the owner of the variants.
+    :type job: :class:`cibyl.sources.zuul.requests.JobResponse`
+    :param kwargs: See :func:`handle_query`.
+    :return: List of retrieved variants.
+    :rtype: list[:class:`cibyl.sources.zuul.requests.VariantResponse`]
+    """
     return job.variants().get()
 
 
@@ -250,7 +256,7 @@ def _handle_jobs_query(zuul, **kwargs):
 
         # Check if the user requested builds
         if 'builds' in kwargs:
-            for build in _get_builds(zuul, **kwargs):
+            for build in _get_builds(job, **kwargs):
                 model.with_build(build)
 
         # Include also the pipelines where this job is present
