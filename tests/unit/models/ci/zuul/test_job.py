@@ -25,6 +25,41 @@ class TestJob(TestCase):
     """Tests for :class:`Job`.
     """
 
+    def test_equality_by_type(self):
+        """Checks that two jobs are different if they are of different type.
+        """
+        job = Job('job', 'url')
+        other = Mock()
+
+        self.assertNotEqual(other, job)
+
+    def test_equality_by_reference(self):
+        """Checks that a job is equal to itself.
+        """
+        job = Job('job', 'url')
+        other = job
+
+        self.assertEqual(other, job)
+
+    def test_equality_by_contents(self):
+        """Checks that two jobs are equal if they have the same data.
+        """
+        name = 'job'
+        url = 'url'
+
+        build = Mock()
+        variant = Mock()
+
+        job = Job(name, url)
+        job.add_build(build)
+        job.add_variant(variant)
+
+        other = Job(name, url)
+        other.add_build(build)
+        other.add_variant(variant)
+
+        self.assertEqual(other, job)
+
     def test_has_variants_attribute(self):
         """Checks that a 'variants' attribute is added to the object.
         """
@@ -56,47 +91,46 @@ class TestJob(TestCase):
 
         self.assertIn(variant, job1.variants)
 
-
-class TestVariant(TestCase):
-    """Tests for :class:`Job.Variant`.
-    """
-
-    def test_attributes(self):
-        """Checks that the variant has all its attributes.
+    class TestVariant(TestCase):
+        """Tests for :class:`Job.Variant`.
         """
-        variant = Job.Variant('parent')
 
-        self.assertIsInstance(variant.parent, AttributeValue)
-        self.assertIsInstance(variant.description, AttributeValue)
-        self.assertIsInstance(variant.branches, AttributeListValue)
-        self.assertIsInstance(variant.variables, AttributeDictValue)
+        def test_attributes(self):
+            """Checks that the variant has all its attributes.
+            """
+            variant = Job.Variant('parent')
 
-    def test_equality_by_type(self):
-        """Checks that two objects of different type are not equal.
-        """
-        variant = Job.Variant('parent')
-        other = Mock()
+            self.assertIsInstance(variant.parent, AttributeValue)
+            self.assertIsInstance(variant.description, AttributeValue)
+            self.assertIsInstance(variant.branches, AttributeListValue)
+            self.assertIsInstance(variant.variables, AttributeDictValue)
 
-        self.assertNotEqual(other, variant)
+        def test_equality_by_type(self):
+            """Checks that two objects of different type are not equal.
+            """
+            variant = Job.Variant('parent')
+            other = Mock()
 
-    def test_equality_by_reference(self):
-        """Checks that two objects are equal if they are pointed by the same
-        reference.
-        """
-        variant = Job.Variant('parent')
-        other = variant
+            self.assertNotEqual(other, variant)
 
-        self.assertEqual(other, variant)
+        def test_equality_by_reference(self):
+            """Checks that two objects are equal if they are pointed by the same
+            reference.
+            """
+            variant = Job.Variant('parent')
+            other = variant
 
-    def test_equality_by_content(self):
-        """Checks that two objects are equal if they have the same contents.
-        """
-        parent = 'parent'
-        description = 'description'
-        branches = ['branch1', 'branch2']
-        variables = {'var1': 'val1'}
+            self.assertEqual(other, variant)
 
-        variant1 = Job.Variant(parent, description, branches, variables)
-        variant2 = Job.Variant(parent, description, branches, variables)
+        def test_equality_by_content(self):
+            """Checks that two objects are equal if they have the same contents.
+            """
+            parent = 'parent'
+            description = 'description'
+            branches = ['branch1', 'branch2']
+            variables = {'var1': 'val1'}
 
-        self.assertEqual(variant2, variant1)
+            variant1 = Job.Variant(parent, description, branches, variables)
+            variant2 = Job.Variant(parent, description, branches, variables)
+
+            self.assertEqual(variant2, variant1)

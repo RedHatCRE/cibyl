@@ -137,6 +137,23 @@ class Job(BaseJob):
         """
         super().__init__(name, url, builds, variants=variants)
 
+    def __eq__(self, other):
+        if not isinstance(other, Job):
+            return False
+
+        if self is other:
+            return True
+
+        if self.builds != other.builds:
+            return False
+
+        if self.variants != other.variants:
+            return False
+
+        return \
+            self.name == other.name and \
+            self.url == other.url
+
     @overrides
     def merge(self, other):
         # Merging with oneself will never end, avoid at all costs.
