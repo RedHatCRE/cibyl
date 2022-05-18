@@ -272,6 +272,35 @@ def _handle_jobs_query(zuul, **kwargs):
     return model
 
 
+def log_query_conditions(**kwargs):
+    """Logs any special conditions the query is going to take against the
+    arguments. Some of these are, for example, adding an argument that has
+    been omitted by the user.
+
+    :param kwargs: The arguments to check.
+    """
+    if 'tenants' not in kwargs:
+        LOG.info(
+            "Omitted argument '--tenants', "
+            "loading defaults from configuration file."
+        )
+
+    if 'projects' not in kwargs:
+        LOG.info(
+            "Omitted argument '--projects' implicitly added to query."
+        )
+
+    if 'pipelines' not in kwargs:
+        LOG.info(
+            "Omitted argument '--pipelines' implicitly added to query."
+        )
+
+    if 'jobs' not in kwargs:
+        LOG.info(
+            "Omitted argument '--jobs' implicitly added to query."
+        )
+
+
 def handle_query(zuul, **kwargs):
     """Generates and performs a query on a Zuul host based on the given
     arguments.
@@ -313,6 +342,8 @@ def handle_query(zuul, **kwargs):
 
     if not handler:
         raise NotImplementedError(f'Unsupported query: {query}')
+
+    log_query_conditions(**kwargs)
 
     model = handler(zuul, **kwargs)
 
