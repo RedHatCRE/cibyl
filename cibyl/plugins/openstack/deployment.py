@@ -114,6 +114,9 @@ class Deployment(Model):
         'cleaning_network': {
             'arguments': []
         },
+        'security_group': {
+            'arguments': []
+        },
         'network_backend': {
             'attr_type': str,
             'arguments': [Argument(name='--network-backend', arg_type=str,
@@ -136,7 +139,7 @@ class Deployment(Model):
                  network_backend: str = None, storage_backend: str = None,
                  dvr: str = None, tls_everywhere: str = None,
                  ml2_driver: str = None, ironic_inspector: str = None,
-                 cleaning_network: str = None):
+                 cleaning_network: str = None, security_group: str = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
                           'ip_version': ip_version, 'topology': topology,
@@ -145,6 +148,7 @@ class Deployment(Model):
                           'dvr': dvr, 'tls_everywhere': tls_everywhere,
                           'ml2_driver': ml2_driver,
                           'ironic_inspector': ironic_inspector,
+                          'security_group': security_group,
                           'cleaning_network': cleaning_network})
 
     def add_node(self, node: Node):
@@ -196,6 +200,8 @@ class Deployment(Model):
             self.ironic_inspector.value = other.ironic_inspector.value
         if not self.cleaning_network.value:
             self.cleaning_network.value = other.cleaning_network.value
+        if not self.security_group.value:
+            self.security_group.value = other.security_group.value
         for node in other.nodes.values():
             self.add_node(node)
         for service in other.services.values():

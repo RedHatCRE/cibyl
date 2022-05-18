@@ -74,6 +74,13 @@ class OSColoredPrinter(OSPrinter):
                 printer.add(self._palette.blue('ML2 driver: '), 2)
                 printer[-1].append(deployment.ml2_driver)
 
+        if deployment.security_group.value:
+            if deployment.ml2_driver.value != "N/A" or self.verbosity > 0:
+                is_empty_network = False
+                printer.add(self._palette.blue('Security group mechanism: '),
+                            2)
+                printer[-1].append(deployment.security_group)
+
         if deployment.dvr.value:
             if deployment.dvr.value != "N/A" or self.verbosity > 0:
                 is_empty_network = False
