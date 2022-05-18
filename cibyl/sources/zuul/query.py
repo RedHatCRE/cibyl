@@ -49,6 +49,20 @@ def _get_builds(zuul, **kwargs):
             if targets:
                 builds.with_uuid(*targets)
 
+        if 'projects' in kwargs:
+            targets = kwargs['projects'].value
+
+            # An empty '--projects' means all of them.
+            if targets:
+                builds.with_project(*targets)
+
+        if 'pipelines' in kwargs:
+            targets = kwargs['pipelines'].value
+
+            # An empty '--pipelines' means all of them.
+            if targets:
+                builds.with_pipeline(*targets)
+
         if 'build_status' in kwargs:
             builds.with_status(*kwargs['build_status'].value)
 
