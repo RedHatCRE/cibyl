@@ -297,6 +297,42 @@ class BuildsRequest(Request):
         self._filters.append(test)
         return self
 
+    def with_project(self, *pattern):
+        """Will limit request to builds that belong to a project which
+        follows a certain pattern.
+
+        :param pattern: Regex pattern for the project's name.
+        :type pattern: str
+        :return: The request's instance.
+        :rtype: :class:`BuildsRequest`
+        """
+
+        def test(build):
+            return any(
+                matches_regex(patt, build['project']) for patt in pattern
+            )
+
+        self._filters.append(test)
+        return self
+
+    def with_pipeline(self, *pattern):
+        """Will limit request to builds that where triggered by a pipeline
+        which follows a certain pattern.
+
+        :param pattern: Regex pattern for the pipeline's name.
+        :type pattern: str
+        :return: The request's instance.
+        :rtype: :class:`BuildsRequest`
+        """
+
+        def test(build):
+            return any(
+                matches_regex(patt, build['pipeline']) for patt in pattern
+            )
+
+        self._filters.append(test)
+        return self
+
     def with_last_build_only(self):
         """Will only return the latest build that meets the filters.
 

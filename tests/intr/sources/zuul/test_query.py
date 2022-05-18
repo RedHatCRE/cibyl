@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.models.ci.base.build import Build
+from cibyl.models.ci.zuul.build import Build
 from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
@@ -331,7 +331,7 @@ class TestHandleQuery(TestCase):
                     tenant.name,
                     jobs={
                         job1.name: Job(job1.name, job1.url),
-                        job2.name: Job(job2.name, job1.url)
+                        job2.name: Job(job2.name, job2.url)
                     }
                 )
             },
@@ -592,7 +592,7 @@ class TestHandleQuery(TestCase):
                             ]
                         ),
                         job2.name: Job(
-                            job2.name, job1.url,
+                            job2.name, job2.url,
                             variants=[
                                 Job.Variant.from_data(variant2)
                             ]
@@ -677,14 +677,22 @@ class TestHandleQuery(TestCase):
                                             job.url,
                                             builds={
                                                 build1['uuid']: Build(
-                                                    build1['uuid'],
-                                                    build1['result'],
-                                                    build1['duration']
+                                                    Build.Info(
+                                                        build1['project'],
+                                                        build1['pipeline'],
+                                                        build1['uuid'],
+                                                        build1['result'],
+                                                        build1['duration']
+                                                    )
                                                 ),
                                                 build2['uuid']: Build(
-                                                    build2['uuid'],
-                                                    build2['result'],
-                                                    build2['duration']
+                                                    Build.Info(
+                                                        build2['project'],
+                                                        build2['pipeline'],
+                                                        build2['uuid'],
+                                                        build2['result'],
+                                                        build2['duration']
+                                                    )
                                                 )
                                             }
                                         )
@@ -699,14 +707,22 @@ class TestHandleQuery(TestCase):
                             job.url,
                             builds={
                                 build1['uuid']: Build(
-                                    build1['uuid'],
-                                    build1['result'],
-                                    build1['duration']
+                                    Build.Info(
+                                        build1['project'],
+                                        build1['pipeline'],
+                                        build1['uuid'],
+                                        build1['result'],
+                                        build1['duration']
+                                    )
                                 ),
                                 build2['uuid']: Build(
-                                    build2['uuid'],
-                                    build2['result'],
-                                    build2['duration']
+                                    Build.Info(
+                                        build2['project'],
+                                        build2['pipeline'],
+                                        build2['uuid'],
+                                        build2['result'],
+                                        build2['duration']
+                                    )
                                 )
                             }
                         )
@@ -778,9 +794,13 @@ class TestHandleQuery(TestCase):
                             job.url,
                             builds={
                                 build1['uuid']: Build(
-                                    build1['uuid'],
-                                    build1['result'],
-                                    build1['duration']
+                                    Build.Info(
+                                        build1['project'],
+                                        build1['pipeline'],
+                                        build1['uuid'],
+                                        build1['result'],
+                                        build1['duration']
+                                    )
                                 )
                             }
                         )
@@ -855,9 +875,181 @@ class TestHandleQuery(TestCase):
                             job.url,
                             builds={
                                 build2['uuid']: Build(
-                                    build2['uuid'],
-                                    build2['result'],
-                                    build2['duration']
+                                    Build.Info(
+                                        build2['project'],
+                                        build2['pipeline'],
+                                        build2['uuid'],
+                                        build2['result'],
+                                        build2['duration']
+                                    )
+                                )
+                            }
+                        )
+                    }
+                )
+            },
+            result.value
+        )
+
+    def test_get_builds_by_project(self):
+        """Checks the '--projects pattern1 --builds' option.
+        """
+        project1 = 'project1'
+        project2 = 'project2'
+
+        build1 = DictMock()
+        build1['uuid'] = 'build1'
+        build1['result'] = 'FAILURE'
+        build1['project'] = project2
+        build1['pipeline'] = 'pipeline'
+        build1['duration'] = 1000
+
+        build2 = DictMock()
+        build2['uuid'] = 'build2'
+        build2['result'] = 'SUCCESS'
+        build2['project'] = project1
+        build2['pipeline'] = 'pipeline'
+        build2['duration'] = 1000
+
+        build3 = DictMock()
+        build3['uuid'] = 'build3'
+        build3['result'] = 'FAILURE'
+        build3['project'] = project2
+        build3['pipeline'] = 'pipeline'
+        build3['duration'] = 1000
+
+        job = Mock()
+        job.name = 'job'
+        job.url = 'url'
+        job.builds = Mock()
+        job.builds.return_value = [build1, build2, build3]
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+        tenant.jobs = Mock()
+        tenant.jobs.return_value = [job]
+        tenant.projects = Mock()
+        tenant.projects.return_value = []
+
+        job.tenant = tenant
+
+        build1.job = job
+        build2.job = job
+        build3.job = job
+
+        api = Mock()
+        api.tenants = Mock()
+        api.tenants.return_value = [tenant]
+
+        in_project = Mock()
+        in_project.value = [project1]
+
+        in_builds = Mock()
+        in_builds.value = None
+
+        result = handle_query(api, projects=in_project, builds=in_builds)
+
+        self.assertEqual(
+            {
+                tenant.name: Tenant(
+                    tenant.name,
+                    jobs={
+                        job.name: Job(
+                            job.name,
+                            job.url,
+                            builds={
+                                build2['uuid']: Build(
+                                    Build.Info(
+                                        build2['project'],
+                                        build2['pipeline'],
+                                        build2['uuid'],
+                                        build2['result'],
+                                        build2['duration']
+                                    )
+                                )
+                            }
+                        )
+                    }
+                )
+            },
+            result.value
+        )
+
+    def test_get_builds_by_pipeline(self):
+        """Checks the '--pipelines pattern1 --builds' option.
+        """
+        pipeline1 = 'pipeline1'
+        pipeline2 = 'pipeline2'
+
+        build1 = DictMock()
+        build1['uuid'] = 'build1'
+        build1['result'] = 'FAILURE'
+        build1['project'] = 'project'
+        build1['pipeline'] = pipeline1
+        build1['duration'] = 1000
+
+        build2 = DictMock()
+        build2['uuid'] = 'build2'
+        build2['result'] = 'SUCCESS'
+        build2['project'] = 'project'
+        build2['pipeline'] = pipeline2
+        build2['duration'] = 1000
+
+        build3 = DictMock()
+        build3['uuid'] = 'build3'
+        build3['result'] = 'FAILURE'
+        build3['project'] = 'project'
+        build3['pipeline'] = pipeline1
+        build3['duration'] = 1000
+
+        job = Mock()
+        job.name = 'job'
+        job.url = 'url'
+        job.builds = Mock()
+        job.builds.return_value = [build1, build2, build3]
+
+        tenant = Mock()
+        tenant.name = 'tenant'
+        tenant.jobs = Mock()
+        tenant.jobs.return_value = [job]
+        tenant.projects = Mock()
+        tenant.projects.return_value = []
+
+        job.tenant = tenant
+
+        build1.job = job
+        build2.job = job
+        build3.job = job
+
+        api = Mock()
+        api.tenants = Mock()
+        api.tenants.return_value = [tenant]
+
+        in_pipelines = Mock()
+        in_pipelines.value = [pipeline2]
+
+        in_builds = Mock()
+        in_builds.value = None
+
+        result = handle_query(api, pipelines=in_pipelines, builds=in_builds)
+
+        self.assertEqual(
+            {
+                tenant.name: Tenant(
+                    tenant.name,
+                    jobs={
+                        job.name: Job(
+                            job.name,
+                            job.url,
+                            builds={
+                                build2['uuid']: Build(
+                                    Build.Info(
+                                        build2['project'],
+                                        build2['pipeline'],
+                                        build2['uuid'],
+                                        build2['result'],
+                                        build2['duration']
+                                    )
                                 )
                             }
                         )
@@ -932,9 +1124,13 @@ class TestHandleQuery(TestCase):
                             job.url,
                             builds={
                                 build1['uuid']: Build(
-                                    build1['uuid'],
-                                    build1['result'],
-                                    build1['duration']
+                                    Build.Info(
+                                        build1['project'],
+                                        build1['pipeline'],
+                                        build1['uuid'],
+                                        build1['result'],
+                                        build1['duration']
+                                    )
                                 )
                             }
                         )
