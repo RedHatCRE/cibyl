@@ -18,7 +18,8 @@ from unittest.mock import Mock, patch
 
 import cibyl.orchestrator
 from cibyl.config import Config
-from cibyl.exceptions.config import InvalidConfiguration
+from cibyl.exceptions.config import (CHECK_DOCS_MSG, InvalidConfiguration,
+                                     NonSupportedSystemKey)
 from cibyl.exceptions.source import NoValidSources
 from cibyl.orchestrator import Orchestrator, source_information_from_method
 from cibyl.sources.source import Source
@@ -242,3 +243,33 @@ class TestOrchestrator(TestCase):
         self.orchestrator.create_ci_environments()
         self.orchestrator.setup_sources()
         patched_setup.assert_called_once_with()
+
+    def test_not_supported_system_key_jobs_system(self):
+        """Test that a NonSupportedSystemKey is raised if the configuration
+        contains invalid parameters for a jobs system."""
+        config = {
+            'environments': {
+                'env1': {
+                    'system1': {
+                        'system_type': 'jenkins',
+                        'tenants': 'tenant'}}}}
+        self.orchestrator.config.data = config
+        msg = "The following key in jenkins system type is not supported:"
+        msg += f" tenants\n\n{CHECK_DOCS_MSG}"
+        with self.assertRaises(NonSupportedSystemKey, msg=msg):
+            self.orchestrator.create_ci_environments()
+
+    def test_not_supported_system_key_zuul_system(self):
+        """Test that a NonSupportedSystemKey is raised if the configuration
+        contains invalid parameters for a zuul system."""
+        config = {
+            'environments': {
+                'env1': {
+                    'system1': {
+                        'system_type': 'zuul',
+                        'non-existing': 'tenant'}}}}
+        self.orchestrator.config.data = config
+        msg = "The following key in jenkins system type is not supported:"
+        msg += f" non-existing\n\n{CHECK_DOCS_MSG}"
+        with self.assertRaises(NonSupportedSystemKey, msg=msg):
+            self.orchestrator.create_ci_environments()
