@@ -19,9 +19,10 @@ from cibyl.cli.main import main
 from cibyl.utils.strings import IndentedTextBuilder
 from tests.e2e.containers.zuul import OpenDevZuulContainer
 from tests.e2e.fixtures import EndToEndTest
+from tests.utils.assertions import ExtraAssertions
 
 
-class TestZuul(EndToEndTest):
+class TestZuul(EndToEndTest, ExtraAssertions):
     """Tests queries regarding the Zuul source.
     """
 
@@ -305,3 +306,39 @@ class TestZuul(EndToEndTest):
         self.assertIn('Tenant: example-tenant', self.output)
         self.assertIn('Tenant: example-tenant-2', self.output)
         self.assertIn('Total tenants found in query: 2', self.output)
+
+    def test_implicit_arguments_are_logged(self):
+        """Checks that a log entry is added for each argument that is
+        implicitly added to the query, such as '--tenants' or '--projects'.
+        """
+
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul/with-tenants.yaml',
+            '-f', 'text',
+            '--builds'
+        ]
+
+        with self.assertLogs(level='INFO') as log:
+            main()
+
+            self.assertContains(
+                "Omitted argument '--tenants', "
+                "loading defaults from configuration file",
+                log.output
+            )
+
+            self.assertContains(
+                "Omitted argument '--projects' implicitly added to query",
+                log.output
+            )
+
+            self.assertContains(
+                "Omitted argument '--pipelines' implicitly added to query",
+                log.output
+            )
+
+            self.assertContains(
+                "Omitted argument '--jobs' implicitly added to query",
+                log.output
+            )
