@@ -95,3 +95,14 @@ class NonSupportedSourceType(CibylException):
 Use one of the following source types:\n  {types}"""
 
         super().__init__(self.message)
+
+
+class MissingSourceKey(CibylException):
+    """Configuration section is incomplete and missing a key."""
+
+    def __init__(self, source_type, key):
+        colored_key = Colors.blue(key)
+        self.message = f"""The following key in "{source_type}" source type \
+is missing and required for the source to become operational: {colored_key}."""
+
+        super().__init__(self.message)
