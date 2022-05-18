@@ -14,6 +14,7 @@
 #    under the License.
 """
 from cibyl.exceptions import CibylException
+from cibyl.utils.colors import Colors
 
 CONFIG_DOCS_URL = "https://cibyl.readthedocs.io/en/latest/configuration.html"
 CHECK_DOCS_MSG = f"Check the documentation at {CONFIG_DOCS_URL} \
@@ -81,5 +82,16 @@ class NonSupportedSystemKey(CibylException):
     def __init__(self, source_type, key):
         self.message = f"""The following key in "{source_type}" system type \
 is not supported: {key}\n\n{CHECK_DOCS_MSG}"""
+
+        super().__init__(self.message)
+
+
+class NonSupportedSourceType(CibylException):
+    """Configuration source type is not supported."""
+
+    def __init__(self, source_type, source_types):
+        types = Colors.blue("\n  ".join([t.value for t in source_types]))
+        self.message = f"""The source type "{source_type}" isn't supported.
+Use one of the following source types:\n  {types}"""
 
         super().__init__(self.message)

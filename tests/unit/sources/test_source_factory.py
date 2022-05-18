@@ -15,6 +15,7 @@
 """
 from unittest import TestCase
 
+from cibyl.exceptions.config import NonSupportedSourceType
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
@@ -64,6 +65,6 @@ class TestSourceFactory(TestCase):
 
     def test_create_unknown_source(self):
         """Checks that an exception is raise if the source type is unknown."""
-        self.assertRaises(NotImplementedError,
+        self.assertRaises(NonSupportedSourceType,
                           SourceFactory.create_source,
                           "unknown", "zuul_source")

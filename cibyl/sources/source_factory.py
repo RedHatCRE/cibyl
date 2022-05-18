@@ -16,7 +16,8 @@
 import re
 from enum import Enum
 
-from cibyl.exceptions.config import NonSupportedSourceKey
+from cibyl.exceptions.config import (NonSupportedSourceKey,
+                                     NonSupportedSourceType)
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
@@ -79,5 +80,4 @@ class SourceFactory:
             if re_result:
                 raise NonSupportedSourceKey(source_type, re_result.group(1))
 
-        msg = f"Unknown source type '{source_type}'"
-        raise NotImplementedError(msg)
+        raise NonSupportedSourceType(source_type, SourceType)
