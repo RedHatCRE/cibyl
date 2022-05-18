@@ -16,7 +16,7 @@
 import re
 from enum import Enum
 
-from cibyl.exceptions.config import (NonSupportedSourceKey,
+from cibyl.exceptions.config import (MissingSourceKey, NonSupportedSourceKey,
                                      NonSupportedSourceType)
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 from cibyl.sources.jenkins import Jenkins
@@ -75,9 +75,15 @@ class SourceFactory:
             if source_type == SourceType.ZUUL_D:
                 return ZuulD(name=name, **kwargs)
         except TypeError as ex:
-            re_result = re.search(r'unexpected keyword argument (.*)',
-                                  ex.args[0])
-            if re_result:
-                raise NonSupportedSourceKey(source_type, re_result.group(1))
+            re_unexpected_arg = re.search(r'unexpected keyword argument (.*)',
+                                          ex.args[0])
+            if re_unexpected_arg:
+                raise NonSupportedSourceKey(
+                    source_type, re_unexpected_arg.group(1))
+            re_missing_arg = re.search(r'required positional argument: (.*)',
+                                       ex.args[0])
+            if re_missing_arg:
+                raise MissingSourceKey(source_type, re_missing_arg.group(1))
+            raise
 
         raise NonSupportedSourceType(source_type, SourceType)
