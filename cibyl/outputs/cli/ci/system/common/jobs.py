@@ -33,7 +33,18 @@ def has_plugin_section(job):
         False if not.
     :rtype: bool
     """
-    return job.plugin_attributes
+    if not job.plugin_attributes:
+        return False
+    has_plugin_attribute = False
+    for plugin_attribute in job.plugin_attributes:
+        # Plugins install some attributes as part of the model
+        attribute = getattr(job, plugin_attribute)
+
+        # Check if the attribute is populated
+        if not attribute.value:
+            continue
+        has_plugin_attribute = True
+    return has_plugin_attribute
 
 
 def get_plugin_section(printer, job):
@@ -57,11 +68,11 @@ def get_plugin_section(printer, job):
 
     text = IndentedTextBuilder()
 
-    for plugin in job.plugin_attributes:
-        # Plugins are installed as part of the model
-        attribute = getattr(job, plugin)
+    for plugin_attribute in job.plugin_attributes:
+        # Plugins install some attributes as part of the model
+        attribute = getattr(job, plugin_attribute)
 
-        # Check if the plugin is installed
+        # Check if the attribute is populated
         if not attribute.value:
             continue
 
