@@ -24,8 +24,23 @@ from cibyl.utils.strings import IndentedTextBuilder
 LOG = logging.getLogger(__name__)
 
 
+def has_plugin_section(job):
+    """Checks whether a job is worth having a plugins' section for.
+
+    :param job: The job to check.
+    :type job: :class:`cibyl.models.ci.base.job.Job`
+    :return: True if the job has enough data to build a plugins' section with,
+        False if not.
+    :rtype: bool
+    """
+    return job.plugin_attributes
+
+
 def get_plugin_section(printer, job):
     """Gets the text describing the plugins that affect a job.
+
+    ..  seealso::
+        See :func:`has_plugin_section`.
 
     :param printer: The printer the text will be based on. The output of
         this function will follow the styling of this.
@@ -34,7 +49,12 @@ def get_plugin_section(printer, job):
     :type job: :class:`cibyl.models.ci.base.job.Job`
     :return: The description.
     :rtype: str
+    :raises ValueError: If the job does not have enough data to build the
+        section.
     """
+    if not has_plugin_section(job):
+        raise ValueError('Job is missing plugin attributes.')
+
     text = IndentedTextBuilder()
 
     for plugin in job.plugin_attributes:

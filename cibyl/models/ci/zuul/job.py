@@ -22,7 +22,7 @@ from cibyl.models.model import Model
 
 
 class Job(BaseJob):
-    """Representation of job of a zuul environment.
+    """Representation of a job on a zuul environment.
 
     @DynamicAttrs: Contains attributes added on runtime.
     """

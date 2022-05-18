@@ -147,6 +147,8 @@ class TestModelBuilder(TestCase):
         build.data = {
             'uuid': 'id',
             'result': 'SUCCESS',
+            'project': 'project',
+            'pipeline': 'pipeline',
             'duration': 0
         }
 

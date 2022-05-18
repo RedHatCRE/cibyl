@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.models.ci.base.build import Build
+from cibyl.models.ci.zuul.build import Build
 from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
@@ -161,9 +161,13 @@ class ModelBuilder:
         model = job.builds.get(
             build.data['uuid'],
             Build(
-                build.data['uuid'],
-                build.data['result'],
-                build.data['duration']
+                Build.Info(
+                    project=build.data['project'],
+                    pipeline=build.data['pipeline'],
+                    uuid=build.data['uuid'],
+                    result=build.data['result'],
+                    duration=build.data['duration']
+                )
             )
         )
 

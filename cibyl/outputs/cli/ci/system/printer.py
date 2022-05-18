@@ -16,15 +16,15 @@
 from abc import ABC, abstractmethod
 
 
-class CIPrinter(ABC):
-    """Interface for printers of a CI model hierarchy.
+class CISystemPrinter(ABC):
+    """Interface for printers of a CI system.
     """
 
     @abstractmethod
-    def print_environment(self, env):
+    def print_system(self, system):
         """
-        :param env: The environment.
-        :type env: :class:`cibyl.models.ci.base.environment.Environment`
+        :param system: The system.
+        :type system: :class:`cibyl.models.ci.base.system.System`
         :return: Textual representation of the provided model.
         :rtype: str
         """

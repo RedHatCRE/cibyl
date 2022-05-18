@@ -13,33 +13,26 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import logging
-
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
-from cibyl.outputs.cli.ci.systems.common.jobs import get_plugin_section
-from cibyl.outputs.cli.ci.systems.printer import CISystemPrinter
+from cibyl.outputs.cli.ci.system.common.builds import (get_duration_section,
+                                                       get_status_section)
+from cibyl.outputs.cli.ci.system.common.jobs import (get_plugin_section,
+                                                     has_plugin_section)
+from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
 
-LOG = logging.getLogger(__name__)
 
-
-class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
-    """Default printer for all system models. This one is decorated with
-    colors for easier read.
+class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
+    """Printer meant for :class:`JobsSystem`, decorated with colors for
+    easier read.
     """
 
     @overrides
     def print_system(self, system):
-        """
-        :param system: The system.
-        :type system: :class:`cibyl.models.ci.base.system.JobsSystem`
-        :return: Textual representation of the provided model.
-        :rtype: str
-        """
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('System: '), 0)
@@ -83,7 +76,8 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
             for build in job.builds.values():
                 printer.add(self.print_build(build), 1)
 
-        printer.add(get_plugin_section(self, job), 1)
+        if has_plugin_section(job):
+            printer.add(get_plugin_section(self, job), 1)
 
         return printer.build()
 
@@ -100,27 +94,11 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
         printer[0].append(build.build_id.value)
 
         if build.status.value:
-            status_x_color_map = {
-                'SUCCESS': lambda: self._palette.green(build.status.value),
-                'FAILURE': lambda: self._palette.red(build.status.value),
-                'UNSTABLE': lambda: self._palette.yellow(
-                    build.status.value)
-            }
-
-            status = status_x_color_map.get(
-                build.status.value,
-                lambda: self._palette.underline(build.status.value)
-            )()
-
-            printer.add(self._palette.blue('Status: '), 1)
-            printer[-1].append(status)
+            printer.add(get_status_section(self.palette, build), 1)
 
         if self.verbosity > 0:
             if build.duration.value:
-                duration = as_minutes(build.duration.value)
-
-                printer.add(self._palette.blue('Duration: '), 1)
-                printer[-1].append(f'{duration:.2f}m')
+                printer.add(get_duration_section(self.palette, build), 1)
 
         if build.tests.value:
             for test in build.tests.values():

@@ -13,21 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from abc import ABC, abstractmethod
-
-from cibyl.outputs.cli.printer import Printer
-
-
-class CISystemPrinter(Printer, ABC):
-    """Base class for all printers for a CI system.
-    """
-
-    @abstractmethod
-    def print_system(self, system):
-        """
-        :param system: The system.
-        :type system: :class:`cibyl.models.ci.base.system.System`
-        :return: Textual representation of the provided model.
-        :rtype: str
-        """
-        raise NotImplementedError

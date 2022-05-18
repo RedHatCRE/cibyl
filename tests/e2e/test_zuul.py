@@ -81,7 +81,7 @@ class TestZuul(EndToEndTest):
         main()
 
         self.assertIn(
-            "Total projects found in tenant 'example-tenant': 4",
+            "Total projects found in query for tenant 'example-tenant': 4",
             self.output
         )
 
@@ -106,7 +106,7 @@ class TestZuul(EndToEndTest):
         )
 
         self.assertIn(
-            "Total projects found in tenant 'example-tenant': 1",
+            "Total projects found in query for tenant 'example-tenant': 1",
             self.output
         )
 
@@ -149,7 +149,7 @@ class TestZuul(EndToEndTest):
         main()
 
         self.assertNotIn(
-            "Total jobs found in tenant 'example-tenant':",
+            "Total jobs found in query for tenant 'example-tenant':",
             self.output
         )
 
@@ -169,7 +169,7 @@ class TestZuul(EndToEndTest):
         main()
 
         self.assertNotIn(
-            "Total jobs found in tenant 'example-tenant':",
+            "Total jobs found in query for tenant 'example-tenant':",
             self.output
         )
 
@@ -188,7 +188,7 @@ class TestZuul(EndToEndTest):
         main()
 
         self.assertIn(
-            "Total jobs found in tenant 'example-tenant': 65",
+            "Total jobs found in query for tenant 'example-tenant': 65",
             self.output
         )
 
@@ -212,7 +212,7 @@ class TestZuul(EndToEndTest):
         )
 
         self.assertIn(
-            "Total jobs found in tenant 'example-tenant': 1",
+            "Total jobs found in query for tenant 'example-tenant': 1",
             self.output
         )
 
@@ -237,7 +237,7 @@ class TestZuul(EndToEndTest):
         )
 
         self.assertIn(
-            "Total jobs found in tenant 'example-tenant': 1",
+            "Total jobs found in query for tenant 'example-tenant': 1",
             self.output
         )
 

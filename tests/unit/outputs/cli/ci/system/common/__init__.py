@@ -13,19 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from abc import ABC, abstractmethod
-
-
-class CIPrinter(ABC):
-    """Interface for printers of a CI model hierarchy.
-    """
-
-    @abstractmethod
-    def print_environment(self, env):
-        """
-        :param env: The environment.
-        :type env: :class:`cibyl.models.ci.base.environment.Environment`
-        :return: Textual representation of the provided model.
-        :rtype: str
-        """
-        raise NotImplementedError
