@@ -60,7 +60,8 @@ def get_query_type(**kwargs):
     if 'pipelines' in kwargs:
         result = QueryType.PIPELINES
 
-    if 'jobs' in kwargs or 'spec' in kwargs:
+    job_args = subset(kwargs, ["jobs", "variants", "job_url"])
+    if job_args:
         result = QueryType.JOBS
 
     build_args = subset(kwargs, ["builds", "last_build", "build_status"])
