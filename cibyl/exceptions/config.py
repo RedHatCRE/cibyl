@@ -106,3 +106,14 @@ class MissingSourceKey(CibylException):
 is missing and required for the source to become operational: {colored_key}."""
 
         super().__init__(self.message)
+
+
+class MissingSourceType(CibylException):
+    """Configuration source type isn't specified."""
+
+    def __init__(self, source_name, source_types):
+        types = Colors.blue("\n  ".join([t.value for t in source_types]))
+        self.message = f"""Missing 'driver: <TYPE>' for source {source_name}
+Use one of the following source types:\n  {types}"""
+
+        super().__init__(self.message)
