@@ -14,6 +14,7 @@
 #    under the License.
 """
 # pylint: disable=no-member
+import logging
 from unittest import TestCase
 from unittest.mock import Mock, call
 
@@ -53,7 +54,8 @@ def get_yaml_from_topology_string(topology):
 
 def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
                        tls_everywhere, infra_type, ml2_driver=None,
-                       ironic_inspector=None, cleaning_network=None):
+                       ironic_inspector=None, cleaning_network=None,
+                       security_group=None):
     """Provide a yaml representation for the paremeters obtained from an
     infrared overcloud-install.yml file.
 
@@ -96,6 +98,9 @@ def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
     overcloud["cleaning"] = {"network": False}
     if cleaning_network:
         overcloud["cleaning"]["network"] = True
+    if security_group:
+        security_group_dict = {"NeutronOVSFirewallDriver": security_group}
+        overcloud["config"] = {"heat": security_group_dict}
     return yaml.dump({"install": overcloud})
 
 
@@ -104,6 +109,7 @@ class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
 
     def setUp(self):
         self.jenkins = Jenkins("url", "user", "token")
+        logging.disable(logging.CRITICAL)
 
     def test_get_deployment(self):
         """ Test that get_deployment reads properly the information obtained
@@ -1328,7 +1334,8 @@ tripleo_ironic_conductor.service loaded    active     running
                                    "ceph", "geneve", False,
                                    False, "path/to/ovb",
                                    ironic_inspector=False, ml2_driver="ovs",
-                                   cleaning_network=True)]
+                                   cleaning_network=True,
+                                   security_group="openvswitch")]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1355,6 +1362,7 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertEqual(deployment.ml2_driver.value, "ovs")
             self.assertEqual(deployment.ironic_inspector.value, "False")
             self.assertEqual(deployment.cleaning_network.value, "True")
+            self.assertEqual(deployment.security_group.value, "openvswitch")
             for component in topology.split(","):
                 role, amount = component.split(":")
                 for i in range(int(amount)):
@@ -1410,6 +1418,7 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertEqual(deployment.ml2_driver.value, "ovn")
             self.assertEqual(deployment.tls_everywhere.value, "False")
             self.assertEqual(deployment.infra_type.value, "ovb")
+            self.assertEqual(deployment.security_group.value, "native ovn")
             for component in topology.split(","):
                 role, amount = component.split(":")
                 for i in range(int(amount)):
@@ -1460,6 +1469,9 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.ml2_driver.value, "ovn")
         self.assertEqual(deployment.tls_everywhere.value, missing_info)
         self.assertEqual(deployment.infra_type.value, missing_info)
+        self.assertEqual(deployment.security_group.value, "native ovn")
+        self.assertEqual(deployment.cleaning_network.value, missing_info)
+        self.assertEqual(deployment.ironic_inspector.value, missing_info)
 
     def test_get_deployment_spec_no_overcloud_info_ovs_default(self):
         """ Test get_deployment call with --spec and missing overcloud info.
@@ -1500,6 +1512,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.ml2_driver.value, "ovs")
         self.assertEqual(deployment.tls_everywhere.value, missing_info)
         self.assertEqual(deployment.infra_type.value, missing_info)
+        self.assertEqual(deployment.security_group.value, "iptables hybrid")
 
     def test_get_deployment_filter_containers(self):
         """ Test get_deployment call with --containers."""

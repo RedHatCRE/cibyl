@@ -113,7 +113,12 @@ class Jenkins:
                        "network_backend", "storage_backend",
                        "infra_type", "dvr", "ip_version",
                        "tls_everywhere", "ml2_driver",
-                       "ironic_inspector", "cleaning_network"]
+                       "ironic_inspector"]
+
+    # deployment properties that have no cli argument and will not be used to
+    # filter jobs, just for the spec
+    spec_params = ["cleaning_network", "security_group"]
+    possible_attributes = deployment_attr+spec_params
 
     def add_job_info_from_name(self, job:  Dict[str, str], **kwargs):
         """Add information to the job by using regex on the job name. Check if
@@ -176,7 +181,7 @@ class Jenkins:
             if "tls" in job_name.lower():
                 job["tls_everywhere"] = "True"
 
-    def job_missing_deployment_info(self, job: Dict[str, str]):
+    def job_missing_deployment_info(self, job: Dict[str, str], **kwargs):
         """Check if a given Jenkins job has all deployment attributes.
 
         :param job: Dictionary representation of a jenkins job
@@ -184,8 +189,10 @@ class Jenkins:
         :returns: Whether all deployment attributes are found in the job
         :rtype bool:
         """
-        for attr in self.deployment_attr:
-            if attr not in job or not job[attr]:
+        spec = "spec" in kwargs
+        for attr in self.possible_attributes:
+            should_query = spec or attr in kwargs
+            if should_query and (attr not in job or not job[attr]):
                 return True
         return False
 
@@ -304,6 +311,7 @@ accurate results", len(jobs_found))
             tls_everywhere = job.get("tls_everywhere", "")
             ironic_inspector = job.get("ironic_inspector", "")
             cleaning_network = job.get("cleaning_network", "")
+            security_group = job.get("security_group", "")
             deployment = Deployment(job.get("release", ""),
                                     job.get("infra_type", ""),
                                     nodes=job.get("nodes", {}),
@@ -316,7 +324,8 @@ accurate results", len(jobs_found))
                                     dvr=job.get("dvr", ""),
                                     ironic_inspector=ironic_inspector,
                                     cleaning_network=cleaning_network,
-                                    tls_everywhere=tls_everywhere)
+                                    tls_everywhere=tls_everywhere,
+                                    security_group=security_group)
             job_objects[name].add_deployment(deployment)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
@@ -405,8 +414,12 @@ accurate results", len(jobs_found))
                 job["ironic_inspector"] = str(overcloud.get("ironic_inspector",
                                                             False))
             if spec:
-                cleaning = overcloud.get("cleaning")
+                cleaning = overcloud.get("cleaning", {})
                 job["cleaning_network"] = str(cleaning.get("network", ""))
+                config = overcloud.get("config", {})
+                heat = config.get("heat", {})
+                job["security_group"] = heat.get("NeutronOVSFirewallDriver",
+                                                 "")
 
         except JenkinsError:
             LOG.debug("Found no artifact %s for job %s", artifact_path,
@@ -452,7 +465,7 @@ accurate results", len(jobs_found))
                 LOG.debug("Found no artifact %s for job %s", artifact_path,
                           job_name)
 
-        if self.job_missing_deployment_info(job):
+        if self.job_missing_deployment_info(job, **kwargs):
             LOG.debug("Resorting to get deployment information from job name"
                       " for job %s", job_name)
             self.add_job_info_from_name(job, **kwargs)
@@ -464,9 +477,16 @@ accurate results", len(jobs_found))
                     job["ml2_driver"] = "ovn"
                 else:
                     job["ml2_driver"] = "ovs"
-                LOG.warning("Some logs are missing for job %s, information "
-                            "will be retrieved from the job name, but will "
-                            "be incomplete", job_name)
+            LOG.warning("Some logs are missing for job %s, information "
+                        "will be retrieved from the job name, but will "
+                        "be incomplete", job_name)
+            if spec and not job.get("security_group"):
+                ml2_driver = job["ml2_driver"]
+                if ml2_driver == "ovn":
+                    job["security_group"] = "native ovn"
+                else:
+                    job["security_group"] = "iptables hybrid"
+            if spec:
                 self.add_unable_to_find_info_message(job)
 
     def get_packages_node(self, node_name, logs_url, job_name):
@@ -593,6 +613,6 @@ accurate results", len(jobs_found))
         :type job: dict
         """
         message = "N/A"
-        for attr in self.deployment_attr:
+        for attr in self.possible_attributes:
             if not job.get(attr):
                 job[attr] = message

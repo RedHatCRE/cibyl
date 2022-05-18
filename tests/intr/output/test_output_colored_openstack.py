@@ -80,8 +80,6 @@ class TestOutputZuulSystemWithOpenstackPlugin(OpenstackPluginWithZuulSystem):
         printer = zuul_colored.ColoredZuulSystemPrinter(palette=palette,
                                                         query=QueryType.JOBS)
         output = printer.print_system(system)
-        print("")
-        print(output)
         # check that output is five lines long(system line, one line per job
         # and the line for total number of jobs)
         self.assertEqual(12, len(output.split("\n")))
@@ -99,6 +97,4 @@ class TestOutputZuulSystemWithOpenstackPlugin(OpenstackPluginWithZuulSystem):
         expected += "    Total projects found in query for tenant"
         expected += " 'tenant': 1\n"
         expected += "  Total tenants found in query: 1"
-        print("")
-        print(expected)
         self.assertEqual(output, expected)
