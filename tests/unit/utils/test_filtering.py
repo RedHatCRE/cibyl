@@ -13,9 +13,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import re
 from unittest import TestCase
 
-from cibyl.utils.filtering import apply_filters, matches_regex
+from cibyl.utils.filtering import (TOPOLOGY_PATTERN, apply_filters,
+                                   matches_regex)
+
+
+def match_topology_pattern(string):
+
+    match_found = re.search(TOPOLOGY_PATTERN, string)
+    if match_found:
+        return match_found.group(1)
+    return ""
 
 
 class TestMatchesRegex(TestCase):
@@ -53,3 +63,22 @@ class TestApplyFilters(TestCase):
         ]
 
         self.assertEqual([5], apply_filters(data, *filters))
+
+
+class TestRegexPatterns(TestCase):
+    """Test some regex patterns defined in filtering.py"""
+
+    def test_topology_regex(self):
+        """Test that the topology regex captures correctly the topology from
+        a job name."""
+        string = "DFG-16.1-from-13-latest_cdn-3cont_3db_3msg_2net_3hci-"
+        output = match_topology_pattern(string)
+        self.assertEqual(output, "3cont_3db_3msg_2net_3hci")
+        output = match_topology_pattern("DFG-network-ml2ovn-fdp-trigger")
+        self.assertEqual(output, "")
+        output = match_topology_pattern("3cont-2temp")
+        self.assertEqual(output, "2temp")
+        output = match_topology_pattern("DFG-network-2ovn-fdp-trigger")
+        self.assertEqual(output, "2ovn")
+        output = match_topology_pattern("DFG-network_2ovn-fdp-trigger")
+        self.assertEqual(output, "2ovn")
