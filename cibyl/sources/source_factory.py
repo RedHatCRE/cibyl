@@ -16,7 +16,8 @@
 import re
 from enum import Enum
 
-from cibyl.exceptions.config import (MissingSourceKey, NonSupportedSourceKey,
+from cibyl.exceptions.config import (MissingSourceKey, MissingSourceType,
+                                     NonSupportedSourceKey,
                                      NonSupportedSourceType)
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP
 from cibyl.sources.jenkins import Jenkins
@@ -86,4 +87,7 @@ class SourceFactory:
                 raise MissingSourceKey(source_type, re_missing_arg.group(1))
             raise
 
-        raise NonSupportedSourceType(source_type, SourceType)
+        if source_type:
+            raise NonSupportedSourceType(source_type, SourceType)
+        else:
+            raise MissingSourceType(name, SourceType)
