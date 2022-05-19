@@ -14,16 +14,17 @@
 #    under the License.
 """
 
+from unittest import TestCase
 
-class CibylException(Exception):
-    """Parent class for all cibyl exceptions for easier control of the
-    exceptions' representation.
-    """
+from cibyl.exceptions.source import NoSupportedSourcesFound
 
-    def __init__(self, message=''):
-        """Constructor.
 
-        :param message: The reason for this error.
-        :type message: str
-        """
-        super().__init__(*[message])
+class TestCibylExceptions(TestCase):
+    """Test the behavior of CibylException types."""
+
+    def test_cibyl_no_supported_sources_found_message(self):
+        """"""""
+        exception = NoSupportedSourcesFound("system", "func")
+        expected = "Couldn't find any enabled source for the system "
+        expected += "system that implements the function func."
+        self.assertEqual(str(exception), expected)
