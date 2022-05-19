@@ -246,6 +246,8 @@ class TestQueryLevel(EndToEndTest):
         expected.add('Environment: env_1', 0)
         expected.add('System: zuul_system', 1)
         expected.add('Tenant: example-tenant', 2)
+        expected.add('Projects: ', 3)
+        expected.add('No projects found in query.', 4)
         expected.add('Jobs: ', 3)
         expected.add('Job: build-docker-image', 4)
         expected.add('Variants: ', 5)
@@ -287,15 +289,16 @@ class TestQueryComposing(EndToEndTest):
 
         main()
 
-        expected = IndentedTextBuilder()
-        expected.add('Environment: env_1', 0)
-        expected.add('System: zuul_system', 1)
-        expected.add('Tenant: example-tenant', 2)
-        expected.add('Tenant: example-tenant-2', 2)
-        expected.add('Projects: ', 3)
-        expected.add('Project: test2', 4)
+        expected1 = IndentedTextBuilder()
+        expected1.add('Tenant: example-tenant', 2)
 
-        self.assertIn(expected.build(), self.output)
+        expected2 = IndentedTextBuilder()
+        expected2.add('Tenant: example-tenant-2', 2)
+        expected2.add('Projects: ', 3)
+        expected2.add('Project: test2', 4)
+
+        self.assertIn(expected1.build(), self.output)
+        self.assertIn(expected2.build(), self.output)
 
     def test_tenants_with_jobs(self):
         """Checks that '--tenants --project projectA' gets you all tenants
@@ -314,6 +317,8 @@ class TestQueryComposing(EndToEndTest):
         expected1.add('Environment: env_1', 0)
         expected1.add('System: zuul_system', 1)
         expected1.add('Tenant: example-tenant', 2)
+        expected1.add('Projects: ', 3)
+        expected1.add('No projects found in query.', 4)
         expected1.add('Jobs: ', 3)
         expected1.add('Job: build-docker-image', 4)
 
@@ -343,6 +348,8 @@ class TestQueryComposing(EndToEndTest):
 
         expected2 = IndentedTextBuilder()
         expected2.add('Tenant: example-tenant', 2)
+        expected2.add('Projects: ', 3)
+        expected2.add('No projects found in query.', 4)
         expected2.add('Jobs: ', 3)
         expected2.add('Job: build-docker-image', 4)
 

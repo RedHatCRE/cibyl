@@ -61,14 +61,14 @@ class TestParser(TestCase):
         self.assertEqual(self.parser.ci_args, {})
 
         self.parser.extend(self.environment.arguments, 'Environment')
-        self.parser.parse(['--env-name', 'env1', '--plugin', 'openshift'])
+        self.parser.parse(['--envs', 'env1', '--plugin', 'openshift'])
         self.assertEqual(self.parser.app_args, {'plugin': 'openshift',
                                                 'verbosity': 0,
                                                 'output_style': 'colorized',
                                                 'debug': False})
         self.assertEqual(self.parser.ci_args,
-                         {'env_name': Argument(
-                             name='env_name', arg_type=str,
+                         {'envs': Argument(
+                             name='envs', arg_type=str,
                              description='Name of the environment', nargs=1,
                              func=None, populated=False, level=0,
                              value=['env1'])})
