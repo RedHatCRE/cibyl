@@ -16,6 +16,7 @@
 from copy import deepcopy
 from unittest import TestCase
 
+from cibyl.cli.query import QuerySelector
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.zuul.job import Job as ZuulJob
@@ -43,6 +44,7 @@ class RestoreAPIs(TestCase):
         Job.plugin_attributes = deepcopy(cls.plugin_attributes)
         ZuulJob.API = deepcopy(cls.original_zuul_job_api)
         System.API = deepcopy(cls.original_system_api)
+        QuerySelector.query_selector_functions = []
 
 
 class JobSystemAPI(TestCase):
