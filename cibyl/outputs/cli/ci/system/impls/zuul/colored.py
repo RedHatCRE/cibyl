@@ -25,6 +25,7 @@ from cibyl.outputs.cli.ci.system.common.jobs import (get_plugin_section,
 from cibyl.outputs.cli.ci.system.impls.base.colored import \
     ColoredBaseSystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
+from cibyl.utils.filtering import apply_filters
 from cibyl.utils.strings import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
@@ -96,16 +97,14 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result[-1].append(job.name.value)
 
             if self.query >= QueryType.BUILDS:
-                if job.builds.value:
-                    for build in job.builds.values():
-                        # This cascade only wants builds of this project
-                        if build.project.value != project.name.value:
-                            continue
+                builds = apply_filters(
+                    job.builds.values(),
+                    lambda bld: bld.project.value != project.name.value,
+                    lambda bld: bld.pipeline.value != pipeline.name.value
+                )
 
-                        # This cascade only wants builds of this pipeline
-                        if build.pipeline.value != pipeline.name.value:
-                            continue
-
+                if builds:
+                    for build in builds:
                         msg = self._print_build(project, pipeline, job, build)
                         result.add(msg, 1)
                 else:
