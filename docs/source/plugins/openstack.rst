@@ -46,7 +46,7 @@ Arguments Matrix
        | by the deployment (4 or 6)
      - |:ballot_box_with_check:|
      - |:black_square_button:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --release
@@ -71,7 +71,7 @@ Arguments Matrix
        | types deployed
      - |:ballot_box_with_check:|
      - |:black_square_button:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --controllers
@@ -95,7 +95,7 @@ Arguments Matrix
        | Distributed Virtual Router
      - |:ballot_box_with_check:|
      - |:black_square_button:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --ml2-driver
@@ -111,7 +111,7 @@ Arguments Matrix
        | used (e.g. vxlan, vlan, ...)
      - |:ballot_box_with_check:|
      - |:black_square_button:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --storage-backend
@@ -119,7 +119,7 @@ Arguments Matrix
        | used (vlan, Ceph, Netapp)
      - |:ballot_box_with_check:|
      - |:black_square_button:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --ironic-inspector
@@ -151,7 +151,7 @@ Arguments Matrix
        | deployment
      - |:ballot_box_with_check:|
      - |:black_square_button:|
-     - |:black_square_button:|
+     - |:x:|
      - |:x:|
      - |:x:|
    * - --services
