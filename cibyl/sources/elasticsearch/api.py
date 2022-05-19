@@ -294,6 +294,9 @@ class ElasticSearchOSP(ServerSource):
         ip_version_argument = None
         if 'ip_version' in kwargs:
             ip_version_argument = kwargs.get('ip_version').value
+        dvr_argument = None
+        if 'dvr' in kwargs:
+            dvr_argument = kwargs.get('dvr').value
         release_argument = None
         if 'release' in kwargs:
             release_argument = kwargs.get('release').value
@@ -334,6 +337,11 @@ class ElasticSearchOSP(ServerSource):
             # Check if necessary filter by IP version:
             if ip_version_argument and \
                     ip_version not in ip_version_argument:
+                continue
+
+            # Check if necessary filter by dvr:
+            if isinstance(dvr_argument, list) and \
+                    dvr not in dvr_argument:
                 continue
 
             # Check if necessary filter by release version:
