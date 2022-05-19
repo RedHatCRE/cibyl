@@ -283,7 +283,6 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result.add(self.palette.blue('Jobs: '), 1)
 
             if tenant.jobs.value:
-
                 for job in tenant.jobs.values():
                     result.add(create_printer().print_job(job), 2)
 

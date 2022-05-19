@@ -74,6 +74,8 @@ class TestOutputZuulSystemWithOpenstackPlugin(OpenstackPluginWithZuulSystem):
         palette = Mock()
         palette.blue = Mock()
         palette.blue.side_effect = lambda text: text
+        palette.red = Mock()
+        palette.red.side_effect = lambda text: text
         palette.underline = Mock()
         palette.underline.side_effect = lambda text: text
 
@@ -82,7 +84,7 @@ class TestOutputZuulSystemWithOpenstackPlugin(OpenstackPluginWithZuulSystem):
         output = printer.print_system(system)
         # check that output is five lines long(system line, one line per job
         # and the line for total number of jobs)
-        self.assertEqual(12, len(output.split("\n")))
+        self.assertEqual(14, len(output.split("\n")))
         expected = "System: test-system\n"
         expected += "  Tenant: tenant\n"
         expected += "    Projects: \n"
@@ -96,5 +98,7 @@ class TestOutputZuulSystemWithOpenstackPlugin(OpenstackPluginWithZuulSystem):
         expected += " 'project': 1\n"
         expected += "    Total projects found in query for tenant"
         expected += " 'tenant': 1\n"
+        expected += "    Jobs: \n"
+        expected += "      No jobs found in query.\n"
         expected += "  Total tenants found in query: 1"
         self.assertEqual(output, expected)
