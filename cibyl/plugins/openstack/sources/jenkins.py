@@ -597,7 +597,8 @@ accurate results", len(jobs_found))
         """
         job_name = job["name"]
         short_topology = detect_job_info_regex(job_name,
-                                               TOPOLOGY_PATTERN)
+                                               TOPOLOGY_PATTERN,
+                                               group_index=1)
         if short_topology:
             # due to the regex used, short_topology may contain a trailing
             # underscore that should be removed
