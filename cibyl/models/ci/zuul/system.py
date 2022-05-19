@@ -46,6 +46,7 @@ class ZuulSystem(System):
                  sources=None,
                  enabled=True,
                  tenants=None):
+        # Let IDEs know this class's attributes
         self.tenants = tenants
 
         # Set up model
@@ -55,6 +56,8 @@ class ZuulSystem(System):
             top_level_model=Tenant,
             sources=sources,
             enabled=enabled,
+            # pass tenants to parent init so it's not overriden
+            tenants=tenants
         )
 
     def add_toplevel_model(self, model):

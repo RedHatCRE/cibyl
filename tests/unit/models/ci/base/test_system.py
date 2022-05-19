@@ -99,3 +99,8 @@ class TestJobsSystem(unittest.TestCase):
         output = self.system.export_attributes_to_source()
         self.assertEqual(1, len(output))
         self.assertEqual(output['jobs_scope'], 'phase1')
+
+    def test_system_jobs_constructor(self):
+        jobs = {'test_job': Job("test_job")}
+        system = JobsSystem("test", "test", jobs=jobs)
+        self.assertEqual(1, len(system.jobs.value))

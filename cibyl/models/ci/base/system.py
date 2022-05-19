@@ -70,7 +70,8 @@ class System(Model):
                  system_type: str,
                  top_level_model: Type[Model],
                  sources: List = None,
-                 enabled: bool = True):
+                 enabled: bool = True,
+                 **kwargs):
         # Let IDEs know this class's attributes
         self.name = None
         self.system_type = None
@@ -85,7 +86,8 @@ class System(Model):
                 'system_type': system_type,
                 'sources': sources,
                 'enabled': enabled,
-                'queried': False
+                'queried': False,
+                **kwargs
             }
         )
 
@@ -180,7 +182,11 @@ class JobsSystem(System):
                  enabled: bool = True,
                  jobs: Dict[str, Job] = None,
                  jobs_scope: str = None):
+        # Let IDEs know this class's attributes
         self.jobs = jobs
+        # jobs_scope does not need to go through the Model __init__ since it's
+        # not in the API. As a result, it's value is stored in a simple string
+        # and not in an Argument object
         self.jobs_scope = jobs_scope
 
         # Set up model
@@ -190,6 +196,7 @@ class JobsSystem(System):
             top_level_model=Job,
             sources=sources,
             enabled=enabled,
+            jobs=jobs  # pass jobs to parent init so it's not overriden
         )
 
     def export_attributes_to_source(self):
