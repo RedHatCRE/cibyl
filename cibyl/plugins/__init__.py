@@ -67,3 +67,4 @@ def enable_plugins(plugins: list = None):
             plugin_module.Plugin().extend_models()
             plugin_module_path = get_plugin_module_path(plugin_module)
             extend_source(plugin, plugin_module_path)
+            plugin_module.Plugin().extend_query_types()

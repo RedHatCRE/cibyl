@@ -14,9 +14,11 @@
 #    under the License.
 """
 from cibyl.cli.argument import Argument
+from cibyl.cli.query import QuerySelector, QueryType
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.zuul.job import Job as ZuulJob
 from cibyl.plugins.openstack.deployment import Deployment
+from cibyl.utils.dicts import subset
 
 
 def add_deployment(self, deployment: Deployment):
@@ -26,6 +28,25 @@ def add_deployment(self, deployment: Deployment):
     :type deployment: :class:`.Deployment`
     """
     self.deployment.value = deployment
+
+
+def get_query_openstack(**kwargs):
+    """Deduce the query type from openstack cli arguments."""
+    result = QueryType.NONE
+    possible_deployment_args = []
+    for attr_options in Deployment.API.values():
+        for cli_arg in attr_options.get('arguments', []):
+            # remove leading '-' in cli argument
+            cli_arg_name = cli_arg.name.strip("-")
+            # replace separator '-' by '_', since that is the way the parser
+            # stores the arguments
+            possible_deployment_args.append(cli_arg_name.replace("-", "_"))
+
+    deployment_args = subset(kwargs, possible_deployment_args)
+    if deployment_args:
+        result = QueryType.JOBS
+
+    return result
 
 
 class Plugin:
@@ -47,3 +68,6 @@ class Plugin:
                     self.plugin_attributes_to_add)
             setattr(job_class, 'add_deployment',
                     add_deployment)
+
+    def extend_query_types(self):
+        QuerySelector.query_selector_functions.append(get_query_openstack)

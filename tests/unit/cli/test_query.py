@@ -16,6 +16,7 @@
 from unittest import TestCase
 
 from cibyl.cli.query import QueryType, get_query_type
+from tests.utils import OpenstackPluginWithJobSystem
 
 
 class TestGetQueryType(TestCase):
@@ -109,6 +110,170 @@ class TestGetQueryType(TestCase):
         """Checks that "Jobs" is returned for "--variants"."""
         args = {
             'variants': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_ip_version(self):
+        """Checks that "None" is returned for "--ip-version" if the openstack
+        plugin is not added."""
+        args = {
+            'ip_version': None
+        }
+
+        self.assertEqual(QueryType.NONE, get_query_type(**args))
+
+
+class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
+    """Tests for :func:`get_query_type` with the openstack plugin loaded."""
+
+    def test_get_release(self):
+        """Checks that "Jobs" is returned for "--release" if the openstack
+        plugin is added."""
+        args = {
+            'release': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_spec(self):
+        """Checks that "Jobs" is returned for "--spec" if the openstack
+        plugin is added."""
+        args = {
+            'spec': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_infra_type(self):
+        """Checks that "Jobs" is returned for "--infra-type" if the openstack
+        plugin is added."""
+        args = {
+            'infra_type': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_nodes(self):
+        """Checks that "Jobs" is returned for "--nodes" if the openstack
+        plugin is added."""
+        args = {
+            'nodes': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_controllers(self):
+        """Checks that "Jobs" is returned for "--controllers" if the openstack
+        plugin is added."""
+        args = {
+            'controllers': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_computes(self):
+        """Checks that "Jobs" is returned for "--computes" if the openstack
+        plugin is added."""
+        args = {
+            'computes': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_services(self):
+        """Checks that "Jobs" is returned for "--services" if the openstack
+        plugin is added."""
+        args = {
+            'services': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_ip_version(self):
+        """Checks that "Jobs" is returned for "--ip-version" if the openstack
+        plugin is added."""
+        args = {
+            'ip_version': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_topology(self):
+        """Checks that "Jobs" is returned for "--topology" if the openstack
+        plugin is added."""
+        args = {
+            'topology': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_dvr(self):
+        """Checks that "Jobs" is returned for "--dvr" if the openstack
+        plugin is added."""
+        args = {
+            'dvr': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_ml2_driver(self):
+        """Checks that "Jobs" is returned for "--ml2-driver" if the openstack
+        plugin is added."""
+        args = {
+            'ml2_driver': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_tls_everywhere(self):
+        """Checks that "Jobs" is returned for "--tls-everywhere" if the
+        openstack plugin is added.
+        """
+        args = {
+            'tls_everywhere': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_ironic_inspector(self):
+        """Checks that "Jobs" is returned for "--ironic-inspector" if the
+        openstack plugin is added.
+        """
+        args = {
+            'ironic_inspector': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_network_backend(self):
+        """Checks that "Jobs" is returned for "--network-backend" if the
+        openstack plugin is added.
+        """
+        args = {
+            'network_backend': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_storage_backend(self):
+        """Checks that "Jobs" is returned for "--storage-backend" if the
+        openstack plugin is added.
+        """
+        args = {
+            'storage_backend': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_spec_tenants(self):
+        """Checks that "Jobs" is returned for "--storage-backend" if the
+        openstack plugin is added and is run in combination of arguments like
+        --tenants.
+        """
+        args = {
+            'tenants': None,
+            'storage_backend': None
         }
 
         self.assertEqual(QueryType.JOBS, get_query_type(**args))
