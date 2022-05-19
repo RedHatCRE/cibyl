@@ -21,10 +21,11 @@ from tests.e2e.containers.zuul import OpenDevZuulContainer
 from tests.e2e.fixtures import EndToEndTest
 
 
-class TestZuul(EndToEndTest):
-    """Tests queries regarding the Zuul source.
+class TestQueryLevel(EndToEndTest):
+    """Tests all the different options available for each of the query
+    levels available on a zuul source. For example: fetching all jobs,
+    fetching jobs by URL, by name...
     """
-
     zuul = OpenDevZuulContainer()
 
     @classmethod
@@ -134,45 +135,6 @@ class TestZuul(EndToEndTest):
             self.output
         )
 
-    def test_no_jobs_on_tenant_query(self):
-        """Checks that no 'Jobs found in tenant...' string is printed for a
-        '--tenants' query.
-        """
-        sys.argv = [
-            '',
-            '--config', 'tests/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
-            '-vv',
-            '--tenants', '^(example-tenant)$'
-        ]
-
-        main()
-
-        self.assertNotIn(
-            "Total jobs found in query for tenant 'example-tenant':",
-            self.output
-        )
-
-    def test_no_jobs_on_projects_query(self):
-        """Checks that no 'Jobs found in tenant...' string is printed for a
-        '--projects' query.
-        """
-        sys.argv = [
-            '',
-            '--config', 'tests/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
-            '-vv',
-            '--tenants', '^(example-tenant)$',
-            '--projects'
-        ]
-
-        main()
-
-        self.assertNotIn(
-            "Total jobs found in query for tenant 'example-tenant':",
-            self.output
-        )
-
     def test_get_jobs(self):
         """Checks that jobs are retrieved with the "--jobs" flag.
         """
@@ -241,7 +203,32 @@ class TestZuul(EndToEndTest):
             self.output
         )
 
-    def test_job_variants(self):
+    def test_get_job_url(self):
+        """Checks that "-v" will print a job's URL.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '--tenants', '^(example-tenant)$',
+            '--jobs', 'build-docker-image',
+            '-v'
+        ]
+
+        main()
+
+        self.assertIn(
+            "Job: build-docker-image",
+            self.output
+        )
+
+        self.assertIn(
+            "URL: "
+            "http://localhost:9000/t/example-tenant/job/build-docker-image",
+            self.output
+        )
+
+    def test_get_job_variants(self):
         """Checks retrieved variants by "--jobs --variants" flag.
         """
         sys.argv = [
@@ -269,6 +256,75 @@ class TestZuul(EndToEndTest):
             expected.build(),
             self.output
         )
+
+
+class TestOutputFormatting(EndToEndTest):
+    """Tests that verify specific conditions that shall be met on Cibyl's
+    output.
+    """
+    zuul = OpenDevZuulContainer()
+
+    @classmethod
+    def setUpClass(cls):
+        cls.zuul.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.zuul.stop()
+
+    def test_no_jobs_on_tenant_query(self):
+        """Checks that no 'Jobs found in tenant...' string is printed for a
+        '--tenants' query.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '-vv',
+            '--tenants', '^(example-tenant)$'
+        ]
+
+        main()
+
+        self.assertNotIn(
+            "Total jobs found in query for tenant 'example-tenant':",
+            self.output
+        )
+
+    def test_no_jobs_on_projects_query(self):
+        """Checks that no 'Jobs found in tenant...' string is printed for a
+        '--projects' query.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '-vv',
+            '--tenants', '^(example-tenant)$',
+            '--projects'
+        ]
+
+        main()
+
+        self.assertNotIn(
+            "Total jobs found in query for tenant 'example-tenant':",
+            self.output
+        )
+
+
+class TestDefaults(EndToEndTest):
+    """Tests for default query values extracted from the configuration
+    file.
+    """
+    zuul = OpenDevZuulContainer()
+
+    @classmethod
+    def setUpClass(cls):
+        cls.zuul.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.zuul.stop()
 
     def test_default_tenants(self):
         """Checks that the configuration file can define the default tenants
