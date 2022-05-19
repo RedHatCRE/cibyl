@@ -13,17 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-
-
-class CibylException(Exception):
-    """Parent class for all cibyl exceptions for easier control of the
-    exceptions' representation.
-    """
-
-    def __init__(self, message=''):
-        """Constructor.
-
-        :param message: The reason for this error.
-        :type message: str
-        """
-        super().__init__(*[message])

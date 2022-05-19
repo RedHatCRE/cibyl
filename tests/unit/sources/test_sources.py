@@ -79,5 +79,7 @@ class TestGetSourceMethod(TestCase):
     def test_get_source_no_valid_sources(self):
         """Test that get_source_method raises an exceptions with no valid
         source."""
-        self.assertRaises(NoSupportedSourcesFound, get_source_method,
-                          "test_system", [], "get_builds", {})
+        msg = """Couldn't find any enabled source for the system test_system
+         that implements the function get_builds.""""".replace("\n", " ")
+        with self.assertRaises(NoSupportedSourcesFound, msg=msg):
+            get_source_method("test_system", [], "get_builds", {})
