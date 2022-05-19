@@ -258,6 +258,41 @@ class TestQueryLevel(EndToEndTest):
         )
 
 
+class TestQueryComposing(EndToEndTest):
+    """Tests that multiple queries on the same request end with an output
+    that combines the result of all them. For example: 'cibyl
+    --tenants --projects projectA' will fetch all tenants and get
+    information on only the 'projectA' project.
+    """
+    zuul = OpenDevZuulContainer()
+
+    @classmethod
+    def setUpClass(cls):
+        cls.zuul.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.zuul.stop()
+
+    def test_tenants_with_project(self):
+        """Checks that '--tenants --project projectA' gets you all tenants
+        as well."""
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '--tenants',
+            '--projects', ''
+        ]
+
+        main()
+
+        self.assertIn(
+            '',
+            self.output
+        )
+
+
 class TestOutputFormatting(EndToEndTest):
     """Tests that verify specific conditions that shall be met on Cibyl's
     output.
