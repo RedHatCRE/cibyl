@@ -82,7 +82,7 @@ class TestQueryLevel(EndToEndTest):
         main()
 
         self.assertIn(
-            "Total projects found in query for tenant 'example-tenant': 4",
+            "Total projects found in query for tenant 'example-tenant': 3",
             self.output
         )
 
@@ -282,15 +282,72 @@ class TestQueryComposing(EndToEndTest):
             '--config', 'tests/e2e/data/configs/zuul.yaml',
             '-f', 'text',
             '--tenants',
-            '--projects', ''
+            '--projects', '^test2$'
         ]
 
         main()
 
-        self.assertIn(
+        expected = IndentedTextBuilder()
+        expected.add('Environment: env_1', 0)
+        expected.add('System: zuul_system', 1)
+        expected.add('Tenant: example-tenant', 2)
+        expected.add('Tenant: example-tenant-2', 2)
+        expected.add('Projects: ', 3)
+        expected.add('Project: test2', 4)
+
+        self.assertIn(expected.build(), self.output)
+
+    def test_tenants_with_jobs(self):
+        """Checks that '--tenants --project projectA' gets you all tenants
+        as well."""
+        sys.argv = [
             '',
-            self.output
-        )
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '--tenants',
+            '--jobs', '^build-docker-image$'
+        ]
+
+        main()
+
+        expected1 = IndentedTextBuilder()
+        expected1.add('Environment: env_1', 0)
+        expected1.add('System: zuul_system', 1)
+        expected1.add('Tenant: example-tenant', 2)
+        expected1.add('Jobs: ', 3)
+        expected1.add('Job: build-docker-image', 4)
+
+        expected2 = IndentedTextBuilder()
+        expected2.add('Tenant: example-tenant-2', 2)
+
+        self.assertIn(expected1.build(), self.output)
+        self.assertIn(expected2.build(), self.output)
+
+    def test_projects_with_jobs(self):
+        """Checks that '--tenants --project projectA' gets you all tenants
+        as well."""
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '--projects', '^test2$',
+            '--jobs', '^build-docker-image$'
+        ]
+
+        main()
+
+        expected1 = IndentedTextBuilder()
+        expected1.add('Tenant: example-tenant-2', 2)
+        expected1.add('Projects: ', 3)
+        expected1.add('Project: test2', 4)
+
+        expected2 = IndentedTextBuilder()
+        expected2.add('Tenant: example-tenant', 2)
+        expected2.add('Jobs: ', 3)
+        expected2.add('Job: build-docker-image', 4)
+
+        self.assertIn(expected1.build(), self.output)
+        self.assertIn(expected2.build(), self.output)
 
 
 class TestOutputFormatting(EndToEndTest):
