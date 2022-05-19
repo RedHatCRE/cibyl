@@ -27,14 +27,14 @@ class Environment(Model):
     API = {
         'name': {
             'attr_type': str,
-            'arguments': [Argument(name='--env-name', arg_type=str,
-                                   description="Name of the environment")]
+            'arguments': [Argument(name='--envs', arg_type=str,
+                                   description="Environment names")]
         },
         'systems': {
             'attr_type': System,
             'attribute_value_class': AttributeListValue,
             'arguments': [Argument(name='--systems', arg_type=str, nargs='*',
-                                   description="Systems of the environment")]
+                                   description="Systems names")]
         }
     }
 
