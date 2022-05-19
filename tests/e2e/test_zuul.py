@@ -403,6 +403,62 @@ class TestOutputFormatting(EndToEndTest):
             self.output
         )
 
+    def test_no_tenants_message(self):
+        """Checks that a 'no tenants found' message is printed when the
+        query did not find any tenant.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '--tenants', '^(some-unknown-tenant)$',
+        ]
+
+        main()
+
+        self.assertIn(
+            'No tenants found in query.',
+            self.output
+        )
+
+    def test_no_projects_message(self):
+        """Checks that a 'no tenants found' message is printed when the
+        query did not find any project.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '--tenants',
+            '--project', '^(some-unknown-project)$'
+        ]
+
+        main()
+
+        self.assertIn(
+            'No projects found in query.',
+            self.output
+        )
+
+    def test_no_jobs_message(self):
+        """Checks that a 'no jobs found' message is printed when the
+        query did not find any jobs.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '--tenants',
+            '--jobs', '^(some-unknown-job)$'
+        ]
+
+        main()
+
+        self.assertIn(
+            'No jobs found in query.',
+            self.output
+        )
+
 
 class TestDefaults(EndToEndTest):
     """Tests for default query values extracted from the configuration
