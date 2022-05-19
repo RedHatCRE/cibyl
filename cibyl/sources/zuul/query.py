@@ -223,6 +223,10 @@ def _handle_tenants_query(zuul, **kwargs):
 def _handle_projects_query(zuul, **kwargs):
     model = ModelBuilder()
 
+    if 'tenants' in kwargs:
+        for tenant in _get_tenants(zuul, **kwargs):
+            model.with_tenant(tenant)
+
     for project in _get_projects(zuul, **kwargs):
         model.with_project(project)
 
@@ -231,6 +235,14 @@ def _handle_projects_query(zuul, **kwargs):
 
 def _handle_pipelines_query(zuul, **kwargs):
     model = ModelBuilder()
+
+    if 'tenants' in kwargs:
+        for tenant in _get_tenants(zuul, **kwargs):
+            model.with_tenant(tenant)
+
+    if 'projects' in kwargs:
+        for project in _get_projects(zuul, **kwargs):
+            model.with_project(project)
 
     for pipeline in _get_pipelines(zuul, **kwargs):
         model.with_pipeline(pipeline)
@@ -245,8 +257,21 @@ def _get_pipeline_jobs(pipeline):
 def _handle_jobs_query(zuul, **kwargs):
     model = ModelBuilder()
 
-    jobs = _get_jobs(zuul, **kwargs)
+    if 'tenants' in kwargs:
+        for tenant in _get_tenants(zuul, **kwargs):
+            model.with_tenant(tenant)
+
+    if 'projects' in kwargs:
+        for project in _get_projects(zuul, **kwargs):
+            model.with_project(project)
+
     pipelines = _get_pipelines(zuul, **kwargs)
+
+    if 'pipelines' in kwargs:
+        for pipeline in pipelines:
+            model.with_pipeline(pipeline)
+
+    jobs = _get_jobs(zuul, **kwargs)
 
     for job in jobs:
         # Check if the user requested variants
