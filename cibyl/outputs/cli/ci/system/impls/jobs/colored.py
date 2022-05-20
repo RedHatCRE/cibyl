@@ -32,10 +32,10 @@ class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
     """
 
     @overrides
-    def print_system(self, system):
+    def print_system(self, system, indent=0):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('System: '), 0)
+        printer.add(self._palette.blue('System: '), indent)
         printer[-1].append(system.name.value)
 
         if self.verbosity > 0:
@@ -43,15 +43,15 @@ class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
 
         if self.query != QueryType.NONE:
             for job in system.jobs.values():
-                printer.add(self.print_job(job), 1)
+                printer.add(self.print_job(job), indent+1)
 
             if system.is_queried():
                 header = 'Total jobs found in query: '
 
-                printer.add(self._palette.blue(header), 1)
+                printer.add(self._palette.blue(header), indent+1)
                 printer[-1].append(len(system.jobs))
             else:
-                printer.add(self._palette.blue('No query performed'), 1)
+                printer.add(self._palette.blue('No query performed'), indent+1)
 
         return printer.build()
 
