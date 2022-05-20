@@ -10,6 +10,7 @@ Currently it supports out-of-the-box the following CI systems:
 
   * Jenkins
   * Zuul
+  * GitHub Actions
 
 The project originated from Red Hat OpenStack DevOps team that looked for a solution to provide a powerful and flexible way for inspecting multiple different CI environments and systems, with regards to product aspects.
 

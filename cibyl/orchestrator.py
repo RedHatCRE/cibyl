@@ -18,7 +18,6 @@ import operator
 import re
 import time
 from collections import defaultdict
-from copy import deepcopy
 
 import cibyl.exceptions.config as conf_exc
 from cibyl.cli.parser import Parser
@@ -28,9 +27,6 @@ from cibyl.exceptions.config import NonSupportedSystemKey
 from cibyl.exceptions.source import (NoSupportedSourcesFound, NoValidSources,
                                      SourceException)
 from cibyl.models.ci.base.environment import Environment
-from cibyl.models.ci.base.system import JobsSystem, System
-from cibyl.models.ci.system_factory import SystemType
-from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.publisher import Publisher
 from cibyl.sources.source import get_source_method
 from cibyl.sources.source_factory import SourceFactory
@@ -110,10 +106,9 @@ class Orchestrator:
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""
         try:
+            env_data = {}
             if self.config.data:
                 env_data = self.config.data.get('environments', {}).items()
-            else:
-                env_data = {}
 
             for env_name, systems_dict in env_data:
                 environment = Environment(name=env_name)
@@ -130,22 +125,8 @@ class Orchestrator:
                                                    sources, single_system)
 
                 self.environments.append(environment)
-            self.set_system_api()
         except AttributeError as exception:
             raise conf_exc.InvalidConfiguration from exception
-
-    def set_system_api(self):
-        """Modify the System API depending on the type of systems present in
-        the configuration."""
-        zuul_system_present = False
-        for env in self.environments:
-            for system in env.systems:
-                if system.system_type.value == SystemType.ZUUL:
-                    zuul_system_present = True
-        if zuul_system_present:
-            System.API = deepcopy(ZuulSystem.API)
-        else:
-            System.API = deepcopy(JobsSystem.API)
 
     def select_source_method(self, system, argument):
         """Select the apropiate source considering the user input.

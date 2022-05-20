@@ -16,6 +16,7 @@
 from enum import Enum
 
 from cibyl.models.ci.base.system import JobsSystem
+from cibyl.models.ci.github_actions.system import WorkflowsSystem
 from cibyl.models.ci.zuul.system import ZuulSystem
 
 
@@ -24,6 +25,7 @@ class SystemType(str, Enum):
     """
     JENKINS = 'jenkins'
     ZUUL = 'zuul'
+    GITHUB_ACTIONS = 'github_actions'
 
 
 class SystemFactory:
@@ -46,6 +48,10 @@ class SystemFactory:
 
         if system_type == SystemType.JENKINS:
             return JobsSystem(name=name, system_type=system_type, **kwargs)
+
+        if system_type == SystemType.GITHUB_ACTIONS:
+            return WorkflowsSystem(name=name, system_type=system_type,
+                                   **kwargs)
 
         if system_type == SystemType.ZUUL:
             return ZuulSystem(name=name, system_type=system_type, **kwargs)

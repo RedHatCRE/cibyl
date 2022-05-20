@@ -112,12 +112,13 @@ class IndentedTextBuilder:
         result = ''
 
         for line in self._lines:
-            indentation = line.level * self.spaces_per_tab * ' '
+            if line.text:
+                indentation = line.level * self.spaces_per_tab * ' '
 
-            # Some texts may contain more than one line inside. Those lines
-            # must all be indented to keep the structure.
-            for chunk in line.text.split('\n'):
-                result += f'{indentation}{chunk}\n'
+                # Some texts may contain more than one line inside. Those lines
+                # must all be indented to keep the structure.
+                for chunk in line.text.split('\n'):
+                    result += f'{indentation}{chunk}\n'
 
         # Remove excess of symbols
         result = result.strip('\n')

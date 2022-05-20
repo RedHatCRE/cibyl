@@ -20,6 +20,7 @@ from cibyl.exceptions.config import (MissingSourceKey, MissingSourceType,
                                      NonSupportedSourceKey,
                                      NonSupportedSourceType)
 from cibyl.sources.elasticsearch.api import ElasticSearchOSP
+from cibyl.sources.github_actions import GithubActions
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 from cibyl.sources.zuul.source import Zuul
@@ -34,6 +35,7 @@ class SourceType(str, Enum):
     ELASTICSEARCH = 'elasticsearch'
     JENKINS_JOB_BUILDER = 'jenkins_job_builder'
     ZUUL_D = 'zuul.d'
+    GITHUB_ACTIONS = 'github_actions'
 
 
 class SourceFactory:
@@ -72,6 +74,9 @@ class SourceFactory:
 
             if source_type == SourceType.JENKINS_JOB_BUILDER:
                 return JenkinsJobBuilder(name=name, **kwargs)
+
+            if source_type == SourceType.GITHUB_ACTIONS:
+                return GithubActions(name=name, **kwargs)
 
             if source_type == SourceType.ZUUL_D:
                 return ZuulD(name=name, **kwargs)

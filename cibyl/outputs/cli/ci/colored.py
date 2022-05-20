@@ -18,10 +18,13 @@ import logging
 from overrides import overrides
 
 from cibyl.models.ci.base.system import JobsSystem
+from cibyl.models.ci.github_actions.system import WorkflowsSystem
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.outputs.cli.ci.printer import CIPrinter
 from cibyl.outputs.cli.ci.system.impls.base.colored import \
     ColoredBaseSystemPrinter
+from cibyl.outputs.cli.ci.system.impls.github_actions.colored import \
+    ColoredGithubActionsSystemPrinter
 from cibyl.outputs.cli.ci.system.impls.jobs.colored import \
     ColoredJobsSystemPrinter
 from cibyl.outputs.cli.ci.system.impls.zuul.colored import \
@@ -66,6 +69,11 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
 
             if isinstance(system, JobsSystem):
                 return ColoredJobsSystemPrinter(
+                    self.query, self.verbosity, self.palette
+                )
+
+            if isinstance(system, WorkflowsSystem):
+                return ColoredGithubActionsSystemPrinter(
                     self.query, self.verbosity, self.palette
                 )
 

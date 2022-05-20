@@ -151,4 +151,5 @@ class Parser:
                     default=arg.default,
                     level=level)
         except argparse.ArgumentError:
+            import pdb;pdb.set_trace()
             pass

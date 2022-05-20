@@ -110,6 +110,8 @@ def main():
         # Add arguments from CI & product models to the parser of the app
         for env in orchestrator.environments:
             orchestrator.extend_parser(attributes=env.API)
+            for system in env.systems:
+                orchestrator.extend_parser(attributes=system.API, level=2)
         # We can parse user's arguments only after we have loaded the
         # configuration and extended based on it the parser with arguments
         # from the CI models

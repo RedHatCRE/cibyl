@@ -29,6 +29,7 @@ Cibyl supports multiple different types of sources. Each configured in a differe
   * `Elasticsearch <sources/elasticsearch.html>`_
   * `Zuul Definitions <sources/zuul.d.html>`_
   * `Jenkins Job Builder <sources/jenkins-job-builder.html>`_
+  * `GitHub Actions <sources/github_actions.html>`_
 
 Validate Configuration
 ^^^^^^^^^^^^^^^^^^^^^^

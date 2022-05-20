@@ -209,6 +209,9 @@ class TestOrchestrator(TestCase):
         self.orchestrator.create_ci_environments()
         for env in self.orchestrator.environments:
             self.orchestrator.extend_parser(attributes=env.API)
+            for system in env.systems:
+                self.orchestrator.extend_parser(attributes=system.API,
+                                                level=2)
         self.orchestrator.parser.parse([
             "--jobs", "--builds", "--tenants", "--projects", "--pipelines"
         ])
