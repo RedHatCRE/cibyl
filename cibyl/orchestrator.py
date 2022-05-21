@@ -116,7 +116,10 @@ class Orchestrator:
                 env_data = {}
 
             for env_name, systems_dict in env_data:
-                environment = Environment(name=env_name)
+                enabled = systems_dict.get('enabled', True)
+                if not enabled:
+                    continue
+                environment = Environment(name=env_name, enabled=enabled)
 
                 for system_name, single_system in systems_dict.items():
                     sources_dict = single_system.pop('sources', {})
@@ -131,7 +134,7 @@ class Orchestrator:
 
                 self.environments.append(environment)
             self.set_system_api()
-        except AttributeError as exception:
+        except (AttributeError, TypeError) as exception:
             raise conf_exc.InvalidConfiguration from exception
 
     def set_system_api(self):
@@ -182,10 +185,11 @@ class Orchestrator:
     def setup_sources(self):
         """Setup all enabled sources present in the environment."""
         for env in self.environments:
-            for system in env.systems:
-                for source in system.sources:
-                    if source.enabled:
-                        source.setup()
+            if env.enabled:
+                for system in env.systems:
+                    for source in system.sources:
+                        if source.enabled:
+                            source.setup()
 
     def run_query(self, start_level=1):
         """Execute query based on provided arguments."""
