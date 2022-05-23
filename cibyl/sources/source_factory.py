@@ -13,17 +13,20 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 import re
 from enum import Enum
 
 from cibyl.exceptions.config import (MissingSourceKey, MissingSourceType,
                                      NonSupportedSourceKey,
                                      NonSupportedSourceType)
-from cibyl.sources.elasticsearch.api import ElasticSearchOSP
+from cibyl.sources.elasticsearch.api import ElasticSearch
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 from cibyl.sources.zuul.source import Zuul
 from cibyl.sources.zuuld.source import ZuulD
+
+LOG = logging.getLogger(__name__)
 
 
 class SourceType(str, Enum):
@@ -42,10 +45,20 @@ class SourceFactory:
 
     @staticmethod
     def extend_source(source):
+        source_class = ""
         if source.__name__ == 'Jenkins':
+            source_class = Jenkins
+        elif source.__name__ == 'ElasticSearch':
+            source_class = ElasticSearch
+        else:
+            LOG.warning(f"Ignoring source extension: {source_class}")
+
+        if source_class:
             for attr_name in [a for a in dir(source)
                               if not a.startswith('__')]:
-                setattr(Jenkins, attr_name, getattr(source, attr_name))
+                setattr(source_class, attr_name, getattr(source, attr_name))
+            LOG.debug(f"Extended source '{source_class.__name__}' \
+with plugin source")
 
     @staticmethod
     def create_source(source_type, name, **kwargs):
@@ -68,7 +81,7 @@ class SourceFactory:
                 return Zuul.new_source(name=name, **kwargs)
 
             if source_type == SourceType.ELASTICSEARCH:
-                return ElasticSearchOSP(name=name, **kwargs)
+                return ElasticSearch(name=name, **kwargs)
 
             if source_type == SourceType.JENKINS_JOB_BUILDER:
                 return JenkinsJobBuilder(name=name, **kwargs)

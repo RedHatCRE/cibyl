@@ -20,16 +20,16 @@ from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.source import MissingArgument
-from cibyl.sources.elasticsearch.api import ElasticSearchOSP, QueryTemplate
+from cibyl.sources.elasticsearch.api import ElasticSearch, QueryTemplate
 from tests.utils import OpenstackPluginWithJobSystem
 
 
-class TestElasticsearchOSP(TestCase):
-    """Test cases for :class:`ElasticSearchOSP`.
+class TestElasticSearch(TestCase):
+    """Test cases for :class:`ElasticSearch`.
     """
 
     def setUp(self) -> None:
-        self.es_api = ElasticSearchOSP(elastic_client=Mock())
+        self.es_api = ElasticSearch(elastic_client=Mock())
         self.job_hits = [
                     {
                         '_id': 1,
@@ -127,9 +127,9 @@ class TestElasticsearchOSP(TestCase):
             }
         ]
 
-    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
     def test_get_jobs(self: object, mock_query_hits: object) -> None:
-        """Tests that the internal logic from :meth:`ElasticSearchOSP.get_jobs`
+        """Tests that the internal logic from :meth:`ElasticSearch.get_jobs`
             is correct.
         """
         mock_query_hits.return_value = self.job_hits
@@ -143,9 +143,9 @@ class TestElasticsearchOSP(TestCase):
         self.assertEqual(jobs['test'].name.value, 'test')
         self.assertEqual(jobs['test'].url.value, "http://domain.tld/test")
 
-    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
     def test_get_jobs_jobs_scope(self: object, mock_query_hits: object):
-        """Tests that the internal logic from :meth:`ElasticSearchOSP.get_jobs`
+        """Tests that the internal logic from :meth:`ElasticSearch.get_jobs`
             is correct using jobs_scope argument.
         """
         mock_query_hits.return_value = self.job_hits
@@ -157,10 +157,10 @@ class TestElasticsearchOSP(TestCase):
         self.assertEqual(jobs['test4'].name.value, 'test4')
         self.assertEqual(jobs['test4'].url.value, "http://domain.tld/test4")
 
-    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
     def test_get_builds(self: object, mock_query_hits: object) -> None:
         """Tests that the internal logic from
-           :meth:`ElasticSearchOSP.get_builds` is correct.
+           :meth:`ElasticSearch.get_builds` is correct.
         """
         mock_query_hits.return_value = self.build_hits
 
@@ -180,10 +180,10 @@ class TestElasticsearchOSP(TestCase):
         self.assertEqual(build.build_id.value, '1')
         self.assertEqual(build.status.value, "SUCCESS")
 
-    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
     def test_get_builds_by_status(self: object,
                                   mock_query_hits: object) -> None:
-        """Tests filtering by status in :meth:`ElasticSearchOSP.get_builds`
+        """Tests filtering by status in :meth:`ElasticSearch.get_builds`
             is correct.
         """
         mock_query_hits.return_value = self.job_hits
@@ -207,10 +207,10 @@ class TestElasticsearchOSP(TestCase):
         self.assertEqual(build.build_id.value, '2')
         self.assertEqual(build.status.value, "FAIL")
 
-    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
     def test_get_tests(self: object,
                        mock_query_hits: object) -> None:
-        """Tests internal logic :meth:`ElasticSearchOSP.get_tests`
+        """Tests internal logic :meth:`ElasticSearch.get_tests`
             is correct.
         """
         mock_query_hits.return_value = self.tests_hits
@@ -278,20 +278,20 @@ class TestElasticsearchOSP(TestCase):
 
     @patch('cibyl.sources.elasticsearch.api.ElasticSearchClient')
     def test_setup(self, mock_client):
-        """Test setup method of ElasticSearchOSP"""
-        es_api = ElasticSearchOSP(elastic_client=None,
-                                  url="https://example.com:9200")
+        """Test setup method of ElasticSearch"""
+        es_api = ElasticSearch(elastic_client=None,
+                               url="https://example.com:9200")
         client = mock_client.return_value
         client.connect.side_effect = None
         es_api.setup()
         mock_client.assert_called_with("https://example.com", 9200)
 
 
-class TestElasticsearchOSPOpenstackPlugin(OpenstackPluginWithJobSystem):
-    """Test cases for :class:`ElasticSearchOSP` with openstack plugin."""
+class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
+    """Test cases for :class:`ElasticSearch` with openstack plugin."""
 
     def setUp(self) -> None:
-        self.es_api = ElasticSearchOSP(elastic_client=Mock())
+        self.es_api = ElasticSearch(elastic_client=Mock())
         self.job_hits = [
                     {
                         '_id': 1,
@@ -389,10 +389,10 @@ class TestElasticsearchOSPOpenstackPlugin(OpenstackPluginWithJobSystem):
             }
         ]
 
-    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
     def test_get_deployment(self: object, mock_query_hits: object) -> None:
         """Tests that the internal logic from
-        :meth:`ElasticSearchOSP.get_deployment` is correct.
+        :meth:`ElasticSearch.get_deployment` is correct.
         """
         mock_query_hits.return_value = self.build_hits
 
@@ -411,10 +411,10 @@ class TestElasticsearchOSPOpenstackPlugin(OpenstackPluginWithJobSystem):
         self.assertEqual(deployment.ip_version.value, '4')
         self.assertEqual(deployment.topology.value, 'unknown')
 
-    @patch.object(ElasticSearchOSP, '_ElasticSearchOSP__query_get_hits')
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
     def test_deployment_filtering(self: object,
                                   mock_query_hits: object) -> None:
-        """Tests that the internal logic from :meth:`ElasticSearchOSP.get_jobs`
+        """Tests that the internal logic from :meth:`ElasticSearch.get_jobs`
             is correct.
         """
         mock_query_hits.return_value = self.build_hits
