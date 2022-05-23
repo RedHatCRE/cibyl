@@ -13,29 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from setuptools import find_packages, setup
+from setuptools import setup
 
 setup(
-    name='Cibyl',
-    author='RHOS CRE Team',
-    license='Apache',
-    description='Cibyl is tool that models ci system by'
-    'command-line interface for querying CI environments',
-    version='0.0.2',
-    url='https://github.com/rhos-infra/cibyl',
-    packages=find_packages(),
-    entry_points={
-        'console_scripts': ['cibyl = cibyl.cli.main:main',
-                            'ci = cibyl.cli.main:main']
-    },
-    install_requires=[
-        'pyyaml>=5.0',
-        'requests~=2.27.1',
-        'elasticsearch~=7.17.1',
-        'colorlog~=6.6.0',
-        'urllib3~=1.26.9',
-        'rfc3987~=1.3.8',
-        'overrides~=6.1.0',
-        'GitPython~=3.1.18',
-    ]
+    setup_requires=['pbr>=2.0.0'],
+    pbr=True
 )
