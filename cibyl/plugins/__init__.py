@@ -52,8 +52,9 @@ def extend_source(plugin_name, plugin_module_path):
                if f.endswith('.py') and f != '__init__.py']:
         mod = __import__('.'.join(
             [f"cibyl.plugins.{plugin_name}.sources", py]), fromlist=[py])
-        plugin_sources = [source_tuple[1] for source_tuple in
-                          inspect.getmembers(mod, is_plugin_class)]
+        new_element = [source_tuple[1] for source_tuple in
+                       inspect.getmembers(mod, is_plugin_class)]
+        plugin_sources.extend(new_element)
     for plugin_source in plugin_sources:
         SourceFactory.extend_source(plugin_source)
 
