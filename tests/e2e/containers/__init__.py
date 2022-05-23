@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import subprocess
 from abc import ABC, abstractmethod
 
 import requests
@@ -26,9 +27,28 @@ def wait_for(url):
     response.raise_for_status()
 
 
+class DockerComposition(DockerCompose):
+    def run_in_container(self, service_name, command):
+        run_cmd = self.docker_compose_command() \
+                  + ['run', '--rm', service_name] \
+                  + command
+
+        result = subprocess.run(
+            run_cmd,
+            cwd=self.filepath,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        return \
+            result.stdout.decode("utf-8"), \
+            result.stderr.decode("utf-8"), \
+            result.returncode
+
+
 class ComposedContainer(ABC):
     def __init__(self, filedir, filename='docker-compose.yml'):
-        self._container = DockerCompose(
+        self._container = DockerComposition(
             filepath=filedir,
             compose_file_name=filename,
             pull=True
@@ -49,6 +69,9 @@ class ComposedContainer(ABC):
         self._container.start()
         self._wait_until_ready()
         self._on_ready()
+
+    def run(self, service, command):
+        return self._container.run_in_container(service, command)
 
     def stop(self):
         self._container.stop()
