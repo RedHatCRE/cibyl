@@ -1,25 +1,25 @@
 FROM python:3.6.15
 
-WORKDIR /
+ARG CIBYL_ROOT=.
+ARG CONFIG_FILE=$CIBYL_ROOT/samples/sample-config.yaml
+ARG INSTALL_PATH=/app
 
 # Prepare virtual environment
-ENV VIRTUAL_ENV=/app/venv
+ENV VIRTUAL_ENV=$INSTALL_PATH/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip3 install --upgrade pip
 
-WORKDIR /app
+WORKDIR $INSTALL_PATH
 
 # Install dependencies
-COPY requirements.txt .
+COPY $CIBYL_ROOT/requirements.txt .
 RUN pip3 install -r requirements.txt
 
 # Install Cibyl
-COPY ./setup.py .
-COPY ./cibyl ./cibyl
+COPY $CIBYL_ROOT/setup.py .
+COPY $CIBYL_ROOT/cibyl ./cibyl
 RUN pip3 install .
 
-WORKDIR /etc/cibyl
-
 # Install configuration file
-COPY ./samples/sample-config.yaml ./cibyl.yaml
+COPY $CONFIG_FILE /etc/cibyl/cibyl.yaml
