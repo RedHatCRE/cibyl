@@ -1,0 +1,14 @@
+---
+environments:
+  sample_env:
+    sample_system:
+      system_type: jenkins
+      sources:
+        jenkins:
+          driver: jenkins
+          url: 'https://localhost:8080'
+          enabled: true
+        elasticsearch:
+          driver: elasticsearch
+          url: 'https://localhost:9000'
+          enabled: false
