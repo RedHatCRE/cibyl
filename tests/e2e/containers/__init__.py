@@ -51,7 +51,7 @@ class ComposedContainer(ABC):
         self._container = DockerComposition(
             filepath=filedir,
             compose_file_name=filename,
-            pull=True
+            pull=True, build=True
         )
 
     def __enter__(self):
