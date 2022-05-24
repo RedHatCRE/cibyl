@@ -53,8 +53,8 @@ class DockerComposition(DockerCompose):
         :rtype: tuple[str, str, int]
         """
         run_cmd = self.docker_compose_command() \
-                  + ['run', '--rm', service_name] \
-                  + command
+            + ['run', '--rm', service_name] \
+            + command
 
         result = subprocess.run(
             run_cmd,
