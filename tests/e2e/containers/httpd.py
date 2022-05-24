@@ -19,13 +19,18 @@ from tests.e2e.containers import ComposedContainer, wait_for
 
 
 class HTTPDContainer(ComposedContainer):
+    """Meant for tests that verify Cibyl's behaviour against an HTTP host.
+    """
+
     def __init__(self):
         super().__init__('tests/e2e/data/images/httpd')
 
     @property
     def url(self):
+        # Obtained from the 'docker-compose' definition
         return 'http://172.19.1.1:80/'
 
     @overrides
     def _wait_until_ready(self):
+        # The definition indicates that the server is exposed on port 8080.
         wait_for('http://localhost:8080/')
