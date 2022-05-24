@@ -17,11 +17,12 @@ import subprocess
 from abc import ABC, abstractmethod
 
 import requests
+from requests.exceptions import ConnectionError, HTTPError
 from testcontainers.compose import DockerCompose
 from testcontainers.core.waiting_utils import wait_container_is_ready
 
 
-@wait_container_is_ready()
+@wait_container_is_ready(ConnectionError, HTTPError)
 def wait_for(url):
     """Utility that polls a URL until it starts responding. Useful to block
     runtime until a host is up.
@@ -53,8 +54,8 @@ class DockerComposition(DockerCompose):
         :rtype: tuple[str, str, int]
         """
         run_cmd = self.docker_compose_command() \
-            + ['run', '--rm', service_name] \
-            + command
+                  + ['run', '--rm', service_name] \
+                  + command
 
         result = subprocess.run(
             run_cmd,
