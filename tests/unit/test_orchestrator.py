@@ -235,7 +235,7 @@ class TestOrchestrator(TestCase):
         self.assertEqual(env.name.value, 'env4')
         self.assertEqual(env.systems[0].name.value, 'system1')
 
-    @patch("cibyl.sources.elasticsearch.api.ElasticSearchOSP.setup")
+    @patch("cibyl.sources.elasticsearch.api.ElasticSearch.setup")
     def test_setup_sources(self, patched_setup):
         """Test that setup_sources calls the setup method of the sources
         enabled in the environment."""

@@ -16,7 +16,7 @@
 from unittest import TestCase
 
 from cibyl.exceptions.config import NonSupportedSourceType
-from cibyl.sources.elasticsearch.api import ElasticSearchOSP
+from cibyl.sources.elasticsearch.api import ElasticSearch
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 from cibyl.sources.source_factory import SourceFactory
@@ -40,7 +40,7 @@ class TestSourceFactory(TestCase):
         source = SourceFactory.create_source("elasticsearch", "elastic_source",
                                              driver="elastic",
                                              url="url")
-        self.assertTrue(isinstance(source, ElasticSearchOSP))
+        self.assertTrue(isinstance(source, ElasticSearch))
         self.assertEqual(source.name, "elastic_source")
         self.assertEqual(source.driver, "elastic")
         self.assertEqual(source.url, "url")
