@@ -42,10 +42,18 @@ class SourceFactory:
 
     @staticmethod
     def extend_source(source):
+        source_class = ""
         if source.__name__ == 'Jenkins':
+            source_class = Jenkins
+        elif source.__name__ == 'ElasticSearch':
+            source_class = ElasticSearch
+        elif source.__name__ == 'JenkinsJobBuilder':
+            source_class = JenkinsJobBuilder
+
+        if source_class:
             for attr_name in [a for a in dir(source)
                               if not a.startswith('__')]:
-                setattr(Jenkins, attr_name, getattr(source, attr_name))
+                    setattr(source_class, attr_name, getattr(source, attr_name))
 
     @staticmethod
     def create_source(source_type, name, **kwargs):
