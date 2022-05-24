@@ -24,8 +24,8 @@ class HTTPDContainer(ComposedContainer):
 
     @property
     def url(self):
-        return 'http://localhost:8080/'
+        return 'http://172.19.1.1:80/'
 
     @overrides
     def _wait_until_ready(self):
-        wait_for(f'{self.url}')
+        wait_for('http://localhost:8080/')

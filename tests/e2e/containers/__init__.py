@@ -71,6 +71,12 @@ class ComposedContainer(ABC):
         self._on_ready()
 
     def run(self, service, command):
+        """
+
+        :param service:
+        :param command:
+        :return: stdout, stderr, return_code
+        """
         return self._container.run_in_container(service, command)
 
     def stop(self):
