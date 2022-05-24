@@ -49,7 +49,7 @@ def source_information_from_method(source_method):
     :rtype: str
     """
     source = source_method.__self__
-    info_str = f"source {source.name} of type {source.driver}"
+    info_str = f"source: '{source.name}' of type: '{source.driver}'"
     if LOG.getEffectiveLevel() <= logging.DEBUG:
         info_str += f" using method {source_method.__name__}"
     return info_str
@@ -248,7 +248,8 @@ class Orchestrator:
                                 **system_args)
                         except SourceException as exception:
                             source_methods_store.add_call(source_method, False)
-                            LOG.error("Error in %s with system %s. %s",
+                            LOG.error("Error in %s under system: '%s'. "
+                                      "Reason: '%s'.",
                                       source_info, system.name.value,
                                       exception, exc_info=debug)
                             continue
