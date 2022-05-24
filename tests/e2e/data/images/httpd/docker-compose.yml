@@ -12,8 +12,6 @@ services:
     networks:
       testnet:
         ipv4_address: 172.19.2.1
-    profiles:
-      - donotstart
 networks:
   testnet:
     driver: bridge
