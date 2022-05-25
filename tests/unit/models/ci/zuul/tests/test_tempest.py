@@ -47,7 +47,7 @@ class TestTempestTest(TestCase):
 
         self.assertEqual(kind, model.kind.value)
         self.assertEqual(name, model.name.value)
-        self.assertEqual(status, model.status.value)
+        self.assertEqual(status.name, model.result.value)
         self.assertEqual(duration, model.duration.value)
         self.assertEqual(url, model.url.value)
         self.assertEqual(class_name, model.class_name.value)
