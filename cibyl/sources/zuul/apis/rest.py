@@ -91,15 +91,32 @@ class ZuulSession(Closeable):
             code = request.status_code
 
             if code == 401:
-                raise ZuulAPIError('Unauthorized.') from ex
+                msg = f"Error - 401. " \
+                      f"Unauthorized access to resource: '{request.url}'. " \
+                      f"Check credentials and try again."
+
+                raise ZuulAPIError(msg) from ex
 
             if code == 403:
-                raise ZuulAPIError('Insufficient privileges.') from ex
+                msg = f"Error - 403. " \
+                      f"Insufficient privileges " \
+                      f"to access resource at: '{request.url}'. " \
+                      f"Check credentials and try again."
+
+                raise ZuulAPIError(msg) from ex
 
             if code == 404:
-                raise ZuulAPIError('Resource not found.') from ex
+                msg = f"Error - 404. " \
+                      f"Resource not found at: '{request.url}'. " \
+                      f"Check resource availability and try again."
 
-            raise ZuulAPIError(f'Unknown error code {code}') from ex
+                raise ZuulAPIError(msg) from ex
+
+            msg = f"Unknown error code: '{code}' " \
+                  f"returned by host at: {request.url}. " \
+                  f"Wait for a couple of minutes and try again..."
+
+            raise ZuulAPIError(msg) from ex
 
 
 class ZuulJobRESTClient(ZuulJobAPI):
