@@ -40,114 +40,147 @@ class ElasticSearch:
         jobs_found = self.get_jobs(**kwargs)
 
         query_body = {
+            # We don't want results in the main hits
+            # size 0 don't show it. We will have the results
+            # in the aggregations side
+            "size": 0,
+            "from": 0,
             "query": {
-              "bool": {
-                "must": [
-                  {
-                    "bool": {
-                      "must": []
-                    }
-                  },
-                  {
-                    "bool": {
-                      "should": [
+                "bool": {
+                    "must": [
                         {
-                          "exists": {
-                            "field": "ip_version"
-                          }
+                            "bool": {
+                                "should": []
+                            }
                         },
                         {
-                          "exists": {
-                            "field": "storage_backend"
-                          }
-                        },
-                        {
-                          "exists": {
-                            "field": "network_backend"
-                          }
-                        },
-                        {
-                          "exists": {
-                            "field": "dvr"
-                          }
-                        },
-                        {
-                          "exists": {
-                            "field": "topology"
-                          }
+                            "bool": {
+                                "should": [],
+                                "minimum_should_match": 1
+                            }
                         }
-                      ],
-                      "minimum_should_match": 1
-                    }
-                  }
-                ]
-              }
-            },
-            "size": 1,
-            "sort": [
-                {
-                    "timestamp.keyword": {
-                        "order": "desc"
-                    }
+                    ]
                 }
-            ]
-        }
-
-        results = []
-        hits = []
-        for job in jobs_found:
-            query_body['query']['bool']['must'][0]['bool']['must'] = {
-                "match": {
-                    "job_name.keyword": f"{job}"
+            },
+            # We should GROUP BY job names
+            "aggs": {
+                "group_by_job_name": {
+                    "terms": {
+                        "field": "job_name.keyword",
+                        "size": 10000
+                    },
+                    "aggs": {
+                        "last_build": {
+                            # And take the first coincidence
+                            "top_hits": {
+                                "size": 1,
+                                # Sorted by build_num to get the last info
+                                "sort": [
+                                        {
+                                            "build_num": {
+                                                "order": "asc"
+                                            }
+                                        }
+                                ]
+                            }
+                        }
+                    }
                 }
             }
-            results = self.__query_get_hits(
-                query=query_body,
-                index='logstash_jenkins'
-            )
-            if results:
-                hits.append(results[0])
+        }
 
-        if not results:
-            return jobs_found
+        chunked_list_of_jobs = []
+        chunk_size_for_search = 600
+        # We can't send a giant query in the request to the elasticsearch
+        # for asking to all the jobs information. Instead of doing one
+        # query for job we create a list of jobs sublists and do calls
+        # divided by chunks. chunk_size_for_search quantity will be
+        # the size of every sublist. If we have 2000 jobs we will have
+        # the following calls: 2000 / 600 = 3.33 -> 4 calls.
+        for chunk_max_value in range(
+                0,
+                len(list(jobs_found.keys())),
+                chunk_size_for_search
+        ):
+            chunked_list_of_jobs.append(
+                list(
+                    jobs_found.keys()
+                )[chunk_max_value:chunk_max_value + chunk_size_for_search]
+            )
+
+        def append_exists_field_to_query(field: str):
+            query_body['query']['bool']['must'][1]['bool']['should'].append(
+                {
+                    "exists": {
+                        "field": field
+                    }
+                }
+            )
 
         ip_version_argument = None
         if 'ip_version' in kwargs:
             ip_version_argument = kwargs.get('ip_version').value
+            append_exists_field_to_query('ip_version')
         dvr_argument = None
         if 'dvr' in kwargs:
             dvr_argument = kwargs.get('dvr').value
+            append_exists_field_to_query('dvr')
         release_argument = None
         if 'release' in kwargs:
             release_argument = kwargs.get('release').value
         network_argument = None
         if 'network_backend' in kwargs:
             network_argument = kwargs.get('network_backend').value
+            append_exists_field_to_query('network_backend')
         storage_argument = None
         if 'storage_backend' in kwargs:
             storage_argument = kwargs.get('storage_backend').value
+            append_exists_field_to_query('storage_backend')
         if 'osp_release' in kwargs:
             storage_argument = kwargs.get('osp_release').value
+            append_exists_field_to_query('osp_release')
+
+        hits_info = {}
+        for jobs_list in chunked_list_of_jobs:
+            for job in jobs_list:
+                query_body['query']['bool']['must'][0]['bool']['should'] \
+                    .append(
+                        {
+                            "match": {
+                                "job_name.keyword": f"{job}"
+                            }
+                        }
+                    )
+
+            results = self.__query_get_hits(
+                query=query_body,
+                index='logstash_jenkins'
+            )
+            for result in results:
+                hits_info[
+                    result['key']
+                ] = result['last_build']['hits']['hits'][0]
+            query_body['query']['bool']['must'][0]['bool']['should'].clear()
 
         job_objects = {}
-        for hit in hits:
-            job_name = hit['_source']['job_name']
+        for job_name in hits_info.keys():
+            job_source_data = hits_info[job_name]
             job_url = re.compile(r"(.*)/\d").search(
-                hit['_source']['build_url']
+                job_source_data['_source']['build_url']
             ).group(1)
 
             # If the key exists assign the value otherwise assign unknown
-            topology = hit['_source'].get(
+            topology = job_source_data['_source'].get(
                 "topology", "unknown")
-            network_backend = hit['_source'].get(
+            network_backend = job_source_data['_source'].get(
                 "network_backend", "unknown")
-            ip_version = hit['_source'].get(
+            ip_version = job_source_data['_source'].get(
                 "ip_version", "unknown")
-            storage_backend = hit['_source'].get(
+            storage_backend = job_source_data['_source'].get(
                 "storage_backend", "unknown")
-            dvr = hit['_source'].get(
+            dvr = job_source_data['_source'].get(
                 "dvr", "unknown")
-            osp_release = hit['_source'].get(
+            osp_release = job_source_data['_source'].get(
                 "osp_release", "unknown")
 
             if ip_version != 'unknown':

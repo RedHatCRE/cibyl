@@ -97,7 +97,9 @@ class ElasticSearch(ServerSource):
             job_objects[job_name] = Job(name=job_name, url=url)
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
-    def __query_get_hits(self: object, query: dict, index: str = '*') -> list:
+    def __query_get_hits(self: object,
+                         query: dict,
+                         index: str = '*') -> list:
         """Perform the search query to ElasticSearch
         and return all the hits
 
@@ -110,17 +112,29 @@ class ElasticSearch(ServerSource):
         try:
             LOG.debug("Using the following query: {}"
                       .format(str(query).replace("'", '"')))
+            # https://github.com/elastic/elasticsearch-py/issues/91
+            # For aggregations we should use the search method of the client
+            if 'aggs' in query:
+                results = self.es_client.search(
+                    index=index,
+                    body=query,
+                    size=10000,
+                )
+                aggregation_key = list(results['aggregations'].keys())[0]
+                buckets = results['aggregations'][aggregation_key]['buckets']
+                return buckets
+            # For normal queries we can use the scan helper
             hits = [item for item in scan(
                 self.es_client,
                 index=index,
                 query=query,
                 size=10000
             )]
+            return hits
         except Exception as exception:
             raise ElasticSearchError(
                 "Error getting the results."
             ) from exception
-        return hits
 
     @speed_index({'base': 2})
     def get_builds(self: object, **kwargs: Argument):
