@@ -21,6 +21,9 @@ from cibyl.models.ci.zuul.tests.ansible import AnsibleTest, AnsibleTestStatus
 
 
 class TestAnsibleTest(TestCase):
+    """Tests for :class:`AnsibleTest`.
+    """
+
     def test_attributes(self):
         """Checks that the model has the desired attributes.
         """

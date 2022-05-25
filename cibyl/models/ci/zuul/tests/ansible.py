@@ -21,19 +21,37 @@ from cibyl.models.ci.zuul.test import Test, TestKind
 
 
 class AnsibleTestStatus(IntEnum):
+    """Possible results of an Ansible task.
+    """
     UNKNOWN = 0
+    """Could not determine how the task finished."""
     SUCCESS = 1
+    """The task completed without errors."""
     FAILURE = 2
+    """The task met an error it could not recover from."""
     CHANGED = 3
+    """The task produced changes on the system."""
     SKIPPED = 4
+    """The task was ignored."""
 
 
 class AnsibleTest(Test):
+    """Model for the execution of an Ansible task by a Zuul host.
+
+    @DynamicAttrs: Contains attributes added on runtime.
+    """
+
     class Data(Test.Data):
+        """Holds the data that will define the model.
+        """
         phase = 'UNKNOWN'
+        """Phase on which the task was executed in."""
         host = 'UNKNOWN'
+        """Target host for the task."""
         command = None
+        """Command that it executed."""
         message = None
+        """Returned message."""
 
     API = {
         **Test.API,
@@ -54,8 +72,14 @@ class AnsibleTest(Test):
             'arguments': []
         }
     }
+    """Defines base contents of the model."""
 
     def __init__(self, data=Data()):
+        """Constructor.
+
+        :param data: Defining data for this test.
+        :type data: :class:`AnsibleTest.Data`
+        """
         super().__init__(
             TestKind.ANSIBLE,
             data,

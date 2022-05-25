@@ -21,6 +21,9 @@ from cibyl.models.ci.zuul.tests.tempest import TempestTestStatus, TempestTest
 
 
 class TestTempestTest(TestCase):
+    """Tests for :class:`TempestTest`.
+    """
+
     def test_attributes(self):
         """Checks that the model has the desired attributes.
         """

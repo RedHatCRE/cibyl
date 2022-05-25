@@ -19,27 +19,41 @@ from cibyl.models.model import Model
 
 
 class TestKind(IntEnum):
+    """Defines the different kind of test cases known to Cibyl.
+    """
     UNKNOWN = 0
+    """Type is unknown, best effort will be tried."""
     ANSIBLE = 1
+    """Test represents the execution of an Ansible task."""
     TEMPEST = 2
+    """Test represents the execution of a Tempest test case."""
 
 
 class TestStatus(IntEnum):
+    """Default possible test results.
+    """
     UNKNOWN = 0
     SUCCESS = 1
     FAILURE = 2
 
 
 class Test(Model):
-    """
+    """Model for test cases on a Zuul environment.
+
     @DynamicAttrs: Contains attributes added on runtime.
     """
 
     class Data:
+        """Holds the data that will define the model.
+        """
         name = 'UNDEFINED'
+        """Name of the test case."""
         status = TestStatus.UNKNOWN
+        """Result of the test case."""
         duration = None
+        """How long the test took to complete, in seconds."""
         url = None
+        """Page where more information about the test can be obtained."""
 
     API = {
         'kind': {
@@ -63,8 +77,18 @@ class Test(Model):
             'arguments': []
         }
     }
+    """Defines base contents of the model."""
 
     def __init__(self, kind, data, **kwargs):
+        """Constructor.
+
+        :param kind: The type of test.
+        :type kind: :class:`TestKind`
+        :param data: Defining data for this test.
+        :type data: :class:`Test.Data`
+        :param kwargs: Additional data.
+        :type kwargs: Any
+        """
         super().__init__(
             {
                 'kind': kind,

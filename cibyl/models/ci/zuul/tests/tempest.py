@@ -21,17 +21,33 @@ from cibyl.models.ci.zuul.test import Test, TestKind
 
 
 class TempestTestStatus(IntEnum):
+    """Possible results of a Tempest test case.
+    """
     UNKNOWN = 0
+    """Could not determine how the test finished."""
     SUCCESS = 1
+    """The test passed."""
     FAILURE = 2
+    """Some condition from the test was not met."""
     ERROR = 3
+    """The test found some error it could not recover from."""
     SKIPPED = 4
+    """The test was ignored."""
 
 
 class TempestTest(Test):
+    """Model for the execution of a Tempest test case by a Zuul host.
+
+    @DynamicAttrs: Contains attributes added on runtime.
+    """
+
     class Data(Test.Data):
+        """Holds the data that will define the model.
+        """
         class_name = 'UNKNOWN'
+        """Full name of the class that contains the test case."""
         skip_reason = None
+        """Message indicating why the test case was ignored."""
 
     API = {
         **Test.API,
@@ -44,8 +60,14 @@ class TempestTest(Test):
             'arguments': []
         }
     }
+    """Defines the base contents of the model."""
 
     def __init__(self, data=Data()):
+        """Constructor.
+
+        :param data: Defining data for this test.
+        :type data: :class:`TempestTest.Data`
+        """
         super().__init__(
             TestKind.TEMPEST,
             data,
