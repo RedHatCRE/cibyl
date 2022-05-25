@@ -15,7 +15,9 @@
 """
 from enum import IntEnum
 
-from cibyl.models.model import Model
+from overrides import overrides
+
+from cibyl.models.ci.base.test import Test as BaseTest
 
 
 class TestKind(IntEnum):
@@ -37,7 +39,7 @@ class TestStatus(IntEnum):
     FAILURE = 2
 
 
-class Test(Model):
+class Test(BaseTest):
     """Model for test cases on a Zuul environment.
 
     @DynamicAttrs: Contains attributes added on runtime.
@@ -56,20 +58,9 @@ class Test(Model):
         """Page where more information about the test can be obtained."""
 
     API = {
+        **BaseTest.API,
         'kind': {
             'attr_type': TestKind,
-            'arguments': []
-        },
-        'name': {
-            'attr_type': str,
-            'arguments': []
-        },
-        'status': {
-            'attr_type': int,
-            'arguments': []
-        },
-        'duration': {
-            'attr_type': float,
             'arguments': []
         },
         'url': {
@@ -90,16 +81,15 @@ class Test(Model):
         :type kwargs: Any
         """
         super().__init__(
-            {
-                'kind': kind,
-                'name': data.name,
-                'status': data.status,
-                'duration': data.duration,
-                'url': data.url,
-                **kwargs
-            }
+            name=data.name,
+            result=data.status.name,
+            duration=data.duration,
+            kind=kind,
+            url=data.url,
+            **kwargs
         )
 
+    @overrides
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False
@@ -110,6 +100,6 @@ class Test(Model):
         return \
             self.kind == other.kind and \
             self.name == other.name and \
-            self.status == other.status and \
+            self.result == other.result and \
             self.duration == other.duration and \
             self.url == other.url
