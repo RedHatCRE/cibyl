@@ -81,7 +81,8 @@ class ElasticSearch:
                                                 "order": "asc"
                                             }
                                         }
-                                ]
+                                ],
+                                "_source": ['build_url']
                             }
                         }
                     }
@@ -90,7 +91,7 @@ class ElasticSearch:
         }
 
         chunked_list_of_jobs = []
-        chunk_size_for_search = 600
+        chunk_size_for_search = 400
         # We can't send a giant query in the request to the elasticsearch
         # for asking to all the jobs information. Instead of doing one
         # query for job we create a list of jobs sublists and do calls
@@ -108,6 +109,8 @@ class ElasticSearch:
                 )[chunk_max_value:chunk_max_value + chunk_size_for_search]
             )
 
+        # We will filter depending of the field we receive
+        # in the kwargs
         def append_exists_field_to_query(field: str):
             query_body['query']['bool']['must'][1]['bool']['should'].append(
                 {
@@ -117,14 +120,28 @@ class ElasticSearch:
                 }
             )
 
+        # We will select just the field we receive
+        # in the kwargs
+        def append_get_specific_field(field: str):
+            query_body['aggs']['group_by_job_name']['aggs']\
+                ['last_build']['top_hits']['_source'].append(
+                    f"{field}"
+                )
+
+        if 'topology' in kwargs:
+            dvr_argument = kwargs.get('topology').value
+            append_exists_field_to_query('topology')
+            append_get_specific_field('topology')
         ip_version_argument = None
         if 'ip_version' in kwargs:
             ip_version_argument = kwargs.get('ip_version').value
             append_exists_field_to_query('ip_version')
+            append_get_specific_field('ip_version')
         dvr_argument = None
         if 'dvr' in kwargs:
             dvr_argument = kwargs.get('dvr').value
             append_exists_field_to_query('dvr')
+            append_get_specific_field('dvr')
         release_argument = None
         if 'release' in kwargs:
             release_argument = kwargs.get('release').value
@@ -132,13 +149,16 @@ class ElasticSearch:
         if 'network_backend' in kwargs:
             network_argument = kwargs.get('network_backend').value
             append_exists_field_to_query('network_backend')
+            append_get_specific_field('network_backend')
         storage_argument = None
         if 'storage_backend' in kwargs:
             storage_argument = kwargs.get('storage_backend').value
             append_exists_field_to_query('storage_backend')
+            append_get_specific_field('storage_backend')
         if 'osp_release' in kwargs:
             storage_argument = kwargs.get('osp_release').value
             append_exists_field_to_query('osp_release')
+            append_get_specific_field('osp_release')
 
         hits_info = {}
         for jobs_list in chunked_list_of_jobs:
@@ -169,21 +189,22 @@ class ElasticSearch:
                 job_source_data['_source']['build_url']
             ).group(1)
 
-            # If the key exists assign the value otherwise assign unknown
+            # If data does not exist in the source we 
+            # don't wanna display it
             topology = job_source_data['_source'].get(
-                "topology", "unknown")
+                "topology", "")
             network_backend = job_source_data['_source'].get(
-                "network_backend", "unknown")
+                "network_backend", "")
             ip_version = job_source_data['_source'].get(
-                "ip_version", "unknown")
+                "ip_version", "")
             storage_backend = job_source_data['_source'].get(
-                "storage_backend", "unknown")
+                "storage_backend", "")
             dvr = job_source_data['_source'].get(
-                "dvr", "unknown")
+                "dvr", "")
             osp_release = job_source_data['_source'].get(
-                "osp_release", "unknown")
+                "osp_release", "")
 
-            if ip_version != 'unknown':
+            if ip_version != '':
                 matches = IP_PATTERN.search(ip_version)
                 ip_version = matches.group(1)
 
