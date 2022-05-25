@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.models.ci.zuul.test import TestStatus, TestKind
+from cibyl.models.ci.zuul.test import TestKind, TestStatus
 from cibyl.models.ci.zuul.tests.ansible import AnsibleTest, AnsibleTestStatus
 
 

@@ -17,7 +17,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.models.ci.zuul.test import TestKind
-from cibyl.models.ci.zuul.tests.tempest import TempestTestStatus, TempestTest
+from cibyl.models.ci.zuul.tests.tempest import TempestTest, TempestTestStatus
 
 
 class TestTempestTest(TestCase):
