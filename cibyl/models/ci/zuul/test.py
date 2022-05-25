@@ -33,8 +33,13 @@ class TestStatus(IntEnum):
     """Default possible test results.
     """
     UNKNOWN = 0
+    """Could not be determined the result of the test."""
     SUCCESS = 1
+    """The test passed."""
     FAILURE = 2
+    """Some condition in the test was not met."""
+    SKIPPED = 3
+    """The test was ignored."""
 
 
 class Test(Model):

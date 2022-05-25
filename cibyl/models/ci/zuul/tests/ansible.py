@@ -29,10 +29,10 @@ class AnsibleTestStatus(IntEnum):
     """The task completed without errors."""
     FAILURE = 2
     """The task met an error it could not recover from."""
-    CHANGED = 3
-    """The task produced changes on the system."""
-    SKIPPED = 4
+    SKIPPED = 3
     """The task was ignored."""
+    CHANGED = 4
+    """The task produced changes on the system."""
 
 
 class AnsibleTest(Test):

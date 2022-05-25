@@ -29,10 +29,10 @@ class TempestTestStatus(IntEnum):
     """The test passed."""
     FAILURE = 2
     """Some condition from the test was not met."""
-    ERROR = 3
-    """The test found some error it could not recover from."""
-    SKIPPED = 4
+    SKIPPED = 3
     """The test was ignored."""
+    ERROR = 4
+    """The test found some error it could not recover from."""
 
 
 class TempestTest(Test):
