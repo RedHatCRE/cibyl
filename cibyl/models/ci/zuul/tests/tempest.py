@@ -20,36 +20,26 @@ from overrides import overrides
 from cibyl.models.ci.zuul.test import Test, TestKind
 
 
-class AnsibleTestStatus(IntEnum):
+class TempestTestStatus(IntEnum):
     UNKNOWN = 0
     SUCCESS = 1
     FAILURE = 2
-    CHANGED = 3
+    ERROR = 3
     SKIPPED = 4
 
 
-class AnsibleTest(Test):
+class TempestTest(Test):
     class Data(Test.Data):
-        phase = 'UNKNOWN'
-        host = 'UNKNOWN'
-        command = None
-        message = None
+        class_name = 'UNKNOWN'
+        skip_reason = None
 
     API = {
         **Test.API,
-        'phase': {
+        'class_name': {
             'attr_type': str,
             'arguments': []
         },
-        'host': {
-            'attr_type': str,
-            'arguments': []
-        },
-        'command': {
-            'attr_type': str,
-            'arguments': []
-        },
-        'message': {
+        'skip_reason': {
             'attr_type': str,
             'arguments': []
         }
@@ -57,13 +47,11 @@ class AnsibleTest(Test):
 
     def __init__(self, data=Data()):
         super().__init__(
-            TestKind.ANSIBLE,
+            TestKind.TEMPEST,
             data,
             **{
-                'phase': data.phase,
-                'host': data.host,
-                'command': data.command,
-                'message': data.message
+                'class_name': data.class_name,
+                'skip_reason': data.skip_reason
             }
         )
 
@@ -74,7 +62,5 @@ class AnsibleTest(Test):
 
         # Check this model's additional fields
         return \
-            self.phase == other.phase and \
-            self.host == other.host and \
-            self.command == other.command and \
-            self.message == other.message
+            self.class_name == other.class_name and \
+            self.skip_reason == other.skip_reason

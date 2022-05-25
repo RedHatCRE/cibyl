@@ -59,7 +59,7 @@ class TestAnsibleTest(TestCase):
         """Checks that two models are no the same if they are of different
         type.
         """
-        model = AnsibleTest(AnsibleTest.Data())
+        model = AnsibleTest()
         other = Mock()
 
         self.assertNotEqual(other, model)
@@ -67,7 +67,7 @@ class TestAnsibleTest(TestCase):
     def test_equality_by_reference(self):
         """Checks that a model is equal to itself.
         """
-        model = AnsibleTest(AnsibleTest.Data())
+        model = AnsibleTest()
 
         self.assertEqual(model, model)
 

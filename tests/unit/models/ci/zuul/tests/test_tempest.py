@@ -16,41 +16,45 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.models.ci.zuul.test import Test, TestKind, TestStatus
+from cibyl.models.ci.zuul.test import TestKind
+from cibyl.models.ci.zuul.tests.tempest import TempestTestStatus, TempestTest
 
 
-class TestTest(TestCase):
-    """Tests for :class:`Test`.
-    """
-
+class TestTempestTest(TestCase):
     def test_attributes(self):
         """Checks that the model has the desired attributes.
         """
-        kind = TestKind.ANSIBLE
+        kind = TestKind.TEMPEST
         name = 'test'
-        status = TestStatus.SUCCESS
+        status = TempestTestStatus.SUCCESS
         duration = 1.2
         url = 'url-to-test'
+        class_name = 'class'
+        skip_reason = 'reason'
 
-        data = Test.Data()
+        data = TempestTest.Data()
         data.name = name
         data.status = status
         data.duration = duration
         data.url = url
+        data.class_name = class_name
+        data.skip_reason = skip_reason
 
-        model = Test(kind, data)
+        model = TempestTest(data)
 
         self.assertEqual(kind, model.kind.value)
         self.assertEqual(name, model.name.value)
         self.assertEqual(status, model.status.value)
         self.assertEqual(duration, model.duration.value)
         self.assertEqual(url, model.url.value)
+        self.assertEqual(class_name, model.class_name.value)
+        self.assertEqual(skip_reason, model.skip_reason.value)
 
     def test_equality_by_type(self):
         """Checks that two models are no the same if they are of different
         type.
         """
-        model = Test(TestKind.UNKNOWN, Test.Data())
+        model = TempestTest()
         other = Mock()
 
         self.assertNotEqual(other, model)
@@ -58,20 +62,22 @@ class TestTest(TestCase):
     def test_equality_by_reference(self):
         """Checks that a model is equal to itself.
         """
-        model = Test(TestKind.UNKNOWN, Test.Data())
+        model = TempestTest()
 
         self.assertEqual(model, model)
 
     def test_equality_by_contents(self):
         """Checks that two models are equal if they hold the same data.
         """
-        data = Test.Data()
+        data = TempestTest.Data()
         data.name = 'test'
-        data.status = TestStatus.SUCCESS
+        data.status = TempestTestStatus.SUCCESS
         data.duration = 1.2
         data.url = 'url-to-test'
+        data.class_name = 'class_name'
+        data.skip_reason = 'skip_reason'
 
-        model1 = Test(TestKind.ANSIBLE, data)
-        model2 = Test(TestKind.ANSIBLE, data)
+        model1 = TempestTest(data)
+        model2 = TempestTest(data)
 
         self.assertEqual(model2, model1)
