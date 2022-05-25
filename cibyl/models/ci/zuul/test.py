@@ -13,14 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from enum import IntEnum
+from enum import Enum
 
 from overrides import overrides
 
 from cibyl.models.ci.base.test import Test as BaseTest
 
 
-class TestKind(IntEnum):
+class TestKind(Enum):
     """Defines the different kind of test cases known to Cibyl.
     """
     UNKNOWN = 0
@@ -31,7 +31,7 @@ class TestKind(IntEnum):
     """Test represents the execution of a Tempest test case."""
 
 
-class TestStatus(IntEnum):
+class TestStatus(Enum):
     """Default possible test results.
     """
     UNKNOWN = 0
@@ -75,7 +75,7 @@ class Test(BaseTest):
     }
     """Defines base contents of the model."""
 
-    def __init__(self, kind, data, **kwargs):
+    def __init__(self, kind=TestKind.UNKNOWN, data=Data(), **kwargs):
         """Constructor.
 
         :param kind: The type of test.
@@ -108,3 +108,33 @@ class Test(BaseTest):
             self.result == other.result and \
             self.duration == other.duration and \
             self.url == other.url
+
+    @property
+    def status(self):
+        result = self.result.value
+
+        success_terms = [
+            val.name
+            for val in [TestStatus.SUCCESS]
+        ]
+
+        if result in success_terms:
+            return TestStatus.SUCCESS
+
+        failed_terms = [
+            val.name
+            for val in [TestStatus.FAILURE]
+        ]
+
+        if result in failed_terms:
+            return TestStatus.FAILURE
+
+        skipped_terms = [
+            val.name
+            for val in [TestStatus.SKIPPED]
+        ]
+
+        if result in skipped_terms:
+            return TestStatus.SKIPPED
+
+        return TestStatus.UNKNOWN

@@ -17,7 +17,7 @@ from enum import IntEnum
 
 from overrides import overrides
 
-from cibyl.models.ci.zuul.test import Test, TestKind
+from cibyl.models.ci.zuul.test import Test, TestKind, TestStatus
 
 
 class AnsibleTestStatus(IntEnum):
@@ -102,3 +102,34 @@ class AnsibleTest(Test):
             self.host == other.host and \
             self.command == other.command and \
             self.message == other.message
+
+    @property
+    @overrides
+    def status(self):
+        result = self.result.value
+
+        success_terms = [
+            val.name
+            for val in [AnsibleTestStatus.SUCCESS, AnsibleTestStatus.CHANGED]
+        ]
+
+        if result in success_terms:
+            return TestStatus.SUCCESS
+
+        failed_terms = [
+            val.name
+            for val in [AnsibleTestStatus.FAILURE]
+        ]
+
+        if result in failed_terms:
+            return TestStatus.FAILURE
+
+        skipped_terms = [
+            val.name
+            for val in [AnsibleTestStatus.SKIPPED]
+        ]
+
+        if result in skipped_terms:
+            return TestStatus.SKIPPED
+
+        return TestStatus.UNKNOWN
