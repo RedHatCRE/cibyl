@@ -129,7 +129,6 @@ class ElasticSearch:
                 )
 
         if 'topology' in kwargs:
-            dvr_argument = kwargs.get('topology').value
             append_exists_field_to_query('topology')
             append_get_specific_field('topology')
         ip_version_argument = None
