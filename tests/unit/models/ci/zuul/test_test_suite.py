@@ -127,3 +127,19 @@ class TestTestSuite(TestCase):
         suite = TestSuite(data)
 
         self.assertEqual(1, suite.skipped_count)
+
+    def test_total_time(self):
+        """Checks the calculated time for the test suite.
+        """
+        test1 = Mock()
+        test2 = Mock()
+
+        test1.duration.value = 1.0
+        test2.duration.value = 3.0
+
+        data = TestSuite.Data()
+        data.tests = [test1, test2]
+
+        suite = TestSuite(data)
+
+        self.assertAlmostEqual(4.0, suite.total_time)
