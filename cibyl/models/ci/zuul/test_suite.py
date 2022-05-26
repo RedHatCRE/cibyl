@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import List
-
-from cibyl.models.ci.zuul.test import Test
+from cibyl.models.attribute import AttributeListValue
+from cibyl.models.ci.zuul.test import Test, TestStatus
 from cibyl.models.model import Model
+from cibyl.utils.filtering import apply_filters
 
 
 class TestSuite(Model):
@@ -35,7 +35,8 @@ class TestSuite(Model):
             'arguments': []
         },
         'tests': {
-            'attr_type': List[Test],
+            'attr_type': Test,
+            'attribute_value_class': AttributeListValue,
             'arguments': []
         },
         'url': {
@@ -54,24 +55,48 @@ class TestSuite(Model):
         )
 
     def __eq__(self, other):
-        return False
+        if not isinstance(other, TestSuite):
+            return False
+
+        if self is other:
+            return True
+
+        return \
+            self.name == other.name and \
+            self.tests == other.tests and \
+            self.url == other.url
 
     @property
     def test_count(self):
-        return 0
+        return len(self.tests)
 
     @property
     def success_count(self):
-        return 0
+        return len(
+            apply_filters(
+                self.tests,
+                lambda test: test.status == TestStatus.SUCCESS
+            )
+        )
 
     @property
     def failed_count(self):
-        return 0
+        return len(
+            apply_filters(
+                self.tests,
+                lambda test: test.status == TestStatus.FAILURE
+            )
+        )
 
     @property
     def skipped_count(self):
-        return 0
+        return len(
+            apply_filters(
+                self.tests,
+                lambda test: test.status == TestStatus.SKIPPED
+            )
+        )
 
     @property
     def total_time(self):
-        return 0
+        return sum(test.duration.value for test in self.tests)

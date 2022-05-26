@@ -84,8 +84,8 @@ class TestTestSuite(TestCase):
         test1 = Mock()
         test2 = Mock()
 
-        test1.status.value = TestStatus.SUCCESS
-        test2.status.value = TestStatus.FAILURE
+        test1.status = TestStatus.SUCCESS
+        test2.status = TestStatus.FAILURE
 
         data = TestSuite.Data()
         data.tests = [test1, test2]
@@ -101,8 +101,8 @@ class TestTestSuite(TestCase):
         test1 = Mock()
         test2 = Mock()
 
-        test1.status.value = TestStatus.SUCCESS
-        test2.status.value = TestStatus.FAILURE
+        test1.status = TestStatus.SUCCESS
+        test2.status = TestStatus.FAILURE
 
         data = TestSuite.Data()
         data.tests = [test1, test2]
@@ -118,8 +118,8 @@ class TestTestSuite(TestCase):
         test1 = Mock()
         test2 = Mock()
 
-        test1.status.value = TestStatus.SUCCESS
-        test2.status.value = TestStatus.SKIPPED
+        test1.status = TestStatus.SUCCESS
+        test2.status = TestStatus.SKIPPED
 
         data = TestSuite.Data()
         data.tests = [test1, test2]
