@@ -111,6 +111,14 @@ class Test(BaseTest):
 
     @property
     def status(self):
+        """The attribute that stores the test's result does so through a
+        string. That is not easy to use for matching and comparison's sake,
+        as possibilities can be endless. This property fixes that be
+        providing the test result as one of the known predefined options.
+
+        :return: Result of this test.
+        :rtype: :class:`TestStatus`
+        """
         result = self.result.value
 
         success_terms = [

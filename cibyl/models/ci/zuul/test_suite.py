@@ -20,14 +20,20 @@ from cibyl.utils.filtering import apply_filters
 
 
 class TestSuite(Model):
-    """
+    """Model for a collection of test cases on a Zuul environment.
+
     @DynamicAttrs: Contains attributes added on runtime.
     """
 
     class Data:
+        """Holds the data that will define the model.
+        """
         name = 'UNKNOWN'
+        """Name of the tes collection."""
         tests = []
+        """The collection of tests hold by the suite."""
         url = None
+        """Page where more information on the tests can be obtained."""
 
     API = {
         'name': {
@@ -44,8 +50,14 @@ class TestSuite(Model):
             'arguments': []
         }
     }
+    """Defines base contents of the model."""
 
     def __init__(self, data=Data()):
+        """Constructor.
+
+        :param data: Defining data for this suite.
+        :type data: :class:`TestSuite.Data`
+        """
         super().__init__(
             {
                 'name': data.name,
@@ -68,10 +80,18 @@ class TestSuite(Model):
 
     @property
     def test_count(self):
+        """
+        :return: Number of test cases stored on this suite.
+        :rtype: int
+        """
         return len(self.tests)
 
     @property
     def success_count(self):
+        """
+        :return: Number of successful test cases stored on this suite.
+        :rtype: int
+        """
         return len(
             apply_filters(
                 self.tests,
@@ -81,6 +101,10 @@ class TestSuite(Model):
 
     @property
     def failed_count(self):
+        """
+        :return: Number of failed test cases stored on this suite.
+        :rtype: int
+        """
         return len(
             apply_filters(
                 self.tests,
@@ -90,6 +114,10 @@ class TestSuite(Model):
 
     @property
     def skipped_count(self):
+        """
+        :return: Number of ignored test cases stored on this suite.
+        :rtype: int
+        """
         return len(
             apply_filters(
                 self.tests,
@@ -99,4 +127,8 @@ class TestSuite(Model):
 
     @property
     def total_time(self):
+        """
+        :return: Total time it took to run all tests on this suite.
+        :rtype: float
+        """
         return sum(test.duration.value for test in self.tests)
