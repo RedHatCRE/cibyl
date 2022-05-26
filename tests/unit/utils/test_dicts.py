@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from cibyl.utils.dicts import subset
+from cibyl.utils.dicts import subset, nsubset
 
 
 class TestSubset(TestCase):
@@ -36,4 +36,24 @@ class TestSubset(TestCase):
                 'c': 3
             },
             subset(original, keys)
+        )
+
+
+class TestNSubset(TestCase):
+    def test_subset_is_generated(self):
+        """Checks that this is capable of creating a dictionary from another.
+        """
+        original = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
+
+        keys = ['a', 'c']
+
+        self.assertEqual(
+            {
+                'b': 2
+            },
+            nsubset(original, keys)
         )
