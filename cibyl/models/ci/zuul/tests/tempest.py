@@ -17,7 +17,7 @@ from enum import IntEnum
 
 from overrides import overrides
 
-from cibyl.models.ci.zuul.test import Test, TestKind
+from cibyl.models.ci.zuul.test import Test, TestKind, TestStatus
 
 
 class TempestTestStatus(IntEnum):
@@ -29,10 +29,10 @@ class TempestTestStatus(IntEnum):
     """The test passed."""
     FAILURE = 2
     """Some condition from the test was not met."""
-    ERROR = 3
-    """The test found some error it could not recover from."""
-    SKIPPED = 4
+    SKIPPED = 3
     """The test was ignored."""
+    ERROR = 4
+    """The test found some error it could not recover from."""
 
 
 class TempestTest(Test):
@@ -86,3 +86,34 @@ class TempestTest(Test):
         return \
             self.class_name == other.class_name and \
             self.skip_reason == other.skip_reason
+
+    @property
+    @overrides
+    def status(self):
+        result = self.result.value
+
+        success_terms = [
+            val.name
+            for val in [TempestTestStatus.SUCCESS]
+        ]
+
+        if result in success_terms:
+            return TestStatus.SUCCESS
+
+        failed_terms = [
+            val.name
+            for val in [TempestTestStatus.FAILURE, TempestTestStatus.ERROR]
+        ]
+
+        if result in failed_terms:
+            return TestStatus.FAILURE
+
+        skipped_terms = [
+            val.name
+            for val in [TempestTestStatus.SKIPPED]
+        ]
+
+        if result in skipped_terms:
+            return TestStatus.SKIPPED
+
+        return TestStatus.UNKNOWN

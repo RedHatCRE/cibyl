@@ -50,7 +50,7 @@ class TestTest(TestCase):
         """Checks that two models are no the same if they are of different
         type.
         """
-        model = Test(TestKind.UNKNOWN, Test.Data())
+        model = Test()
         other = Mock()
 
         self.assertNotEqual(other, model)
@@ -58,20 +58,39 @@ class TestTest(TestCase):
     def test_equality_by_reference(self):
         """Checks that a model is equal to itself.
         """
-        model = Test(TestKind.UNKNOWN, Test.Data())
+        model = Test()
 
         self.assertEqual(model, model)
 
     def test_equality_by_contents(self):
         """Checks that two models are equal if they hold the same data.
         """
+        kind = TestKind.ANSIBLE
+
         data = Test.Data()
         data.name = 'test'
         data.status = TestStatus.SUCCESS
         data.duration = 1.2
         data.url = 'url-to-test'
 
-        model1 = Test(TestKind.ANSIBLE, data)
-        model2 = Test(TestKind.ANSIBLE, data)
+        model1 = Test(kind, data)
+        model2 = Test(kind, data)
 
         self.assertEqual(model2, model1)
+
+    def test_status(self):
+        """Checks that the correct status is returned for different results.
+        """
+        model = Test()
+
+        model.result.value = TestStatus.UNKNOWN.name
+        self.assertEqual(TestStatus.UNKNOWN, model.status)
+
+        model.result.value = TestStatus.SUCCESS.name
+        self.assertEqual(TestStatus.SUCCESS, model.status)
+
+        model.result.value = TestStatus.FAILURE.name
+        self.assertEqual(TestStatus.FAILURE, model.status)
+
+        model.result.value = TestStatus.SKIPPED.name
+        self.assertEqual(TestStatus.SKIPPED, model.status)

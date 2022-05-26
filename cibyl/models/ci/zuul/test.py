@@ -13,14 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from enum import IntEnum
+from enum import Enum
 
 from overrides import overrides
 
 from cibyl.models.ci.base.test import Test as BaseTest
 
 
-class TestKind(IntEnum):
+class TestKind(Enum):
     """Defines the different kind of test cases known to Cibyl.
     """
     UNKNOWN = 0
@@ -31,12 +31,17 @@ class TestKind(IntEnum):
     """Test represents the execution of a Tempest test case."""
 
 
-class TestStatus(IntEnum):
+class TestStatus(Enum):
     """Default possible test results.
     """
     UNKNOWN = 0
+    """Could not be determined the result of the test."""
     SUCCESS = 1
+    """The test passed."""
     FAILURE = 2
+    """Some condition in the test was not met."""
+    SKIPPED = 3
+    """The test was ignored."""
 
 
 class Test(BaseTest):
@@ -70,7 +75,7 @@ class Test(BaseTest):
     }
     """Defines base contents of the model."""
 
-    def __init__(self, kind, data, **kwargs):
+    def __init__(self, kind=TestKind.UNKNOWN, data=Data(), **kwargs):
         """Constructor.
 
         :param kind: The type of test.
@@ -103,3 +108,41 @@ class Test(BaseTest):
             self.result == other.result and \
             self.duration == other.duration and \
             self.url == other.url
+
+    @property
+    def status(self):
+        """The attribute that stores the test's result does so through a
+        string. That is not easy to use for matching and comparison's sake,
+        as possibilities can be endless. This property fixes that be
+        providing the test result as one of the known predefined options.
+
+        :return: Result of this test.
+        :rtype: :class:`TestStatus`
+        """
+        result = self.result.value
+
+        success_terms = [
+            val.name
+            for val in [TestStatus.SUCCESS]
+        ]
+
+        if result in success_terms:
+            return TestStatus.SUCCESS
+
+        failed_terms = [
+            val.name
+            for val in [TestStatus.FAILURE]
+        ]
+
+        if result in failed_terms:
+            return TestStatus.FAILURE
+
+        skipped_terms = [
+            val.name
+            for val in [TestStatus.SKIPPED]
+        ]
+
+        if result in skipped_terms:
+            return TestStatus.SKIPPED
+
+        return TestStatus.UNKNOWN

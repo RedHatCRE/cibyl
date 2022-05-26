@@ -91,3 +91,23 @@ class TestAnsibleTest(TestCase):
         model2 = AnsibleTest(data)
 
         self.assertEqual(model2, model1)
+
+    def test_status(self):
+        """Checks that the correct status is returned for different results.
+        """
+        model = AnsibleTest()
+
+        model.result.value = AnsibleTestStatus.UNKNOWN.name
+        self.assertEqual(TestStatus.UNKNOWN, model.status)
+
+        model.result.value = AnsibleTestStatus.SUCCESS.name
+        self.assertEqual(TestStatus.SUCCESS, model.status)
+
+        model.result.value = AnsibleTestStatus.FAILURE.name
+        self.assertEqual(TestStatus.FAILURE, model.status)
+
+        model.result.value = AnsibleTestStatus.SKIPPED.name
+        self.assertEqual(TestStatus.SKIPPED, model.status)
+
+        model.result.value = AnsibleTestStatus.CHANGED.name
+        self.assertEqual(TestStatus.SUCCESS, model.status)

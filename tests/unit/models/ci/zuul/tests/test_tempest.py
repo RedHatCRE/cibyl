@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.models.ci.zuul.test import TestKind
+from cibyl.models.ci.zuul.test import TestKind, TestStatus
 from cibyl.models.ci.zuul.tests.tempest import TempestTest, TempestTestStatus
 
 
@@ -84,3 +84,23 @@ class TestTempestTest(TestCase):
         model2 = TempestTest(data)
 
         self.assertEqual(model2, model1)
+
+    def test_status(self):
+        """Checks that the correct status is returned for different results.
+        """
+        model = TempestTest()
+
+        model.result.value = TempestTestStatus.UNKNOWN.name
+        self.assertEqual(TestStatus.UNKNOWN, model.status)
+
+        model.result.value = TempestTestStatus.SUCCESS.name
+        self.assertEqual(TestStatus.SUCCESS, model.status)
+
+        model.result.value = TempestTestStatus.FAILURE.name
+        self.assertEqual(TestStatus.FAILURE, model.status)
+
+        model.result.value = TempestTestStatus.SKIPPED.name
+        self.assertEqual(TestStatus.SKIPPED, model.status)
+
+        model.result.value = TempestTestStatus.ERROR.name
+        self.assertEqual(TestStatus.FAILURE, model.status)

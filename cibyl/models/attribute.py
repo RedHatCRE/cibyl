@@ -62,6 +62,9 @@ class AttributeListValue(AttributeValue):
         """
         return self.value[index]
 
+    def __len__(self):
+        return len(self.value)
+
 
 class AttributeDictValue(AttributeValue):
     """Represents a dict of AttributeValue objects"""
