@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from cibyl.utils.dicts import subset, nsubset
+from cibyl.utils.dicts import nsubset, subset
 
 
 class TestSubset(TestCase):
