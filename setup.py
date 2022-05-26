@@ -28,14 +28,6 @@ setup(
         'console_scripts': ['cibyl = cibyl.cli.main:main',
                             'ci = cibyl.cli.main:main']
     },
-    install_requires=[
-        'pyyaml>=5.0',
-        'requests~=2.27.1',
-        'elasticsearch~=7.17.1',
-        'colorlog~=6.6.0',
-        'urllib3~=1.26.9',
-        'rfc3987~=1.3.8',
-        'overrides~=6.1.0',
-        'GitPython~=3.1.18',
-    ]
+    setup_requires=['pbr>=2.0.0'],
+    pbr=True
 )
