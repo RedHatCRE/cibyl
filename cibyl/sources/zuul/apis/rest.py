@@ -18,9 +18,9 @@ from urllib.parse import urljoin
 from overrides import overrides
 from requests import HTTPError, Session
 
-from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulJobAPI,
-                                    ZuulPipelineAPI, ZuulProjectAPI,
-                                    ZuulTenantAPI, ZuulBuildAPI)
+from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
+                                    ZuulJobAPI, ZuulPipelineAPI,
+                                    ZuulProjectAPI, ZuulTenantAPI)
 from cibyl.utils.io import Closeable
 
 
@@ -120,7 +120,15 @@ class ZuulSession(Closeable):
 
 
 class ZuulBuildRESTClient(ZuulBuildAPI):
+    """Implementation of a Zuul client through the use of Zuul's REST-API.
+    """
+
     def __init__(self, session, job, build):
+        """Constructor. See parent for more information.
+
+        :param session: The link through which the REST-API will be contacted.
+        :type session: :class:`ZuulSession`
+        """
         super().__init__(job, build)
 
         self._session = session

@@ -16,12 +16,12 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.sources.zuul.apis.rest import (ZuulJobRESTClient,
+from cibyl.sources.zuul.apis.rest import (ZuulBuildRESTClient,
+                                          ZuulJobRESTClient,
                                           ZuulPipelineRESTClient,
                                           ZuulProjectRESTClient,
                                           ZuulRESTClient, ZuulSession,
-                                          ZuulTenantRESTClient,
-                                          ZuulBuildRESTClient)
+                                          ZuulTenantRESTClient)
 
 
 class TestZuulSession(TestCase):
