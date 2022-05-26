@@ -88,6 +88,7 @@ class TempestTest(Test):
             self.skip_reason == other.skip_reason
 
     @property
+    @overrides
     def status(self):
         result = self.result.value
 
