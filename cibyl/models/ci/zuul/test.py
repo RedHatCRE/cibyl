@@ -18,6 +18,7 @@ from enum import Enum
 from overrides import overrides
 
 from cibyl.models.ci.base.test import Test as BaseTest
+from cibyl.utils.dicts import nsubset
 
 
 class TestKind(Enum):
@@ -63,7 +64,7 @@ class Test(BaseTest):
         """Page where more information about the test can be obtained."""
 
     API = {
-        **BaseTest.API,
+        **nsubset(BaseTest.API, ['class_name']),
         'kind': {
             'attr_type': TestKind,
             'arguments': []
