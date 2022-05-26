@@ -20,7 +20,7 @@ from requests import HTTPError, Session
 
 from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulJobAPI,
                                     ZuulPipelineAPI, ZuulProjectAPI,
-                                    ZuulTenantAPI)
+                                    ZuulTenantAPI, ZuulBuildAPI)
 from cibyl.utils.io import Closeable
 
 
@@ -119,6 +119,30 @@ class ZuulSession(Closeable):
             raise ZuulAPIError(msg) from ex
 
 
+class ZuulBuildRESTClient(ZuulBuildAPI):
+    def __init__(self, session, job, build):
+        super().__init__(job, build)
+
+        self._session = session
+
+    def __eq__(self, other):
+        if not issubclass(type(other), ZuulBuildAPI):
+            return False
+
+        if self is other:
+            return True
+
+        return \
+            self.job == other.job and \
+            self.raw == other.raw
+
+    def tests(self):
+        return []
+
+    def close(self):
+        self._session.close()
+
+
 class ZuulJobRESTClient(ZuulJobAPI):
     """Implementation of a Zuul client through the use of Zuul's REST-API.
     """
@@ -157,9 +181,13 @@ class ZuulJobRESTClient(ZuulJobAPI):
 
     @overrides
     def builds(self):
-        return self._session.get(
-            f'tenant/{self.tenant.name}/builds?job_name={self.name}'
-        )
+        url = f'tenant/{self.tenant.name}/builds?job_name={self.name}'
+        builds = self._session.get(url)
+
+        return [
+            ZuulBuildRESTClient(self._session, self, build)
+            for build in builds
+        ]
 
     @overrides
     def close(self):

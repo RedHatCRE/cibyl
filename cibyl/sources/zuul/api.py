@@ -25,6 +25,44 @@ class ZuulAPIError(SourceException):
     """
 
 
+class ZuulBuildAPI(Closeable, ABC):
+    def __init__(self, job, build):
+        self._job = job
+        self._build = build
+
+    @property
+    def job(self):
+        return self._job
+
+    @property
+    def project(self):
+        return self._build['project']
+
+    @property
+    def pipeline(self):
+        return self._build['pipeline']
+
+    @property
+    def uuid(self):
+        return self._build['uuid']
+
+    @property
+    def result(self):
+        return self._build['result']
+
+    @property
+    def duration(self):
+        return self._build['duration']
+
+    @property
+    def raw(self):
+        return self._build
+
+    @abstractmethod
+    def tests(self):
+        raise NotImplementedError
+
+
 class ZuulJobAPI(Closeable, ABC):
     """Interface which defines the information that can be retrieved from
     Zuul regarding a particular job.
@@ -81,7 +119,7 @@ class ZuulJobAPI(Closeable, ABC):
     def builds(self):
         """
         :return: The builds of this job.
-        :rtype: list[dict]
+        :rtype: list[:class:`ZuulBuildAPI`]
         :raises ZuulAPIError: If the request failed.
         """
         raise NotImplementedError
