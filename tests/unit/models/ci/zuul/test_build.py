@@ -23,6 +23,26 @@ class TestBuild(TestCase):
     """Tests for :class:`Build`.
     """
 
+    def test_attributes(self):
+        """Checks that the model has the desired attributes.
+        """
+        project = 'project'
+        pipeline = 'pipline'
+        suites = [Mock(), Mock()]
+        uuid = 'uuid'
+        status = 'STATUS'
+        duration = 1
+
+        info = Build.Info(project, pipeline, uuid, status, duration)
+        build = Build(info, suites)
+
+        self.assertEqual(uuid, build.build_id.value)
+        self.assertEqual(status, build.status.value)
+        self.assertEqual(duration, build.duration.value)
+        self.assertEqual(suites, build.tests.value)
+        self.assertEqual(project, build.project.value)
+        self.assertEqual(pipeline, build.pipeline.value)
+
     def test_equality_by_type(self):
         """Checks that a build is not equal to something not of its type.
         """
