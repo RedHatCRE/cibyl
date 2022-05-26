@@ -56,41 +56,41 @@ class OSColoredPrinter(OSPrinter):
         :returns: Whether the network section of the deployment is empty
         """
         is_empty_network = True
-        printer.add(self._palette.blue("Network: "), 1)
+        printer.add(self.palette.blue("Network: "), 1)
         ip_version = deployment.ip_version.value
         if ip_version and ip_version != "unknown":
             is_empty_network = False
-            printer.add(self._palette.blue('IP version: '), 2)
+            printer.add(self.palette.blue('IP version: '), 2)
             printer[-1].append(deployment.ip_version)
 
         if deployment.network_backend.value:
             is_empty_network = False
-            printer.add(self._palette.blue('Network backend: '), 2)
+            printer.add(self.palette.blue('Network backend: '), 2)
             printer[-1].append(deployment.network_backend)
 
         if deployment.ml2_driver.value:
             if deployment.ml2_driver.value != "N/A" or self.verbosity > 0:
                 is_empty_network = False
-                printer.add(self._palette.blue('ML2 driver: '), 2)
+                printer.add(self.palette.blue('ML2 driver: '), 2)
                 printer[-1].append(deployment.ml2_driver)
 
         if deployment.security_group.value:
-            if deployment.ml2_driver.value != "N/A" or self.verbosity > 0:
+            if deployment.security_group.value != "N/A" or self.verbosity > 0:
                 is_empty_network = False
-                printer.add(self._palette.blue('Security group mechanism: '),
+                printer.add(self.palette.blue('Security group mechanism: '),
                             2)
                 printer[-1].append(deployment.security_group)
 
         if deployment.dvr.value:
             if deployment.dvr.value != "N/A" or self.verbosity > 0:
                 is_empty_network = False
-                printer.add(self._palette.blue('DVR: '), 2)
+                printer.add(self.palette.blue('DVR: '), 2)
                 printer[-1].append(deployment.dvr)
 
         if deployment.tls_everywhere.value:
             if deployment.tls_everywhere.value != "N/A" or self.verbosity > 0:
                 is_empty_network = False
-                printer.add(self._palette.blue('TLS everywhere: '), 2)
+                printer.add(self.palette.blue('TLS everywhere: '), 2)
                 printer[-1].append(deployment.tls_everywhere)
 
         if is_empty_network:
@@ -107,12 +107,12 @@ class OSColoredPrinter(OSPrinter):
         :returns: Whether the network section of the deployment is empty
         """
         is_empty_storage = True
-        printer.add(self._palette.blue("Storage: "), 1)
+        printer.add(self.palette.blue("Storage: "), 1)
 
         if deployment.storage_backend.value:
             if deployment.storage_backend.value != "N/A" or self.verbosity > 0:
                 is_empty_storage = False
-                printer.add(self._palette.blue('Storage backend: '), 2)
+                printer.add(self.palette.blue('Storage backend: '), 2)
                 printer[-1].append(deployment.storage_backend)
 
         if is_empty_storage:
@@ -129,20 +129,20 @@ class OSColoredPrinter(OSPrinter):
         :returns: Whether the network section of the deployment is empty
         """
         is_empty_ironic = True
-        printer.add(self._palette.blue("Ironic: "), 1)
+        printer.add(self.palette.blue("Ironic: "), 1)
 
         if deployment.ironic_inspector.value:
             if deployment.ironic_inspector.value != "N/A" or \
                self.verbosity > 0:
                 is_empty_ironic = False
-                printer.add(self._palette.blue('Ironic inspector: '), 2)
+                printer.add(self.palette.blue('Ironic inspector: '), 2)
                 printer[-1].append(deployment.ironic_inspector)
 
         if deployment.cleaning_network.value:
             if deployment.cleaning_network.value != "N/A" or \
                self.verbosity > 0:
                 is_empty_ironic = False
-                printer.add(self._palette.blue('Cleaning network: '), 2)
+                printer.add(self.palette.blue('Cleaning network: '), 2)
                 printer[-1].append(deployment.cleaning_network)
 
         if is_empty_ironic:
@@ -152,22 +152,22 @@ class OSColoredPrinter(OSPrinter):
     def print_deployment(self, deployment):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('Openstack deployment: '), 0)
+        printer.add(self.palette.blue('Openstack deployment: '), 0)
         is_empty_deployment = True
 
         if deployment.release.value:
             is_empty_deployment = False
-            printer.add(self._palette.blue('Release: '), 1)
+            printer.add(self.palette.blue('Release: '), 1)
             printer[-1].append(deployment.release.value)
 
         if deployment.infra_type.value:
             is_empty_deployment = False
-            printer.add(self._palette.blue('Infra type: '), 1)
+            printer.add(self.palette.blue('Infra type: '), 1)
             printer[-1].append(deployment.infra_type)
 
         if deployment.topology.value:
             is_empty_deployment = False
-            printer.add(self._palette.blue('Topology: '), 1)
+            printer.add(self.palette.blue('Topology: '), 1)
             printer[-1].append(deployment.topology)
 
         is_empty_network = self._print_deployment_network_section(deployment,
@@ -176,12 +176,21 @@ class OSColoredPrinter(OSPrinter):
                                                                   printer)
         is_empty_ironic = self._print_deployment_ironic_section(deployment,
                                                                 printer)
+        if deployment.overcloud_templates.value:
+            if deployment.overcloud_templates.value != "N/A" or \
+               self.verbosity > 0:
+                is_empty_deployment = False
+                printer.add(self.palette.blue('Overcloud templates: '), 1)
+                for template in deployment.overcloud_templates.value:
+                    printer.add(self.palette.blue('- '), 2)
+                    printer[-1].append(template)
+
         is_empty_deployment &= (is_empty_network and is_empty_storage and
                                 is_empty_ironic)
 
         if deployment.nodes.values():
             is_empty_deployment = False
-            printer.add(self._palette.blue('Nodes: '), 1)
+            printer.add(self.palette.blue('Nodes: '), 1)
             for node in deployment.nodes.values():
                 printer.add(self.print_node(node), 2)
 
@@ -198,12 +207,12 @@ class OSColoredPrinter(OSPrinter):
     def print_node(self, node):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('- '), 0)
+        printer.add(self.palette.blue('- '), 0)
         printer[-1].append(node.name.value)
 
         if self.verbosity > 0:
             if node.role.value:
-                printer.add(self._palette.blue('Role: '), 1)
+                printer.add(self.palette.blue('Role: '), 1)
                 printer[-1].append(node.role)
 
         if node.containers.value:
@@ -219,11 +228,11 @@ class OSColoredPrinter(OSPrinter):
     def print_package(self, package):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('Package: '), 0)
+        printer.add(self.palette.blue('Package: '), 0)
         printer[-1].append(package.name)
 
         if package.origin.value:
-            printer.add(self._palette.blue('Origin: '), 1)
+            printer.add(self.palette.blue('Origin: '), 1)
             printer[-1].append(package.origin)
 
         return printer.build()
@@ -231,13 +240,13 @@ class OSColoredPrinter(OSPrinter):
     def print_service(self, service):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('Service name: '), 0)
+        printer.add(self.palette.blue('Service name: '), 0)
         printer[-1].append(service.name.value)
 
         if self.verbosity > 0:
             if service.configuration.value:
                 for parameter, value in service.configuration.value.items():
-                    printer.add(self._palette.blue(f'{parameter}: '), 1)
+                    printer.add(self.palette.blue(f'{parameter}: '), 1)
                     printer[-1].append(value)
 
         return printer.build()
@@ -245,11 +254,11 @@ class OSColoredPrinter(OSPrinter):
     def print_container(self, container):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('Container: '), 0)
+        printer.add(self.palette.blue('Container: '), 0)
         printer[-1].append(container.name)
 
         if container.image.value:
-            printer.add(self._palette.blue('Image: '), 1)
+            printer.add(self.palette.blue('Image: '), 1)
             printer[-1].append(container.image)
 
         if container.packages.value:

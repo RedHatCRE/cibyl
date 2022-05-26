@@ -106,6 +106,30 @@ def filter_nodes(job: dict, user_input: Argument, field_to_check: str):
     return valid_nodes > 0
 
 
+def filter_models_set_field(job: dict, user_input: Argument,
+                            field_to_check: str):
+    """Check whether job should be included according to the user input. The
+    model should be added if the models provided in the field designated
+    by the variable field_to_check (represented by a set)
+    are present in the user_input values.
+
+    :param job: job information obtained from jenkins
+    :type job: str
+    :param user_input: input argument specified by the user
+    :type model_urls: :class:`.Argument`
+    :param field_to_check: Job field to perform the check
+    :param field_to_check: str
+    :returns: Whether the model satisfies user input
+    :rtype: bool
+    """
+    if not isinstance(job[field_to_check], set):
+        # if the field_to_check is not a set, the model should not be included
+        return False
+    job[field_to_check].intersection_update(set(user_input.value))
+    # if the subset is empty, job should be filtered
+    return bool(job[field_to_check])
+
+
 class Jenkins:
     """A class representation of Jenkins client."""
 
@@ -117,7 +141,7 @@ class Jenkins:
 
     # deployment properties that have no cli argument and will not be used to
     # filter jobs, just for the spec
-    spec_params = ["cleaning_network", "security_group"]
+    spec_params = ["cleaning_network", "security_group", "overcloud_templates"]
     possible_attributes = deployment_attr+spec_params
 
     def add_job_info_from_name(self, job:  Dict[str, str], **kwargs):
@@ -283,6 +307,13 @@ accurate results", len(jobs_found))
             checks_to_apply.append(partial(filter_models_by_name,
                                            field_to_check='services',
                                            user_input=input_services))
+        # filter by templates
+        input_overcloud_templates = kwargs.get('overcloud_templates')
+        if input_overcloud_templates and input_overcloud_templates.value:
+            check = partial(filter_models_set_field,
+                            field_to_check="overcloud_templates",
+                            user_input=input_overcloud_templates)
+            checks_to_apply.append(check)
 
         for attribute in ['containers', 'packages']:
             input_attr = kwargs.get(attribute)
@@ -312,6 +343,7 @@ accurate results", len(jobs_found))
             ironic_inspector = job.get("ironic_inspector", "")
             cleaning_network = job.get("cleaning_network", "")
             security_group = job.get("security_group", "")
+            overcloud_templates = job.get("overcloud_templates")
             deployment = Deployment(job.get("release", ""),
                                     job.get("infra_type", ""),
                                     nodes=job.get("nodes", {}),
@@ -325,6 +357,7 @@ accurate results", len(jobs_found))
                                     ironic_inspector=ironic_inspector,
                                     cleaning_network=cleaning_network,
                                     tls_everywhere=tls_everywhere,
+                                    overcloud_templates=overcloud_templates,
                                     security_group=security_group)
             job_objects[name].add_deployment(deployment)
 
@@ -413,6 +446,19 @@ accurate results", len(jobs_found))
             if "ironic_inspector" in kwargs or spec:
                 job["ironic_inspector"] = str(overcloud.get("ironic_inspector",
                                                             False))
+            if "overcloud_templates" in kwargs or spec:
+                job["overcloud_templates"] = set()
+                overcloud_params = overcloud.get("overcloud", {})
+                templates = overcloud_params.get("templates", [])
+                templates_found = set()
+                for template in templates:
+                    _, template_name = os.path.split(template)
+                    template_name, _ = os.path.splitext(template_name)
+                    if template_name != "none":
+                        templates_found.add(template_name)
+                if templates_found:
+                    job["overcloud_templates"] = templates_found
+
             if spec:
                 cleaning = overcloud.get("cleaning", {})
                 job["cleaning_network"] = str(cleaning.get("network", ""))
