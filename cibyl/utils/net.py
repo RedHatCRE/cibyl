@@ -65,3 +65,31 @@ def download_file(url, dest):
         with open(dest, 'wb') as file:
             for chunk in request.iter_content(chunk_size=8 * 1024):
                 file.write(chunk)
+
+
+def download_into_memory(url):
+    """Downloads the contents of a URL into memory, leaving the filesystem
+    untouched.
+
+    Supported protocols are:
+        * HTTP
+        * HTTPS
+
+    ..  doctest::
+        >>> download_into_memory('http://localhost/file.txt')
+
+    :param url: The URL to request.
+    :type url: str
+    :return: Contents of the page.
+    :rtype: str
+    :raise DownloadError: If the download failed.
+    """
+    request = requests.get(url)
+
+    if not request.ok:
+        raise DownloadError(
+            f'Download failed with: {request.status_code}\n'
+            f'{request.text}'
+        )
+
+    return request.content.decode()
