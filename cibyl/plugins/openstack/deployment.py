@@ -117,6 +117,9 @@ class Deployment(Model):
         'security_group': {
             'arguments': []
         },
+        'overcloud_templates': {
+            'arguments': []
+        },
         'network_backend': {
             'attr_type': str,
             'arguments': [Argument(name='--network-backend', arg_type=str,
@@ -139,7 +142,8 @@ class Deployment(Model):
                  network_backend: str = None, storage_backend: str = None,
                  dvr: str = None, tls_everywhere: str = None,
                  ml2_driver: str = None, ironic_inspector: str = None,
-                 cleaning_network: str = None, security_group: str = None):
+                 cleaning_network: str = None, security_group: str = None,
+                 overcloud_templates: set = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
                           'ip_version': ip_version, 'topology': topology,
@@ -149,7 +153,8 @@ class Deployment(Model):
                           'ml2_driver': ml2_driver,
                           'ironic_inspector': ironic_inspector,
                           'security_group': security_group,
-                          'cleaning_network': cleaning_network})
+                          'cleaning_network': cleaning_network,
+                          'overcloud_templates': overcloud_templates})
 
     def add_node(self, node: Node):
         """Add a node to the deployment.
@@ -202,6 +207,14 @@ class Deployment(Model):
             self.cleaning_network.value = other.cleaning_network.value
         if not self.security_group.value:
             self.security_group.value = other.security_group.value
+        if other.overcloud_templates.value:
+            other_templates = other.overcloud_templates.value
+            if self.overcloud_templates.value:
+                own_templates = self.overcloud_templates.value
+                all_templates = own_templates.union(other_templates)
+                self.overcloud_templates.value = all_templates
+            else:
+                self.overcloud_templates.value = other_templates
         for node in other.nodes.values():
             self.add_node(node)
         for service in other.services.values():
