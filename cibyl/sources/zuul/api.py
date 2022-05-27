@@ -16,6 +16,7 @@
 from abc import ABC, abstractmethod
 
 from cibyl.exceptions.source import SourceException
+from cibyl.sources.zuul.apis.builds import Artifact, ArtifactKind
 from cibyl.sources.zuul.providers import JobsProvider, PipelinesProvider
 from cibyl.utils.io import Closeable
 
@@ -90,6 +91,29 @@ class ZuulBuildAPI(Closeable, ABC):
         :rtype: int
         """
         return self._build['duration']
+
+    @property
+    def artifacts(self):
+        result = []
+
+        for entry in self._build['artifacts']:
+            artifact = Artifact()
+
+            if 'name' in entry:
+                artifact.name = entry['name']
+
+            if 'url' in entry:
+                artifact.url = entry['url']
+
+            if 'metadata' in entry:
+                metadata = entry['metadata']
+
+                if 'type' in metadata:
+                    artifact.type = ArtifactKind.from_string(metadata['type'])
+
+            result.append(artifact)
+
+        return result
 
     @property
     def raw(self):
