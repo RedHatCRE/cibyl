@@ -16,12 +16,13 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.utils.net import requests
-
-from cibyl.utils.net import DownloadError, download_into_memory
+from cibyl.utils.net import DownloadError, download_into_memory, requests
 
 
 class TestDownloadIntoMemory(TestCase):
+    """Tests for :func:`download_into_memory`.
+    """
+
     def test_raises_error_for_bad_errorcode(self):
         """Checks that an error is raised if the request returned an error
         code.
