@@ -47,6 +47,8 @@ def get_status_section(palette, build):
     status_x_color_map = {
         'SUCCESS': lambda: palette.green(build.status.value),
         'FAILURE': lambda: palette.red(build.status.value),
+        'FAILED': lambda: palette.red(build.status.value),
+        'NOT EXECUTED': lambda: palette.blue(build.status.value),
         'UNSTABLE': lambda: palette.yellow(build.status.value)
     }
 

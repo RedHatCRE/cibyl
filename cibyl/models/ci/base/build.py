@@ -14,10 +14,11 @@
 #    under the License.
 """
 # pylint: disable=no-member
-from typing import Dict
+from typing import Dict, List
 
 from cibyl.cli.argument import Argument
-from cibyl.models.attribute import AttributeDictValue
+from cibyl.models.attribute import AttributeDictValue, AttributeListValue
+from cibyl.models.ci.base.stage import Stage
 from cibyl.models.ci.base.test import Test
 from cibyl.models.model import Model
 
@@ -48,16 +49,23 @@ class Build(Model):
             'arguments': [Argument(name='--tests', arg_type=str,
                                    nargs='*', func='get_tests',
                                    description="Job test")]
-        }
+        },
+        'stages': {
+            'attr_type': Stage,
+            'attribute_value_class': AttributeListValue,
+            'arguments': [Argument(name='--stages', arg_type=str,
+                                   nargs=0, description="Build stages run")]
+            }
     }
 
     def __init__(self, build_id: str, status: str = None,
                  duration: int = None, tests: Dict[str, Test] = None,
-                 **kwargs):
+                 stages: List[Stage] = None, **kwargs):
         if status is not None:
             status = status.upper()
         super().__init__({'build_id': build_id, 'status': status,
-                          'duration': duration, 'tests': tests, **kwargs})
+                          'duration': duration, 'tests': tests,
+                          'stages': stages, **kwargs})
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -76,6 +84,14 @@ class Build(Model):
         else:
             self.tests[test_name] = test
 
+    def add_stage(self, stage: Stage):
+        """Add a stage to the build.
+
+        :param stage: Stage to add to the build
+        :type stage: Stage
+        """
+        self.stages.append(stage)
+
     def merge(self, other):
         """Merge the information of two build objects representing the same
         build.
@@ -87,3 +103,5 @@ class Build(Model):
             self.status.value = other.status.value
         for test in other.tests.values():
             self.add_test(test)
+        if not self.stages.value and other.stages.value:
+            self.stages = other.stages

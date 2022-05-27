@@ -35,7 +35,7 @@ class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
     def print_system(self, system, indent=0):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('System: '), indent)
+        printer.add(self.palette.blue('System: '), indent)
         printer[-1].append(system.name.value)
 
         if self.verbosity > 0:
@@ -48,10 +48,10 @@ class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
             if system.is_queried():
                 header = 'Total jobs found in query: '
 
-                printer.add(self._palette.blue(header), indent+1)
+                printer.add(self.palette.blue(header), indent+1)
                 printer[-1].append(len(system.jobs))
             else:
-                printer.add(self._palette.blue('No query performed'), indent+1)
+                printer.add(self.palette.blue('No query performed'), indent+1)
 
         return printer.build()
 
@@ -64,12 +64,12 @@ class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
         """
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('Job: '), 0)
+        printer.add(self.palette.blue('Job: '), 0)
         printer[-1].append(job.name.value)
 
         if self.verbosity > 0:
             if job.url.value:
-                printer.add(self._palette.blue('URL: '), 1)
+                printer.add(self.palette.blue('URL: '), 1)
                 printer[-1].append(job.url.value)
 
         if job.builds.value:
@@ -90,7 +90,7 @@ class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
         """
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('Build: '), 0)
+        printer.add(self.palette.blue('Build: '), 0)
         printer[0].append(build.build_id.value)
 
         if build.status.value:
@@ -104,6 +104,32 @@ class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
             for test in build.tests.values():
                 printer.add(self.print_test(test), 1)
 
+        if build.stages.value:
+            for stage in build.stages:
+                printer.add(self.print_stage(stage), 1)
+
+        return printer.build()
+
+    def print_stage(self, stage):
+        """
+            Generate string representation of a Stage model.
+
+            :param test: The stage.
+            :type test: :class:`cibyl.models.ci.base.stage.Stage`
+            :return: Textual representation of the provided model.
+            :rtype: str
+        """
+        printer = IndentedTextBuilder()
+
+        printer.add(self.palette.blue('Stage: '), 0)
+        printer[-1].append(stage.name.value)
+
+        if self.verbosity > 0:
+            if stage.status.value:
+                printer.add(get_status_section(self.palette, stage), 1)
+
+            if stage.duration.value:
+                printer.add(get_duration_section(self.palette, stage), 1)
         return printer.build()
 
     def print_test(self, test):
@@ -115,30 +141,30 @@ class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
         """
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('Test: '), 0)
+        printer.add(self.palette.blue('Test: '), 0)
         printer[-1].append(test.name.value)
 
         if test.result.value:
-            printer.add(self._palette.blue('Result: '), 1)
+            printer.add(self.palette.blue('Result: '), 1)
 
             if test.result.value in ['SUCCESS', 'PASSED']:
-                printer[-1].append(self._palette.green(test.result.value))
+                printer[-1].append(self.palette.green(test.result.value))
             elif test.result.value in ['FAILURE', 'FAILED', 'REGRESSION']:
-                printer[-1].append(self._palette.red(test.result.value))
+                printer[-1].append(self.palette.red(test.result.value))
             elif test.result.value == "UNSTABLE":
-                printer[-1].append(self._palette.yellow(test.result.value))
+                printer[-1].append(self.palette.yellow(test.result.value))
             elif test.result.value == "SKIPPED":
-                printer[-1].append(self._palette.blue(test.result.value))
+                printer[-1].append(self.palette.blue(test.result.value))
 
         if test.class_name.value:
-            printer.add(self._palette.blue('Class name: '), 1)
+            printer.add(self.palette.blue('Class name: '), 1)
             printer[-1].append(test.class_name.value)
 
         if self.verbosity > 0:
             if test.duration.value:
                 duration = as_minutes(test.duration.value)
 
-                printer.add(self._palette.blue('Duration: '), 1)
+                printer.add(self.palette.blue('Duration: '), 1)
                 printer[-1].append(f'{duration:.2f}m')
 
         return printer.build()
