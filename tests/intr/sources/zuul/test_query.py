@@ -21,6 +21,7 @@ from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
+from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient
 from cibyl.sources.zuul.query import handle_query
 
 
@@ -624,7 +625,10 @@ class TestHandleQuery(TestCase):
         job.name = 'job'
         job.url = 'url'
         job.builds = Mock()
-        job.builds.return_value = [build1, build2]
+        job.builds.return_value = [
+            ZuulBuildRESTClient(Mock(), job, build1),
+            ZuulBuildRESTClient(Mock(), job, build2)
+        ]
 
         pipeline = Mock()
         pipeline.name = 'pipeline'
@@ -760,7 +764,11 @@ class TestHandleQuery(TestCase):
         job.name = 'job'
         job.url = 'url'
         job.builds = Mock()
-        job.builds.return_value = [build1, build2, build3]
+        job.builds.return_value = [
+            ZuulBuildRESTClient(Mock(), job, build1),
+            ZuulBuildRESTClient(Mock(), job, build2),
+            ZuulBuildRESTClient(Mock(), job, build3)
+        ]
 
         tenant = Mock()
         tenant.name = 'tenant'
@@ -838,7 +846,11 @@ class TestHandleQuery(TestCase):
         job.name = 'job'
         job.url = 'url'
         job.builds = Mock()
-        job.builds.return_value = [build1, build2, build3]
+        job.builds.return_value = [
+            ZuulBuildRESTClient(Mock(), job, build1),
+            ZuulBuildRESTClient(Mock(), job, build2),
+            ZuulBuildRESTClient(Mock(), job, build3)
+        ]
 
         tenant = Mock()
         tenant.name = 'tenant'
@@ -922,7 +934,11 @@ class TestHandleQuery(TestCase):
         job.name = 'job'
         job.url = 'url'
         job.builds = Mock()
-        job.builds.return_value = [build1, build2, build3]
+        job.builds.return_value = [
+            ZuulBuildRESTClient(Mock(), job, build1),
+            ZuulBuildRESTClient(Mock(), job, build2),
+            ZuulBuildRESTClient(Mock(), job, build3)
+        ]
 
         tenant = Mock()
         tenant.name = 'tenant'
@@ -1006,7 +1022,11 @@ class TestHandleQuery(TestCase):
         job.name = 'job'
         job.url = 'url'
         job.builds = Mock()
-        job.builds.return_value = [build1, build2, build3]
+        job.builds.return_value = [
+            ZuulBuildRESTClient(Mock(), job, build1),
+            ZuulBuildRESTClient(Mock(), job, build2),
+            ZuulBuildRESTClient(Mock(), job, build3)
+        ]
 
         tenant = Mock()
         tenant.name = 'tenant'
@@ -1087,7 +1107,11 @@ class TestHandleQuery(TestCase):
         job.name = 'job'
         job.url = 'url'
         job.builds = Mock()
-        job.builds.return_value = [build1, build2, build3]
+        job.builds.return_value = [
+            ZuulBuildRESTClient(Mock(), job, build1),
+            ZuulBuildRESTClient(Mock(), job, build2),
+            ZuulBuildRESTClient(Mock(), job, build3)
+        ]
 
         tenant = Mock()
         tenant.name = 'tenant'

@@ -274,7 +274,7 @@ class BuildsRequest(Request):
 
         def test(build):
             return any(
-                matches_regex(patt, build['uuid']) for patt in pattern
+                matches_regex(patt, build.uuid) for patt in pattern
             )
 
         self._filters.append(test)
@@ -291,7 +291,7 @@ class BuildsRequest(Request):
 
         def test(build):
             return any(
-                matches_regex(patt, build['result']) for patt in pattern
+                matches_regex(patt, build.result) for patt in pattern
             )
 
         self._filters.append(test)
@@ -309,7 +309,7 @@ class BuildsRequest(Request):
 
         def test(build):
             return any(
-                matches_regex(patt, build['project']) for patt in pattern
+                matches_regex(patt, build.project) for patt in pattern
             )
 
         self._filters.append(test)
@@ -327,7 +327,7 @@ class BuildsRequest(Request):
 
         def test(build):
             return any(
-                matches_regex(patt, build['pipeline']) for patt in pattern
+                matches_regex(patt, build.pipeline) for patt in pattern
             )
 
         self._filters.append(test)
@@ -355,7 +355,7 @@ class BuildsRequest(Request):
         if self._last_build_only:
             builds = builds[0:1]  # Just the newest build
 
-        return [BuildResponse(self._job, build) for build in builds]
+        return [BuildResponse(build) for build in builds]
 
 
 class TenantResponse:
@@ -567,15 +567,12 @@ class BuildResponse:
     """Response for a :class:`BuildsRequest`.
     """
 
-    def __init__(self, job, build):
+    def __init__(self, build):
         """Constructor.
 
-        :param job: Low-Level API to access this build's job.
-        :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
-        :param build: Raw data for this build.
-        :type build: dict[str, Any]
+        :param build: Low-Level API to access the build's data.
+        :type build: :class:`cibyl.sources.zuul.api.ZuulBuildAPI`
         """
-        self._job = job
         self._build = build
 
     @property
@@ -584,7 +581,7 @@ class BuildResponse:
         :return: Response for this build's job.
         :rtype: :class:`JobResponse`
         """
-        return JobResponse(self._job)
+        return JobResponse(self._build.job)
 
     @property
     def data(self):
@@ -592,4 +589,4 @@ class BuildResponse:
         :return: Raw data of this build.
         :rtype: dict[str, Any]
         """
-        return self._build
+        return self._build.raw

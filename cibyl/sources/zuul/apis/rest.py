@@ -18,9 +18,9 @@ from urllib.parse import urljoin
 from overrides import overrides
 from requests import HTTPError, Session
 
-from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulJobAPI,
-                                    ZuulPipelineAPI, ZuulProjectAPI,
-                                    ZuulTenantAPI)
+from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
+                                    ZuulJobAPI, ZuulPipelineAPI,
+                                    ZuulProjectAPI, ZuulTenantAPI)
 from cibyl.utils.io import Closeable
 
 
@@ -119,6 +119,38 @@ class ZuulSession(Closeable):
             raise ZuulAPIError(msg) from ex
 
 
+class ZuulBuildRESTClient(ZuulBuildAPI):
+    """Implementation of a Zuul client through the use of Zuul's REST-API.
+    """
+
+    def __init__(self, session, job, build):
+        """Constructor. See parent for more information.
+
+        :param session: The link through which the REST-API will be contacted.
+        :type session: :class:`ZuulSession`
+        """
+        super().__init__(job, build)
+
+        self._session = session
+
+    def __eq__(self, other):
+        if not issubclass(type(other), ZuulBuildAPI):
+            return False
+
+        if self is other:
+            return True
+
+        return \
+            self.job == other.job and \
+            self.raw == other.raw
+
+    def tests(self):
+        return []
+
+    def close(self):
+        self._session.close()
+
+
 class ZuulJobRESTClient(ZuulJobAPI):
     """Implementation of a Zuul client through the use of Zuul's REST-API.
     """
@@ -157,9 +189,13 @@ class ZuulJobRESTClient(ZuulJobAPI):
 
     @overrides
     def builds(self):
-        return self._session.get(
-            f'tenant/{self.tenant.name}/builds?job_name={self.name}'
-        )
+        url = f'tenant/{self.tenant.name}/builds?job_name={self.name}'
+        builds = self._session.get(url)
+
+        return [
+            ZuulBuildRESTClient(self._session, self, build)
+            for build in builds
+        ]
 
     @overrides
     def close(self):

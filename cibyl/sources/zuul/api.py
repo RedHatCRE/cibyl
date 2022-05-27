@@ -25,6 +25,89 @@ class ZuulAPIError(SourceException):
     """
 
 
+class ZuulBuildAPI(Closeable, ABC):
+    """Interface which defines the information that can be retrieved from
+    Zuul regarding a particular build.
+    """
+
+    def __init__(self, job, build):
+        """Constructor.
+
+        :param job: Job this build belongs to.
+        :type job: :class:`ZuulJobAPI`
+        :param build: Description of the build being consulted by this API.
+        Minimum fields are: 'project', 'pipeline', 'uuid', 'result' and
+        'duration'.
+        :type build: dict
+        """
+        self._job = job
+        self._build = build
+
+    @property
+    def job(self):
+        """
+        :return: The job this build belongs to.
+        :rtype: :class:`ZuulJobAPI`
+        """
+        return self._job
+
+    @property
+    def project(self):
+        """
+        :return: Name of the project this build belongs to.
+        :rtype: str
+        """
+        return self._build['project']
+
+    @property
+    def pipeline(self):
+        """
+        :return: Name of the pipeline that triggered this build.
+        :rtype: str
+        """
+        return self._build['pipeline']
+
+    @property
+    def uuid(self):
+        """
+        :return: The build's identifier.
+        :rtype: str
+        """
+        return self._build['uuid']
+
+    @property
+    def result(self):
+        """
+        :return: The build's result.
+        :rtype: str
+        """
+        return self._build['result']
+
+    @property
+    def duration(self):
+        """
+        :return: How long the build took to complete, in ms.
+        :rtype: int
+        """
+        return self._build['duration']
+
+    @property
+    def raw(self):
+        """
+        :return: All the data known of this build, unprocessed.
+        :rtype: dict
+        """
+        return self._build
+
+    @abstractmethod
+    def tests(self):
+        """
+        :return: The tests run by this build.
+        :rtype: list[:class:`ZuulTestAPI`]
+        """
+        raise NotImplementedError
+
+
 class ZuulJobAPI(Closeable, ABC):
     """Interface which defines the information that can be retrieved from
     Zuul regarding a particular job.
@@ -81,7 +164,7 @@ class ZuulJobAPI(Closeable, ABC):
     def builds(self):
         """
         :return: The builds of this job.
-        :rtype: list[dict]
+        :rtype: list[:class:`ZuulBuildAPI`]
         :raises ZuulAPIError: If the request failed.
         """
         raise NotImplementedError
