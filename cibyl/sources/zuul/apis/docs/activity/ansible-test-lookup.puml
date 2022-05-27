@@ -1,0 +1,66 @@
+@startuml
+'Search for Ansible tests
+
+start
+split
+    :Get host address;
+split again
+    :Get tenant name;
+split again
+    :Get build UUID;
+end split
+:Generate build's API End-Point;
+note right
+    **Format:**
+    {host_url}/api/tenant/{tenant_name}/build/{build_uuid}
+end note
+:GET on API End-Point;
+:Extract artifacts from answer;
+if ("Zuul Manifest" artifact exists?) then (yes)
+    :Download manifest;
+    :Get files reported by manifest;
+    note right
+        **Manifest example:**
+        {
+           "tree":[
+              {
+                 "name":"zuul-info",
+                 "mimetype":"application/directory",
+                 ...
+                 ]
+              },
+              {
+                 "name":"job-output.json",
+                 "mimetype":"application/json",
+                 ...
+              },
+              {
+                 "name":"job-output.txt",
+                 ...
+              }
+           ],
+           "index_links":false
+        }
+    end note
+    if ("json-output.json" exists?) then (yes)
+        :Download output JSON;
+        note left
+            Same URL as the manifest,
+            just change file for this one.
+        end note
+        :Parse tests from JSON;
+        stop
+    else (no)
+        stop
+        note right
+            Zuul reported no data on Ansible tests.
+        end note
+    endif
+else (no)
+    stop
+    note right
+        Zuul reported no data on Ansible tests.
+    end note
+endif
+
+@enduml

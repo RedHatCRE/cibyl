@@ -1,4 +1,6 @@
 @startuml
+'Classes that take part in retrieval of tests for a build.
+
 class JobRESTClient {
     + builds(): BuildRESTClient[0..*]
 }
