@@ -42,6 +42,7 @@ class TestFinder(ABC):
         :param build:
         :type build: :class:`ZuulBuildAPI`
         :return:
+        :rtype: List[:class:`TestSuite`]
         """
         raise NotImplementedError
 
