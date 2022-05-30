@@ -81,7 +81,23 @@ class ElasticSearch(ServerSource):
         if jobs_scope_arg:
             jobs_scope_pattern = re.compile(jobs_scope_arg)
 
-        query_body = QueryTemplate(key_filter, jobs_to_search).get
+        # Empty query for all hits or elements
+        if not jobs_to_search:
+            query_body = {
+                "query": {
+                    "match_all": {}
+                },
+                "_source": ["job_name", "job_url"]
+            }
+        else:
+            query_body = {
+                'query': {
+                    'match_phrase_prefix': {
+                        key_filter: jobs_to_search[0]
+                    }
+                },
+                "_source": ["job_name", "job_url"]
+            }
 
         hits = self.__query_get_hits(
             query=query_body,
@@ -392,68 +408,3 @@ class ElasticSearch(ServerSource):
             if not operator(test_duration, float(operand)):
                 return False
         return True
-
-
-class QueryTemplate():
-    """Used for template and substitutions according to the
-       elements received and return a dictionary equivalent to
-       a DSL query
-    """
-
-    def __init__(self: object, search_key: str,
-                 search_values: list, **kwargs) -> None:
-        if not isinstance(search_values, list):
-            raise TypeError(f"search_values argument received: \
-                            '{search_values}' is not a list")
-
-        # Empty query for all hits or elements
-        if not search_values:
-            self.query_body = {
-                "query": {
-                    "exists": {
-                        "field": search_key
-                    }
-                }
-            }
-        # Just one element that start with string
-        # is better to use 'match_phrase_prefix'
-        elif len(search_values) == 1:
-            query_type = 'match_phrase_prefix'
-
-            if 'query_type' in kwargs:
-                query_type = kwargs.get('query_type')
-
-            self.query_body = {
-                'query': {
-                    query_type: {
-                        search_key: search_values[0]
-                    }
-                }
-            }
-        # If we want to find more than one element and all of them
-        # start with string we need to search using OR condition
-        else:
-            match_to_process = {
-                'should': [],
-                "minimum_should_match": 1
-            }
-
-            for value in search_values:
-                match_to_process['should'].append(
-                    {
-                        "match_phrase": {
-                            search_key: value
-                        }
-                    }
-                )
-
-            self.query_body = {
-                'query': {
-                    'bool': match_to_process,
-                }
-            }
-
-    @property
-    def get(self: object) -> dict:
-        """Return DSL query in dictionary format"""
-        return self.query_body
