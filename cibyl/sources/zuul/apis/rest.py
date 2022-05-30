@@ -53,6 +53,14 @@ class ZuulSession(Closeable):
         self._host = host
 
     @property
+    def session(self):
+        """
+        :return: The low-level session this uses to perform requests.
+        :rtype: :class:`Session`
+        """
+        return self._session
+
+    @property
     def host(self):
         return self._host
 
