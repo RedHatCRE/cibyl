@@ -174,7 +174,7 @@ class TestElasticSearch(TestCase):
         mock_query_hits.return_value = self.build_hits
 
         builds = self.es_api.get_builds()['test'].builds
-        self.assertEqual(len(builds), 2)
+        self.assertEqual(len(builds), 1)
 
         build = builds['1']
         self.assertEqual(build.build_id.value, '1')
@@ -202,7 +202,7 @@ class TestElasticSearch(TestCase):
         type(status_argument).value = build_status
 
         builds = self.es_api.get_builds(build_status=status_argument)
-        builds_values = builds['test'].builds
+        builds_values = builds['test2'].builds
         build = builds_values['2']
         self.assertEqual(build.build_id.value, '2')
         self.assertEqual(build.status.value, "FAIL")
@@ -220,7 +220,6 @@ class TestElasticSearch(TestCase):
         with self.assertRaises(MissingArgument):
             self.es_api.get_tests()
 
-        #
         builds_kwargs = MagicMock()
         builds_value = PropertyMock(return_value=[])
         type(builds_kwargs).value = builds_value
@@ -251,8 +250,8 @@ class TestElasticSearch(TestCase):
         )
 
         self.assertEqual(
-            len(tests['test'].builds['2'].tests),
-            0
+            len(tests['test'].builds['1'].tests),
+            1
         )
         self.assertTrue('it_is_just_a_test' in
                         tests['test'].builds['1'].tests)
@@ -269,11 +268,6 @@ class TestElasticSearch(TestCase):
         self.assertEqual(
             len(tests['test'].builds['1'].tests),
             1
-        )
-
-        self.assertEqual(
-            len(tests['test'].builds['2'].tests),
-            0
         )
 
     @patch('cibyl.sources.elasticsearch.api.ElasticSearchClient')
