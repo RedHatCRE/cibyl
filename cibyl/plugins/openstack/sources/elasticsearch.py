@@ -15,7 +15,6 @@
 """
 
 import logging
-import re
 
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.job import Job
@@ -123,10 +122,10 @@ class ElasticSearch:
         # We will select just the field we receive
         # in the kwargs
         def append_get_specific_field(field: str):
-            query_body['aggs']['group_by_job_name']['aggs']\
-                ['last_build']['top_hits']['_source'].append(
-                    f"{field}"
-                )
+            (query_body['aggs']['group_by_job_name']['aggs']
+             ['last_build']['top_hits']['_source'].append(
+                 f"{field}"
+             ))
 
         if 'topology' in kwargs:
             append_exists_field_to_query('topology')
@@ -189,7 +188,7 @@ class ElasticSearch:
                 job_source_data = hits_info[job_name]['_source']
 
             job_url = jobs_found[job_name].url
-            # If data does not exist in the source we 
+            # If data does not exist in the source we
             # don't wanna display it
             topology = job_source_data.get(
                 "topology", "")
