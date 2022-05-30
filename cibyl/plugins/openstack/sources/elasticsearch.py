@@ -182,25 +182,26 @@ class ElasticSearch:
             query_body['query']['bool']['must'][0]['bool']['should'].clear()
 
         job_objects = {}
-        for job_name in hits_info.keys():
-            job_source_data = hits_info[job_name]
-            job_url = re.compile(r"(.*)/\d").search(
-                job_source_data['_source']['build_url']
-            ).group(1)
+        for job_name in jobs_found.keys():
 
+            job_source_data = {}
+            if job_name in hits_info:
+                job_source_data = hits_info[job_name]['_source']
+
+            job_url = jobs_found[job_name].url
             # If data does not exist in the source we 
             # don't wanna display it
-            topology = job_source_data['_source'].get(
+            topology = job_source_data.get(
                 "topology", "")
-            network_backend = job_source_data['_source'].get(
+            network_backend = job_source_data.get(
                 "network_backend", "")
-            ip_version = job_source_data['_source'].get(
+            ip_version = job_source_data.get(
                 "ip_version", "")
-            storage_backend = job_source_data['_source'].get(
+            storage_backend = job_source_data.get(
                 "storage_backend", "")
-            dvr = job_source_data['_source'].get(
+            dvr = job_source_data.get(
                 "dvr", "")
-            osp_release = job_source_data['_source'].get(
+            osp_release = job_source_data.get(
                 "osp_release", "")
 
             if ip_version != '':
