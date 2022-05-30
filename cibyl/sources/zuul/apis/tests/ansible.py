@@ -14,10 +14,9 @@
 #    under the License.
 """
 import logging
-from typing import Dict
 
 from cibyl.sources.zuul.apis.builds import ArtifactKind
-from cibyl.sources.zuul.apis.tests import TestFinder, Test
+from cibyl.sources.zuul.apis.tests import Test, TestFinder
 from cibyl.utils.net import download_into_memory
 
 LOG = logging.getLogger(__name__)
@@ -35,7 +34,7 @@ class AnsibleTestParser:
         """
 
         :param data:
-        :type data: Dict[str, Any]
+        :type data: dict[str, Any]
         :return:
         :rtype: :class:`AnsibleTest`
         """

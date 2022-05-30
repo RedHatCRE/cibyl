@@ -16,7 +16,6 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from cibyl.sources.zuul.api import ZuulBuildAPI
 from cibyl.models.ci.zuul.test import TestKind
 
 
@@ -40,9 +39,9 @@ class TestFinder(ABC):
         """
 
         :param build:
-        :type build: :class:`ZuulBuildAPI`
+        :type build: :class:`cibyl.sources.zuul.api.ZuulBuildAPI`
         :return:
-        :rtype: List[:class:`TestSuite`]
+        :rtype: list[:class:`TestSuite`]
         """
         raise NotImplementedError
 
@@ -51,9 +50,9 @@ def test_lookup(build, *finders):
     """
 
     :param build:
-    :type build: :class:`ZuulBuildAPI`
+    :type build: :class:`cibyl.sources.zuul.api.ZuulBuildAPI`
     :param finders:
-    :type finders: TestFinder
+    :type finders: :class:`TestFinder`
     :return:
     """
     pass
