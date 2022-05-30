@@ -14,10 +14,6 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock
-
-from cibyl.sources.zuul.apis.builds import ArtifactKind
-from cibyl.sources.zuul.apis.tests.ansible import AnsibleTestFinder
 
 
 class TestAnsibleTestFinder(TestCase):
@@ -27,12 +23,4 @@ class TestAnsibleTestFinder(TestCase):
     def test_no_manifest(self):
         """Checks that nothing is done if there is no manifest.
         """
-        artifact = Mock()
-        artifact.kind = ArtifactKind.OTHER
-
-        build = Mock()
-        build.artifacts = [artifact]
-
-        finder = AnsibleTestFinder()
-
-        self.assertEqual([], finder.find(build))
+        pass
