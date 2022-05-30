@@ -109,7 +109,7 @@ class ZuulBuildAPI(Closeable, ABC):
                 metadata = entry['metadata']
 
                 if 'type' in metadata:
-                    artifact.type = ArtifactKind.from_string(metadata['type'])
+                    artifact.kind = ArtifactKind.from_string(metadata['type'])
 
             result.append(artifact)
 
