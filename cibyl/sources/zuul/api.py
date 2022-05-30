@@ -116,6 +116,14 @@ class ZuulBuildAPI(Closeable, ABC):
         return result
 
     @property
+    def log_url(self):
+        """
+        :return: URL where the build's logs are stored.
+        :rtype: str
+        """
+        return self._build['log_url']
+
+    @property
     def raw(self):
         """
         :return: All the data known of this build, unprocessed.
