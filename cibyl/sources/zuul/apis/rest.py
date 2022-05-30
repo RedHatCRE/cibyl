@@ -336,6 +336,10 @@ class ZuulTenantRESTClient(ZuulTenantAPI):
         return result
 
     @overrides
+    def builds(self):
+        return self._session.get(f'tenant/{self.name}/builds')
+
+    @overrides
     def close(self):
         self._session.close()
 

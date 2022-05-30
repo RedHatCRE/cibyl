@@ -15,6 +15,8 @@
 """
 from abc import ABC, abstractmethod
 
+from deprecation import deprecated
+
 from cibyl.exceptions.source import SourceException
 from cibyl.sources.zuul.apis.builds import Artifact, ArtifactKind
 from cibyl.sources.zuul.providers import JobsProvider, PipelinesProvider
@@ -315,26 +317,6 @@ class ZuulTenantAPI(Closeable, JobsProvider, ABC):
         return self._tenant['name']
 
     @abstractmethod
-    def builds(self):
-        """A build is an instance of a job running independently.
-
-        :return: Information about all executed builds under this tenant.
-        :rtype: list[dict]
-        :raises ZuulAPIError: If the request failed.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def buildsets(self):
-        """A buildset is a collection of builds running under a common context.
-
-        :return: Information about all executed buildsets under this tenant.
-        :rtype: list[dict]
-        :raises ZuulAPIError: If the request failed.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
     def projects(self):
         """A project is the representation of a source code that Zuul is
         meant to interact with.
@@ -352,6 +334,17 @@ class ZuulTenantAPI(Closeable, JobsProvider, ABC):
 
         :return: Information about all jobs under this tenant.
         :rtype: list[:class:`ZuulJobAPI`]
+        :raises ZuulAPIError: If the request failed.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    @deprecated(details="Access builds through jobs instead.")
+    def builds(self):
+        """A build is an instance of a job running independently.
+
+        :return: Information about all executed builds under this tenant.
+        :rtype: list[dict]
         :raises ZuulAPIError: If the request failed.
         """
         raise NotImplementedError
