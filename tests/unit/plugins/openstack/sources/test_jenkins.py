@@ -1488,6 +1488,105 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertIn("neutron", tests)
         self.assertIsNone(test_collection.setup.value)
 
+    def test_get_deployment_spec_stages(self):
+        """ Test get_deployment call with --spec, --stages and one job."""
+        job_name = 'test_17.3_ipv4_job'
+        ip_version = '4'
+        release = '17.3'
+        topology = "compute:2,controller:3"
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                 'name': job_name, 'url': 'url',
+                                 'lastCompletedBuild': {'description':
+                                                        logs_url,
+                                                        'number': 84}})
+        stages_data = {'stages': [{'name': 'build1', 'status': 'SUCCESS'},
+                                  {'name': 'run1', 'status': 'FAILURE'}]}
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        artifacts = [
+                get_yaml_from_topology_string(topology),
+                get_yaml_overcloud(ip_version, release,
+                                   "ceph", "geneve", False,
+                                   False, "path/to/ovb",
+                                   ironic_inspector=False, ml2_driver="ovs",
+                                   cleaning_network=True,
+                                   security_group="openvswitch",
+                                   overcloud_templates=["a", "b"]),
+                JenkinsError,  # mock tests.yaml
+                stages_data]
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        spec = Argument("spec", str, "", value=[job_name])
+        stages = Argument("stages", str, "", value=[])
+
+        jobs = self.jenkins.get_deployment(spec=spec, stages=stages)
+        self.assertEqual(len(jobs), 1)
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, release)
+        self.assertEqual(deployment.ip_version.value, ip_version)
+        self.assertEqual(deployment.topology.value, topology)
+        self.assertEqual(deployment.storage_backend.value, "ceph")
+        self.assertEqual(deployment.network_backend.value, "geneve")
+        self.assertEqual(deployment.dvr.value, "False")
+        self.assertEqual(deployment.tls_everywhere.value, "False")
+        self.assertEqual(deployment.infra_type.value, "ovb")
+        self.assertEqual(deployment.ml2_driver.value, "ovs")
+        self.assertEqual(deployment.ironic_inspector.value, "False")
+        self.assertEqual(deployment.cleaning_network.value, "True")
+        self.assertEqual(deployment.security_group.value, "openvswitch")
+        self.assertEqual(deployment.overcloud_templates.value,
+                         set(["a", "b"]))
+        for component in topology.split(","):
+            role, amount = component.split(":")
+            for i in range(int(amount)):
+                node_name = role+f"-{i}"
+                node = Node(node_name, role)
+                node_found = deployment.nodes[node_name]
+                self.assertEqual(node_found.name, node.name)
+                self.assertEqual(node_found.role, node.role)
+        services = deployment.services
+        self.assertEqual(len(services), 0)
+        stages = deployment.stages.value
+        self.assertEqual(len(stages), 2)
+        self.assertEqual(stages[0].name.value, "build1")
+        self.assertEqual(stages[0].status.value, "SUCCESS")
+        self.assertEqual(stages[1].name.value, "run1")
+        self.assertEqual(stages[1].status.value, "FAILURE")
+
+    def test_get_deployment_spec_stages_missing_data(self):
+        """ Test get_deployment call with --stages but no
+        lastCompletedBuild available."""
+        job_name = 'test_17.3_ipv4_job'
+        ip_version = '4'
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                 'name': job_name, 'url': 'url',
+                                 'lastCompletedBuild': None})
+        self.jenkins.send_request = Mock(side_effect=[response])
+        ip = Argument("ip_version", str, "", value=[])
+        stages = Argument("stages", str, "", value=[])
+
+        jobs = self.jenkins.get_deployment(ip_version=ip, stages=stages)
+        self.assertEqual(len(jobs), 1)
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "")
+        self.assertEqual(deployment.ip_version.value, ip_version)
+        self.assertEqual(deployment.topology.value, "")
+        self.jenkins.send_request.assert_called_once()
+
     def test_get_deployment_spec_correct_call_no_jobs(self):
         """ Test get_deployment call with --spec and one job without using the
         jobs argument."""
