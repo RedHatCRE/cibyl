@@ -53,3 +53,22 @@ class TestDownloadIntoMemory(TestCase):
         self.assertEqual(string, download_into_memory(url))
 
         requests.get.assert_called_once_with(url)
+
+    def test_uses_session(self):
+        """Checks that if a session is passed, that is used instead.
+        """
+        url = 'https://localhost:8080'
+        string = 'HELLO'
+        content = bytearray(string, 'utf-8')
+
+        response = Mock()
+        response.ok = True
+        response.content = content
+
+        session = Mock()
+        session.get = Mock()
+        session.get.return_value = response
+
+        self.assertEqual(string, download_into_memory(url, session))
+
+        session.get.assert_called_once_with(url)
