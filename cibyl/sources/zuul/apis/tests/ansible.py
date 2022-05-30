@@ -58,6 +58,9 @@ class AnsibleTestFinder(TestFinder):
                 if artifact.kind == ArtifactKind.ZUUL_MANIFEST
             ]
 
+        def generate_log_url():
+            return f"{build.log_url}{file_name}"
+
         result = []
 
         for manifest in get_manifests():
@@ -68,8 +71,18 @@ class AnsibleTestFinder(TestFinder):
                 LOG.warning(msg, manifest.url)
                 continue
 
-            for file in manifest['tree']:
-                if file.get('name') in test_def_files:
-                    pass
+            for file_def in manifest['tree']:
+                if 'name' not in file_def:
+                    LOG.info("Got build's log file with no name. Ignoring...")
+                    continue
+
+                file_name = file_def['name']
+
+                if file_name in test_def_files:
+                    LOG.info(f"Parsing tests from file: '{file_name}'...")
+                    result.append(self._parse_tests_at(generate_log_url()))
 
         return result
+
+    def _parse_tests_at(self, url):
+        pass
