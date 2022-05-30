@@ -86,7 +86,8 @@ class ElasticSearch(ServerSource):
             query_body = {
                 "query": {
                     "match_all": {}
-                }
+                },
+                "_source": ["job_name", "job_url"]
             }
         else:
             query_body = {
