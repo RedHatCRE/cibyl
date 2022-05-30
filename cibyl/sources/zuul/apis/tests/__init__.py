@@ -39,7 +39,7 @@ class TestFinder(ABC):
         """
 
         :param build:
-        :type build: :class:`cibyl.sources.zuul.api.ZuulBuildAPI`
+        :type build: :class:`cibyl.sources.zuul.apis.rest.ZuulBuildRESTClient`
         :return:
         :rtype: list[:class:`TestSuite`]
         """
@@ -50,7 +50,7 @@ def test_lookup(build, *finders):
     """
 
     :param build:
-    :type build: :class:`cibyl.sources.zuul.api.ZuulBuildAPI`
+    :type build: :class:`cibyl.sources.zuul.apis.rest.ZuulBuildRESTClient`
     :param finders:
     :type finders: :class:`TestFinder`
     :return:
