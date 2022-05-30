@@ -53,6 +53,8 @@ def download_file(url, dest):
 
     os.makedirs(os.path.dirname(dest), exist_ok=True)
 
+    LOG.info("Downloading file from: '%s'", url)
+
     with requests.get(url, stream=True) as request:
         if not request.ok:
             raise DownloadError(
@@ -84,6 +86,8 @@ def download_into_memory(url):
     :rtype: str
     :raise DownloadError: If the download failed.
     """
+    LOG.info("Downloading file from: '%s'", url)
+
     request = requests.get(url)
 
     if not request.ok:
