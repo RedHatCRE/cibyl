@@ -22,7 +22,7 @@ class ArtifactKind(Enum):
     OTHER = 0
     """Type unknown, treat as generic."""
     ZUUL_MANIFEST = 1
-    """Artifact is a manifest, which gives information on the log files 
+    """Artifact is a manifest, which gives information on the log files
     resulted from the build's execution."""
 
     @staticmethod
