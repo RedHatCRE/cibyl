@@ -144,9 +144,15 @@ class ZuulBuildRESTClient(ZuulBuildAPI):
             self.job == other.job and \
             self.raw == other.raw
 
+    @property
+    def session(self):
+        return self._session
+
+    @overrides
     def tests(self):
         return []
 
+    @overrides
     def close(self):
         self._session.close()
 
@@ -173,6 +179,10 @@ class ZuulJobRESTClient(ZuulJobAPI):
             return True
 
         return self.tenant == other.tenant and self.name == other.name
+
+    @property
+    def session(self):
+        return self._session
 
     @property
     def url(self):
@@ -225,6 +235,10 @@ class ZuulPipelineRESTClient(ZuulPipelineAPI):
 
         return self.project == other.project and self.name == other.name
 
+    @property
+    def session(self):
+        return self._session
+
     @overrides
     def jobs(self):
         result = []
@@ -266,6 +280,10 @@ class ZuulProjectRESTClient(ZuulProjectAPI):
             return True
 
         return self.tenant == other.tenant and self.name == other.name
+
+    @property
+    def session(self):
+        return self._session
 
     @property
     def url(self):
@@ -313,12 +331,11 @@ class ZuulTenantRESTClient(ZuulTenantAPI):
 
         self._session = session
 
-    def builds(self):
-        return self._session.get(f'tenant/{self.name}/builds')
+    @property
+    def session(self):
+        return self._session
 
-    def buildsets(self):
-        return self._session.get(f'tenant/{self.name}/buildsets')
-
+    @overrides
     def projects(self):
         result = []
 
@@ -327,6 +344,7 @@ class ZuulTenantRESTClient(ZuulTenantAPI):
 
         return result
 
+    @overrides
     def jobs(self):
         result = []
 
@@ -372,9 +390,15 @@ class ZuulRESTClient(ZuulAPI):
         """
         return ZuulRESTClient(ZuulSession(Session(), host, cert))
 
+    @property
+    def session(self):
+        return self._session
+
+    @overrides
     def info(self):
         return self._session.get('info')
 
+    @overrides
     def tenants(self):
         result = []
 
