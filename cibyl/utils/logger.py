@@ -22,7 +22,7 @@ import colorlog
 FORMAT_STR = '{}%(levelname)-8s %(name)-20s %(message)s'
 FILE_LOGGER_FORMATER = logging.Formatter(fmt=FORMAT_STR.format(""))
 TERMINAL_LOGGER_FORMATTER = colorlog.ColoredFormatter(
-                                FORMAT_STR.format("%(log_color)s"),
+                                '\r' + FORMAT_STR.format("%(log_color)s"),
                                 log_colors=dict(
                                     DEBUG='blue',
                                     INFO='green',
