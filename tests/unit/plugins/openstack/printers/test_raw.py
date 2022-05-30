@@ -21,6 +21,7 @@ from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.printers.raw import OSRawPrinter
 from cibyl.plugins.openstack.service import Service
+from cibyl.plugins.openstack.test_collection import TestCollection
 
 
 class TestOSRawPrinter(TestCase):
@@ -45,6 +46,7 @@ class TestOSRawPrinter(TestCase):
         ironic = "True"
         cleaning_net = "False"
         security_group = "N/A"
+        test_collection = TestCollection(set(["test1", "test2"]), setup="rpm")
 
         deployment = Deployment(release, infra,
                                 nodes, services,
@@ -58,7 +60,8 @@ class TestOSRawPrinter(TestCase):
                                 ml2_driver=ml2_driver,
                                 ironic_inspector=ironic,
                                 cleaning_network=cleaning_net,
-                                security_group=security_group)
+                                security_group=security_group,
+                                test_collection=test_collection)
 
         printer = OSRawPrinter(verbosity=1)
 
@@ -101,6 +104,11 @@ class TestOSRawPrinter(TestCase):
         self.assertIn('nova', result)
         self.assertIn("Nodes:", result)
         self.assertIn('controller-0', result)
+        self.assertIn("  Testing information: ", result)
+        self.assertIn("    Test suites: ", result)
+        self.assertIn("      - test1", result)
+        self.assertIn("      - test2", result)
+        self.assertIn("    Setup: rpm", result)
 
     def test_print_overcloud_templates_not_available(self):
         """Test that overcloud_templates are printed correctly
@@ -113,6 +121,18 @@ class TestOSRawPrinter(TestCase):
 
         result = printer.print_deployment(deployment)
         self.assertIn("Overcloud templates: N/A", result)
+
+    def test_print_test_collection_not_available(self):
+        """Test that test_collection is printed correctly
+        when set to N/A."""
+        release = '17.0'
+        infra = 'ovb'
+        deployment = Deployment(release, infra, {}, {},
+                                test_collection="N/A")
+        printer = OSRawPrinter(verbosity=1)
+
+        result = printer.print_deployment(deployment)
+        self.assertIn("Testing information: N/A", result)
 
     def test_print_empty_deployment(self):
         """Test that the string representation of an empty deployment shows the
@@ -142,6 +162,7 @@ class TestOSRawPrinter(TestCase):
         ironic = "N/A"
         cleaning_net = "N/A"
         security_group = "N/A"
+        test_collection = "N/A"
 
         deployment = Deployment(release, infra,
                                 nodes, {},
@@ -155,7 +176,8 @@ class TestOSRawPrinter(TestCase):
                                 ml2_driver=ml2_driver,
                                 ironic_inspector=ironic,
                                 cleaning_network=cleaning_net,
-                                security_group=security_group)
+                                security_group=security_group,
+                                test_collection=test_collection)
 
         printer = OSRawPrinter(verbosity=0)
 
@@ -190,6 +212,7 @@ class TestOSRawPrinter(TestCase):
         self.assertNotIn("Ironic:", result)
         self.assertNotIn("Ironic inspector:", result)
         self.assertNotIn("Cleaning network:", result)
+        self.assertNotIn("Testing information: N/A", result)
 
     def test_print_node(self):
         """Test that the string representation of Node works.
@@ -255,3 +278,15 @@ class TestOSRawPrinter(TestCase):
         self.assertIn(f"  Image: {image}", result)
         self.assertIn("  Package: rpm-package", result)
         self.assertIn("    Origin: rhos-release", result)
+
+    def test_print_collection(self):
+        """Test that the string representation of TestCollection works."""
+        collection = TestCollection(set(["test1", "test2"]), setup="rpm")
+        printer = OSRawPrinter(verbosity=1)
+
+        result = printer.print_test_collection(collection)
+        self.assertIn("Testing information: ", result)
+        self.assertIn("  Test suites: ", result)
+        self.assertIn("    - test1", result)
+        self.assertIn("    - test2", result)
+        self.assertIn("  Setup: rpm", result)

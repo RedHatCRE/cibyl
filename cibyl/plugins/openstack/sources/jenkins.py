@@ -31,10 +31,12 @@ from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.service import Service
+from cibyl.plugins.openstack.test_collection import TestCollection
 from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.jenkins import detect_job_info_regex, filter_jobs
 from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import subset
+from cibyl.utils.files import get_file_name_from_path
 from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
                                    IP_PATTERN, NETWORK_BACKEND_PATTERN,
                                    RELEASE_PATTERN, SERVICES_PATTERN,
@@ -141,7 +143,8 @@ class Jenkins:
 
     # deployment properties that have no cli argument and will not be used to
     # filter jobs, just for the spec
-    spec_params = ["cleaning_network", "security_group", "overcloud_templates"]
+    spec_params = ["cleaning_network", "security_group", "overcloud_templates",
+                   "test_collection"]
     possible_attributes = deployment_attr+spec_params
 
     def add_job_info_from_name(self, job:  Dict[str, str], **kwargs):
@@ -344,6 +347,7 @@ accurate results", len(jobs_found))
             cleaning_network = job.get("cleaning_network", "")
             security_group = job.get("security_group", "")
             overcloud_templates = job.get("overcloud_templates")
+            test_collection = job.get("test_collection")
             deployment = Deployment(job.get("release", ""),
                                     job.get("infra_type", ""),
                                     nodes=job.get("nodes", {}),
@@ -356,6 +360,7 @@ accurate results", len(jobs_found))
                                     dvr=job.get("dvr", ""),
                                     ironic_inspector=ironic_inspector,
                                     cleaning_network=cleaning_network,
+                                    test_collection=test_collection,
                                     tls_everywhere=tls_everywhere,
                                     overcloud_templates=overcloud_templates,
                                     security_group=security_group)
@@ -452,8 +457,7 @@ accurate results", len(jobs_found))
                 templates = overcloud_params.get("templates", [])
                 templates_found = set()
                 for template in templates:
-                    _, template_name = os.path.split(template)
-                    template_name, _ = os.path.splitext(template_name)
+                    template_name = get_file_name_from_path(template)
                     if template_name != "none":
                         templates_found.add(template_name)
                 if templates_found:
@@ -470,6 +474,24 @@ accurate results", len(jobs_found))
         except JenkinsError:
             LOG.debug("Found no artifact %s for job %s", artifact_path,
                       job_name)
+
+        artifact_path = "infrared/test.yml"
+        artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
+        try:
+            artifact = self.send_request(item="", query="",
+                                         url=artifact_url,
+                                         raw_response=True)
+            artifact = yaml.safe_load(artifact)
+            test = artifact.get("test", {})
+            setup = test.get("setup")
+            tests = test.get("tests", [])
+            test_names = {get_file_name_from_path(test) for test in tests}
+            job["test_collection"] = TestCollection(test_names, setup)
+
+        except JenkinsError:
+            LOG.debug("Found no artifact %s for job %s", artifact_path,
+                      job_name)
+
         if query_topology:
             if not job.get("topology", ""):
                 self.get_topology_from_job_name(job)
