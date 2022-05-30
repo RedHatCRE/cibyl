@@ -142,6 +142,47 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(builds_found["2"].build_id.value, "2")
         self.assertEqual(builds_found["2"].status.value, "FAILURE")
 
+    def test_get_builds_with_stages(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_builds` is
+            correct when requesting stages.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1'}]}
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': "SUCCESS"},
+                                {'number': 2, 'result': "FAILURE"}]}
+        stages1 = {'stages': [{'name': 'build1', 'status': 'SUCCESS'},
+                              {'name': 'run1', 'status': 'FAILURE'}]}
+        stages2 = {'stages': [{'name': 'build2', 'status': 'FAILURE'},
+                              {'name': 'run2', 'status': 'SUCCESS'}]}
+        self.jenkins.send_request = Mock(side_effect=[response, builds,
+                                                      stages1, stages2])
+
+        jobs = self.jenkins.get_builds(stages=[])
+        self.assertEqual(len(jobs), 1)
+        job = jobs["ansible"]
+        self.assertEqual(job.name.value, "ansible")
+        self.assertEqual(job.url.value, "url1")
+        builds_found = job.builds.value
+        self.assertEqual(len(builds_found), 2)
+        self.assertEqual(builds_found["1"].build_id.value, "1")
+        self.assertEqual(builds_found["1"].status.value, "SUCCESS")
+        self.assertEqual(builds_found["2"].build_id.value, "2")
+        self.assertEqual(builds_found["2"].status.value, "FAILURE")
+        stages = builds_found["1"].stages.value
+        self.assertEqual(len(stages), 2)
+        self.assertEqual(stages[0].name.value, "build1")
+        self.assertEqual(stages[0].status.value, "SUCCESS")
+        self.assertEqual(stages[1].name.value, "run1")
+        self.assertEqual(stages[1].status.value, "FAILURE")
+        stages = builds_found["2"].stages.value
+        self.assertEqual(len(stages), 2)
+        self.assertEqual(stages[0].name.value, "build2")
+        self.assertEqual(stages[0].status.value, "FAILURE")
+        self.assertEqual(stages[1].name.value, "run2")
+        self.assertEqual(stages[1].status.value, "SUCCESS")
+
     def test_get_last_build(self):
         """
             Tests that the internal logic from :meth:`Jenkins.get_last_build`
@@ -162,6 +203,63 @@ class TestJenkinsSource(TestCase):
         build = job.builds.value["1"]
         self.assertEqual(build.build_id.value, "1")
         self.assertEqual(build.status.value, "SUCCESS")
+
+    def test_get_last_build_with_stages(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_last_build`
+        with stages is correct.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1',
+                              'lastBuild': {'number': 1, 'result': "SUCCESS"}
+                              }]}
+        stages = {'stages': [{'name': 'build1', 'status': 'SUCCESS'},
+                             {'name': 'run1', 'status': 'FAILURE'}]}
+        self.jenkins.send_request = Mock(side_effect=[response, stages])
+
+        jobs = self.jenkins.get_last_build(stages=[])
+        self.assertEqual(len(jobs), 1)
+        job = jobs["ansible"]
+        self.assertEqual(job.name.value, "ansible")
+        self.assertEqual(job.url.value, "url1")
+        self.assertEqual(len(job.builds.value), 1)
+        build = job.builds.value["1"]
+        self.assertEqual(build.build_id.value, "1")
+        self.assertEqual(build.status.value, "SUCCESS")
+        stages = build.stages.value
+        self.assertEqual(len(stages), 2)
+        self.assertEqual(stages[0].name.value, "build1")
+        self.assertEqual(stages[0].status.value, "SUCCESS")
+        self.assertEqual(stages[1].name.value, "run1")
+        self.assertEqual(stages[1].status.value, "FAILURE")
+
+    def test_get_stages(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins._get_stages`
+             with stages is correct.
+        """
+        response = {'stages': [{'name': 'build1', 'status': 'SUCCESS'},
+                               {'name': 'run1', 'status': 'FAILURE'}]}
+        self.jenkins.send_request = Mock(side_effect=[response])
+        stages = self.jenkins._get_stages("job", "build")
+        query = "/job/build/wfapi/describe"
+        self.jenkins.send_request.assert_called_once_with(query=query,
+                                                          api_entrypoint="",
+                                                          item="job")
+        self.assertEqual(len(stages), 2)
+        self.assertEqual(stages[0].name.value, "build1")
+        self.assertEqual(stages[0].status.value, "SUCCESS")
+        self.assertEqual(stages[1].name.value, "run1")
+        self.assertEqual(stages[1].status.value, "FAILURE")
+
+    def test_get_stages_no_stages(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins._get_stages`
+             with no stages is correct.
+        """
+        response = {'stages': None}
+        self.jenkins.send_request = Mock(side_effect=[response])
+        self.assertIsNone(self.jenkins._get_stages("job", "build"))
 
     def test_get_last_build_from_get_builds(self):
         """
