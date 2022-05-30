@@ -13,9 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 from typing import Dict
 
+from cibyl.sources.zuul.apis.builds import ArtifactKind
 from cibyl.sources.zuul.apis.tests import TestFinder, Test
+from cibyl.utils.net import download_into_memory
+
+LOG = logging.getLogger(__name__)
 
 
 class AnsibleTest(Test):
@@ -38,5 +43,33 @@ class AnsibleTestParser:
 
 
 class AnsibleTestFinder(TestFinder):
-    def find(self, build):
-        pass
+    DEFAULT_FILES_OF_INTEREST = (
+        'job-output.json'
+    )
+
+    def __init__(self, parser=AnsibleTestParser()):
+        self._parser = parser
+
+    def find(self, build, test_def_files=DEFAULT_FILES_OF_INTEREST):
+        def get_manifests():
+            return [
+                artifact
+                for artifact in build.artifacts
+                if artifact.kind == ArtifactKind.ZUUL_MANIFEST
+            ]
+
+        result = []
+
+        for manifest in get_manifests():
+            contents = download_into_memory(manifest.url)
+
+            if 'tree' not in contents:
+                msg = "Unknown format for manifest in: '%s'. Ignoring..."
+                LOG.warning(msg, manifest.url)
+                continue
+
+            for file in manifest['tree']:
+                if file.get('name') in test_def_files:
+                    pass
+
+        return result
