@@ -25,9 +25,10 @@ import requests
 import urllib3
 
 from cibyl.exceptions.jenkins import JenkinsError
-from cibyl.models.attribute import AttributeDictValue
+from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.base.build import Build
 from cibyl.models.ci.base.job import Job
+from cibyl.models.ci.base.stage import Stage
 from cibyl.models.ci.base.test import Test
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import safe_request_generic, speed_index
@@ -288,6 +289,31 @@ class Jenkins(ServerSource):
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
+    def _get_stages(self, job_name, build_number):
+        """
+            Get CI stages executed in a build from jenkins server.
+
+            :param job_name: Jenkins job name to query the information for
+            :type job_name: str
+            :param build_number: Jenkins build number to query the
+            information for
+            :type build_number: str
+
+            :returns: container with stages information from
+            jenkins server
+            :rtype: :class:`AttributeListValue`
+        """
+        query = f"/{job_name}/{build_number}/wfapi/describe"
+        stages = self.send_request(query=query, api_entrypoint="", item="job")
+        if not stages["stages"]:
+            return None
+        stages_collection = AttributeListValue("stages", attr_type=Stage)
+        for stage in stages["stages"]:
+            stages_collection.append(
+                    Stage(stage["name"], stage.get("status"),
+                          duration=stage.get("durationMillis")))
+        return stages_collection
+
     @speed_index({'base': 1, 'last_build': 1})
     def get_builds(self, **kwargs):
         """
@@ -315,8 +341,14 @@ try reducing verbosity for quicker query")
                 builds_to_add = filter_builds(builds_info["allBuilds"],
                                               **kwargs)
                 for build in builds_to_add:
-                    job.add_build(Build(build["number"], build["result"],
-                                        duration=build.get('duration')))
+                    build_stages = None
+                    if "stages" in kwargs:
+                        build_stages = self._get_stages(job_name,
+                                                        build["number"])
+                    build_object = Build(build["number"], build["result"],
+                                         duration=build.get('duration'),
+                                         stages=build_stages)
+                    job.add_build(build_object)
 
         return jobs_found
 
@@ -341,8 +373,13 @@ try reducing verbosity for quicker query")
                 builds_to_add = filter_builds([job["lastBuild"]],
                                               **kwargs)
                 for build in builds_to_add:
+                    build_stages = None
+                    if "stages" in kwargs:
+                        build_stages = self._get_stages(name,
+                                                        build["number"])
                     build_obj = Build(build["number"], build["result"],
-                                      duration=build.get('duration'))
+                                      duration=build.get('duration'),
+                                      stages=build_stages)
                     job_object.add_build(build_obj)
             job_objects[name] = job_object
 
