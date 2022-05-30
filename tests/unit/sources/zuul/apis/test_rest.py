@@ -380,35 +380,6 @@ class TestZuulTenantRESTClient(TestCase):
             f"tenant/{tenant['name']}/builds"
         )
 
-    def test_buildsets(self):
-        """Tests call to 'buildsets' end-point.
-        """
-        tenant = {
-            'name': 'tenant_1'
-        }
-
-        buildsets = [
-            {
-                'name': 'buildset_1'
-            },
-            {
-                'name': 'buildset_2'
-            }
-        ]
-
-        session = Mock()
-        session.get = Mock()
-
-        session.get.return_value = buildsets
-
-        client = ZuulTenantRESTClient(session, tenant)
-
-        self.assertEqual(buildsets, client.buildsets())
-
-        session.get.assert_called_once_with(
-            f"tenant/{tenant['name']}/buildsets"
-        )
-
     def test_projects(self):
         """Tests call to 'projects' end-point.
         """
