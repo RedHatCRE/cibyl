@@ -17,11 +17,28 @@ from enum import Enum
 
 
 class ArtifactKind(Enum):
+    """Represents all known types of artifacts.
+    """
     OTHER = 0
+    """Type unknown, treat as generic."""
     ZUUL_MANIFEST = 1
+    """Artifact is a manifest, which gives information on the log files
+    resulted from the build's execution."""
 
     @staticmethod
     def from_string(string):
+        """Gets the artifact type from a string.
+
+        Known strings:
+            - 'zuul_manifest' -> :attr:`ArtifactKind.ZUUL_MANIFEST`
+
+        Any other string will return :attr:`ArtifactKind.OTHER`.
+
+        :param string: Text to parse.
+        :type string: str
+        :return: Type inferred through the text.
+        :rtype: :class:`ArtifactKind`
+        """
         if string == 'zuul_manifest':
             return ArtifactKind.ZUUL_MANIFEST
 
@@ -29,6 +46,11 @@ class ArtifactKind(Enum):
 
 
 class Artifact:
+    """Represents an artifact published by a build.
+    """
     name: str = 'Unknown'
+    """Name of the artifact."""
     url: str = 'Unknown'
+    """URL where its contents are located."""
     kind: ArtifactKind = ArtifactKind.OTHER
+    """The type of artifact."""
