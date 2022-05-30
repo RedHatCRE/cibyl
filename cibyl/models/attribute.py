@@ -62,6 +62,9 @@ class AttributeListValue(AttributeValue):
         """
         return self.value[index]
 
+    def __len__(self):
+        return len(self.value)
+
 
 class AttributeDictValue(AttributeValue):
     """Represents a dict of AttributeValue objects"""
@@ -103,5 +106,5 @@ class AttributeDictValue(AttributeValue):
         """Return dictionary values"""
         return self.value.keys()
 
-    def get(self, key, default):
+    def get(self, key, default=None):
         return self.value.get(key, default)

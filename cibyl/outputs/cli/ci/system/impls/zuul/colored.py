@@ -209,29 +209,29 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             return result.build()
 
     @overrides
-    def print_system(self, system):
+    def print_system(self, system, indent=0):
         printer = IndentedTextBuilder()
 
         # Begin with the text common to all systems
-        printer.add(super().print_system(system), 0)
+        printer.add(super().print_system(system), indent)
 
         # Continue with text specific for this system type
         if self.query >= QueryType.TENANTS:
             if hasattr(system, 'tenants'):
                 if system.tenants.value:
                     for tenant in system.tenants.values():
-                        printer.add(self._print_tenant(tenant), 1)
+                        printer.add(self._print_tenant(tenant), indent+1)
 
                     if system.is_queried():
                         header = 'Total tenants found in query: '
-                        printer.add(self.palette.blue(header), 1)
+                        printer.add(self.palette.blue(header), indent+1)
                         printer[-1].append(len(system.tenants))
                     else:
                         msg = 'No query performed.'
-                        printer.add(self.palette.blue(msg), 1)
+                        printer.add(self.palette.blue(msg), indent+1)
                 else:
                     msg = 'No tenants found in query.'
-                    printer.add(self.palette.red(msg), 1)
+                    printer.add(self.palette.red(msg), indent+1)
             else:
                 LOG.warning(
                     'Requested tenant printing on a non-zuul interface. '

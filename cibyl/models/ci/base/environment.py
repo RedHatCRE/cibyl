@@ -35,15 +35,21 @@ class Environment(Model):
             'attribute_value_class': AttributeListValue,
             'arguments': [Argument(name='--systems', arg_type=str, nargs='*',
                                    description="Systems names")]
-        }
+        },
+        'enabled': {
+            'attr_type': bool,
+            'arguments': []
+        },
     }
 
-    def __init__(self, name, systems=None):
+    def __init__(self, name, systems=None, enabled=True):
         # Let IDEs know this model's attributes
         self.name = None
         self.systems = None
+        self.enabled = None
 
-        super().__init__({'name': name, 'systems': systems})
+        super().__init__({'name': name, 'systems': systems,
+                          'enabled': enabled})
 
     def add_system(self,
                    name: str, system_type: str,

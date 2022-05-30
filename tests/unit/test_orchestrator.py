@@ -89,6 +89,38 @@ class TestOrchestrator(TestCase):
                             }
                         }}}}}
 
+        self.all_sources_enabled = {
+            'environments': {
+                'env1': {
+                    'system1': {
+                        'system_type': 'jenkins',
+                        'sources': {
+                            'elasticsearch': {
+                                'driver': 'elasticsearch',
+                                'enabled': False,
+                                'url': ''
+                            },
+                            'jenkins2': {
+                                'driver': 'jenkins',
+                                'enabled': False,
+                                'url': ''
+                            },
+                            'zuul': {
+                                'driver': 'zuul',
+                                'enabled': False,
+                                'url': ''
+                            },
+                            'jjb': {
+                                'driver': 'jenkins_job_builder',
+                                'enabled': False,
+                                'repos': {}
+                            },
+                            'zuuld': {
+                                'driver': 'zuul.d',
+                                'enabled': False,
+                                'repos': {}
+                                }}}}}}
+
     def test_orchestrator_config(self):
         """Testing Orchestrator config attribute and method"""
         self.assertTrue(hasattr(self.orchestrator, 'config'))
@@ -185,7 +217,7 @@ class TestOrchestrator(TestCase):
         """Test that the source_information_from_method methods provides the
         correct representation of the source."""
         source = Source(name="source", driver="driver")
-        expected = "source source of type driver"
+        expected = "source: 'source' of type: 'driver'"
         output = source_information_from_method(source.setup)
         self.assertEqual(expected, output)
 
@@ -273,3 +305,14 @@ class TestOrchestrator(TestCase):
         msg += f" non-existing\n\n{CHECK_DOCS_MSG}"
         with self.assertRaises(NonSupportedSystemKey, msg=msg):
             self.orchestrator.create_ci_environments()
+
+    def test_create_envs_with_sources_enabled_attribute(self):
+        """Test that all sources support the enabled parameter."""
+        self.orchestrator.config.data = self.all_sources_enabled
+        self.orchestrator.create_ci_environments()
+        env = self.orchestrator.environments[0]
+        system = env.systems[0]
+        sources = system.sources.value
+        self.assertEqual(len(sources), 5)
+        for source in sources:
+            self.assertFalse(source.enabled)

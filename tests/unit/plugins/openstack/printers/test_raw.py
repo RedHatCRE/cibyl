@@ -40,6 +40,11 @@ class TestOSRawPrinter(TestCase):
         storage = "ceph"
         dvr = "true"
         tls_everywhere = "false"
+        templates = set(["a", "b"])
+        ml2_driver = "ovn"
+        ironic = "True"
+        cleaning_net = "False"
+        security_group = "N/A"
 
         deployment = Deployment(release, infra,
                                 nodes, services,
@@ -48,7 +53,12 @@ class TestOSRawPrinter(TestCase):
                                 network_backend=network,
                                 storage_backend=storage,
                                 dvr=dvr,
-                                tls_everywhere=tls_everywhere)
+                                tls_everywhere=tls_everywhere,
+                                overcloud_templates=templates,
+                                ml2_driver=ml2_driver,
+                                ironic_inspector=ironic,
+                                cleaning_network=cleaning_net,
+                                security_group=security_group)
 
         printer = OSRawPrinter(verbosity=1)
 
@@ -63,18 +73,111 @@ class TestOSRawPrinter(TestCase):
         self.assertIn(ip_version, result)
         self.assertIn("Topology:", result)
         self.assertIn(topology, result)
+        self.assertIn("Network:", result)
         self.assertIn("Network backend:", result)
         self.assertIn(network, result)
+        self.assertIn("Storage:", result)
         self.assertIn("Storage backend:", result)
         self.assertIn(storage, result)
         self.assertIn("DVR:", result)
         self.assertIn(dvr, result)
         self.assertIn("TLS everywhere:", result)
         self.assertIn(tls_everywhere, result)
+        self.assertIn("Overcloud templates:", result)
+        for template in templates:
+            self.assertIn(f"- {template}", result)
+        self.assertIn("ML2 driver:", result)
+        self.assertIn(ml2_driver, result)
+        self.assertIn("Security group mechanism:", result)
+        self.assertIn(security_group, result)
+
+        self.assertIn("Ironic:", result)
+        self.assertIn("Ironic inspector:", result)
+        self.assertIn(ironic, result)
+        self.assertIn("Cleaning network:", result)
+        self.assertIn(cleaning_net, result)
+
         self.assertIn("Service name:", result)
         self.assertIn('nova', result)
         self.assertIn("Nodes:", result)
         self.assertIn('controller-0', result)
+
+    def test_print_empty_deployment(self):
+        """Test that the string representation of an empty deployment shows the
+        apropiate message.
+        """
+        deployment = Deployment("", "", {}, {})
+        printer = OSRawPrinter(verbosity=1)
+        result = printer.print_deployment(deployment)
+        expected = "  No openstack information associated with this job"
+        self.assertEqual(result, expected)
+
+    def test_print_deployment_missing_information(self):
+        """Test that the string representation of Deployment skips the missing
+        information.
+        """
+        release = '17.0'
+        infra = 'ovb'
+        nodes = {'controller-0': Node('controller-0', 'controller')}
+        ip_version = "4"
+        topology = "controllers:1"
+        network = "vxlan"
+        storage = "ceph"
+        dvr = "true"
+        tls_everywhere = "false"
+        templates = set(["a", "b"])
+        ml2_driver = "ovn"
+        ironic = "N/A"
+        cleaning_net = "N/A"
+        security_group = "N/A"
+
+        deployment = Deployment(release, infra,
+                                nodes, {},
+                                ip_version=ip_version,
+                                topology=topology,
+                                network_backend=network,
+                                storage_backend=storage,
+                                dvr=dvr,
+                                tls_everywhere=tls_everywhere,
+                                overcloud_templates=templates,
+                                ml2_driver=ml2_driver,
+                                ironic_inspector=ironic,
+                                cleaning_network=cleaning_net,
+                                security_group=security_group)
+
+        printer = OSRawPrinter(verbosity=0)
+
+        result = printer.print_deployment(deployment)
+
+        self.assertIn("Openstack deployment:", result)
+        self.assertIn("Release:", result)
+        self.assertIn(release, result)
+        self.assertIn("Infra type:", result)
+        self.assertIn(infra, result)
+        self.assertIn("IP version:", result)
+        self.assertIn(ip_version, result)
+        self.assertIn("Topology:", result)
+        self.assertIn(topology, result)
+        self.assertIn("Network:", result)
+        self.assertIn("Network backend:", result)
+        self.assertIn(network, result)
+        self.assertIn("Storage:", result)
+        self.assertIn("Storage backend:", result)
+        self.assertIn(storage, result)
+        self.assertIn("DVR:", result)
+        self.assertIn(dvr, result)
+        self.assertIn("TLS everywhere:", result)
+        self.assertIn(tls_everywhere, result)
+        self.assertIn("Overcloud templates:", result)
+        for template in templates:
+            self.assertIn(f"- {template}", result)
+        self.assertIn("ML2 driver:", result)
+        self.assertIn(ml2_driver, result)
+        self.assertNotIn("Security group mechanism:", result)
+
+        self.assertNotIn("Ironic:", result)
+        self.assertNotIn("Ironic inspector:", result)
+        self.assertNotIn("Cleaning network:", result)
 
     def test_print_node(self):
         """Test that the string representation of Node works.

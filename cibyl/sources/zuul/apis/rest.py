@@ -18,9 +18,9 @@ from urllib.parse import urljoin
 from overrides import overrides
 from requests import HTTPError, Session
 
-from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulJobAPI,
-                                    ZuulPipelineAPI, ZuulProjectAPI,
-                                    ZuulTenantAPI)
+from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
+                                    ZuulJobAPI, ZuulPipelineAPI,
+                                    ZuulProjectAPI, ZuulTenantAPI)
 from cibyl.utils.io import Closeable
 
 
@@ -51,6 +51,14 @@ class ZuulSession(Closeable):
             host += '/'
 
         self._host = host
+
+    @property
+    def session(self):
+        """
+        :return: The low-level session this uses to perform requests.
+        :rtype: :class:`Session`
+        """
+        return self._session
 
     @property
     def host(self):
@@ -91,15 +99,70 @@ class ZuulSession(Closeable):
             code = request.status_code
 
             if code == 401:
-                raise ZuulAPIError('Unauthorized.') from ex
+                msg = f"Error - 401. " \
+                      f"Unauthorized access to resource: '{request.url}'. " \
+                      f"Check credentials and try again."
+
+                raise ZuulAPIError(msg) from ex
 
             if code == 403:
-                raise ZuulAPIError('Insufficient privileges.') from ex
+                msg = f"Error - 403. " \
+                      f"Insufficient privileges " \
+                      f"to access resource at: '{request.url}'. " \
+                      f"Check credentials and try again."
+
+                raise ZuulAPIError(msg) from ex
 
             if code == 404:
-                raise ZuulAPIError('Resource not found.') from ex
+                msg = f"Error - 404. " \
+                      f"Resource not found at: '{request.url}'. " \
+                      f"Check resource availability and try again."
 
-            raise ZuulAPIError(f'Unknown error code {code}') from ex
+                raise ZuulAPIError(msg) from ex
+
+            msg = f"Unknown error code: '{code}' " \
+                  f"returned by host at: {request.url}. " \
+                  f"Wait for a couple of minutes and try again..."
+
+            raise ZuulAPIError(msg) from ex
+
+
+class ZuulBuildRESTClient(ZuulBuildAPI):
+    """Implementation of a Zuul client through the use of Zuul's REST-API.
+    """
+
+    def __init__(self, session, job, build):
+        """Constructor. See parent for more information.
+
+        :param session: The link through which the REST-API will be contacted.
+        :type session: :class:`ZuulSession`
+        """
+        super().__init__(job, build)
+
+        self._session = session
+
+    def __eq__(self, other):
+        if not issubclass(type(other), ZuulBuildAPI):
+            return False
+
+        if self is other:
+            return True
+
+        return \
+            self.job == other.job and \
+            self.raw == other.raw
+
+    @property
+    def session(self):
+        return self._session
+
+    @overrides
+    def tests(self):
+        return []
+
+    @overrides
+    def close(self):
+        self._session.close()
 
 
 class ZuulJobRESTClient(ZuulJobAPI):
@@ -126,6 +189,10 @@ class ZuulJobRESTClient(ZuulJobAPI):
         return self.tenant == other.tenant and self.name == other.name
 
     @property
+    def session(self):
+        return self._session
+
+    @property
     def url(self):
         base = self._session.host[:-1]
         tenant = self.tenant
@@ -140,9 +207,13 @@ class ZuulJobRESTClient(ZuulJobAPI):
 
     @overrides
     def builds(self):
-        return self._session.get(
-            f'tenant/{self.tenant.name}/builds?job_name={self.name}'
-        )
+        url = f'tenant/{self.tenant.name}/builds?job_name={self.name}'
+        builds = self._session.get(url)
+
+        return [
+            ZuulBuildRESTClient(self._session, self, build)
+            for build in builds
+        ]
 
     @overrides
     def close(self):
@@ -171,6 +242,10 @@ class ZuulPipelineRESTClient(ZuulPipelineAPI):
             return True
 
         return self.project == other.project and self.name == other.name
+
+    @property
+    def session(self):
+        return self._session
 
     @overrides
     def jobs(self):
@@ -213,6 +288,10 @@ class ZuulProjectRESTClient(ZuulProjectAPI):
             return True
 
         return self.tenant == other.tenant and self.name == other.name
+
+    @property
+    def session(self):
+        return self._session
 
     @property
     def url(self):
@@ -260,12 +339,11 @@ class ZuulTenantRESTClient(ZuulTenantAPI):
 
         self._session = session
 
-    def builds(self):
-        return self._session.get(f'tenant/{self.name}/builds')
+    @property
+    def session(self):
+        return self._session
 
-    def buildsets(self):
-        return self._session.get(f'tenant/{self.name}/buildsets')
-
+    @overrides
     def projects(self):
         result = []
 
@@ -274,6 +352,7 @@ class ZuulTenantRESTClient(ZuulTenantAPI):
 
         return result
 
+    @overrides
     def jobs(self):
         result = []
 
@@ -281,6 +360,10 @@ class ZuulTenantRESTClient(ZuulTenantAPI):
             result.append(ZuulJobRESTClient(self._session, self, job))
 
         return result
+
+    @overrides
+    def builds(self):
+        return self._session.get(f'tenant/{self.name}/builds')
 
     @overrides
     def close(self):
@@ -315,9 +398,15 @@ class ZuulRESTClient(ZuulAPI):
         """
         return ZuulRESTClient(ZuulSession(Session(), host, cert))
 
+    @property
+    def session(self):
+        return self._session
+
+    @overrides
     def info(self):
         return self._session.get('info')
 
+    @overrides
     def tenants(self):
         result = []
 

@@ -20,7 +20,7 @@ from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.source import MissingArgument
-from cibyl.sources.elasticsearch.api import ElasticSearch, QueryTemplate
+from cibyl.sources.elasticsearch.api import ElasticSearch
 from tests.utils import OpenstackPluginWithJobSystem
 
 
@@ -174,7 +174,7 @@ class TestElasticSearch(TestCase):
         mock_query_hits.return_value = self.build_hits
 
         builds = self.es_api.get_builds()['test'].builds
-        self.assertEqual(len(builds), 2)
+        self.assertEqual(len(builds), 1)
 
         build = builds['1']
         self.assertEqual(build.build_id.value, '1')
@@ -202,7 +202,7 @@ class TestElasticSearch(TestCase):
         type(status_argument).value = build_status
 
         builds = self.es_api.get_builds(build_status=status_argument)
-        builds_values = builds['test'].builds
+        builds_values = builds['test2'].builds
         build = builds_values['2']
         self.assertEqual(build.build_id.value, '2')
         self.assertEqual(build.status.value, "FAIL")
@@ -220,7 +220,6 @@ class TestElasticSearch(TestCase):
         with self.assertRaises(MissingArgument):
             self.es_api.get_tests()
 
-        #
         builds_kwargs = MagicMock()
         builds_value = PropertyMock(return_value=[])
         type(builds_kwargs).value = builds_value
@@ -251,8 +250,8 @@ class TestElasticSearch(TestCase):
         )
 
         self.assertEqual(
-            len(tests['test'].builds['2'].tests),
-            0
+            len(tests['test'].builds['1'].tests),
+            1
         )
         self.assertTrue('it_is_just_a_test' in
                         tests['test'].builds['1'].tests)
@@ -269,11 +268,6 @@ class TestElasticSearch(TestCase):
         self.assertEqual(
             len(tests['test'].builds['1'].tests),
             1
-        )
-
-        self.assertEqual(
-            len(tests['test'].builds['2'].tests),
-            0
         )
 
     @patch('cibyl.sources.elasticsearch.api.ElasticSearchClient')
@@ -450,73 +444,3 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
         deployment = builds['test'].deployment.value
         self.assertEqual(deployment.ip_version.value, '4')
         self.assertEqual(deployment.topology.value, '')
-
-
-class TestQueryTemplate(TestCase):
-    """Test cases for :class:`QueryTemplate`.
-    """
-
-    def setUp(self) -> None:
-        self.one_element_template = {
-            'query':
-                {
-                    'match_phrase_prefix':
-                    {
-                        'search_key': 'test'
-                    }
-                }
-        }
-
-        self.multiple_element_template = {
-            'query':
-                {
-                    'bool':
-                    {
-                        'minimum_should_match': 1,
-                        'should': [
-                            {
-                                'match_phrase':
-                                    {
-                                        'search_key': 'test'
-                                    }
-                            },
-                            {
-                                'match_phrase':
-                                    {
-                                        'search_key': 'test2'
-                                    }
-                            }
-                        ]
-                    }
-                }
-        }
-
-        self.all_elements_template = {
-            'query':
-                {
-                    'exists':
-                    {
-                        'field': 'search_key'
-                    }
-                }
-        }
-
-    def test_constructor(self: object) -> None:
-        """Test :class:`QueryTemplate` exceptions and
-           if it returns valid templates
-        """
-        with self.assertRaises(TypeError):
-            QueryTemplate('search_key', 'search_value')
-
-        # These are simple tests, but if we change something in
-        # :class:`QueryTemplate` tests will fail
-        self.assertEqual(QueryTemplate('search_key', []).get,
-                         self.all_elements_template)
-        self.assertEqual(
-            QueryTemplate('search_key', ['test']).get,
-            self.one_element_template
-        )
-        self.assertEqual(
-            QueryTemplate('search_key', ['test', 'test2']).get,
-            self.multiple_element_template
-        )

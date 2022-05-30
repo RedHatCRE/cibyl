@@ -19,7 +19,10 @@ LOG = logging.getLogger(__name__)
 
 
 def subset(dictionary, keys):
-    """Creates a new dictionary from items from another one.
+    """Creates a new dictionary from items from another one. A new
+    dictionary is formed by extracting the keys explicitly indicated. If one of
+    the given keys is not present on the dictionary, it is ignored. The
+    original dictionary is left untouched.
 
     :param dictionary: The dictionary to extract items from.
     :type dictionary: dict
@@ -35,6 +38,31 @@ def subset(dictionary, keys):
         if key not in dictionary:
             message = "Ignoring key '%s' not found in dictionary: %s"
             LOG.debug(message, key, dictionary)
+            continue
+
+        result[key] = dictionary[key]
+
+    return result
+
+
+def nsubset(dictionary, keys):
+    """Creates a new dictionary from items from another one. The 'n' stands
+    for 'negative', meaning that the keys form an excluded list. All keys
+    from the other dictionary will be extracted except for the ones explicitly
+    indicated. The original dictionary is left untouched.
+
+    :param dictionary: The dictionary to extract items from.
+    :type dictionary: dict
+    :param keys: The keys to not get from the dictionary.
+    :type keys: list
+    :return: The new dictionary.
+    :rtype: dict
+    """
+    result = {}
+
+    for key in dictionary.keys():
+        # Ignore keys on the excluded list
+        if key in keys:
             continue
 
         result[key] = dictionary[key]

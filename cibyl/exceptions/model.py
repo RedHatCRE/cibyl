@@ -52,7 +52,7 @@ class InvalidEnvironment(CibylException):
             self.message += "\nPlease use one of the following available"
             self.message += " environments:\n"
             for env_name in valid_environments:
-                self.message += f"{Colors.blue(env_name)}\n"
+                self.message += f"  {Colors.blue(env_name)}\n"
         else:
             self.message += "\nPlease set at least one environment in the "
             self.message += "configuration file."
