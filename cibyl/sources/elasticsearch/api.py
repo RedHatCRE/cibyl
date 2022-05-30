@@ -95,7 +95,8 @@ class ElasticSearch(ServerSource):
                     'match_phrase_prefix': {
                         key_filter: jobs_to_search[0]
                     }
-                }
+                },
+                "_source": ["job_name", "job_url"]
             }
 
         hits = self.__query_get_hits(
