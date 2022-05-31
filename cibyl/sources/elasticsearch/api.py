@@ -81,7 +81,23 @@ class ElasticSearch(ServerSource):
         if jobs_scope_arg:
             jobs_scope_pattern = re.compile(jobs_scope_arg)
 
-        query_body = QueryTemplate(key_filter, jobs_to_search).get
+        # Empty query for all hits or elements
+        if not jobs_to_search:
+            query_body = {
+                "query": {
+                    "match_all": {}
+                },
+                "_source": ["job_name", "job_url"]
+            }
+        else:
+            query_body = {
+                'query': {
+                    'match_phrase_prefix': {
+                        key_filter: jobs_to_search[0]
+                    }
+                },
+                "_source": ["job_name", "job_url"]
+            }
 
         hits = self.__query_get_hits(
             query=query_body,
@@ -133,48 +149,84 @@ class ElasticSearch(ServerSource):
         """
         jobs_found = self.get_jobs(**kwargs)
 
-        for job_name, job in jobs_found.items():
-            query_body = QueryTemplate('job_name',
-                                       [job_name],
-                                       query_type='match').get
+        query_body = {
+            "query": {
+              "bool": {
+                "should": []
+              }
+            }
+        }
 
-            builds = self.__query_get_hits(
+        def append_job_match_to_query(job_name: str):
+            query_body['query']['bool']['should'].append(
+                {
+                  "match": {
+                    "job_name": f"{job_name}"
+                  }
+                }
+            )
+
+        for _, job in jobs_found.items():
+
+            chunked_list_of_jobs = []
+            chunk_size_for_search = 400
+
+            for chunk_max_value in range(
+                0,
+                len(list(jobs_found.keys())),
+                chunk_size_for_search
+            ):
+                chunked_list_of_jobs.append(
+                    list(
+                        jobs_found.keys()
+                    )[chunk_max_value:chunk_max_value + chunk_size_for_search]
+                )
+
+        builds = []
+        for jobs_list in chunked_list_of_jobs:
+            for job in jobs_list:
+                append_job_match_to_query(job)
+
+            builds_results = self.__query_get_hits(
                 query=query_body,
                 index='jenkins_builds'
             )
+            if builds_results:
+                for build in builds_results:
+                    builds.append(build)
 
-            build_statuses = []
-            if 'build_status' in kwargs:
-                build_statuses = [status.upper()
-                                  for status in
-                                  kwargs.get('build_status').value]
+            query_body['query']['bool']['should'].clear()
 
-            build_id_argument = None
-            if 'builds' in kwargs:
-                build_id_argument = kwargs.get('builds').value
+        build_statuses = []
+        if 'build_status' in kwargs:
+            build_statuses = [status.upper()
+                              for status in
+                              kwargs.get('build_status').value]
 
-            for build in builds:
+        build_id_argument = None
+        if 'builds' in kwargs:
+            build_id_argument = kwargs.get('builds').value
 
-                build_result = None
-                if not build['_source']['build_result'] and \
-                        build['_source']['current_build_result']:
-                    build_result = build['_source']['current_build_result']
-                else:
-                    build_result = build["_source"]['build_result']
+        for build in builds:
+            build_result = None
+            if not build['_source']['build_result'] and \
+                    build['_source']['current_build_result']:
+                build_result = build['_source']['current_build_result']
+            else:
+                build_result = build["_source"]['build_result']
 
-                if 'build_status' in kwargs and \
-                        build['_source']['build_result'] not in build_statuses:
-                    continue
+            if 'build_status' in kwargs and \
+                    build['_source']['build_result'] not in build_statuses:
+                continue
 
-                build_id = str(build['_source']['build_id'])
-
-                if build_id_argument and \
-                        build_id not in build_id_argument:
-                    continue
-
-                job.add_build(Build(build_id,
-                                    build_result,
-                                    build['_source']['time_duration']))
+            build_id = str(build['_source']['build_id'])
+            if build_id_argument and \
+                    build_id not in build_id_argument:
+                continue
+            job_name = build['_source']['job_name']
+            jobs_found[job_name].add_build(Build(build_id,
+                                           build_result,
+                                           build['_source']['time_duration']))
 
         if 'last_build' in kwargs:
             return self.get_last_build(jobs_found)
@@ -356,68 +408,3 @@ class ElasticSearch(ServerSource):
             if not operator(test_duration, float(operand)):
                 return False
         return True
-
-
-class QueryTemplate():
-    """Used for template and substitutions according to the
-       elements received and return a dictionary equivalent to
-       a DSL query
-    """
-
-    def __init__(self: object, search_key: str,
-                 search_values: list, **kwargs) -> None:
-        if not isinstance(search_values, list):
-            raise TypeError(f"search_values argument received: \
-                            '{search_values}' is not a list")
-
-        # Empty query for all hits or elements
-        if not search_values:
-            self.query_body = {
-                "query": {
-                    "exists": {
-                        "field": search_key
-                    }
-                }
-            }
-        # Just one element that start with string
-        # is better to use 'match_phrase_prefix'
-        elif len(search_values) == 1:
-            query_type = 'match_phrase_prefix'
-
-            if 'query_type' in kwargs:
-                query_type = kwargs.get('query_type')
-
-            self.query_body = {
-                'query': {
-                    query_type: {
-                        search_key: search_values[0]
-                    }
-                }
-            }
-        # If we want to find more than one element and all of them
-        # start with string we need to search using OR condition
-        else:
-            match_to_process = {
-                'should': [],
-                "minimum_should_match": 1
-            }
-
-            for value in search_values:
-                match_to_process['should'].append(
-                    {
-                        "match_phrase": {
-                            search_key: value
-                        }
-                    }
-                )
-
-            self.query_body = {
-                'query': {
-                    'bool': match_to_process,
-                }
-            }
-
-    @property
-    def get(self: object) -> dict:
-        """Return DSL query in dictionary format"""
-        return self.query_body

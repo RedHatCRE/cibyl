@@ -25,6 +25,9 @@ from cibyl.utils.json import Draft7ValidatorFactory
 
 
 class TestDraft7ValidatorFactory(TestCase):
+    """Tests for :class:`Draft7ValidatorFactory`.
+    """
+
     def test_io_error(self):
         """Checks that an error is thrown if the file cannot be opened.
         """
