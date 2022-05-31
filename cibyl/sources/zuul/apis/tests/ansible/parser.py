@@ -16,8 +16,8 @@
 import dateutil.parser
 
 from cibyl.models.ci.zuul.tests.ansible import AnsibleTestStatus
-from cibyl.sources.zuul.apis.tests.ansible.types import (AnsibleTestHost,
-                                                         AnsibleTest)
+from cibyl.sources.zuul.apis.tests.ansible.types import (AnsibleTest,
+                                                         AnsibleTestHost)
 from cibyl.sources.zuul.apis.tests.types import TestSuite
 from cibyl.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
 
