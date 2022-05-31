@@ -16,7 +16,7 @@
 import dateutil.parser
 
 from cibyl.models.ci.zuul.tests.ansible import AnsibleTestStatus
-from cibyl.sources.zuul.apis.tests.ansible.types import (AnsibleHost,
+from cibyl.sources.zuul.apis.tests.ansible.types import (AnsibleTestHost,
                                                          AnsibleTest)
 from cibyl.sources.zuul.apis.tests.types import TestSuite
 from cibyl.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
@@ -77,7 +77,7 @@ class AnsibleTestParser:
 
                 for host in task['hosts']:
                     test.hosts.append(
-                        AnsibleHost(
+                        AnsibleTestHost(
                             name=host,
                             action=task['hosts'][host]['action'],
                             result=self._get_host_result(task, host)

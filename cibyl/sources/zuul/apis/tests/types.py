@@ -19,10 +19,16 @@ from typing import List, Optional, Union
 from cibyl.sources.zuul.apis.tests.ansible.types import AnsibleTest
 
 Test = Union[AnsibleTest]
+"""Defines all possible types of test known to Cibyl."""
 
 
 @dataclass
 class TestSuite:
+    """Collection on test cases that have something in common.
+    """
     name: str
+    """Name of the suite."""
     url: Optional[str] = None
+    """Page where to get more information about the tests."""
     tests: List[Test] = field(default_factory=lambda: [])
+    """Collection of test cases stored by this suite."""

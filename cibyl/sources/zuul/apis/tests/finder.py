@@ -17,13 +17,16 @@ from abc import ABC, abstractmethod
 
 
 class TestFinder(ABC):
+    """Takes care of going through the artifacts of a build and find in there
+    the test cases that were run."""
+
     @abstractmethod
     def find(self, build):
-        """
+        """Fetches all tests executed by the build, grouped in test suites.
 
-        :param build:
+        :param build: The build to get the tests from.
         :type build: :class:`cibyl.sources.zuul.apis.rest.ZuulBuildRESTClient`
-        :return:
+        :return: The tests, grouped by suites.
         :rtype: list[:class:`TestSuite`]
         """
         raise NotImplementedError
