@@ -20,45 +20,12 @@ from typing import Iterable
 from overrides import overrides
 
 from cibyl.sources.zuul.apis.builds import ArtifactKind
-from cibyl.sources.zuul.apis.tests import Test, TestFinder
+from cibyl.sources.zuul.apis.tests.ansible.parser import AnsibleTestParser
+from cibyl.sources.zuul.apis.tests.finder import TestFinder
 from cibyl.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
 from cibyl.utils.net import download_into_memory
 
 LOG = logging.getLogger(__name__)
-
-
-class AnsibleTest(Test):
-    phase: str
-    host: str
-    command: str = None
-    message: str = None
-
-
-class AnsibleTestParser:
-    class TestArgs:
-        DEFAULT_TEST_SCHEMA = 'data/json/schemas/zuul/ansible_test.json'
-
-        schema: str = DEFAULT_TEST_SCHEMA
-        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
-
-    def __init__(self, test_args=TestArgs()):
-        self._test_schema = test_args.schema
-        self._test_validator_factory = test_args.validator_factory
-
-    def parse(self, data):
-        """
-
-        :param data:
-        :type data: dict[str, Any]
-        :return:
-        :rtype: :class:`AnsibleTest`
-        """
-        validator = self._test_validator_factory.from_file(self._test_schema)
-
-        if not validator.is_valid(data):
-            LOG.warning('Unknown data')
-
-        return []
 
 
 class AnsibleTestFinder(TestFinder):
@@ -113,7 +80,7 @@ class AnsibleTestFinder(TestFinder):
         result = []
 
         for manifest in self._get_build_manifests(build):
-            result.append(self._parse_manifest(build, manifest))
+            result += self._parse_manifest(build, manifest)
 
         return result
 
@@ -135,7 +102,10 @@ class AnsibleTestFinder(TestFinder):
 
             if name in self._files_of_interest:
                 LOG.info(f"Parsing tests from file: '{name}'...")
-                self._parse_tests(build, self._get_log_file_url(build, name))
+                result += self._parse_tests(
+                    build,
+                    self._get_log_file_url(build, name)
+                )
 
         return result
 
@@ -145,8 +115,18 @@ class AnsibleTestFinder(TestFinder):
         )
 
     def _parse_tests(self, build, test):
-        return self._parser.parse(
-            self._download_json(
-                self._get_build_session(build), test
+        result = []
+
+        try:
+            result += self._parser.parse(
+                self._download_json(
+                    self._get_build_session(build), test
+                )
             )
-        )
+        except ValueError as ex:
+            LOG.warning(
+                "Failed to fetch tests from: '%s'. Reason: '%s'.",
+                test, str(ex)
+            )
+
+        return result

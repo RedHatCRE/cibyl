@@ -13,3 +13,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from abc import ABC, abstractmethod
+
+
+class TestFinder(ABC):
+    @abstractmethod
+    def find(self, build):
+        """
+
+        :param build:
+        :type build: :class:`cibyl.sources.zuul.apis.rest.ZuulBuildRESTClient`
+        :return:
+        :rtype: list[:class:`TestSuite`]
+        """
+        raise NotImplementedError

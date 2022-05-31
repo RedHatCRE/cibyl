@@ -13,3 +13,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from dataclasses import dataclass, field
+from typing import List, Optional, Union
+
+from cibyl.sources.zuul.apis.tests.ansible.types import AnsibleTest
+
+Test = Union[AnsibleTest]
+
+
+@dataclass
+class TestSuite:
+    name: str
+    url: Optional[str] = None
+    tests: List[Test] = field(default_factory=lambda: [])

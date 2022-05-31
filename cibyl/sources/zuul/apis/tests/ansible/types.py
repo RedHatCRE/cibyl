@@ -13,3 +13,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from dataclasses import dataclass, field
+from typing import List, Optional
+
+from cibyl.models.ci.zuul.tests.ansible import AnsibleTestStatus
+
+
+@dataclass
+class AnsibleHost:
+    name: str
+    action: str
+    result: AnsibleTestStatus = AnsibleTestStatus.UNKNOWN
+    msg: Optional[str] = None
+
+
+@dataclass
+class AnsibleTest:
+    phase: str
+    name: str
+    duration: float = 0
+    url: Optional[str] = None
+    hosts: List[AnsibleHost] = field(default_factory=lambda: [])
