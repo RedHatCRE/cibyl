@@ -14,7 +14,7 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import cibyl.orchestrator
 from cibyl.config import Config
@@ -216,15 +216,6 @@ class TestOrchestrator(TestCase):
         self.assertEqual(len(env.systems.value), 1)
         self.assertEqual(env.name.value, 'env4')
         self.assertEqual(env.systems[0].name.value, 'system1')
-
-    @patch("cibyl.sources.elasticsearch.api.ElasticSearch.setup")
-    def test_setup_sources(self, patched_setup):
-        """Test that setup_sources calls the setup method of the sources
-        enabled in the environment."""
-        self.orchestrator.config.data = self.valid_env_sources_disabled
-        self.orchestrator.create_ci_environments()
-        self.orchestrator.setup_sources()
-        patched_setup.assert_called_once_with()
 
     def test_not_supported_system_key_jobs_system(self):
         """Test that a NonSupportedSystemKey is raised if the configuration
