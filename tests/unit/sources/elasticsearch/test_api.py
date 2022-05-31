@@ -354,31 +354,47 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
                     }
         ]
 
+        # This is an aggregation + query results
         self.tests_hits = [
             {
                 '_source': {
                     'job_name': 'test',
-                    'job_url': 'http://domain.tld/test/',
-                    'build_result': 'SUCCESS',
-                    'build_id': '1',
-                    'build_num': '1',
-                    'test_name': 'it_is_just_a_test',
-                    'time_duration': '720',
-                    'test_status': 'SUCCESS',
-                    'test_time': '720',
+                    'job_url': 'http://domain.tld/test/'
+                },
+                'key': 'test',
+                'last_build': {
+                    'hits': {
+                        'hits': [
+                            {
+
+                                '_source': {
+                                    'job_name': 'test',
+                                    'job_url': 'http://domain.tld/test/',
+                                    'ip_version': 'ipv4',
+                                }
+                            }
+                        ]
+                    }
                 }
             },
             {
                 '_source': {
                     'job_name': 'test2',
-                    'job_url': 'http://domain.tld/test2/',
-                    'build_result': 'FAIL',
-                    'build_id': '2',
-                    'build_num': '2',
-                    'test_name': 'it_is_just_a_test2',
-                    'time_duration': '0.0001_bad_parsed',
-                    'test_status': 'FAIL',
-                    'test_time': '0.0001_bad_parsed',
+                    'job_url': 'http://domain.tld/test2/'
+                },
+                'key': 'test',
+                'last_build': {
+                    'hits': {
+                        'hits': [
+                            {
+                                '_source': {
+                                    'job_name': 'test2',
+                                    'job_url': 'http://domain.tld/test2/',
+                                    'ip_version': 'ipv4',
+                                }
+                            }
+                        ]
+                    }
                 }
             }
         ]
@@ -388,7 +404,7 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
         """Tests that the internal logic from
         :meth:`ElasticSearch.get_deployment` is correct.
         """
-        mock_query_hits.return_value = self.build_hits
+        mock_query_hits.return_value = self.tests_hits
 
         jobs_argument = Mock()
         jobs_argument.value = ['test']
@@ -403,7 +419,7 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
                                           ip_version=ip_address_kwargs)
         deployment = jobs['test'].deployment.value
         self.assertEqual(deployment.ip_version.value, '4')
-        self.assertEqual(deployment.topology.value, 'unknown')
+        self.assertEqual(deployment.topology.value, '')
 
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
     def test_deployment_filtering(self: object,
@@ -411,7 +427,7 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
         """Tests that the internal logic from :meth:`ElasticSearch.get_jobs`
             is correct.
         """
-        mock_query_hits.return_value = self.build_hits
+        mock_query_hits.return_value = self.tests_hits
 
         jobs_argument = Mock()
         jobs_argument.value = ['test']
@@ -427,4 +443,4 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
 
         deployment = builds['test'].deployment.value
         self.assertEqual(deployment.ip_version.value, '4')
-        self.assertEqual(deployment.topology.value, 'unknown')
+        self.assertEqual(deployment.topology.value, '')
