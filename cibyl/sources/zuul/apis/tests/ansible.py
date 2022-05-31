@@ -16,11 +16,11 @@
 import json
 import logging
 
-from jsonschema.validators import Draft7Validator
 from overrides import overrides
 
 from cibyl.sources.zuul.apis.builds import ArtifactKind
-from cibyl.sources.zuul.apis.tests import Test, TestFinder, TestSuite
+from cibyl.sources.zuul.apis.tests import Test, TestFinder
+from cibyl.utils.json import Draft7ValidatorFactory
 from cibyl.utils.net import download_into_memory
 
 LOG = logging.getLogger(__name__)
@@ -37,8 +37,11 @@ class AnsibleTestParser:
     DEFAULT_TEST_SCHEMA = \
         'data/json/schemas/zuul/ansible_test.json'
 
-    def __init__(self, test_schema=DEFAULT_TEST_SCHEMA):
+    def __init__(self,
+                 test_schema=DEFAULT_TEST_SCHEMA,
+                 test_validator=Draft7ValidatorFactory()):
         self._test_schema = test_schema
+        self._test_validator = test_validator
 
     def parse(self, data):
         """
@@ -48,7 +51,12 @@ class AnsibleTestParser:
         :return:
         :rtype: :class:`AnsibleTest`
         """
-        pass
+        validator = self._test_validator.from_file(self._test_schema)
+
+        if not validator.is_valid(data):
+            LOG.warning('Unknown data')
+
+        return []
 
 
 class AnsibleTestFinder(TestFinder):
@@ -61,11 +69,13 @@ class AnsibleTestFinder(TestFinder):
 
     def __init__(self,
                  parser=AnsibleTestParser(),
-                 manifest_validator=Draft7Validator(DEFAULT_MANIFEST_SCHEMA),
-                 files_of_interest=DEFAULT_FILES_OF_INTEREST):
+                 manifest_schema=DEFAULT_MANIFEST_SCHEMA,
+                 files_of_interest=DEFAULT_FILES_OF_INTEREST,
+                 manifest_validator=Draft7ValidatorFactory()):
         self._parser = parser
-        self._manifest_validator = manifest_validator
+        self._manifest_schema = manifest_schema
         self._files_of_interest = files_of_interest
+        self._manifest_validator = manifest_validator
 
     @overrides
     def find(self, build):
@@ -78,22 +88,19 @@ class AnsibleTestFinder(TestFinder):
 
         result = []
         session = build.session.session
+        validator = self._manifest_validator.from_file(self._manifest_schema)
 
         for manifest in get_manifests():
             contents = json.loads(
                 download_into_memory(manifest, session=session)
             )
 
-            if self._manifest_validator.is_valid(contents):
+            if not validator.is_valid(contents):
                 msg = "Unknown format for manifest in: '%s'. Ignoring..."
                 LOG.warning(msg, manifest)
                 continue
 
             for file_def in contents['tree']:
-                if 'name' not in file_def:
-                    LOG.info("Got build's log file with no name. Ignoring...")
-                    continue
-
                 file_name = file_def['name']
 
                 if file_name in self._files_of_interest:
@@ -111,15 +118,12 @@ class AnsibleTestFinder(TestFinder):
 
         return result
 
-    def _parse_tests(self, json):
+    def _parse_tests(self, data):
         """
 
-        :param json:
-        :type json: dict
+        :param data:
+        :type data: dict
         :return:
         :rtype: list[:class:`cibyl.sources.zuul.apis.tests.TestSuite`]
         """
-        tests = []
-
-        for test in json:
-            pass
+        return self._parser.parse(data)
