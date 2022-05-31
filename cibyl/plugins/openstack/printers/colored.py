@@ -181,9 +181,12 @@ class OSColoredPrinter(OSPrinter):
                self.verbosity > 0:
                 is_empty_deployment = False
                 printer.add(self.palette.blue('Overcloud templates: '), 1)
-                for template in deployment.overcloud_templates.value:
-                    printer.add(self.palette.blue('- '), 2)
-                    printer[-1].append(template)
+                if isinstance(deployment.overcloud_templates.value, str):
+                    printer[-1].append(deployment.overcloud_templates.value)
+                else:
+                    for template in deployment.overcloud_templates.value:
+                        printer.add(self.palette.blue('- '), 2)
+                        printer[-1].append(template)
 
         is_empty_deployment &= (is_empty_network and is_empty_storage and
                                 is_empty_ironic)

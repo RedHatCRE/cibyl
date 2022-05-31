@@ -102,6 +102,18 @@ class TestOSRawPrinter(TestCase):
         self.assertIn("Nodes:", result)
         self.assertIn('controller-0', result)
 
+    def test_print_overcloud_templates_not_available(self):
+        """Test that overcloud_templates are printed correctly
+        when set to N/A."""
+        release = '17.0'
+        infra = 'ovb'
+        deployment = Deployment(release, infra, {}, {},
+                                overcloud_templates="N/A")
+        printer = OSRawPrinter(verbosity=1)
+
+        result = printer.print_deployment(deployment)
+        self.assertIn("Overcloud templates: N/A", result)
+
     def test_print_empty_deployment(self):
         """Test that the string representation of an empty deployment shows the
         apropiate message.
