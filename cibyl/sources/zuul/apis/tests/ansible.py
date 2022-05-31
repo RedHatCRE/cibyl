@@ -15,12 +15,13 @@
 """
 import json
 import logging
+from typing import Iterable
 
 from overrides import overrides
 
 from cibyl.sources.zuul.apis.builds import ArtifactKind
 from cibyl.sources.zuul.apis.tests import Test, TestFinder
-from cibyl.utils.json import Draft7ValidatorFactory
+from cibyl.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
 from cibyl.utils.net import download_into_memory
 
 LOG = logging.getLogger(__name__)
@@ -34,14 +35,15 @@ class AnsibleTest(Test):
 
 
 class AnsibleTestParser:
-    DEFAULT_TEST_SCHEMA = \
-        'data/json/schemas/zuul/ansible_test.json'
+    class TestArgs:
+        DEFAULT_TEST_SCHEMA = 'data/json/schemas/zuul/ansible_test.json'
 
-    def __init__(self,
-                 test_schema=DEFAULT_TEST_SCHEMA,
-                 test_validator=Draft7ValidatorFactory()):
-        self._test_schema = test_schema
-        self._test_validator = test_validator
+        schema: str = DEFAULT_TEST_SCHEMA
+        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
+
+    def __init__(self, test_args=TestArgs()):
+        self._test_schema = test_args.schema
+        self._test_validator_factory = test_args.validator_factory
 
     def parse(self, data):
         """
@@ -51,7 +53,7 @@ class AnsibleTestParser:
         :return:
         :rtype: :class:`AnsibleTest`
         """
-        validator = self._test_validator.from_file(self._test_schema)
+        validator = self._test_validator_factory.from_file(self._test_schema)
 
         if not validator.is_valid(data):
             LOG.warning('Unknown data')
@@ -60,70 +62,91 @@ class AnsibleTestParser:
 
 
 class AnsibleTestFinder(TestFinder):
-    DEFAULT_MANIFEST_SCHEMA = \
-        'data/json/schemas/zuul/manifest.json'
+    class TestArgs:
+        DEFAULT_FILES_OF_INTEREST = ['job-output.json']
 
-    DEFAULT_FILES_OF_INTEREST = (
-        'job-output.json'
-    )
+        parser: AnsibleTestParser = AnsibleTestParser()
+        files_of_interest: Iterable[str] = DEFAULT_FILES_OF_INTEREST
 
-    def __init__(self,
-                 parser=AnsibleTestParser(),
-                 manifest_schema=DEFAULT_MANIFEST_SCHEMA,
-                 files_of_interest=DEFAULT_FILES_OF_INTEREST,
-                 manifest_validator=Draft7ValidatorFactory()):
-        self._parser = parser
-        self._manifest_schema = manifest_schema
-        self._files_of_interest = files_of_interest
-        self._manifest_validator = manifest_validator
+    class ManifestArgs:
+        DEFAULT_MANIFEST_SCHEMA = 'data/json/schemas/zuul/manifest.json'
+
+        schema: str = DEFAULT_MANIFEST_SCHEMA
+        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
+
+    def __init__(self, manifest_args=ManifestArgs(), test_args=TestArgs()):
+        """
+
+        :param manifest_args:
+        :type manifest_args: :class:`AnsibleTestFinder.ManifestArgs`
+        :param test_args:
+        :type test_args: :class:`AnsibleTestFinder.TestArgs`
+        """
+        self._parser = test_args.parser
+        self._files_of_interest = test_args.files_of_interest
+
+        self._manifest_schema = manifest_args.schema
+        self._manifest_validator_factory = manifest_args.validator_factory
+
+    @staticmethod
+    def _download_json(session, url):
+        return json.loads(download_into_memory(url, session=session))
+
+    @staticmethod
+    def _get_build_session(build):
+        return build.session.session
+
+    @staticmethod
+    def _get_build_manifests(build):
+        return [
+            artifact.url
+            for artifact in build.artifacts
+            if artifact.kind == ArtifactKind.ZUUL_MANIFEST
+        ]
+
+    @staticmethod
+    def _get_log_file_url(build, file):
+        return f"{build.log_url}{file}"
 
     @overrides
     def find(self, build):
-        def get_manifests():
-            return [
-                artifact.url
-                for artifact in build.artifacts
-                if artifact.kind == ArtifactKind.ZUUL_MANIFEST
-            ]
-
         result = []
-        session = build.session.session
-        validator = self._manifest_validator.from_file(self._manifest_schema)
 
-        for manifest in get_manifests():
-            contents = json.loads(
-                download_into_memory(manifest, session=session)
-            )
-
-            if not validator.is_valid(contents):
-                msg = "Unknown format for manifest in: '%s'. Ignoring..."
-                LOG.warning(msg, manifest)
-                continue
-
-            for file_def in contents['tree']:
-                file_name = file_def['name']
-
-                if file_name in self._files_of_interest:
-                    LOG.info(f"Parsing tests from file: '{file_name}'...")
-                    result.append(
-                        self._parse_tests(
-                            json.loads(
-                                download_into_memory(
-                                    f"{build.log_url}{file_name}",
-                                    session=session
-                                )
-                            )
-                        )
-                    )
+        for manifest in self._get_build_manifests(build):
+            result.append(self._parse_manifest(build, manifest))
 
         return result
 
-    def _parse_tests(self, data):
-        """
+    def _parse_manifest(self, build, manifest):
+        result = []
 
-        :param data:
-        :type data: dict
-        :return:
-        :rtype: list[:class:`cibyl.sources.zuul.apis.tests.TestSuite`]
-        """
-        return self._parser.parse(data)
+        session = self._get_build_session(build)
+        validator = self._new_manifest_validator()
+
+        contents = self._download_json(session, manifest)
+
+        if not validator.is_valid(contents):
+            msg = "Unknown format for manifest in: '%s'. Ignoring..."
+            LOG.warning(msg, manifest)
+            return result
+
+        for file in contents['tree']:
+            name = file['name']
+
+            if name in self._files_of_interest:
+                LOG.info(f"Parsing tests from file: '{name}'...")
+                self._parse_tests(build, self._get_log_file_url(build, name))
+
+        return result
+
+    def _new_manifest_validator(self):
+        return self._manifest_validator_factory.from_file(
+            self._manifest_schema
+        )
+
+    def _parse_tests(self, build, test):
+        return self._parser.parse(
+            self._download_json(
+                self._get_build_session(build), test
+            )
+        )
