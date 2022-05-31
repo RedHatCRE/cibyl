@@ -16,6 +16,8 @@
 
 import logging
 
+from elasticsearch import ElasticsearchException
+
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
@@ -54,8 +56,7 @@ class ElasticSearch:
                         },
                         {
                             "bool": {
-                                "should": [],
-                                "minimum_should_match": 1
+                                "should": []
                             }
                         }
                     ]
@@ -77,7 +78,7 @@ class ElasticSearch:
                                 "sort": [
                                         {
                                             "build_num": {
-                                                "order": "asc"
+                                                "order": "desc"
                                             }
                                         }
                                 ],
@@ -126,6 +127,26 @@ class ElasticSearch:
              ['last_build']['top_hits']['_source'].append(
                  f"{field}"
              ))
+
+        available_spec_fields = [
+            'topology',
+            'ip_version',
+            'dvr',
+            'network_backend',
+            'storage_backend',
+            'osp_release'
+        ]
+
+        if 'spec' in kwargs:
+            if len(jobs_found) > 1:
+                raise ElasticsearchException(
+                    "Full Openstack specification can be shown "
+                    "only for one job, please restrict the "
+                    "query."
+                )
+            for spec_field in available_spec_fields:
+                append_exists_field_to_query(spec_field)
+                append_get_specific_field(spec_field)
 
         if 'topology' in kwargs:
             append_exists_field_to_query('topology')
