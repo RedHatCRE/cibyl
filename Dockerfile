@@ -16,14 +16,8 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip3 install --upgrade pip
 
-# Install dependencies
-COPY $CIBYL_ROOT/requirements.txt .
-RUN pip3 install -r requirements.txt
-
 # Install Cibyl
-COPY $CIBYL_ROOT/setup.py .
-COPY $CIBYL_ROOT/setup.cfg .
-COPY $CIBYL_ROOT/cibyl ./cibyl
+COPY $CIBYL_ROOT .
 RUN pip3 install .
 
 # Install configuration file
