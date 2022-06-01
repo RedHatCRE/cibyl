@@ -50,8 +50,10 @@ class SourceFactory:
             source_class = Jenkins
         elif source.__name__ == 'ElasticSearch':
             source_class = ElasticSearch
+        elif source.__name__ == 'Zuul':
+            source_class = Zuul
         else:
-            LOG.warning(f"Ignoring source extension: {source_class}")
+            LOG.warning(f"Ignoring source extension for class: {source}")
 
         if source_class:
             for attr_name in [a for a in dir(source)
