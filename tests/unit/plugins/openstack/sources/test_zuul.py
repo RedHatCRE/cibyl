@@ -26,7 +26,6 @@ class TestGetDeployment(TestCase):
     def test_returned_type(self):
         """Checks that the returned attribute is of 'Tenant' type.
         """
-
         source = Zuul()
 
         result = source.get_deployment()
