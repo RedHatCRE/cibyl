@@ -41,7 +41,7 @@ class Zuul(ServerSource):
         """
 
     def __init__(self, name, driver, url, cert=None,
-                 fallbacks=None, tenants=None):
+                 fallbacks=None, tenants=None, enabled=True):
         """Constructor.
 
         :param name: Name of the source.
@@ -66,7 +66,7 @@ class Zuul(ServerSource):
         if url.endswith('/'):
             url = url[:-1]  # Removes last character of string
 
-        super().__init__(name, driver, url=url, cert=cert)
+        super().__init__(name, driver, url=url, cert=cert, enabled=enabled)
 
         self._api = None
         self._fallbacks = fallbacks

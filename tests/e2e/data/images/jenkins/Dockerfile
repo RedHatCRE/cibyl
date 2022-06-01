@@ -14,4 +14,4 @@ ENV CASC_JENKINS_CONFIG /var/jenkins_home/casc.yaml
 RUN jenkins-plugin-cli --plugins configuration-as-code
 
 # Load Jenkin's configuration
-COPY setup.yaml /var/jenkins_home/casc.yaml
+COPY ./setup.yaml /var/jenkins_home/casc.yaml

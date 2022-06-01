@@ -53,6 +53,8 @@ def download_file(url, dest):
 
     os.makedirs(os.path.dirname(dest), exist_ok=True)
 
+    LOG.info("Downloading file from: '%s'", url)
+
     with requests.get(url, stream=True) as request:
         if not request.ok:
             raise DownloadError(
@@ -65,3 +67,36 @@ def download_file(url, dest):
         with open(dest, 'wb') as file:
             for chunk in request.iter_content(chunk_size=8 * 1024):
                 file.write(chunk)
+
+
+def download_into_memory(url, session=None):
+    """Downloads the contents of a URL into memory, leaving the filesystem
+    untouched.
+
+    Supported protocols are:
+        * HTTP
+        * HTTPS
+
+    ..  doctest::
+        >>> download_into_memory('http://localhost/file.txt')
+
+    :param url: URL to download.
+    :type url: str
+    :param session: Session used to perform request. This function will not
+        close the session, that task is up to the caller.
+    :type session: :class:`requests.Session` or None
+    :return: Contents of the page.
+    :rtype: str
+    :raise DownloadError: If the download failed.
+    """
+    LOG.info("Downloading file from: '%s'", url)
+
+    request = session.get(url) if session else requests.get(url)
+
+    if not request.ok:
+        raise DownloadError(
+            f'Download failed with: {request.status_code}\n'
+            f'{request.text}'
+        )
+
+    return request.content.decode()

@@ -30,10 +30,10 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
     """
 
     @overrides
-    def print_system(self, system):
+    def print_system(self, system, indent=0):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('System: '), 0)
+        printer.add(self._palette.blue('System: '), indent)
         printer[-1].append(system.name.value)
 
         if self.verbosity > 0:

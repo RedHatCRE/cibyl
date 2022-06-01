@@ -36,7 +36,7 @@ class Test(Model):
                                    description="Test result")]
         },
         'duration': {
-            'attr_type': int,
+            'attr_type': float,
             'arguments': [Argument(name='--test-duration', arg_type=str,
                                    func='get_tests', nargs='*',
                                    ranged=True,
@@ -49,11 +49,19 @@ class Test(Model):
     }
 
     def __init__(self, name: str, result: str = None,
-                 duration: int = None, class_name: str = None):
+                 duration: int = None, class_name: str = None, **kwargs):
         if result:
             result = result.upper()
-        super().__init__({'name': name, 'result': result,
-                          'duration': duration, 'class_name': class_name})
+
+        super().__init__(
+            {
+                'name': name,
+                'result': result,
+                'duration': duration,
+                'class_name': class_name,
+                **kwargs
+            }
+        )
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):

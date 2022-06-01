@@ -22,6 +22,7 @@ from copy import deepcopy
 
 import cibyl.exceptions.config as conf_exc
 from cibyl.cli.parser import Parser
+from cibyl.cli.query import get_query_type
 from cibyl.cli.validator import Validator
 from cibyl.config import Config, ConfigFactory
 from cibyl.exceptions.config import NonSupportedSystemKey
@@ -49,7 +50,7 @@ def source_information_from_method(source_method):
     :rtype: str
     """
     source = source_method.__self__
-    info_str = f"source {source.name} of type {source.driver}"
+    info_str = f"source: '{source.name}' of type: '{source.driver}'"
     if LOG.getEffectiveLevel() <= logging.DEBUG:
         info_str += f" using method {source_method.__name__}"
     return info_str
@@ -116,7 +117,10 @@ class Orchestrator:
                 env_data = {}
 
             for env_name, systems_dict in env_data:
-                environment = Environment(name=env_name)
+                enabled = systems_dict.get('enabled', True)
+                if not enabled:
+                    continue
+                environment = Environment(name=env_name, enabled=enabled)
 
                 for system_name, single_system in systems_dict.items():
                     sources_dict = single_system.pop('sources', {})
@@ -131,7 +135,7 @@ class Orchestrator:
 
                 self.environments.append(environment)
             self.set_system_api()
-        except AttributeError as exception:
+        except (AttributeError, TypeError) as exception:
             raise conf_exc.InvalidConfiguration from exception
 
     def set_system_api(self):
@@ -182,15 +186,14 @@ class Orchestrator:
     def setup_sources(self):
         """Setup all enabled sources present in the environment."""
         for env in self.environments:
-            for system in env.systems:
-                for source in system.sources:
-                    if source.enabled:
-                        source.setup()
+            if env.enabled:
+                for system in env.systems:
+                    for source in system.sources:
+                        if source.enabled:
+                            source.setup()
 
-    def run_query(self, start_level=1):
+    def run_query(self, system, start_level=1):
         """Execute query based on provided arguments."""
-        valid_systems = [system for env in self.environments
-                         for system in env.systems]
         debug = self.parser.app_args.get("debug", False)
         # sort cli arguments in decreasing order by level
         sorted_args = sorted(self.parser.ci_args.values(),
@@ -204,67 +207,63 @@ class Orchestrator:
                     # associated, we should not consider it here, e.g.
                     # --sources
                     continue
-                # the validation process provides a flat list of systems
-                # because the environment information is not used from this
-                # point forward
-                for system in valid_systems:
-                    if not system.is_enabled():
-                        continue
-                    system_name = system.name.value
-                    source_methods_store = system_methods_stores[system_name]
-                    # collect system-level arguments that can affect the
-                    # result of the source method call
-                    system_args = system.export_attributes_to_source()
-                    try:
-                        source_methods = self.select_source_method(system, arg)
-                    except NoSupportedSourcesFound as exception:
-                        # if no sources are found in the system for this
-                        # particular query, jump to the next one without
-                        # stopping execution
-                        LOG.error(exception, exc_info=debug)
-                        continue
-
-                    for source_method, speed_score in source_methods:
-                        if source_methods_store.has_been_called(source_method):
-                            # we want to avoid repeating calls to the same
-                            # source method if several arguments with that
-                            # method are provided
-                            if source_methods_store.get_status(source_method):
-                                # if the previous call was successful, we do
-                                # not need to query the same method again
-                                break
-                            else:
-                                # if the previous call threw an error, let's
-                                # try a different source
-                                continue
-                        source_info = source_information_from_method(
-                                source_method)
-                        start_time = time.time()
-                        LOG.debug("Running %s and speed index %d",
-                                  source_info, speed_score)
-                        try:
-                            model_instances_dict = source_method(
-                                **self.parser.ci_args, **self.parser.app_args,
-                                **system_args)
-                        except SourceException as exception:
-                            source_methods_store.add_call(source_method, False)
-                            LOG.error("Error in %s with system %s. %s",
-                                      source_info, system.name.value,
-                                      exception, exc_info=debug)
-                            continue
-                        source_methods_store.add_call(source_method, True)
-                        end_time = time.time()
-                        LOG.info("Took %.2fs to query system %s using %s",
-                                 end_time-start_time, system.name.value,
-                                 source_info)
-                        system.populate(model_instances_dict)
-                        system.register_query()
-                        # if one source has provided the information, there is
-                        # no need to query the rest
-                        break
+                if not system.is_enabled():
+                    return
                 # we update last_level if the the arg has a func attribute
                 # and valid sources to query
                 last_level = arg.level
+                source_methods_store = system_methods_stores[system.name.value]
+                # collect system-level arguments that can affect the
+                # result of the source method call
+                system_args = system.export_attributes_to_source()
+                try:
+                    source_methods = self.select_source_method(system, arg)
+                except NoSupportedSourcesFound as exception:
+                    # if no sources are found in the system for this
+                    # particular query, jump to the next one without
+                    # stopping execution
+                    LOG.error(exception, exc_info=debug)
+                    continue
+                for source_method, speed_score in source_methods:
+                    if source_methods_store.has_been_called(source_method):
+                        # we want to avoid repeating calls to the same
+                        # source method if several arguments with that
+                        # method are provided
+                        if source_methods_store.get_status(source_method):
+                            # if the previous call was successful, we do
+                            # not need to query the same method again
+                            break
+                        else:
+                            # if the previous call threw an error, let's
+                            # try a different source
+                            continue
+                    source_info = source_information_from_method(
+                            source_method)
+                    start_time = time.time()
+                    LOG.info(f"Performing query on system {system.name}")
+                    LOG.debug("Running %s and speed index %d",
+                              source_info, speed_score)
+                    try:
+                        model_instances_dict = source_method(
+                            **self.parser.ci_args, **self.parser.app_args,
+                            **system_args)
+                    except SourceException as exception:
+                        source_methods_store.add_call(source_method, False)
+                        LOG.error("Error in %s under system: '%s'. "
+                                  "Reason: '%s'.",
+                                  source_info, system.name.value,
+                                  exception, exc_info=debug)
+                        continue
+                    source_methods_store.add_call(source_method, True)
+                    end_time = time.time()
+                    LOG.info("Took %.2fs to query system %s using %s",
+                             end_time-start_time, system.name.value,
+                             source_info)
+                    system.populate(model_instances_dict)
+                    system.register_query()
+                    # if one source has provided the information, there is
+                    # no need to query the rest
+                    break
 
     def extend_parser(self, attributes, group_name='Environment',
                       level=0):
@@ -280,3 +279,22 @@ class Orchestrator:
                                        level=level+1)
                 else:
                     self.parser.extend(arguments, group_name, level=level)
+
+    def query_and_publish(self, output_style="colorized"):
+        """Iterate over the environments and their systems and publish
+        the results of the queries.
+
+        The query and publish is performed per system"""
+        for env in self.environments:
+            self.publisher.publish(
+                model_instance=env,
+                style=output_style,
+                query=get_query_type(**self.parser.ci_args),
+                verbosity=self.parser.app_args.get('verbosity'))
+            for system in env.systems:
+                self.run_query(system)
+                self.publisher.publish(
+                    model_instance=system,
+                    style=output_style,
+                    query=get_query_type(**self.parser.ci_args),
+                    verbosity=self.parser.app_args.get('verbosity'))

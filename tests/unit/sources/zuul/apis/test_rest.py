@@ -16,7 +16,8 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.sources.zuul.apis.rest import (ZuulJobRESTClient,
+from cibyl.sources.zuul.apis.rest import (ZuulBuildRESTClient,
+                                          ZuulJobRESTClient,
                                           ZuulPipelineRESTClient,
                                           ZuulProjectRESTClient,
                                           ZuulRESTClient, ZuulSession,
@@ -173,7 +174,13 @@ class TestZuulJobRESTClient(TestCase):
 
         client = ZuulJobRESTClient(session, tenant, job)
 
-        self.assertEqual(builds, client.builds())
+        self.assertEqual(
+            [
+                ZuulBuildRESTClient(session, client, builds[0]),
+                ZuulBuildRESTClient(session, client, builds[1])
+            ],
+            client.builds()
+        )
 
         session.get.assert_called_once_with(
             f"tenant/{tenant.name}/builds?job_name={job['name']}"
@@ -371,35 +378,6 @@ class TestZuulTenantRESTClient(TestCase):
 
         session.get.assert_called_once_with(
             f"tenant/{tenant['name']}/builds"
-        )
-
-    def test_buildsets(self):
-        """Tests call to 'buildsets' end-point.
-        """
-        tenant = {
-            'name': 'tenant_1'
-        }
-
-        buildsets = [
-            {
-                'name': 'buildset_1'
-            },
-            {
-                'name': 'buildset_2'
-            }
-        ]
-
-        session = Mock()
-        session.get = Mock()
-
-        session.get.return_value = buildsets
-
-        client = ZuulTenantRESTClient(session, tenant)
-
-        self.assertEqual(buildsets, client.buildsets())
-
-        session.get.assert_called_once_with(
-            f"tenant/{tenant['name']}/buildsets"
         )
 
     def test_projects(self):

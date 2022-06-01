@@ -39,3 +39,14 @@ Full Configuration
 ^^^^^^^^^^^^^^^^^^
 
 .. include:: config_samples/full_configuration.rst
+
+Disabling environments, systems and sources
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It's possible to disable each type of entity in Cibyl with the directive ``enabled: false``.
+For example, the following will disable the environment ``staging``` and the system ``production-2``
+
+.. include:: config_samples/disabled_configuration.rst
+
+
+Note: you can't use a disabled environment, even if specifying it directly with one of the following arguments: --envs, --systems and --sources.

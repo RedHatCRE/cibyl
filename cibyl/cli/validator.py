@@ -191,7 +191,7 @@ class Validator:
             all_envs.append(env.name.value)
             for system in env.systems:
                 all_systems.append(system)
-        self._check_input_environments(all_envs, "env_name",
+        self._check_input_environments(all_envs, "envs",
                                        InvalidEnvironment)
         system_names = [system.name.value for system in all_systems]
         self._check_input_environments(system_names, "systems", InvalidSystem)

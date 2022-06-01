@@ -94,7 +94,7 @@ def get_plugin_section(printer, job):
                     printer.query, printer.verbosity, printer.palette
                 )
 
-                text.add(os_printer.print_deployment(value), 1)
+                text.add(os_printer.print_deployment(value), 0)
             else:
                 LOG.warning(
                     'Ignoring unknown plugin type: %s', type(value)

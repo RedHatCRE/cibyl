@@ -15,10 +15,12 @@
 """
 from unittest import TestCase
 
+from cibyl.models.ci.base.stage import Stage
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.service import Service
+from cibyl.plugins.openstack.test_collection import TestCollection
 
 
 class TestOpenstackDeployment(TestCase):
@@ -34,6 +36,11 @@ class TestOpenstackDeployment(TestCase):
         self.storage = "ceph"
         self.dvr = "true"
         self.tls_everywhere = "false"
+        self.templates = set(["a", "b", "c"])
+        self.ml2_driver = "ovn"
+        self.ironic = "True"
+        self.cleaning_net = "False"
+        self.security_group = "native ovn"
 
         self.deployment = Deployment(self.release, self.infra, {}, {})
         self.second_deployment = Deployment(self.release, self.infra,
@@ -44,17 +51,50 @@ class TestOpenstackDeployment(TestCase):
                                             network_backend=self.network,
                                             storage_backend=self.storage,
                                             dvr=self.dvr,
-                                            tls_everywhere=self.tls_everywhere)
+                                            tls_everywhere=self.tls_everywhere,
+                                            ml2_driver=self.ml2_driver,
+                                            ironic_inspector=self.ironic,
+                                            cleaning_network=self.cleaning_net,
+                                            security_group=self.security_group,
+                                            overcloud_templates=self.templates)
 
     def test_merge_method(self):
         """Test merge method of Deployment class."""
         self.assertIsNone(self.deployment.ip_version.value)
         self.assertEqual({}, self.deployment.services.value)
         self.assertEqual({}, self.deployment.nodes.value)
+        self.second_deployment.add_stage(Stage("Run", "SUCCESS"))
         self.deployment.merge(self.second_deployment)
         self.assertEqual(self.nodes, self.deployment.nodes.value)
         self.assertEqual(self.services, self.deployment.services.value)
         self.assertEqual(self.ip_version, self.deployment.ip_version.value)
+        self.assertEqual(self.topology, self.deployment.topology.value)
+        self.assertEqual(self.network, self.deployment.network_backend.value)
+        self.assertEqual(self.storage, self.deployment.storage_backend.value)
+        self.assertEqual(self.dvr, self.deployment.dvr.value)
+        self.assertEqual(self.tls_everywhere,
+                         self.deployment.tls_everywhere.value)
+        self.assertEqual(self.templates,
+                         self.deployment.overcloud_templates.value)
+        self.assertEqual(self.ml2_driver, self.deployment.ml2_driver.value)
+        self.assertEqual(self.ironic, self.deployment.ironic_inspector.value)
+        self.assertEqual(self.cleaning_net,
+                         self.deployment.cleaning_network.value)
+        self.assertEqual(self.security_group,
+                         self.deployment.security_group.value)
+        self.assertEqual(len(self.deployment.stages), 1)
+        stage_obj = self.deployment.stages[0]
+        self.assertEqual(stage_obj.name.value, "Run")
+        self.assertEqual(stage_obj.status.value, "SUCCESS")
+
+    def test_merge_method_existing_templates(self):
+        """Test merge method of Deployment class with both deployments having
+        templates."""
+        deployment = Deployment(self.release, self.infra, {}, {},
+                                overcloud_templates=set(["d"]))
+        deployment.merge(self.second_deployment)
+        self.assertEqual(deployment.overcloud_templates.value,
+                         set(["a", "b", "c", "d"]))
 
     def test_add_node(self):
         """Test add_node method of Deployment class."""
@@ -91,3 +131,32 @@ class TestOpenstackDeployment(TestCase):
         self.assertEqual(node.role.value, node.role.value)
         self.assertEqual(node.packages['package'].name,
                          node_to_add.packages['package'].name)
+
+    def test_merge_method_existing_test_collection(self):
+        """Test merge method of Deployment class."""
+        test_collection = TestCollection(set(["test1", "test2"]))
+        test_collection2 = TestCollection(set(["test3"]))
+        deployment = Deployment(self.release, self.infra, {}, {},
+                                test_collection=test_collection)
+        deployment2 = Deployment(self.release, self.infra, {}, {},
+                                 test_collection=test_collection2)
+        deployment2.merge(deployment)
+        test_collection = deployment2.test_collection.value
+        tests = test_collection.tests.value
+        self.assertEqual(len(tests), 3)
+        self.assertIn("test1", tests)
+        self.assertIn("test2", tests)
+        self.assertIn("test3", tests)
+
+    def test_merge_method_non_existing_test_collection(self):
+        """Test merge method of Deployment class."""
+        test_collection = TestCollection(set(["test1", "test2"]))
+        deployment = Deployment(self.release, self.infra, {}, {},
+                                test_collection=test_collection)
+        deployment2 = Deployment(self.release, self.infra, {}, {})
+        deployment2.merge(deployment)
+        test_collection = deployment2.test_collection.value
+        tests = test_collection.tests.value
+        self.assertEqual(len(tests), 2)
+        self.assertIn("test1", tests)
+        self.assertIn("test2", tests)

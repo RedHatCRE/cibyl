@@ -31,10 +31,12 @@ from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.service import Service
+from cibyl.plugins.openstack.test_collection import TestCollection
 from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.jenkins import detect_job_info_regex, filter_jobs
 from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import subset
+from cibyl.utils.files import get_file_name_from_path
 from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
                                    IP_PATTERN, NETWORK_BACKEND_PATTERN,
                                    RELEASE_PATTERN, SERVICES_PATTERN,
@@ -106,6 +108,30 @@ def filter_nodes(job: dict, user_input: Argument, field_to_check: str):
     return valid_nodes > 0
 
 
+def filter_models_set_field(job: dict, user_input: Argument,
+                            field_to_check: str):
+    """Check whether job should be included according to the user input. The
+    model should be added if the models provided in the field designated
+    by the variable field_to_check (represented by a set)
+    are present in the user_input values.
+
+    :param job: job information obtained from jenkins
+    :type job: str
+    :param user_input: input argument specified by the user
+    :type model_urls: :class:`.Argument`
+    :param field_to_check: Job field to perform the check
+    :param field_to_check: str
+    :returns: Whether the model satisfies user input
+    :rtype: bool
+    """
+    if not isinstance(job[field_to_check], set):
+        # if the field_to_check is not a set, the model should not be included
+        return False
+    job[field_to_check].intersection_update(set(user_input.value))
+    # if the subset is empty, job should be filtered
+    return bool(job[field_to_check])
+
+
 class Jenkins:
     """A class representation of Jenkins client."""
 
@@ -117,7 +143,8 @@ class Jenkins:
 
     # deployment properties that have no cli argument and will not be used to
     # filter jobs, just for the spec
-    spec_params = ["cleaning_network", "security_group"]
+    spec_params = ["cleaning_network", "security_group", "overcloud_templates",
+                   "test_collection"]
     possible_attributes = deployment_attr+spec_params
 
     def add_job_info_from_name(self, job:  Dict[str, str], **kwargs):
@@ -235,12 +262,13 @@ accurate results", len(jobs_found))
 
         job_deployment_info = []
         for job in jobs_found:
+            job_name = job['name']
             last_build = job.get("lastCompletedBuild")
             if spec:
                 if last_build is None:
                     # jenkins only has a logs link for completed builds
                     raise JenkinsError("Openstack specification requested for"
-                                       f" job {job['name']} but job has no "
+                                       f" job {job_name} but job has no "
                                        "completed build.")
                 else:
                     self.add_job_info_from_artifacts(job, **kwargs)
@@ -249,6 +277,15 @@ accurate results", len(jobs_found))
                 self.add_job_info_from_artifacts(job, **kwargs)
             else:
                 self.add_job_info_from_name(job, **kwargs)
+            if "stages" in kwargs:
+                if not last_build:
+                    msg = "No build was found for job %s, information about "
+                    msg += "stages will not be shown for it."
+                    LOG.warning(msg, job_name)
+                else:
+                    job["stages"] = self._get_stages(job_name,
+                                                     last_build["number"])
+
             job_deployment_info.append(job)
 
         checks_to_apply = []
@@ -283,6 +320,13 @@ accurate results", len(jobs_found))
             checks_to_apply.append(partial(filter_models_by_name,
                                            field_to_check='services',
                                            user_input=input_services))
+        # filter by templates
+        input_overcloud_templates = kwargs.get('overcloud_templates')
+        if input_overcloud_templates and input_overcloud_templates.value:
+            check = partial(filter_models_set_field,
+                            field_to_check="overcloud_templates",
+                            user_input=input_overcloud_templates)
+            checks_to_apply.append(check)
 
         for attribute in ['containers', 'packages']:
             input_attr = kwargs.get(attribute)
@@ -312,6 +356,8 @@ accurate results", len(jobs_found))
             ironic_inspector = job.get("ironic_inspector", "")
             cleaning_network = job.get("cleaning_network", "")
             security_group = job.get("security_group", "")
+            overcloud_templates = job.get("overcloud_templates")
+            test_collection = job.get("test_collection")
             deployment = Deployment(job.get("release", ""),
                                     job.get("infra_type", ""),
                                     nodes=job.get("nodes", {}),
@@ -324,8 +370,11 @@ accurate results", len(jobs_found))
                                     dvr=job.get("dvr", ""),
                                     ironic_inspector=ironic_inspector,
                                     cleaning_network=cleaning_network,
+                                    test_collection=test_collection,
                                     tls_everywhere=tls_everywhere,
-                                    security_group=security_group)
+                                    overcloud_templates=overcloud_templates,
+                                    security_group=security_group,
+                                    stages=job.get("stages"))
             job_objects[name].add_deployment(deployment)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
@@ -413,6 +462,18 @@ accurate results", len(jobs_found))
             if "ironic_inspector" in kwargs or spec:
                 job["ironic_inspector"] = str(overcloud.get("ironic_inspector",
                                                             False))
+            if "overcloud_templates" in kwargs or spec:
+                job["overcloud_templates"] = set()
+                overcloud_params = overcloud.get("overcloud", {})
+                templates = overcloud_params.get("templates", [])
+                templates_found = set()
+                for template in templates:
+                    template_name = get_file_name_from_path(template)
+                    if template_name != "none":
+                        templates_found.add(template_name)
+                if templates_found:
+                    job["overcloud_templates"] = templates_found
+
             if spec:
                 cleaning = overcloud.get("cleaning", {})
                 job["cleaning_network"] = str(cleaning.get("network", ""))
@@ -424,6 +485,24 @@ accurate results", len(jobs_found))
         except JenkinsError:
             LOG.debug("Found no artifact %s for job %s", artifact_path,
                       job_name)
+
+        artifact_path = "infrared/test.yml"
+        artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
+        try:
+            artifact = self.send_request(item="", query="",
+                                         url=artifact_url,
+                                         raw_response=True)
+            artifact = yaml.safe_load(artifact)
+            test = artifact.get("test", {})
+            setup = test.get("setup")
+            tests = test.get("tests", [])
+            test_names = {get_file_name_from_path(test) for test in tests}
+            job["test_collection"] = TestCollection(test_names, setup)
+
+        except JenkinsError:
+            LOG.debug("Found no artifact %s for job %s", artifact_path,
+                      job_name)
+
         if query_topology:
             if not job.get("topology", ""):
                 self.get_topology_from_job_name(job)

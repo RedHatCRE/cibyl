@@ -13,34 +13,27 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import builtins
-import sys
-from unittest.mock import Mock
+from unittest import TestCase
 
-from cibyl.cli.main import main
 from tests.e2e.containers.httpd import HTTPDContainer
-from tests.e2e.fixtures import EndToEndTest
 
 
-class TestConfig(EndToEndTest):
-    """Test for configuration loading.
+class TestConfig(TestCase):
+    """Tests for configuration loading.
     """
 
     def test_config_on_url(self):
         """Checks that a configuration file can be downloaded from a host.
         """
         with HTTPDContainer() as httpd:
-            sys.argv = [
-                '',
+            command = [
+                'cibyl',
                 '--config', f'{httpd.url}/jenkins.yaml',
                 '-f', 'text'
             ]
 
-            builtins.input = Mock()
-            builtins.input.return_value = 'y'
-
-            main()
+            stdout, _, _ = httpd.run('cibyl', command)
 
             # Look for some keys that indicate that it is the desired file
-            self.assertIn('test_environment', self.output)
-            self.assertIn('test_system', self.output)
+            self.assertIn('test_environment', stdout)
+            self.assertIn('test_system', stdout)
