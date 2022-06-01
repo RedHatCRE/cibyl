@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.outputs.cli.ci.system.common.status import get_status_colored
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
 
@@ -44,19 +45,8 @@ def get_status_section(palette, build):
 
     text = IndentedTextBuilder()
 
-    status_x_color_map = {
-        'SUCCESS': lambda: palette.green(build.status.value),
-        'FAILURE': lambda: palette.red(build.status.value),
-        'UNSTABLE': lambda: palette.yellow(build.status.value)
-    }
-
-    status = status_x_color_map.get(
-        build.status.value,
-        lambda: palette.underline(build.status.value)
-    )()
-
     text.add(palette.blue('Status: '), 0)
-    text[-1].append(status)
+    text[-1].append(get_status_colored(palette, build.status.value))
 
     return text.build()
 

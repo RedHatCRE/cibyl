@@ -163,8 +163,8 @@ class TestValidator(TestCase):
         """Testing Validator validate_environment method."""
         self.orchestrator.config.data = self.config
         self.orchestrator.create_ci_environments()
-        self.ci_args["env_name"] = Mock()
-        self.ci_args["env_name"].value = ["unknown"]
+        self.ci_args["envs"] = Mock()
+        self.ci_args["envs"].value = ["unknown"]
         self.ci_args["system_type"] = Mock()
         self.ci_args["system_type"].value = ["jenkins"]
 

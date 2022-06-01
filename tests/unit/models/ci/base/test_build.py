@@ -17,6 +17,7 @@
 import unittest
 
 from cibyl.models.ci.base.build import Build
+from cibyl.models.ci.base.stage import Stage
 from cibyl.models.ci.base.test import Test
 
 
@@ -81,12 +82,17 @@ str")
         test = Test("test_name", "failure")
         self.build.status.value = "SUCCESS"
         self.build.add_test(test)
+        self.build.add_stage(Stage("Run", "SUCCESS"))
         self.second_build.merge(self.build)
         self.assertEqual(self.second_build.status.value, "SUCCESS")
         self.assertEqual(len(self.second_build.tests), 1)
+        self.assertEqual(len(self.second_build.stages), 1)
         test_obj = self.second_build.tests["test_name"]
         self.assertEqual(test_obj.name.value, "test_name")
         self.assertEqual(test_obj.result.value, "FAILURE")
+        stage_obj = self.second_build.stages[0]
+        self.assertEqual(stage_obj.name.value, "Run")
+        self.assertEqual(stage_obj.status.value, "SUCCESS")
 
     def test_build_add_existing_test(self):
         """Test Build add_test method with existing Test."""

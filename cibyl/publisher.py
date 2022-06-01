@@ -29,7 +29,7 @@ class Publisher:
     """
 
     @staticmethod
-    def publish(environments,
+    def publish(model_instance,
                 target="terminal",
                 style=OutputStyle.TEXT,
                 query=QueryType.NONE,
@@ -38,7 +38,8 @@ class Publisher:
         chosen destination.
         """
         if target == "terminal":
-            for env in environments:
-                printer = CIPrinterFactory.from_style(style, query, verbosity)
+            printer = CIPrinterFactory.from_style(style, query, verbosity)
 
-                print(printer.print_environment(env))
+            model_type = model_instance.__module__.split('.')[-1]
+            method_to_call = getattr(printer, f"print_{model_type}")
+            print(method_to_call(model_instance))

@@ -15,7 +15,11 @@
 """
 from overrides import overrides
 
+from cibyl.cli.argument import Argument
+from cibyl.models.attribute import AttributeListValue
 from cibyl.models.ci.base.build import Build as BaseBuild
+from cibyl.models.ci.zuul.test_suite import TestSuite
+from cibyl.utils.dicts import nsubset
 
 
 class Build(BaseBuild):
@@ -49,7 +53,7 @@ class Build(BaseBuild):
             self.duration = duration
 
     API = {
-        **BaseBuild.API,
+        **nsubset(BaseBuild.API, ['tests']),
         'project': {
             'attr_type': str,
             'arguments': []
@@ -57,6 +61,17 @@ class Build(BaseBuild):
         'pipeline': {
             'attr_type': str,
             'arguments': []
+        },
+        'tests': {
+            'attr_type': TestSuite,
+            'attribute_value_class': AttributeListValue,
+            'arguments': [
+                Argument(
+                    name='--tests', arg_type=None,
+                    nargs=0, func='get_tests',
+                    description="Fetch build tests"
+                )
+            ]
         }
     }
     """Defines the contents of the model."""
@@ -67,7 +82,7 @@ class Build(BaseBuild):
         :param info: Data that defines this build.
         :type info: :class:`Build.Info`
         :param tests: Tests under this build.
-        :type tests: list[:class:`cibyl.models.ci.base.test.Test`] or None
+        :type tests: list[:class:`TestSuite`] or None
         """
         super().__init__(
             build_id=info.uuid,
