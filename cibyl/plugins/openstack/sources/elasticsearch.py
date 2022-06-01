@@ -16,8 +16,7 @@
 
 import logging
 
-from elasticsearch import ElasticsearchException
-
+from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
@@ -139,7 +138,7 @@ class ElasticSearch:
 
         if 'spec' in kwargs:
             if len(jobs_found) > 1:
-                raise ElasticsearchException(
+                raise ElasticSearchError(
                     "Full Openstack specification can be shown "
                     "only for one job, please restrict the "
                     "query."

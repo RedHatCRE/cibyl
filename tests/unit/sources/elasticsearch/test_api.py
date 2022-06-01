@@ -18,9 +18,8 @@ from __future__ import print_function
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
-from elasticsearch import ElasticsearchException
-
 from cibyl.cli.argument import Argument
+from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.exceptions.source import MissingArgument
 from cibyl.sources.elasticsearch.api import ElasticSearch
 from tests.utils import OpenstackPluginWithJobSystem
@@ -425,7 +424,7 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
 
     def test_spec_deployment(self: object):
         self.es_api.get_jobs = Mock(side_effect=self.job_hits)
-        with self.assertRaises(ElasticsearchException):
+        with self.assertRaises(ElasticSearchError):
             self.es_api.get_deployment(spec=True)
 
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
