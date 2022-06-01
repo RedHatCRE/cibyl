@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/playbook"
+  },
+  "$defs": {
+    "playbook": {
+      "type": "object",
+      "required": [
+        "phase",
+        "plays"
+      ],
+      "properties": {
+        "phase": {
+          "type": "string"
+        },
+        "plays": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/play"
+          }
+        }
+      }
+    },
+    "play": {
+      "type": "object",
+      "required": [
+        "tasks"
+      ],
+      "properties": {
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task"
+          }
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "required": [
+        "hosts",
+        "task"
+      ],
+      "properties": {
+        "hosts": {
+          "^.*$": {
+            "type": "object",
+            "requires": [],
+            "properties": {
+              "changed": {
+                "type": "boolean"
+              },
+              "failed": {
+                "type": "boolean"
+              },
+              "skipped": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "task": {
+          "type": "object",
+          "required": [
+            "duration",
+            "name"
+          ],
+          "properties": {
+            "duration": {
+              "type": "object",
+              "required": [
+                "end",
+                "start"
+              ],
+              "properties": {
+                "end": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "start": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            },
+            "name": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

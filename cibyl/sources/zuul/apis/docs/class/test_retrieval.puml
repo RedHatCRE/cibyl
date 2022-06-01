@@ -1,0 +1,112 @@
+@startuml
+'Classes that take part in retrieval of tests for a build.
+
+class JobRESTClient {
+    + builds(): BuildRESTClient[0..*]
+}
+
+class BuildRESTClient {
+    + project(): str
+    + pipeline(): str
+    + uuid(): str
+    + result(): str
+    + duration(): int
+    + raw(): dict{str, any}
+    + tests(): TestRESTClient[0..*]
+}
+
+class TestRESTClient {
+    + suite(): TestSuite
+    + kind(): TestKind
+    + name(): str
+    + result(): str
+    + duration(): float
+    + url(): str
+    + raw(): dict{str, any}
+}
+
+enum TestKind {
+    UNKNOWN,
+    ANSIBLE,
+    TEMPEST
+}
+
+class TestLookup {
+    - finders: TestFinder[0..*]
+    + search(build: BuildRESTClient): TestSuite[0..*]
+}
+
+interface TestFinder {
+    + find(build: BuildRESTClient): TestSuite[0..*]
+}
+
+class AnsibleTestFinder {
+    + find(build: BuildRESTClient): TestSuite[0..*]
+}
+
+class AnsibleTestParser {
+     + parse(data: dict): AnsibleTest
+}
+
+class TempestTestFinder {
+    + find(build: BuildRESTClient): TestSuite[0..*]
+}
+
+class TempestTestParser {
+     + parse(data: dict): TempestTest
+}
+
+class TestSuite {
+    + name: str
+    + url: str
+    + tests: Test[0..*]
+}
+
+class Test {
+    + kind: TestKind
+    + name: str
+    + result: str
+    + duration: float
+    + url: str
+}
+
+class AnsibleTest {
+    + phase: str
+    + host: str
+    + command: str
+    + message: str
+}
+
+class TempestTest {
+    + class_name: str
+    + skip_reason: str
+}
+
+note "Time measured in ms." as BUILD_TIME_NOTE
+note "Time measured in seconds." as TEST_TIME_NOTE
+
+JobRESTClient -- BuildRESTClient
+BuildRESTClient ---- TestRESTClient
+(BuildRESTClient, TestRESTClient) .. TestLookup
+TestRESTClient -- TestKind
+
+TestLookup - TestFinder
+TestLookup ---- TestSuite
+TestFinder <|.. AnsibleTestFinder
+TestFinder <|. TempestTestFinder
+AnsibleTestFinder -- AnsibleTestParser
+AnsibleTestFinder -- TestSuite
+AnsibleTestParser -- AnsibleTest
+TempestTestFinder -- TempestTestParser
+TempestTestFinder -- TestSuite
+TempestTestParser -- TempestTest
+TestFinder -- TestSuite
+TestSuite -- Test
+Test <|-- AnsibleTest
+Test <|-- TempestTest
+Test --- TestKind
+
+BuildRESTClient - BUILD_TIME_NOTE
+TestRESTClient - TEST_TIME_NOTE
+
+@enduml
