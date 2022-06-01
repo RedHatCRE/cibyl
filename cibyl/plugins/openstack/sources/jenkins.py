@@ -262,12 +262,13 @@ accurate results", len(jobs_found))
 
         job_deployment_info = []
         for job in jobs_found:
+            job_name = job['name']
             last_build = job.get("lastCompletedBuild")
             if spec:
                 if last_build is None:
                     # jenkins only has a logs link for completed builds
                     raise JenkinsError("Openstack specification requested for"
-                                       f" job {job['name']} but job has no "
+                                       f" job {job_name} but job has no "
                                        "completed build.")
                 else:
                     self.add_job_info_from_artifacts(job, **kwargs)
@@ -276,6 +277,15 @@ accurate results", len(jobs_found))
                 self.add_job_info_from_artifacts(job, **kwargs)
             else:
                 self.add_job_info_from_name(job, **kwargs)
+            if "stages" in kwargs:
+                if not last_build:
+                    msg = "No build was found for job %s, information about "
+                    msg += "stages will not be shown for it."
+                    LOG.warning(msg, job_name)
+                else:
+                    job["stages"] = self._get_stages(job_name,
+                                                     last_build["number"])
+
             job_deployment_info.append(job)
 
         checks_to_apply = []
@@ -363,7 +373,8 @@ accurate results", len(jobs_found))
                                     test_collection=test_collection,
                                     tls_everywhere=tls_everywhere,
                                     overcloud_templates=overcloud_templates,
-                                    security_group=security_group)
+                                    security_group=security_group,
+                                    stages=job.get("stages"))
             job_objects[name].add_deployment(deployment)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)

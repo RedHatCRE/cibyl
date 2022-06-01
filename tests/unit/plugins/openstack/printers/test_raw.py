@@ -15,6 +15,7 @@
 """
 from unittest import TestCase
 
+from cibyl.models.ci.base.stage import Stage
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
@@ -290,3 +291,18 @@ class TestOSRawPrinter(TestCase):
         self.assertIn("    - test1", result)
         self.assertIn("    - test2", result)
         self.assertIn("  Setup: rpm", result)
+
+    def test_print_stages(self):
+        """Test that the string representation of Stage within a
+        deployment works."""
+        stages = [Stage("Build", "FAILED", 60e3),
+                  Stage("Run", "SUCCESS", 120e3)]
+        deployment = Deployment("17.0", "virt", {}, {}, stages=stages)
+        printer = OSRawPrinter(verbosity=1)
+
+        result = printer.print_deployment(deployment)
+        expected = "Openstack deployment: \n  Release: 17.0\n  Infra type: "
+        expected += "virt\n  Stages: \n    - Build\n      Status: FAILED\n"
+        expected += "      Duration: 1.0000min\n    - Run\n      Status: "
+        expected += "SUCCESS\n      Duration: 2.0000min"
+        self.assertEqual(result, expected)

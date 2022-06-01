@@ -20,6 +20,7 @@ from cibyl.outputs.cli.ci.system.common.builds import (get_duration_section,
                                                        get_status_section)
 from cibyl.outputs.cli.ci.system.common.jobs import (get_plugin_section,
                                                      has_plugin_section)
+from cibyl.outputs.cli.ci.system.common.stages import print_stage
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
@@ -105,31 +106,11 @@ class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
                 printer.add(self.print_test(test), 1)
 
         if build.stages.value:
+            printer.add(self.palette.blue('Stages: '), 1)
             for stage in build.stages:
-                printer.add(self.print_stage(stage), 1)
+                printer.add(print_stage(stage, self.palette,
+                                        self.verbosity), 2)
 
-        return printer.build()
-
-    def print_stage(self, stage):
-        """
-            Generate string representation of a Stage model.
-
-            :param test: The stage.
-            :type test: :class:`cibyl.models.ci.base.stage.Stage`
-            :return: Textual representation of the provided model.
-            :rtype: str
-        """
-        printer = IndentedTextBuilder()
-
-        printer.add(self.palette.blue('Stage: '), 0)
-        printer[-1].append(stage.name.value)
-
-        if self.verbosity > 0:
-            if stage.status.value:
-                printer.add(get_status_section(self.palette, stage), 1)
-
-            if stage.duration.value:
-                printer.add(get_duration_section(self.palette, stage), 1)
         return printer.build()
 
     def print_test(self, test):

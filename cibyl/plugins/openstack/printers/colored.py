@@ -14,6 +14,7 @@
 #    under the License.
 """
 from cibyl.cli.query import QueryType
+from cibyl.outputs.cli.ci.system.common.stages import print_stage
 from cibyl.plugins.openstack.printers import OSPrinter
 from cibyl.utils.colors import DefaultPalette
 from cibyl.utils.strings import IndentedTextBuilder
@@ -211,6 +212,13 @@ class OSColoredPrinter(OSPrinter):
         for service in deployment.services.values():
             is_empty_deployment = False
             printer.add(self.print_service(service), 1)
+
+        if deployment.stages.value:
+            is_empty_deployment = False
+            printer.add(self.palette.blue('Stages: '), 1)
+            for stage in deployment.stages:
+                printer.add(print_stage(stage, self.palette,
+                                        self.verbosity), 2)
 
         if is_empty_deployment:
             # remove the "Openstack deployment" line

@@ -15,6 +15,7 @@
 """
 from unittest import TestCase
 
+from cibyl.models.ci.base.stage import Stage
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.package import Package
@@ -62,6 +63,7 @@ class TestOpenstackDeployment(TestCase):
         self.assertIsNone(self.deployment.ip_version.value)
         self.assertEqual({}, self.deployment.services.value)
         self.assertEqual({}, self.deployment.nodes.value)
+        self.second_deployment.add_stage(Stage("Run", "SUCCESS"))
         self.deployment.merge(self.second_deployment)
         self.assertEqual(self.nodes, self.deployment.nodes.value)
         self.assertEqual(self.services, self.deployment.services.value)
@@ -80,6 +82,10 @@ class TestOpenstackDeployment(TestCase):
                          self.deployment.cleaning_network.value)
         self.assertEqual(self.security_group,
                          self.deployment.security_group.value)
+        self.assertEqual(len(self.deployment.stages), 1)
+        stage_obj = self.deployment.stages[0]
+        self.assertEqual(stage_obj.name.value, "Run")
+        self.assertEqual(stage_obj.status.value, "SUCCESS")
 
     def test_merge_method_existing_templates(self):
         """Test merge method of Deployment class with both deployments having
