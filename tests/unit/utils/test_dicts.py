@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from cibyl.utils.dicts import nsubset, subset
+from cibyl.utils.dicts import chunk_dictionary_into_lists, nsubset, subset
 
 
 class TestSubset(TestCase):
@@ -57,3 +57,25 @@ class TestNSubset(TestCase):
             },
             nsubset(original, keys)
         )
+
+
+class TestChunkDictionaryResult(TestCase):
+    def test_chunk_dictionary_result(self):
+        """Checks that this is able to create a list with sub lists
+        as chunk mode using the keys of a dictionary and the quantity
+        of each one of the sub lists
+        """
+        # Create a dictionary of 500 keys:
+        dictionary = {k: k for k in range(500)}
+        sublist_size = 200
+        lists = chunk_dictionary_into_lists(
+            dictionary,
+            sublist_size
+        )
+        # 500 / 200 = 2.5 so we should have:
+        # 2 sub lists of 200
+        # 1 sub list of the rest: 100
+        self.assertEqual(3, len(lists))
+        self.assertEqual(200, len(lists[0]))
+        self.assertEqual(200, len(lists[1]))
+        self.assertEqual(100, len(lists[2]))
