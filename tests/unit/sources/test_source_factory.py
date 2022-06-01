@@ -14,6 +14,7 @@
 #    under the License.
 """
 from unittest import TestCase
+from unittest.mock import Mock
 
 from cibyl.exceptions.config import NonSupportedSourceType
 from cibyl.sources.elasticsearch.api import ElasticSearch
@@ -68,3 +69,22 @@ class TestSourceFactory(TestCase):
         self.assertRaises(NonSupportedSourceType,
                           SourceFactory.create_source,
                           "unknown", "zuul_source")
+
+
+class TestExtendSource(TestCase):
+    """Tests for :func:`SourceFactory.extend_source`."""
+
+    def test_extend_zuul_source(self):
+        """Checks that a Zuul source gets extended.
+        """
+        source = Mock()
+        source.__name__ = 'Zuul'
+        source.__test = Mock()
+        source.test = Mock()
+
+        SourceFactory.extend_source(source)
+
+        self.assertFalse(hasattr(Zuul, '__test'))
+
+        self.assertTrue(hasattr(Zuul, 'test'))
+        self.assertEqual(Zuul.test, source.test)
