@@ -53,6 +53,23 @@ def get_yaml_from_topology_string(topology):
     return yaml.dump(provision)
 
 
+def get_yaml_tests(test_suites, setup=None):
+    """Provide a yaml representation for the parameters obtained from an
+    infrared test.yml file.
+
+    :param test_suites: Suites to be run
+    :type test_suites: list
+    :param setup: Source of setup packages
+    :type setup: str
+    """
+    test_dict = {'tests': []}
+    for suite in test_suites:
+        test_dict['tests'].append(f"/path/to/suite/{suite}.yml")
+    if setup:
+        test_dict['setup'] = setup
+    return yaml.dump({'test': test_dict})
+
+
 def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
                        tls_everywhere, infra_type, ml2_driver=None,
                        ironic_inspector=None, cleaning_network=None,
@@ -313,7 +330,8 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb")]
+                                   False, "path/to/ovb"),
+                JenkinsError]  # mock test.yaml
         # one call to get_packages_node and get_containers_node per node
         artifacts.extend([JenkinsError()]*(5*2))
         artifacts.extend([services])
@@ -321,7 +339,8 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb")])
+                                   False, "path/to/ovb"),
+                JenkinsError])  # mock test.yaml
         # one call to get_packages_node and get_containers_node per node
         artifacts.extend([JenkinsError()]*(3*2))
         artifacts.extend([services])
@@ -330,7 +349,8 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb")])
+                                   False, "path/to/ovb"),
+                JenkinsError])  # mock test.yaml
         # one call to get_packages_node and get_containers_node per node
         artifacts.extend([JenkinsError()]*(4*2))
         artifacts.extend([services])
@@ -399,7 +419,7 @@ tripleo_ironic_conductor.service loaded    active     running
                                                             logs_url}})
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
-        artifacts = [JenkinsError()]*9
+        artifacts = [JenkinsError()]*12
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -758,16 +778,17 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", dvr_status[0], False, "",
                                    ironic_inspector=True),
+                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", dvr_status[1],
                                    False, "", ironic_inspector=False),
+                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", dvr_status[2],
-                                   False, "")]
-        # one call to get_packages_node and get_containers_node per node, plus
-        # one to get_services
+                                   False, ""),
+                JenkinsError()]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -820,16 +841,17 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", dvr_status[0], False, ""),
+                JenkinsError(),  # test.yaml
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", dvr_status[1],
                                    False, ""),
+                JenkinsError(),  # test.yaml
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", dvr_status[2],
-                                   False, "")]
-        # one call to get_packages_node and get_containers_node per node, plus
-        # one to get_services
+                                   False, ""),
+                JenkinsError()]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -882,14 +904,17 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", dvr_status[0], False, "",
                                    ml2_driver="ovs"),
+                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", dvr_status[1],
                                    False, "", ml2_driver="ovn"),
+                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", dvr_status[2],
-                                   False, "")]
+                                   False, ""),
+                JenkinsError()]  # mock test.yaml
         # one call to get_packages_node and get_containers_node per node, plus
         # one to get_services
 
@@ -945,15 +970,18 @@ tripleo_ironic_conductor.service loaded    active     running
                                    "ceph", "geneve", dvr_status[0], False, "",
                                    ml2_driver="ovs",
                                    overcloud_templates=["a", "b"]),
+                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", dvr_status[1],
                                    False, "", ml2_driver="ovn",
                                    overcloud_templates=["c"]),
+                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", dvr_status[2],
-                                   False, "")]
+                                   False, ""),
+                JenkinsError()]  # mock test.yaml
         # one call to get_packages_node and get_containers_node per node, plus
         # one to get_services
 
@@ -1039,14 +1067,17 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False, tls_status[0], ""),
+                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", False,
                                    tls_status[1], ""),
+                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", False,
-                                   tls_status[2], "")]
+                                   tls_status[2], ""),
+                JenkinsError()]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1099,14 +1130,17 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(""),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False, tls_status[0], ""),
+                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(""),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", False,
                                    tls_status[1], ""),
+                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(""),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", False,
-                                   tls_status[2], "")]
+                                   tls_status[2], ""),
+                JenkinsError()]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1260,7 +1294,8 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb")]
+                                   False, "path/to/ovb"),
+                JenkinsError]  # mock test.yaml
         # one call to get_packages_node and get_containers_node per node
         artifacts.extend([JenkinsError()]*(5*2))
         artifacts.extend([services])
@@ -1268,7 +1303,8 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb")])
+                                   False, "path/to/ovb"),
+                JenkinsError])  # mock test.yaml
         # one call to get_packages_node and get_containers_node per node
         artifacts.extend([JenkinsError()]*(3*2))
         artifacts.extend([services])
@@ -1277,7 +1313,8 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb")])
+                                   False, "path/to/ovb"),
+                JenkinsError])  # mock test.yaml
         # one call to get_packages_node and get_containers_node per node
         artifacts.extend([JenkinsError()]*(4*2))
         artifacts.extend([services])
@@ -1384,29 +1421,29 @@ tripleo_ironic_conductor.service loaded    active     running
 
     def test_get_deployment_spec_correct_call(self):
         """ Test get_deployment call with --spec and one job."""
-        job_names = ['test_17.3_ipv4_job']
-        ip_versions = ['4']
-        releases = ['17.3']
-        topologies = ["compute:2,controller:3"]
+        job_name = 'test_17.3_ipv4_job'
+        ip = '4'
+        release = '17.3'
+        topology = "compute:2,controller:3"
 
         response = {'jobs': [{'_class': 'folder'}]}
         logs_url = 'href="link">Browse logs'
-        for job_name in job_names:
-            response['jobs'].append({'_class': 'org.job.WorkflowJob',
-                                     'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+        response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                 'name': job_name, 'url': 'url',
+                                 'lastCompletedBuild': {'description':
+                                                        logs_url}})
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
         artifacts = [
-                get_yaml_from_topology_string(topologies[0]),
-                get_yaml_overcloud(ip_versions[0], releases[0],
+                get_yaml_from_topology_string(topology),
+                get_yaml_overcloud(ip, release,
                                    "ceph", "geneve", False,
                                    False, "path/to/ovb",
                                    ironic_inspector=False, ml2_driver="ovs",
                                    cleaning_network=True,
                                    security_group="openvswitch",
-                                   overcloud_templates=["a", "b"])]
+                                   overcloud_templates=["a", "b"]),
+                get_yaml_tests(["designate", "neutron"])]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1415,93 +1452,101 @@ tripleo_ironic_conductor.service loaded    active     running
 
         jobs = self.jenkins.get_deployment(spec=spec, jobs=jobs)
         self.assertEqual(len(jobs), 1)
-        for job_name, ip, release, topology in zip(job_names, ip_versions,
-                                                   releases, topologies):
-            job = jobs[job_name]
-            deployment = job.deployment.value
-            self.assertEqual(job.name.value, job_name)
-            self.assertEqual(job.url.value, "url")
-            self.assertEqual(len(job.builds.value), 0)
-            self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
-            self.assertEqual(deployment.topology.value, topology)
-            self.assertEqual(deployment.storage_backend.value, "ceph")
-            self.assertEqual(deployment.network_backend.value, "geneve")
-            self.assertEqual(deployment.dvr.value, "False")
-            self.assertEqual(deployment.tls_everywhere.value, "False")
-            self.assertEqual(deployment.infra_type.value, "ovb")
-            self.assertEqual(deployment.ml2_driver.value, "ovs")
-            self.assertEqual(deployment.ironic_inspector.value, "False")
-            self.assertEqual(deployment.cleaning_network.value, "True")
-            self.assertEqual(deployment.security_group.value, "openvswitch")
-            self.assertEqual(deployment.overcloud_templates.value,
-                             set(["a", "b"]))
-            for component in topology.split(","):
-                role, amount = component.split(":")
-                for i in range(int(amount)):
-                    node_name = role+f"-{i}"
-                    node = Node(node_name, role)
-                    node_found = deployment.nodes[node_name]
-                    self.assertEqual(node_found.name, node.name)
-                    self.assertEqual(node_found.role, node.role)
-            services = deployment.services
-            self.assertEqual(len(services), 0)
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, release)
+        self.assertEqual(deployment.ip_version.value, ip)
+        self.assertEqual(deployment.topology.value, topology)
+        self.assertEqual(deployment.storage_backend.value, "ceph")
+        self.assertEqual(deployment.network_backend.value, "geneve")
+        self.assertEqual(deployment.dvr.value, "False")
+        self.assertEqual(deployment.tls_everywhere.value, "False")
+        self.assertEqual(deployment.infra_type.value, "ovb")
+        self.assertEqual(deployment.ml2_driver.value, "ovs")
+        self.assertEqual(deployment.ironic_inspector.value, "False")
+        self.assertEqual(deployment.cleaning_network.value, "True")
+        self.assertEqual(deployment.security_group.value, "openvswitch")
+        self.assertEqual(deployment.overcloud_templates.value,
+                         set(["a", "b"]))
+        for component in topology.split(","):
+            role, amount = component.split(":")
+            for i in range(int(amount)):
+                node_name = role+f"-{i}"
+                node = Node(node_name, role)
+                node_found = deployment.nodes[node_name]
+                self.assertEqual(node_found.name, node.name)
+                self.assertEqual(node_found.role, node.role)
+        services = deployment.services
+        self.assertEqual(len(services), 0)
+        test_collection = deployment.test_collection.value
+        tests = test_collection.tests.value
+        self.assertEqual(len(tests), 2)
+        self.assertIn("designate", tests)
+        self.assertIn("neutron", tests)
+        self.assertIsNone(test_collection.setup.value)
 
     def test_get_deployment_spec_correct_call_no_jobs(self):
         """ Test get_deployment call with --spec and one job without using the
         jobs argument."""
-        job_names = ['test_17.3_ipv4_job']
-        ip_versions = ['4']
-        releases = ['17.3']
-        topologies = ["compute:2,controller:3"]
+        job_name = 'test_17.3_ipv4_job'
+        ip = '4'
+        release = '17.3'
+        topology = "compute:2,controller:3"
 
         response = {'jobs': [{'_class': 'folder'}]}
         logs_url = 'href="link">Browse logs'
-        for job_name in job_names:
-            response['jobs'].append({'_class': 'org.job.WorkflowJob',
-                                     'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+        response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                 'name': job_name, 'url': 'url',
+                                 'lastCompletedBuild': {'description':
+                                                        logs_url}})
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
         artifacts = [
-                get_yaml_from_topology_string(topologies[0]),
-                get_yaml_overcloud(ip_versions[0], releases[0],
+                get_yaml_from_topology_string(topology),
+                get_yaml_overcloud(ip, release,
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb", ml2_driver="ovn")]
+                                   False, "path/to/ovb", ml2_driver="ovn"),
+                get_yaml_tests(["designate", "neutron"], setup="rpm")]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
         spec = Argument("spec", str, "", value=["test_17.3_ipv4_job"])
         jobs = self.jenkins.get_deployment(spec=spec)
         self.assertEqual(len(jobs), 1)
-        for job_name, ip, release, topology in zip(job_names, ip_versions,
-                                                   releases, topologies):
-            job = jobs[job_name]
-            deployment = job.deployment.value
-            self.assertEqual(job.name.value, job_name)
-            self.assertEqual(job.url.value, "url")
-            self.assertEqual(len(job.builds.value), 0)
-            self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
-            self.assertEqual(deployment.topology.value, topology)
-            self.assertEqual(deployment.storage_backend.value, "ceph")
-            self.assertEqual(deployment.network_backend.value, "geneve")
-            self.assertEqual(deployment.dvr.value, "False")
-            self.assertEqual(deployment.ml2_driver.value, "ovn")
-            self.assertEqual(deployment.tls_everywhere.value, "False")
-            self.assertEqual(deployment.infra_type.value, "ovb")
-            self.assertEqual(deployment.security_group.value, "native ovn")
-            for component in topology.split(","):
-                role, amount = component.split(":")
-                for i in range(int(amount)):
-                    node_name = role+f"-{i}"
-                    node = Node(node_name, role)
-                    node_found = deployment.nodes[node_name]
-                    self.assertEqual(node_found.name, node.name)
-                    self.assertEqual(node_found.role, node.role)
-            services = deployment.services
-            self.assertEqual(len(services), 0)
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, release)
+        self.assertEqual(deployment.ip_version.value, ip)
+        self.assertEqual(deployment.topology.value, topology)
+        self.assertEqual(deployment.storage_backend.value, "ceph")
+        self.assertEqual(deployment.network_backend.value, "geneve")
+        self.assertEqual(deployment.dvr.value, "False")
+        self.assertEqual(deployment.ml2_driver.value, "ovn")
+        self.assertEqual(deployment.tls_everywhere.value, "False")
+        self.assertEqual(deployment.infra_type.value, "ovb")
+        self.assertEqual(deployment.security_group.value, "native ovn")
+        for component in topology.split(","):
+            role, amount = component.split(":")
+            for i in range(int(amount)):
+                node_name = role+f"-{i}"
+                node = Node(node_name, role)
+                node_found = deployment.nodes[node_name]
+                self.assertEqual(node_found.name, node.name)
+                self.assertEqual(node_found.role, node.role)
+        services = deployment.services
+        self.assertEqual(len(services), 0)
+        test_collection = deployment.test_collection.value
+        tests = test_collection.tests.value
+        self.assertEqual(len(tests), 2)
+        self.assertIn("designate", tests)
+        self.assertIn("neutron", tests)
+        self.assertEqual(test_collection.setup.value, "rpm")
 
     def test_get_deployment_spec_no_overcloud_info(self):
         """ Test get_deployment call with --spec and missing overcloud info."""
@@ -1519,7 +1564,8 @@ tripleo_ironic_conductor.service loaded    active     running
         # that it does not fallback to reading values from job name
         artifacts = [
                 get_yaml_from_topology_string(topologies[0]),
-                JenkinsError]
+                JenkinsError,
+                JenkinsError]  # mock test.yaml
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1563,7 +1609,8 @@ tripleo_ironic_conductor.service loaded    active     running
         # that it does not fallback to reading values from job name
         artifacts = [
                 get_yaml_from_topology_string(topologies[0]),
-                JenkinsError]
+                JenkinsError,
+                JenkinsError]  # mock test.yaml
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1612,7 +1659,8 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb")]
+                                   False, "path/to/ovb"),
+                JenkinsError()]  # mock test.yaml
         # two call to get_packages_node and get_containers_node per node
         for _ in range(5):
             artifacts.append(containers)

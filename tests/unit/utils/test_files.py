@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from cibyl.utils.files import get_first_available_file
+from cibyl.utils.files import get_file_name_from_path, get_first_available_file
 
 
 class TestGetFirstAvailableFile(TestCase):
@@ -49,3 +49,49 @@ class TestGetFirstAvailableFile(TestCase):
             ),
             expected_file
         )
+
+
+class TestGetFileNameFromPath(TestCase):
+    """Test cases for the 'get_file_name_from_path' function.
+    """
+    def test_file_name(self):
+        """Checks that the file name is extracted from a path and the extension
+        is stripped."""
+        file_path = 'path/to/expected/file.txt'
+        file_name = get_file_name_from_path(file_path)
+        self.assertEqual(file_name, "file")
+
+    def test_file_name_abs_path(self):
+        """Checks that the file name is extracted from a path and the extension
+        is stripped."""
+        file_path = '/path/to/expected/file.txt'
+        file_name = get_file_name_from_path(file_path)
+        self.assertEqual(file_name, "file")
+
+    def test_file_name_no_extension(self):
+        """Checks that the file name is extracted from a path with no
+        extension."""
+        file_path = 'path/to/expected/file'
+        file_name = get_file_name_from_path(file_path)
+        self.assertEqual(file_name, "file")
+
+    def test_file_name_no_leading_path(self):
+        """Checks that the file name is extracted from a path with no parent
+        folders and the extension is stripped."""
+        file_path = 'file.txt'
+        file_name = get_file_name_from_path(file_path)
+        self.assertEqual(file_name, "file")
+
+    def test_file_name_windows_path(self):
+        """Checks that the file name is extracted from a path and the extension
+        is stripped."""
+        file_path = r'C:\path\expected\file.txt'
+        file_name = get_file_name_from_path(file_path)
+        self.assertEqual(file_name, "file")
+
+    def test_file_name_windows_path_no_extension(self):
+        """Checks that the file name is extracted from a path with no
+        extension."""
+        file_path = 'C:\\path\\expected\\file'
+        file_name = get_file_name_from_path(file_path)
+        self.assertEqual(file_name, "file")

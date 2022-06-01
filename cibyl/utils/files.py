@@ -55,3 +55,16 @@ def get_first_available_file(filenames, file_check=is_file_available):
 
     # None of the files exist
     return None
+
+
+def get_file_name_from_path(path):
+    """Get the file name from a path. Strip all leading path
+    information as well as the extension.
+    :param path: Path of the file
+    :type path: str
+    :returns: The name of the file that path points to, without extension
+    :rtype: str
+    """
+    path = path.replace("\\", os.sep)
+    _, file_name = os.path.split(path)
+    return os.path.splitext(file_name)[0]

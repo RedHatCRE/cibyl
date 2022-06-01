@@ -188,6 +188,17 @@ class OSColoredPrinter(OSPrinter):
                         printer.add(self.palette.blue('- '), 2)
                         printer[-1].append(template)
 
+        if deployment.test_collection.value:
+            if deployment.test_collection.value != "N/A" or \
+               self.verbosity > 0:
+                is_empty_deployment = False
+                if isinstance(deployment.test_collection.value, str):
+                    printer.add(self.palette.blue('Testing information: '), 1)
+                    printer[-1].append(deployment.test_collection.value)
+                else:
+                    printer.add(self.print_test_collection(
+                                    deployment.test_collection.value), 1)
+
         is_empty_deployment &= (is_empty_network and is_empty_storage and
                                 is_empty_ironic)
 
@@ -205,6 +216,25 @@ class OSColoredPrinter(OSPrinter):
             # remove the "Openstack deployment" line
             printer.pop()
             printer.add("No openstack information associated with this job", 1)
+        return printer.build()
+
+    def print_test_collection(self, test_collection):
+        """Print the test collection used in an Openstack deployment.
+
+        :param test_collection: The test collection used in the deployment
+        :type test_collection: :class:`TestCollection`
+        """
+        printer = IndentedTextBuilder()
+        printer.add(self.palette.blue('Testing information: '), 0)
+        printer.add(self.palette.blue('Test suites: '), 1)
+        if test_collection.tests.value:
+            for test in test_collection.tests.value:
+                printer.add(self.palette.blue('- '), 2)
+                printer[-1].append(test)
+
+        if test_collection.setup.value:
+            printer.add(self.palette.blue('Setup: '), 1)
+            printer[-1].append(test_collection.setup.value)
         return printer.build()
 
     def print_node(self, node):

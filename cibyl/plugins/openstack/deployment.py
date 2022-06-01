@@ -20,6 +20,7 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.model import Model
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.service import Service
+from cibyl.plugins.openstack.test_collection import TestCollection
 
 # pylint: disable=no-member
 
@@ -120,6 +121,10 @@ class Deployment(Model):
         'overcloud_templates': {
             'arguments': []
         },
+        'test_collection': {
+            'attr_type': TestCollection,
+            'arguments': []
+        },
         'network_backend': {
             'attr_type': str,
             'arguments': [Argument(name='--network-backend', arg_type=str,
@@ -143,7 +148,8 @@ class Deployment(Model):
                  dvr: str = None, tls_everywhere: str = None,
                  ml2_driver: str = None, ironic_inspector: str = None,
                  cleaning_network: str = None, security_group: str = None,
-                 overcloud_templates: set = None):
+                 overcloud_templates: set = None,
+                 test_collection: TestCollection = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
                           'ip_version': ip_version, 'topology': topology,
@@ -154,7 +160,8 @@ class Deployment(Model):
                           'ironic_inspector': ironic_inspector,
                           'security_group': security_group,
                           'cleaning_network': cleaning_network,
-                          'overcloud_templates': overcloud_templates})
+                          'overcloud_templates': overcloud_templates,
+                          'test_collection': test_collection})
 
     def add_node(self, node: Node):
         """Add a node to the deployment.
@@ -207,6 +214,7 @@ class Deployment(Model):
             self.cleaning_network.value = other.cleaning_network.value
         if not self.security_group.value:
             self.security_group.value = other.security_group.value
+
         if other.overcloud_templates.value:
             other_templates = other.overcloud_templates.value
             if self.overcloud_templates.value:
@@ -215,6 +223,13 @@ class Deployment(Model):
                 self.overcloud_templates.value = all_templates
             else:
                 self.overcloud_templates.value = other_templates
+
+        if other.test_collection.value:
+            if self.test_collection.value:
+                self.test_collection.value.merge(other.test_collection.value)
+            else:
+                self.test_collection.value = other.test_collection.value
+
         for node in other.nodes.values():
             self.add_node(node)
         for service in other.services.values():

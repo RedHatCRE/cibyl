@@ -19,6 +19,7 @@ from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.service import Service
+from cibyl.plugins.openstack.test_collection import TestCollection
 
 
 class TestOpenstackDeployment(TestCase):
@@ -124,3 +125,32 @@ class TestOpenstackDeployment(TestCase):
         self.assertEqual(node.role.value, node.role.value)
         self.assertEqual(node.packages['package'].name,
                          node_to_add.packages['package'].name)
+
+    def test_merge_method_existing_test_collection(self):
+        """Test merge method of Deployment class."""
+        test_collection = TestCollection(set(["test1", "test2"]))
+        test_collection2 = TestCollection(set(["test3"]))
+        deployment = Deployment(self.release, self.infra, {}, {},
+                                test_collection=test_collection)
+        deployment2 = Deployment(self.release, self.infra, {}, {},
+                                 test_collection=test_collection2)
+        deployment2.merge(deployment)
+        test_collection = deployment2.test_collection.value
+        tests = test_collection.tests.value
+        self.assertEqual(len(tests), 3)
+        self.assertIn("test1", tests)
+        self.assertIn("test2", tests)
+        self.assertIn("test3", tests)
+
+    def test_merge_method_non_existing_test_collection(self):
+        """Test merge method of Deployment class."""
+        test_collection = TestCollection(set(["test1", "test2"]))
+        deployment = Deployment(self.release, self.infra, {}, {},
+                                test_collection=test_collection)
+        deployment2 = Deployment(self.release, self.infra, {}, {})
+        deployment2.merge(deployment)
+        test_collection = deployment2.test_collection.value
+        tests = test_collection.tests.value
+        self.assertEqual(len(tests), 2)
+        self.assertIn("test1", tests)
+        self.assertIn("test2", tests)
