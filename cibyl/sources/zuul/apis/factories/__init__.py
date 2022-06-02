@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 
 
 class ZuulAPIFactory(ABC):
