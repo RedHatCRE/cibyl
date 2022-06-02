@@ -36,6 +36,7 @@ from cibyl.publisher import Publisher
 from cibyl.sources.source import get_source_method
 from cibyl.sources.source_factory import SourceFactory
 from cibyl.utils.source_methods_store import SourceMethodsStore
+from cibyl.utils.status_bar import StatusBar
 
 LOG = logging.getLogger(__name__)
 
@@ -244,9 +245,10 @@ class Orchestrator:
                     LOG.debug("Running %s and speed index %d",
                               source_info, speed_score)
                     try:
-                        model_instances_dict = source_method(
-                            **self.parser.ci_args, **self.parser.app_args,
-                            **system_args)
+                        with StatusBar(f"Performing query ({system.name})"):
+                            model_instances_dict = source_method(
+                                **self.parser.ci_args, **self.parser.app_args,
+                                **system_args)
                     except SourceException as exception:
                         source_methods_store.add_call(source_method, False)
                         LOG.error("Error in %s under system: '%s'. "
