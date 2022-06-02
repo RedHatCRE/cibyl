@@ -20,7 +20,7 @@ from overrides import overrides
 
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
-from cibyl.sources.zuul.apis.rest import ZuulRESTClient
+from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
 from cibyl.sources.zuul.query import handle_query
 from cibyl.utils.dicts import subset
 
@@ -41,7 +41,8 @@ class Zuul(ServerSource):
         """
 
     def __init__(self, name, driver, url, cert=None,
-                 fallbacks=None, tenants=None, enabled=True):
+                 fallbacks=None, tenants=None, enabled=True,
+                 api_factory=ZuulRESTFactory()):
         """Constructor.
 
         :param name: Name of the source.
@@ -57,6 +58,10 @@ class Zuul(ServerSource):
         :type fallbacks: :class:`Zuul.Fallbacks` or None
         :param tenants: List of tenants
         :type tenants: list
+        :param api_factory: Used to create the API this source will use to
+            interact with Zuul.
+        :type api_factory: :class:`
+            cibyl.sources.zuul.apis.factories.ZuulAPIFactory`
         """
         # Handle optional parameters
         if not fallbacks:
@@ -69,8 +74,10 @@ class Zuul(ServerSource):
         super().__init__(name, driver, url=url, cert=cert, enabled=enabled)
 
         self._api = None
+
         self._fallbacks = fallbacks
-        self.tenants = tenants
+        self._tenants = tenants
+        self._api_factory = api_factory
 
     @staticmethod
     def new_source(url, cert=None, **kwargs):
@@ -120,7 +127,7 @@ class Zuul(ServerSource):
 
     @overrides
     def setup(self):
-        self._api = ZuulRESTClient.from_url(self.url, self.cert)
+        self._api = self._api_factory.create(self.url, self.cert)
 
     @overrides
     def teardown(self):
