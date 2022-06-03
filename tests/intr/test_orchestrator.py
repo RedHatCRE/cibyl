@@ -48,8 +48,9 @@ class TestOrchestrator(TestCase):
     @patch.object(SourceMethodsStore, '_method_information_tuple')
     @patch.object(Jenkins, 'get_jobs', side_effect=JenkinsError)
     @patch.object(OSPJenkins, 'get_deployment', side_effect=JenkinsError)
-    def test_args_level(self, jenkins_deployment, jenkins_jobs, store_mock,
-                        _):
+    @patch('cibyl.plugins.get_classes_in', return_value=[OSPJenkins])
+    def test_args_level(self, _get_classes_mock, jenkins_deployment,
+                        jenkins_jobs, store_mock, _):
         """Test that the args level is updated properly in run_query."""
         store_mock.side_effect = [("jenkins", "get_deployment"),
                                   ("jenkins", "get_deployment"),

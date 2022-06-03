@@ -45,11 +45,6 @@ def get_plugin_module_path(plugin_module):
         plugin_module.__file__)), 'sources')
 
 
-def is_plugin_class(class_obj):
-    return inspect.isclass(class_obj) and \
-            "sources" in class_obj.__module__
-
-
 def get_plugin_sources(plugin_module_path):
     result = []
 
