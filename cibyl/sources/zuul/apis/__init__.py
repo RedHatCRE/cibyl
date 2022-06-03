@@ -18,8 +18,8 @@ from abc import ABC, abstractmethod
 from deprecation import deprecated
 
 from cibyl.exceptions.source import SourceException
-from cibyl.sources.zuul.apis.builds import Artifact, ArtifactKind
 from cibyl.sources.zuul.apis.providers import JobsProvider, PipelinesProvider
+from cibyl.sources.zuul.apis.utils.builds import Artifact, ArtifactKind
 from cibyl.utils.io import Closeable
 
 

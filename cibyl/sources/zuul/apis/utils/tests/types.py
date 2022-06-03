@@ -16,7 +16,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
 
-from cibyl.sources.zuul.apis.tests.ansible.types import AnsibleTest
+from cibyl.sources.zuul.apis.utils.tests.ansible.types import AnsibleTest
 
 Test = Union[AnsibleTest]
 """Defines all possible types of test known to Cibyl."""
