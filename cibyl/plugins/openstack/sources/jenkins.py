@@ -34,6 +34,7 @@ from cibyl.plugins.openstack.service import Service
 from cibyl.plugins.openstack.test_collection import TestCollection
 from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.jenkins import detect_job_info_regex, filter_jobs
+from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import subset
 from cibyl.utils.files import get_file_name_from_path
@@ -132,7 +133,7 @@ def filter_models_set_field(job: dict, user_input: Argument,
     return bool(job[field_to_check])
 
 
-class Jenkins:
+class Jenkins(SourceExtension):
     """A class representation of Jenkins client."""
 
     deployment_attr = ["topology", "release",
