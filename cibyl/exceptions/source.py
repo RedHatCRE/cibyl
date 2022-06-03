@@ -56,3 +56,13 @@ class MissingArgument(SourceException):
         """Constructor.
         """
         super().__init__(message)
+
+
+class InvalidArgument(SourceException):
+    """Represents an invalid combination of arguments inside a source
+    method call."""
+
+    def __init__(self, message='Invalid argument passed.'):
+        """Constructor.
+        """
+        super().__init__(message)

@@ -237,24 +237,10 @@ class Jenkins(SourceExtension):
         spec = "spec" in kwargs
 
         jobs_found = filter_jobs(jobs_found, **kwargs)
+        if spec:
+            self.check_jobs_for_spec(jobs_found, **kwargs)
 
         use_artifacts = True
-        if spec:
-            spec_value = kwargs["spec"].value
-            jobs_args = kwargs.get("jobs")
-            # if user called cibyl just with --spec without value and no --jobs
-            # argument, we have not enough information to pull the spec
-            spec_missing_input = not bool(spec_value) and (jobs_args is None)
-            if len(jobs_found) == 0 or spec_missing_input:
-                msg = "No job was found, please pass --spec job-name with an "
-                msg += " exact match or --jobs job-name with a valid job name "
-                msg += "or pattern."
-                raise JenkinsError(msg)
-
-            if len(jobs_found) > 1:
-                raise JenkinsError("Full Openstack specification can be shown "
-                                   "only for one job, please restrict the "
-                                   "query.")
         if len(jobs_found) > 12:
             LOG.warning("Requesting deployment information for %d jobs \
 will be based on the job name and approximate, restrict the query for more \
