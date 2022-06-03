@@ -30,6 +30,7 @@ from cibyl.models.ci.base.test import Test
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
+from cibyl.utils.dicts import chunk_dictionary_into_lists
 
 LOG = logging.getLogger(__name__)
 
@@ -182,19 +183,10 @@ class ElasticSearch(ServerSource):
 
         for _, job in jobs_found.items():
 
-            chunked_list_of_jobs = []
-            chunk_size_for_search = 400
-
-            for chunk_max_value in range(
-                0,
-                len(list(jobs_found.keys())),
-                chunk_size_for_search
-            ):
-                chunked_list_of_jobs.append(
-                    list(
-                        jobs_found.keys()
-                    )[chunk_max_value:chunk_max_value + chunk_size_for_search]
-                )
+            chunked_list_of_jobs = chunk_dictionary_into_lists(
+                jobs_found,
+                400
+            )
 
         builds = []
         for jobs_list in chunked_list_of_jobs:

@@ -68,3 +68,23 @@ def nsubset(dictionary, keys):
         result[key] = dictionary[key]
 
     return result
+
+
+def chunk_dictionary_into_lists(dictionary: dict, size: int = 300) -> list:
+    """It returns a list of sub lists. Each one with the size indicated
+    in the 'size' parameter where every element is the key of the dictionary
+    provided. If the size is less than the quantity provided, it creates
+    just one sublist with those keys.
+    """
+    chunked_list = []
+    for chunk_max_value in range(
+            0,
+            len(list(dictionary.keys())),
+            size
+    ):
+        chunked_list.append(
+            list(
+                dictionary.keys()
+            )[chunk_max_value:chunk_max_value + size]
+        )
+    return chunked_list

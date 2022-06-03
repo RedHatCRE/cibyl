@@ -16,11 +16,13 @@
 
 import logging
 
+from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
+from cibyl.utils.dicts import chunk_dictionary_into_lists
 from cibyl.utils.filtering import IP_PATTERN
 
 LOG = logging.getLogger(__name__)
@@ -55,8 +57,7 @@ class ElasticSearch(SourceExtension):
                         },
                         {
                             "bool": {
-                                "should": [],
-                                "minimum_should_match": 1
+                                "should": []
                             }
                         }
                     ]
@@ -78,7 +79,7 @@ class ElasticSearch(SourceExtension):
                                 "sort": [
                                         {
                                             "build_num": {
-                                                "order": "asc"
+                                                "order": "desc"
                                             }
                                         }
                                 ],
@@ -90,24 +91,16 @@ class ElasticSearch(SourceExtension):
             }
         }
 
-        chunked_list_of_jobs = []
-        chunk_size_for_search = 400
         # We can't send a giant query in the request to the elasticsearch
         # for asking to all the jobs information. Instead of doing one
         # query for job we create a list of jobs sublists and do calls
         # divided by chunks. chunk_size_for_search quantity will be
         # the size of every sublist. If we have 2000 jobs we will have
         # the following calls: 2000 / 600 = 3.33 -> 4 calls.
-        for chunk_max_value in range(
-                0,
-                len(list(jobs_found.keys())),
-                chunk_size_for_search
-        ):
-            chunked_list_of_jobs.append(
-                list(
-                    jobs_found.keys()
-                )[chunk_max_value:chunk_max_value + chunk_size_for_search]
-            )
+        chunked_list_of_jobs = chunk_dictionary_into_lists(
+            jobs_found,
+            400
+        )
 
         # We will filter depending of the field we receive
         # in the kwargs
@@ -127,6 +120,26 @@ class ElasticSearch(SourceExtension):
              ['last_build']['top_hits']['_source'].append(
                  f"{field}"
              ))
+
+        available_spec_fields = [
+            'topology',
+            'ip_version',
+            'dvr',
+            'network_backend',
+            'storage_backend',
+            'osp_release'
+        ]
+
+        if 'spec' in kwargs:
+            if len(jobs_found) > 1:
+                raise ElasticSearchError(
+                    "Full Openstack specification can be shown "
+                    "only for one job, please restrict the "
+                    "query."
+                )
+            for spec_field in available_spec_fields:
+                append_exists_field_to_query(spec_field)
+                append_get_specific_field(spec_field)
 
         if 'topology' in kwargs:
             append_exists_field_to_query('topology')
