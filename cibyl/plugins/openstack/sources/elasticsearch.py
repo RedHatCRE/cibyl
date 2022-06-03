@@ -16,7 +16,6 @@
 
 import logging
 
-from cibyl.exceptions.elasticsearch import ElasticSearchError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
@@ -40,6 +39,7 @@ class ElasticSearch(SourceExtension):
         :rtype: :class:`AttributeDictValue`
         """
         jobs_found = self.get_jobs(**kwargs)
+        self.check_jobs_for_spec(jobs_found, **kwargs)
 
         query_body = {
             # We don't want results in the main hits
@@ -131,12 +131,6 @@ class ElasticSearch(SourceExtension):
         ]
 
         if 'spec' in kwargs:
-            if len(jobs_found) > 1:
-                raise ElasticSearchError(
-                    "Full Openstack specification can be shown "
-                    "only for one job, please restrict the "
-                    "query."
-                )
             for spec_field in available_spec_fields:
                 append_exists_field_to_query(spec_field)
                 append_get_specific_field(spec_field)

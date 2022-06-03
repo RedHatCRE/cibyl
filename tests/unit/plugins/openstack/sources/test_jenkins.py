@@ -22,6 +22,7 @@ import yaml
 
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.jenkins import JenkinsError
+from cibyl.exceptions.source import InvalidArgument
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.service import Service
@@ -1381,7 +1382,8 @@ tripleo_ironic_conductor.service loaded    active     running
         self.jenkins.send_request = Mock(side_effect=[response])
 
         spec = Argument("spec", str, "", value=job_names)
-        self.assertRaises(JenkinsError, self.jenkins.get_deployment, spec=spec)
+        self.assertRaises(InvalidArgument, self.jenkins.get_deployment,
+                          spec=spec)
 
     def test_get_deployment_spec_one_job_no_builds(self):
         """ Test that get_deployment fails if --spec is used with a job that
@@ -1416,8 +1418,8 @@ tripleo_ironic_conductor.service loaded    active     running
         msg = "No job was found, please pass --spec job-name with an "
         msg += " exact match or --jobs job-name with a valid job name "
         msg += "or pattern."
-        self.assertRaises(JenkinsError, self.jenkins.get_deployment, spec=spec,
-                          msg=msg)
+        self.assertRaises(InvalidArgument, self.jenkins.get_deployment,
+                          spec=spec, msg=msg)
 
     def test_get_deployment_spec_correct_call(self):
         """ Test get_deployment call with --spec and one job."""

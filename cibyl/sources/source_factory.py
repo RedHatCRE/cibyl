@@ -23,6 +23,7 @@ from cibyl.exceptions.config import (MissingSourceKey, MissingSourceType,
 from cibyl.sources.elasticsearch.api import ElasticSearch
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
+from cibyl.sources.server import ServerSource
 from cibyl.sources.zuul.source import Zuul
 from cibyl.sources.zuuld.source import ZuulD
 
@@ -52,6 +53,8 @@ class SourceFactory:
             source_class = ElasticSearch
         elif source.__name__ == 'Zuul':
             source_class = Zuul
+        elif source.__name__ == 'ServerSource':
+            source_class = ServerSource
         else:
             LOG.warning(f"Ignoring source extension for class: {source}")
 
