@@ -156,4 +156,16 @@ def get_file_name_from_path(path):
 
 
 def get_file_extension(path):
+    """Gets the dot-prefixed extension from the path to a file.
+
+    :param path: Path to the file to get the extension from.
+    :type path: str
+    :return: The file's extension.
+    :rtype: str
+
+    Examples
+    --------
+    >>> get_file_extension('/home/user/file.txt')
+    '.txt'
+    """
     return Path(path).suffix
