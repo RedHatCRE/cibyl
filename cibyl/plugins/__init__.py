@@ -18,7 +18,11 @@ import logging
 import os
 
 from cibyl.exceptions.plugin import MissingPlugin
+from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source_factory import SourceFactory
+from cibyl.utils.files import FileSearch
+from cibyl.utils.filtering import apply_filters
+from cibyl.utils.reflection import get_classes_in, load_module
 
 LOG = logging.getLogger(__name__)
 
@@ -46,15 +50,25 @@ def is_plugin_class(class_obj):
             "sources" in class_obj.__module__
 
 
-def extend_source(plugin_name, plugin_module_path):
-    plugin_sources = []
-    for py in [f[:-3] for f in os.listdir(plugin_module_path)
-               if f.endswith('.py') and f != '__init__.py']:
-        mod = __import__('.'.join(
-            [f"cibyl.plugins.{plugin_name}.sources", py]), fromlist=[py])
-        plugin_sources.extend([source_tuple[1] for source_tuple in
-                               inspect.getmembers(mod, is_plugin_class)])
-    for plugin_source in plugin_sources:
+def get_plugin_sources(plugin_module_path):
+    result = []
+
+    file_search = FileSearch(plugin_module_path)
+    file_search.with_recursion()
+    file_search.with_extension('.py')
+
+    for module_path in file_search.get():
+        result += apply_filters(
+            get_classes_in(load_module(module_path)),
+            lambda cls: issubclass(cls, SourceExtension),
+            lambda cls: cls is not SourceExtension
+        )
+
+    return result
+
+
+def extend_source(plugin_module_path):
+    for plugin_source in get_plugin_sources(plugin_module_path):
         SourceFactory.extend_source(plugin_source)
 
 
@@ -66,5 +80,5 @@ def enable_plugins(plugins: list = None):
             plugin_module = get_plugin_module(plugin)
             plugin_module.Plugin().extend_models()
             plugin_module_path = get_plugin_module_path(plugin_module)
-            extend_source(plugin, plugin_module_path)
+            extend_source(plugin_module_path)
             plugin_module.Plugin().extend_query_types()
