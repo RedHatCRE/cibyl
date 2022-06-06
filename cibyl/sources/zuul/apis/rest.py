@@ -22,7 +22,6 @@ from cibyl.sources.zuul.apis import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
                                      ZuulJobAPI, ZuulPipelineAPI,
                                      ZuulProjectAPI, ZuulTenantAPI,
                                      ZuulVariantAPI)
-from cibyl.utils.filtering import matches_regex
 from cibyl.utils.io import Closeable
 
 

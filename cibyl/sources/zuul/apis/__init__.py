@@ -14,8 +14,8 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
-
 from dataclasses import dataclass
+
 from deprecation import deprecated
 
 from cibyl.exceptions.source import SourceException
