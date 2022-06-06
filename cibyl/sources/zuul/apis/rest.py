@@ -176,7 +176,7 @@ class ZuulVariantRESTClient(ZuulVariantAPI):
     @overrides
     def variables(self, recursive=False):
         def get_own_variables():
-            return self.raw['variables']
+            result.update(self.raw['variables'])
 
         def get_parent_variables():
             if not recursive:
@@ -197,8 +197,10 @@ class ZuulVariantRESTClient(ZuulVariantAPI):
                 result.update(variant.variables(recursive))
 
         result = {}
-        result.update(get_own_variables())
-        result.update(get_parent_variables())
+
+        get_own_variables()
+        get_parent_variables()
+
         return result
 
     def close(self):
