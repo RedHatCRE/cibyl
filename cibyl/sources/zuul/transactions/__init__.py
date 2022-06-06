@@ -245,7 +245,7 @@ class VariantsRequest(Request):
         """
         variants = self._job.variants()
 
-        return [VariantResponse(self._job, variant) for variant in variants]
+        return [VariantResponse(variant) for variant in variants]
 
 
 class BuildsRequest(Request):
@@ -535,15 +535,12 @@ class VariantResponse:
     """Response for a :class:`VariantsRequest`.
     """
 
-    def __init__(self, job, variant):
+    def __init__(self, variant):
         """Constructor.
 
-        :param job: Low-Level API to access this variant's job.
-        :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
-        :param variant: Raw data for this variant.
-        :type variant: dict[str, Any]
+        :param variant: Low-Level API to access the variant's data.
+        :type variant: :class:`cibyl.sources.zuul.api.ZuulVariantAPI`
         """
-        self._job = job
         self._variant = variant
 
     @property
@@ -552,7 +549,7 @@ class VariantResponse:
         :return: Response for this variant's job.
         :rtype: :class:`JobResponse`
         """
-        return JobResponse(self._job)
+        return JobResponse(self._variant.job)
 
     @property
     def data(self):
@@ -560,7 +557,16 @@ class VariantResponse:
         :return: Raw data of this variant
         :rtype: dict[str, Any]
         """
-        return self._variant
+        return self._variant.raw
+
+    def variables(self, recursive=False):
+        """
+        :param recursive: Whether to gather the variables of parent as well.
+        :type recursive: bool
+        :return: Variables of this variant.
+        :rtype: dict[str, Any]
+        """
+        return self._variant.variables(recursive)
 
 
 class BuildResponse:

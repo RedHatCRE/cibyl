@@ -20,7 +20,9 @@ from requests import HTTPError, Session
 
 from cibyl.sources.zuul.apis import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
                                      ZuulJobAPI, ZuulPipelineAPI,
-                                     ZuulProjectAPI, ZuulTenantAPI)
+                                     ZuulProjectAPI, ZuulTenantAPI,
+                                     ZuulVariantAPI)
+from cibyl.utils.filtering import matches_regex
 from cibyl.utils.io import Closeable
 
 
@@ -165,6 +167,44 @@ class ZuulBuildRESTClient(ZuulBuildAPI):
         self._session.close()
 
 
+class ZuulVariantRESTClient(ZuulVariantAPI):
+    def __init__(self, session, job, variant):
+        super().__init__(job, variant)
+
+        self._session = session
+
+    @overrides
+    def variables(self, recursive=False):
+        def get_own_variables():
+            return self.raw['variables']
+
+        def get_parent_variables():
+            if not recursive:
+                return {}
+
+            if not self.parent:
+                return {}
+
+            parent = ZuulJobRESTClient(
+                self._session,
+                self._job.tenant,
+                {
+                    'name': self.parent
+                }
+            )
+
+            for variant in parent.variants():
+                result.update(variant.variables(recursive))
+
+        result = {}
+        result.update(get_own_variables())
+        result.update(get_parent_variables())
+        return result
+
+    def close(self):
+        self._session.close()
+
+
 class ZuulJobRESTClient(ZuulJobAPI):
     """Implementation of a Zuul client through the use of Zuul's REST-API.
     """
@@ -201,9 +241,13 @@ class ZuulJobRESTClient(ZuulJobAPI):
 
     @overrides
     def variants(self):
-        return self._session.get(
-            f'tenant/{self.tenant.name}/job/{self.name}'
-        )
+        url = f'tenant/{self.tenant.name}/job/{self.name}'
+        variants = self._session.get(url)
+
+        return [
+            ZuulVariantRESTClient(self._session, self, variant)
+            for variant in variants
+        ]
 
     @overrides
     def builds(self):

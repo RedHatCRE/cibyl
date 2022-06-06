@@ -15,6 +15,7 @@
 """
 from abc import ABC, abstractmethod
 
+from dataclasses import dataclass
 from deprecation import deprecated
 
 from cibyl.exceptions.source import SourceException
@@ -150,6 +151,40 @@ class ZuulBuildAPI(Closeable, ABC):
         raise NotImplementedError
 
 
+class ZuulVariantAPI(Closeable, ABC):
+    @dataclass
+    class Context:
+        project: str
+        branch: str
+        path: str
+
+    def __init__(self, job, variant):
+        self._job = job
+        self._variant = variant
+
+    @property
+    def parent(self):
+        return self.raw['parent']
+
+    @property
+    def context(self):
+        context = self.raw['source_context']
+
+        return ZuulVariantAPI.Context(
+            project=context['project'],
+            branch=context['branch'],
+            path=context['path']
+        )
+
+    @property
+    def raw(self):
+        return self._variant
+
+    @abstractmethod
+    def variables(self, recursive=False):
+        raise NotImplementedError
+
+
 class ZuulJobAPI(Closeable, ABC):
     """Interface which defines the information that can be retrieved from
     Zuul regarding a particular job.
@@ -197,7 +232,7 @@ class ZuulJobAPI(Closeable, ABC):
     def variants(self):
         """
         :return: The variants of this job.
-        :rtype: list[dict]
+        :rtype: list[ZuulVariantAPI]
         :raises ZuulAPIError: If the request failed.
         """
         raise NotImplementedError
