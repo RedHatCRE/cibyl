@@ -15,7 +15,7 @@
 """
 import logging
 
-from cibyl.sources.zuul.requests import TenantsRequest
+from cibyl.sources.zuul.transactions import TenantsRequest
 
 LOG = logging.getLogger(__name__)
 
