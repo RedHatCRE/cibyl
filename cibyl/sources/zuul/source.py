@@ -18,10 +18,12 @@ from typing import List, MutableMapping
 
 from overrides import overrides
 
+from cibyl.models.attribute import AttributeDictValue
+from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
+from cibyl.sources.zuul.actions import handle_query
 from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
-from cibyl.sources.zuul.query import handle_query
 from cibyl.utils.dicts import subset
 
 
@@ -146,10 +148,14 @@ class Zuul(ServerSource):
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return handle_query(
-            self._api,
-            defaults=self._fallbacks,
-            **kwargs
+        return AttributeDictValue(
+            name='tenants',
+            attr_type=Tenant,
+            value=handle_query(
+                self._api,
+                defaults=self._fallbacks,
+                **kwargs
+            )
         )
 
     @speed_index({'base': 2})

@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Dict
+
 from cibyl.models.ci.zuul.build import Build
 from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
@@ -20,7 +22,12 @@ from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
 
 
-class ModelBuilder:
+class QueryOutput(Dict[str, Tenant]):
+    """The hierarchy of models that form a response for a Zuul query.
+    """
+
+
+class QueryOutputBuilder:
     """Utility used to generate CI models out of data retrieved from the
     Zuul host.
     """
@@ -180,6 +187,6 @@ class ModelBuilder:
         """Generates the CI model.
 
         :return: The model.
-        :rtype: dict[str, :class:`Tenant`]
+        :rtype: :class:`QueryOutput`
         """
         return self._tenants

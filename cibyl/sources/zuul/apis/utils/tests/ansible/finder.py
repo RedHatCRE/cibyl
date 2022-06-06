@@ -19,9 +19,10 @@ from typing import Iterable
 
 from overrides import overrides
 
-from cibyl.sources.zuul.apis.builds import ArtifactKind
-from cibyl.sources.zuul.apis.tests.ansible.parser import AnsibleTestParser
-from cibyl.sources.zuul.apis.tests.finder import TestFinder
+from cibyl.sources.zuul.apis.utils.builds import ArtifactKind
+from cibyl.sources.zuul.apis.utils.tests.ansible.parser import \
+    AnsibleTestParser
+from cibyl.sources.zuul.apis.utils.tests.finder import TestFinder
 from cibyl.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
 from cibyl.utils.net import download_into_memory
 

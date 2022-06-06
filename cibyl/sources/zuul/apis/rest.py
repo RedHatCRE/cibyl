@@ -18,9 +18,9 @@ from urllib.parse import urljoin
 from overrides import overrides
 from requests import HTTPError, Session
 
-from cibyl.sources.zuul.api import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
-                                    ZuulJobAPI, ZuulPipelineAPI,
-                                    ZuulProjectAPI, ZuulTenantAPI)
+from cibyl.sources.zuul.apis import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
+                                     ZuulJobAPI, ZuulPipelineAPI,
+                                     ZuulProjectAPI, ZuulTenantAPI)
 from cibyl.utils.io import Closeable
 
 

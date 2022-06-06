@@ -21,8 +21,8 @@ from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
+from cibyl.sources.zuul.actions import handle_query
 from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient
-from cibyl.sources.zuul.query import handle_query
 
 
 class DictMock(Mock):
@@ -72,7 +72,7 @@ class TestHandleQuery(TestCase):
                 tenant1.name: Tenant(tenant1.name),
                 tenant2.name: Tenant(tenant2.name)
             },
-            result.value
+            result
         )
 
     def test_get_tenants_by_name(self):
@@ -100,7 +100,7 @@ class TestHandleQuery(TestCase):
             {
                 tenant1.name: Tenant(tenant1.name)
             },
-            result.value
+            result
         )
 
     def test_get_all_projects(self):
@@ -141,7 +141,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_projects_by_name(self):
@@ -181,7 +181,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_all_pipelines(self):
@@ -234,7 +234,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_pipelines_by_name(self):
@@ -289,7 +289,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_all_jobs(self):
@@ -336,7 +336,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_jobs_by_name(self):
@@ -389,7 +389,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_jobs_by_url(self):
@@ -445,7 +445,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_pipelines_through_jobs(self):
@@ -532,7 +532,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_job_variants(self):
@@ -601,7 +601,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_all_builds(self):
@@ -733,7 +733,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_builds_by_id(self):
@@ -815,7 +815,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_builds_by_status(self):
@@ -900,7 +900,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_builds_by_project(self):
@@ -988,7 +988,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_builds_by_pipeline(self):
@@ -1076,7 +1076,7 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
 
     def test_get_last_build(self):
@@ -1161,5 +1161,5 @@ class TestHandleQuery(TestCase):
                     }
                 )
             },
-            result.value
+            result
         )
