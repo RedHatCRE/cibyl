@@ -157,9 +157,6 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                     msg = 'No builds in query.'
                     result.add(self.palette.red(msg), 1)
 
-            if has_plugin_section(job):
-                result.add(get_plugin_section(self, job), 1)
-
             return result.build()
 
         def _print_variant(self, variant):
@@ -182,6 +179,9 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             for key, value in variant.variables.items():
                 result.add(self.palette.blue(f'{key}: '), 2)
                 result[-1].append(value)
+
+            if has_plugin_section(variant):
+                result.add(get_plugin_section(self, variant), 1)
 
             return result.build()
 
