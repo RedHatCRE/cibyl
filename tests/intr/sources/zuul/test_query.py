@@ -21,8 +21,8 @@ from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
+from cibyl.sources.zuul.actions import handle_query
 from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient
-from cibyl.sources.zuul.query import handle_query
 
 
 class DictMock(Mock):

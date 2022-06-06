@@ -22,12 +22,12 @@ from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
 
 
-class Model(Dict[str, Tenant]):
+class QueryOutput(Dict[str, Tenant]):
     """The hierarchy of models that form a response for a Zuul query.
     """
 
 
-class ModelBuilder:
+class QueryOutputBuilder:
     """Utility used to generate CI models out of data retrieved from the
     Zuul host.
     """
@@ -187,6 +187,6 @@ class ModelBuilder:
         """Generates the CI model.
 
         :return: The model.
-        :rtype: :class:`Model`
+        :rtype: :class:`QueryOutput`
         """
         return self._tenants

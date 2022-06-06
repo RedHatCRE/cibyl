@@ -16,11 +16,11 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.sources.zuul.models import ModelBuilder
+from cibyl.sources.zuul.output import QueryOutputBuilder
 
 
-class TestModelBuilder(TestCase):
-    """Tests for :class:`ModelBuilder`.
+class TestQueryOutputBuilder(TestCase):
+    """Tests for :class:`QueryOutputBuilder`.
     """
 
     def assertNotRaises(self, action, error):
@@ -35,7 +35,7 @@ class TestModelBuilder(TestCase):
         tenant = Mock()
         tenant.name = 'name'
 
-        builder = ModelBuilder()
+        builder = QueryOutputBuilder()
         builder.with_tenant(tenant)
 
         result = builder.assemble()
@@ -49,7 +49,7 @@ class TestModelBuilder(TestCase):
         tenant = Mock()
         tenant.name = 'tenant'
 
-        builder = ModelBuilder()
+        builder = QueryOutputBuilder()
         builder.with_tenant(tenant)
 
         self.assertNotRaises(lambda: builder.with_tenant(tenant), Exception)
@@ -64,7 +64,7 @@ class TestModelBuilder(TestCase):
         project = Mock()
         project.tenant = tenant
 
-        builder = ModelBuilder()
+        builder = QueryOutputBuilder()
         builder.with_project(project)
 
         result = builder.assemble()
@@ -90,7 +90,7 @@ class TestModelBuilder(TestCase):
         pipeline = Mock()
         pipeline.project = project
 
-        builder = ModelBuilder()
+        builder = QueryOutputBuilder()
         builder.with_pipeline(pipeline)
 
         result = builder.assemble()
@@ -117,7 +117,7 @@ class TestModelBuilder(TestCase):
         job.name = 'job'
         job.url = 'url'
 
-        builder = ModelBuilder()
+        builder = QueryOutputBuilder()
         builder.with_job(job)
 
         result = builder.assemble()
@@ -152,7 +152,7 @@ class TestModelBuilder(TestCase):
             'duration': 0
         }
 
-        builder = ModelBuilder()
+        builder = QueryOutputBuilder()
         builder.with_build(build)
 
         result = builder.assemble()

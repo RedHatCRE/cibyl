@@ -19,7 +19,7 @@ License:
 import logging
 
 from cibyl.cli.query import QueryType, get_query_type
-from cibyl.sources.zuul.models import ModelBuilder
+from cibyl.sources.zuul.output import QueryOutputBuilder
 from cibyl.sources.zuul.queries.builds import perform_builds_query
 from cibyl.sources.zuul.queries.jobs import (perform_jobs_query,
                                              perform_variants_query)
@@ -31,7 +31,7 @@ LOG = logging.getLogger(__name__)
 
 
 def _handle_tenants_query(zuul, **kwargs):
-    model = ModelBuilder()
+    model = QueryOutputBuilder()
 
     for tenant in perform_tenants_query(zuul, **kwargs):
         model.with_tenant(tenant)
@@ -40,7 +40,7 @@ def _handle_tenants_query(zuul, **kwargs):
 
 
 def _handle_projects_query(zuul, **kwargs):
-    model = ModelBuilder()
+    model = QueryOutputBuilder()
 
     if 'tenants' in kwargs:
         for tenant in perform_tenants_query(zuul, **kwargs):
@@ -53,7 +53,7 @@ def _handle_projects_query(zuul, **kwargs):
 
 
 def _handle_pipelines_query(zuul, **kwargs):
-    model = ModelBuilder()
+    model = QueryOutputBuilder()
 
     if 'tenants' in kwargs:
         for tenant in perform_tenants_query(zuul, **kwargs):
@@ -73,7 +73,7 @@ def _handle_jobs_query(zuul, **kwargs):
     def get_pipeline_jobs():
         return [j.name for j in pipeline.jobs().get()]
 
-    model = ModelBuilder()
+    model = QueryOutputBuilder()
 
     if 'tenants' in kwargs:
         for tenant in perform_tenants_query(zuul, **kwargs):
@@ -141,7 +141,7 @@ def handle_query(zuul, **kwargs):
     :key last_build:
         Will only return the newest build from the query. Type: None.
     :return: Resulting model generated from the query's response.
-    :rtype: :class:`cibyl.sources.zuul.models.Model`
+    :rtype: :class:`cibyl.sources.zuul.output.QueryOutput`
     """
     handlers = {
         QueryType.TENANTS: _handle_tenants_query,

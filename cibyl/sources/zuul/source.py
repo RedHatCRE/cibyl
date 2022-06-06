@@ -22,8 +22,8 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
+from cibyl.sources.zuul.actions import handle_query
 from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
-from cibyl.sources.zuul.query import handle_query
 from cibyl.utils.dicts import subset
 
 
