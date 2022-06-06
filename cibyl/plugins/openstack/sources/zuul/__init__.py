@@ -16,6 +16,7 @@
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.plugins.openstack import Deployment
+from cibyl.plugins.openstack.sources.zuul.release import ReleaseFinder
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
 from cibyl.sources.zuul.output import QueryOutputBuilder
@@ -35,8 +36,11 @@ class Zuul(SourceExtension):
             kwargs['jobs'] = kwargs.pop('spec')
 
         for job in perform_jobs_query(self._api, **kwargs):
-            model = output_builder.with_job(job)
-            model.deployment.value = self._generate_deployment_for(job)
+            output_builder.with_job(job)
+
+            for variant in job.variants().get():
+                model = output_builder.with_variant(variant)
+                model.deployment.value = self._generate_deployment_for(variant)
 
         return AttributeDictValue(
             name='tenants',
@@ -44,9 +48,17 @@ class Zuul(SourceExtension):
             value=output_builder.assemble()
         )
 
-    def _generate_deployment_for(self, job):
+    def _generate_deployment_for(self, variant):
+        """
+
+        :param variant:
+        :type variant: :class:`cibyl.sources.zuul.transactions.VariantResponse`
+        :return:
+        """
+        release_finder = ReleaseFinder()
+
         return Deployment(
-            release='',
+            release=release_finder.find_release_for(variant),
             infra_type='',
             nodes={},
             services={}
