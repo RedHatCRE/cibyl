@@ -56,8 +56,8 @@ class Plugin:
         }
 
     def extend_models(self):
-        def extend_job_model():
-            Job.API['deployment'] = {
+        def get_deployment_api():
+            return {
                 'attr_type': Deployment,
                 'arguments': [
                     Argument(
@@ -68,12 +68,21 @@ class Plugin:
                 ]
             }
 
-            Job.plugin_attributes.update(self.plugin_attributes_to_add)
+        def extend_job_model():
+            plugin_attributes = self.plugin_attributes_to_add
+
+            Job.API['deployment'] = get_deployment_api()
+            Job.plugin_attributes.update(plugin_attributes)
 
             setattr(Job, 'add_deployment', add_deployment)
 
         def extend_variant_model():
-            pass
+            plugin_attributes = self.plugin_attributes_to_add
+
+            ZuulJob.Variant.API['deployment'] = get_deployment_api()
+            ZuulJob.Variant.plugin_attributes.update(plugin_attributes)
+
+            setattr(ZuulJob.Variant, 'add_deployment', add_deployment)
 
         extend_job_model()
         extend_variant_model()
