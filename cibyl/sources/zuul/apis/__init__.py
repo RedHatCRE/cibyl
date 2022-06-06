@@ -163,6 +163,10 @@ class ZuulVariantAPI(Closeable, ABC):
         self._variant = variant
 
     @property
+    def job(self):
+        return self._job
+
+    @property
     def parent(self):
         return self.raw['parent']
 
