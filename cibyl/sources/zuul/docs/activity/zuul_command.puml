@@ -1,0 +1,37 @@
+@startuml
+'How modules interact with each other to generate a command's output.
+
+skinparam defaultTextAlignment center
+|Source|
+start
+:Receive random set of arguments;
+|#lightyellow|Actions|
+:Interpret requested
+hierarchy level from
+arguments;
+:Perform query on
+desired level and all
+above;
+->1..*;
+|#lightsalmon|Queries|
+:Perform query for the
+requested hierarchy level;
+->1..*;
+|#salmon|Transaction|
+:Compose complex request
+from simple API calls;
+->1..*;
+|#tomato|API|
+:Interact with host API;
+|Transaction|
+:Filter out undesired data;
+|Queries|
+:Return gathered data from
+transactions;
+|Actions|
+:Generate output from
+query data;
+|Source|
+:Return output;
+end
+@enduml
