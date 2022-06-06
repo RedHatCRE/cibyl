@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.sources.zuul.queries.tenants import perform_query_for_tenants
+from cibyl.sources.zuul.queries.tenants import perform_tenants_query
 
 
-def perform_query_for_jobs(zuul, **kwargs):
+def perform_jobs_query(zuul, **kwargs):
     """Query for jobs.
 
     :param zuul: API to interact with Zuul with.
@@ -27,7 +27,7 @@ def perform_query_for_jobs(zuul, **kwargs):
     """
     result = []
 
-    for tenant in perform_query_for_tenants(zuul, **kwargs):
+    for tenant in perform_tenants_query(zuul, **kwargs):
         jobs = tenant.jobs()
 
         # Apply jobs filters
@@ -44,3 +44,15 @@ def perform_query_for_jobs(zuul, **kwargs):
         result += jobs.get()
 
     return result
+
+
+def perform_variants_query(job, **kwargs):
+    """Query for variants.
+
+    :param job: API to interact with the owner of the variants.
+    :type job: :class:`cibyl.sources.zuul.requests.JobResponse`
+    :param kwargs: See :func:`handle_query`.
+    :return: List of retrieved variants.
+    :rtype: list[:class:`cibyl.sources.zuul.requests.VariantResponse`]
+    """
+    return job.variants().get()

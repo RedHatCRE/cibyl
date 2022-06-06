@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.sources.zuul.queries.tenants import perform_query_for_tenants
+from cibyl.sources.zuul.queries.tenants import perform_tenants_query
 
 
-def perform_query_for_projects(zuul, **kwargs):
+def perform_projects_query(zuul, **kwargs):
     """Query for projects.
 
     :param zuul: API to interact with Zuul with.
@@ -27,7 +27,7 @@ def perform_query_for_projects(zuul, **kwargs):
     """
     result = []
 
-    for tenant in perform_query_for_tenants(zuul, **kwargs):
+    for tenant in perform_tenants_query(zuul, **kwargs):
         projects = tenant.projects()
 
         # Apply projects filters

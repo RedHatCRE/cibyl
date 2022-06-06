@@ -20,12 +20,12 @@ import logging
 
 from cibyl.cli.query import QueryType, get_query_type
 from cibyl.sources.zuul.models import ModelBuilder
-from cibyl.sources.zuul.queries.builds import perform_query_for_builds
-from cibyl.sources.zuul.queries.jobs import perform_query_for_jobs
-from cibyl.sources.zuul.queries.pipelines import perform_query_for_pipelines
-from cibyl.sources.zuul.queries.projects import perform_query_for_projects
-from cibyl.sources.zuul.queries.tenants import perform_query_for_tenants
-from cibyl.sources.zuul.queries.variants import perform_query_for_variants
+from cibyl.sources.zuul.queries.builds import perform_builds_query
+from cibyl.sources.zuul.queries.jobs import (perform_jobs_query,
+                                             perform_variants_query)
+from cibyl.sources.zuul.queries.pipelines import perform_pipelines_query
+from cibyl.sources.zuul.queries.projects import perform_projects_query
+from cibyl.sources.zuul.queries.tenants import perform_tenants_query
 
 LOG = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ LOG = logging.getLogger(__name__)
 def _handle_tenants_query(zuul, **kwargs):
     model = ModelBuilder()
 
-    for tenant in perform_query_for_tenants(zuul, **kwargs):
+    for tenant in perform_tenants_query(zuul, **kwargs):
         model.with_tenant(tenant)
 
     return model
@@ -43,10 +43,10 @@ def _handle_projects_query(zuul, **kwargs):
     model = ModelBuilder()
 
     if 'tenants' in kwargs:
-        for tenant in perform_query_for_tenants(zuul, **kwargs):
+        for tenant in perform_tenants_query(zuul, **kwargs):
             model.with_tenant(tenant)
 
-    for project in perform_query_for_projects(zuul, **kwargs):
+    for project in perform_projects_query(zuul, **kwargs):
         model.with_project(project)
 
     return model
@@ -56,14 +56,14 @@ def _handle_pipelines_query(zuul, **kwargs):
     model = ModelBuilder()
 
     if 'tenants' in kwargs:
-        for tenant in perform_query_for_tenants(zuul, **kwargs):
+        for tenant in perform_tenants_query(zuul, **kwargs):
             model.with_tenant(tenant)
 
     if 'projects' in kwargs:
-        for project in perform_query_for_projects(zuul, **kwargs):
+        for project in perform_projects_query(zuul, **kwargs):
             model.with_project(project)
 
-    for pipeline in perform_query_for_pipelines(zuul, **kwargs):
+    for pipeline in perform_pipelines_query(zuul, **kwargs):
         model.with_pipeline(pipeline)
 
     return model
@@ -76,30 +76,30 @@ def _handle_jobs_query(zuul, **kwargs):
     model = ModelBuilder()
 
     if 'tenants' in kwargs:
-        for tenant in perform_query_for_tenants(zuul, **kwargs):
+        for tenant in perform_tenants_query(zuul, **kwargs):
             model.with_tenant(tenant)
 
     if 'projects' in kwargs:
-        for project in perform_query_for_projects(zuul, **kwargs):
+        for project in perform_projects_query(zuul, **kwargs):
             model.with_project(project)
 
-    pipelines = perform_query_for_pipelines(zuul, **kwargs)
+    pipelines = perform_pipelines_query(zuul, **kwargs)
 
     if 'pipelines' in kwargs:
         for pipeline in pipelines:
             model.with_pipeline(pipeline)
 
-    jobs = perform_query_for_jobs(zuul, **kwargs)
+    jobs = perform_jobs_query(zuul, **kwargs)
 
     for job in jobs:
         # Check if the user requested variants
         if 'variants' in kwargs:
-            for variant in perform_query_for_variants(job, **kwargs):
+            for variant in perform_variants_query(job, **kwargs):
                 model.with_variant(variant)
 
         # Check if the user requested builds
         if 'builds' in kwargs:
-            for build in perform_query_for_builds(job, **kwargs):
+            for build in perform_builds_query(job, **kwargs):
                 model.with_build(build)
 
         # Include also the pipelines where this job is present

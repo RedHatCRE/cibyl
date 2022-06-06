@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.sources.zuul.queries.projects import perform_query_for_projects
+from cibyl.sources.zuul.queries.projects import perform_projects_query
 
 
-def perform_query_for_pipelines(zuul, **kwargs):
+def perform_pipelines_query(zuul, **kwargs):
     """Query for pipelines.
 
     :param zuul: API to interact with Zuul with.
@@ -27,7 +27,7 @@ def perform_query_for_pipelines(zuul, **kwargs):
     """
     result = []
 
-    for project in perform_query_for_projects(zuul, **kwargs):
+    for project in perform_projects_query(zuul, **kwargs):
         pipelines = project.pipelines()
 
         # Apply pipelines filters

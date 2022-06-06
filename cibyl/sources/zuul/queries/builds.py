@@ -15,7 +15,7 @@
 """
 
 
-def perform_query_for_builds(job, **kwargs):
+def perform_builds_query(job, **kwargs):
     """Query for builds.
 
     :param job: API to interact with the owner of the builds.

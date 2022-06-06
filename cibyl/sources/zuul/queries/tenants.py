@@ -20,7 +20,7 @@ from cibyl.sources.zuul.requests import TenantsRequest
 LOG = logging.getLogger(__name__)
 
 
-def perform_query_for_tenants(zuul, **kwargs):
+def perform_tenants_query(zuul, **kwargs):
     """Query for tenants.
 
     :param zuul: API to interact with Zuul with.
