@@ -16,8 +16,8 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from cibyl.outputs.cli.ci.system.common.jobs import (get_plugin_section,
-                                                     has_plugin_section)
+from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
+                                                       has_plugin_section)
 
 
 class TestHasPluginSection(TestCase):
@@ -25,46 +25,47 @@ class TestHasPluginSection(TestCase):
     """
 
     def test_attributes_is_none(self):
-        """Checks result is false if the plugins attributes of a job is none.
+        """Checks result is false if the plugins attributes of a model is none.
         """
-        job = Mock()
-        job.plugin_attributes = None
+        model = Mock()
+        model.plugin_attributes = None
 
-        self.assertFalse(has_plugin_section(job))
+        self.assertFalse(has_plugin_section(model))
 
     def test_attributes_is_empty(self):
-        """Checks result is false if the plugins attributes of a job is empty.
+        """Checks result is false if the plugins attributes of a model is
+        empty.
         """
-        job = Mock()
-        job.plugin_attributes = {}
+        model = Mock()
+        model.plugin_attributes = {}
 
-        self.assertFalse(has_plugin_section(job))
+        self.assertFalse(has_plugin_section(model))
 
     def test_attributes_is_filled(self):
-        """Checks result is true if the plugins attributes of a job is
+        """Checks result is true if the plugins attributes of a model is
         filled with data.
         """
-        job = Mock()
-        job.plugin_attributes = {
+        model = Mock()
+        model.plugin_attributes = {
             'plugin1': {}
         }
 
-        self.assertTrue(has_plugin_section(job))
+        self.assertTrue(has_plugin_section(model))
 
 
 class TestGetPluginSection(TestCase):
     """Tests for :func:`get_plugin_section`.
     """
 
-    @patch('cibyl.outputs.cli.ci.system.common.jobs.has_plugin_section')
+    @patch('cibyl.outputs.cli.ci.system.common.models.has_plugin_section')
     def test_error_if_no_attributes(self, check_mock):
-        """Checks that an error is thrown if the job has no plugins to
+        """Checks that an error is thrown if the model has no plugins to
         describe.
         """
         check_mock.return_value = False
 
         printer = Mock()
-        job = Mock()
+        model = Mock()
 
         with self.assertRaises(ValueError):
-            get_plugin_section(printer, job)
+            get_plugin_section(printer, model)
