@@ -167,7 +167,15 @@ class ZuulBuildRESTClient(ZuulBuildAPI):
 
 
 class ZuulVariantRESTClient(ZuulVariantAPI):
+    """Implementation of a Zuul client through the use of Zuul's REST-API.
+    """
+
     def __init__(self, session, job, variant):
+        """Constructor. See parent for more information.
+
+        :param session: The link through which the REST-API will be contacted.
+        :type session: :class:`ZuulSession`
+        """
         super().__init__(job, variant)
 
         self._session = session

@@ -152,26 +152,56 @@ class ZuulBuildAPI(Closeable, ABC):
 
 
 class ZuulVariantAPI(Closeable, ABC):
+    """Interface which defines the information that can be retrieved from
+    Zuul regarding a particular job variant.
+    """
+
     @dataclass
     class Context:
+        """Representation of the variant's source context.
+        """
         project: str
+        """Name of the project."""
         branch: str
+        """Name of the branch."""
         path: str
+        """Path to Ansible playbook."""
 
     def __init__(self, job, variant):
+        """Constructor.
+
+        :param job: Job this variant is of.
+        :type job: :class:`ZuulJobAPI`
+        :param variant: Description of the variant being consulted by this
+            API. This field is supposed to follow the JSON format returned
+            by Zuul's REST-API.
+        :type variant: dict[str, Any]
+        """
         self._job = job
         self._variant = variant
 
     @property
     def job(self):
+        """
+        :return: Job this variant is of.
+        :rtype: :class:`ZuulJobAPI`
+        """
         return self._job
 
     @property
     def parent(self):
+        """
+        :return: Name of the parent job of this variant.
+        :rtype: str
+        """
         return self.raw['parent']
 
     @property
     def context(self):
+        """
+        :return: The source context of the variant.
+        :rtype: :class:`ZuulVariantAPI.Context`
+        """
         context = self.raw['source_context']
 
         return ZuulVariantAPI.Context(
@@ -182,10 +212,22 @@ class ZuulVariantAPI(Closeable, ABC):
 
     @property
     def raw(self):
+        """
+        :return: All the data known of this variant, unprocessed.
+        :rtype: dict[str, Any]
+        """
         return self._variant
 
     @abstractmethod
     def variables(self, recursive=False):
+        """Gets the variables that specialize this variant.
+
+        :param recursive: Whether to gather the variables of the variant's
+            parents as well.
+        :type recursive: bool
+        :return: Dictionary with the variant's variables.
+        :rtype: dict[str, Any]
+        """
         raise NotImplementedError
 
 
