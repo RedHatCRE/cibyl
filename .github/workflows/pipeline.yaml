@@ -13,12 +13,10 @@ jobs:
       matrix:
         python-version: [ '3.6', '3.9' ]
     steps:
-      - name: "Add SSH key"
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.RHOS_INFRA_PRIVATE_KEY }}"
+      - name: "Install SSH key"
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.RHOS_INFRA_PRIVATE_KEY }}
       - name: "Checkout repo"
         uses: actions/checkout@v1
       - name: "Setup Python"
@@ -29,9 +27,5 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install tox
-      - name: "Run tox"
-        run: tox
       - name: "Run End-To-End tests"
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: tox -e e2e
