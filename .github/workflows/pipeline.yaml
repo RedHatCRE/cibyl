@@ -11,9 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.6', '3.9']
+        python-version: [ '3.6', '3.9' ]
     steps:
-      - uses: actions/checkout@v1
+      - name: "Add SSH key"
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.RHOS_INFRA_PRIVATE_KEY }}"
+      - name: "Checkout repo"
+        uses: actions/checkout@v1
       - name: "Setup Python"
         uses: actions/setup-python@v2
         with:
@@ -25,4 +32,6 @@ jobs:
       - name: "Run tox"
         run: tox
       - name: "Run End-To-End tests"
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: tox -e e2e
