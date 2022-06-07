@@ -172,6 +172,17 @@ class ZuulVariantRESTClient(ZuulVariantAPI):
 
         self._session = session
 
+    def __eq__(self, other):
+        if not issubclass(type(other), ZuulVariantAPI):
+            return False
+
+        if self is other:
+            return True
+
+        return \
+            self.job == other.job and \
+            self.raw == other.raw
+
     @overrides
     def variables(self, recursive=False):
         def get_own_variables():
