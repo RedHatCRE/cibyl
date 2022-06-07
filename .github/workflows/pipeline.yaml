@@ -17,7 +17,7 @@ jobs:
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.RHOS_INFRA_PRIVATE_KEY }}
-          known_hosts: unnecessary
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
           if_key_exists: replace
       - name: "Checkout repo"
         uses: actions/checkout@v1
