@@ -14,9 +14,11 @@ jobs:
         python-version: [ '3.6', '3.9' ]
     steps:
       - name: "Install SSH key"
-        uses: webfactory/ssh-agent@v0.5.4
+        uses: shimataro/ssh-key-action@v2
         with:
-          ssh-private-key: ${{ secrets.RHOS_INFRA_PRIVATE_KEY }}
+          key: ${{ secrets.RHOS_INFRA_PRIVATE_KEY }}
+          known_hosts: unnecessary
+          if_key_exists: replace
       - name: "Checkout repo"
         uses: actions/checkout@v1
       - name: "Setup Python"
