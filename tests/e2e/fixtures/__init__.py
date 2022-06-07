@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 import sys
 from io import StringIO
 from unittest import TestCase
@@ -24,14 +25,25 @@ class EndToEndTest(TestCase):
     """
 
     def setUp(self):
-        self._buffer = StringIO()
+        self._stdout = StringIO()
+        self._logout = StringIO()
 
-        sys.stdout = self._buffer
+        sys.stdout = self._stdout
+
+        logging.basicConfig(stream=self._logout)
 
     @property
-    def output(self):
+    def stdout(self):
         """
         :return: What the app wrote to stdout.
         :rtype: str
         """
-        return self._buffer.getvalue()
+        return self._stdout.getvalue()
+
+    @property
+    def logout(self):
+        """
+        :return: What the app logged.
+        :rtype: str
+        """
+        return self._logout.getvalue()
