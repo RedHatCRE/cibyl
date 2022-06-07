@@ -24,21 +24,21 @@ from cibyl.utils.strings import IndentedTextBuilder
 LOG = logging.getLogger(__name__)
 
 
-def has_plugin_section(job):
-    """Checks whether a job is worth having a plugins' section for.
+def has_plugin_section(model):
+    """Checks whether a model is worth having a plugins' section for.
 
-    :param job: The job to check.
-    :type job: :class:`cibyl.models.ci.base.job.Job`
-    :return: True if the job has enough data to build a plugins' section with,
-        False if not.
+    :param model: The model to check.
+    :type model: :class:`cibyl.models.model.Model`
+    :return: True if the model has enough data to build
+        a plugins' section with, False if not.
     :rtype: bool
     """
-    if not job.plugin_attributes:
+    if not model.plugin_attributes:
         return False
     has_plugin_attribute = False
-    for plugin_attribute in job.plugin_attributes:
+    for plugin_attribute in model.plugin_attributes:
         # Plugins install some attributes as part of the model
-        attribute = getattr(job, plugin_attribute)
+        attribute = getattr(model, plugin_attribute)
 
         # Check if the attribute is populated
         if not attribute.value:
@@ -47,8 +47,8 @@ def has_plugin_section(job):
     return has_plugin_attribute
 
 
-def get_plugin_section(printer, job):
-    """Gets the text describing the plugins that affect a job.
+def get_plugin_section(printer, model):
+    """Gets the text describing the plugins that affect a model.
 
     ..  seealso::
         See :func:`has_plugin_section`.
@@ -56,21 +56,21 @@ def get_plugin_section(printer, job):
     :param printer: The printer the text will be based on. The output of
         this function will follow the styling of this.
     :type printer: :class:`cibyl.outputs.cli.printer.ColoredPrinter`
-    :param job: The job get the description for.
-    :type job: :class:`cibyl.models.ci.base.job.Job`
+    :param model: The model to get the description for.
+    :type model: :class:`cibyl.models.model.Model`
     :return: The description.
     :rtype: str
-    :raises ValueError: If the job does not have enough data to build the
+    :raises ValueError: If the model does not have enough data to build the
         section.
     """
-    if not has_plugin_section(job):
+    if not has_plugin_section(model):
         raise ValueError('Job is missing plugin attributes.')
 
     text = IndentedTextBuilder()
 
-    for plugin_attribute in job.plugin_attributes:
+    for plugin_attribute in model.plugin_attributes:
         # Plugins install some attributes as part of the model
-        attribute = getattr(job, plugin_attribute)
+        attribute = getattr(model, plugin_attribute)
 
         # Check if the attribute is populated
         if not attribute.value:

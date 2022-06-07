@@ -6,14 +6,18 @@ Cibyl
 
 Cibyl is a command-line interface and REST API for querying CI environments and systems.
 
-Currently it supports out-of-the-box the following CI systems:
+It supports out-of-the-box the following CI systems:
 
   * Jenkins
   * Zuul
 
+Cibyl allows you to configure multiple environments, where each environment contains one or more CI/CD system and each CI/CD system can be queried using different types of source
+
+.. image:: images/cibyl_entities.png
+
 The project originated from Red Hat OpenStack DevOps team that looked for a solution to provide a powerful and flexible way for inspecting multiple different CI environments and systems, with regards to product aspects.
 
-The name Cibyl, a form of Sybil, derived from the Greek sybilla or sibilla. Like a prophetess, Cibyl delve into depths of CI systems
+The name Cibyl, a form of Sybil, derived from the Greek sybilla or sibilla. Like a prophetess, Cibyl delves into the depths of CI systems
 for "hidden" info revelation. CI-byl is also a wordplay that reflects the relation to CI.
 
 Index
