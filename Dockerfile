@@ -14,11 +14,20 @@ WORKDIR $INSTALL_PATH
 ENV VIRTUAL_ENV=./venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN pip3 install --upgrade pip
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install wheel
 
 # Install Cibyl
-COPY $CIBYL_ROOT .
-RUN pip3 install .
+COPY $CIBYL_ROOT/.git ./.git
+
+COPY $CIBYL_ROOT/README.rst .
+COPY $CIBYL_ROOT/setup.py .
+COPY $CIBYL_ROOT/setup.cfg .
+COPY $CIBYL_ROOT/requirements.txt .
+
+COPY $CIBYL_ROOT/cibyl ./cibyl
+
+RUN python3 -m pip install .
 
 # Install configuration file
 COPY $CONFIG_FILE /etc/cibyl/cibyl.yaml
