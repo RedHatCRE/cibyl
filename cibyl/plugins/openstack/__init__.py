@@ -56,18 +56,36 @@ class Plugin:
         }
 
     def extend_models(self):
-        for job_class in [Job, ZuulJob]:
-            job_class.API['deployment'] = {
+        def get_deployment_api():
+            return {
                 'attr_type': Deployment,
-                'arguments': [Argument(
-                    name="--deployment",
-                    arg_type=str,
-                    nargs="*",
-                    description="Openstack deployment")]}
-            job_class.plugin_attributes.update(
-                    self.plugin_attributes_to_add)
-            setattr(job_class, 'add_deployment',
-                    add_deployment)
+                'arguments': [
+                    Argument(
+                        name="--deployment",
+                        arg_type=str,
+                        nargs="*",
+                        description="Openstack deployment")
+                ]
+            }
+
+        def extend_job_model():
+            plugin_attributes = self.plugin_attributes_to_add
+
+            Job.API['deployment'] = get_deployment_api()
+            Job.plugin_attributes.update(plugin_attributes)
+
+            setattr(Job, 'add_deployment', add_deployment)
+
+        def extend_variant_model():
+            plugin_attributes = self.plugin_attributes_to_add
+
+            ZuulJob.Variant.API['deployment'] = get_deployment_api()
+            ZuulJob.Variant.plugin_attributes.update(plugin_attributes)
+
+            setattr(ZuulJob.Variant, 'add_deployment', add_deployment)
+
+        extend_job_model()
+        extend_variant_model()
 
     def extend_query_types(self):
         QuerySelector.query_selector_functions.append(get_query_openstack)
