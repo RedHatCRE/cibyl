@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from unittest import TestCase
+from unittest import TestCase, skip
 
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.plugins.openstack.sources.zuul import Zuul
@@ -23,6 +23,7 @@ class TestGetDeployment(TestCase):
     """Tests for :meth:`Zuul.get_deployment`.
     """
 
+    @skip
     def test_returned_type(self):
         """Checks that the returned attribute is of 'Tenant' type.
         """
