@@ -52,7 +52,7 @@ class TestOpenstackCLI(RestoreAPIs):
         System.API = deepcopy(self.original_system_api)
 
     def test_openstack_cli_zuul_system(self):
-        """Test that the Deployment model is added to the Job when a Zuul
+        """Test that the Deployment model is added to the Variant when a Zuul
         system is present in the configuration.
         """
         with NamedTemporaryFile() as config_file:
@@ -64,7 +64,7 @@ class TestOpenstackCLI(RestoreAPIs):
             sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
 
             main()
-        self.assertIn('deployment', ZuulJob.API)
+        self.assertIn('deployment', ZuulJob.Variant.API)
 
     def test_openstack_cli_jenkins_system(self):
         """Test that the Deployment model is added to the Job when a Jenkins
@@ -82,8 +82,8 @@ class TestOpenstackCLI(RestoreAPIs):
         self.assertIn('deployment', BaseJob.API)
 
     def test_openstack_cli_zuul_jenkins_system(self):
-        """Test that the Deployment model is added to the Job when a Jenkins
-        system is present in the configuration.
+        """Test that the Deployment model is added to the Variant when a
+        Zuul system is present in the configuration.
         """
         with NamedTemporaryFile() as config_file:
             config_file.write(b"environments:\n")
@@ -96,7 +96,7 @@ class TestOpenstackCLI(RestoreAPIs):
             sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
 
             main()
-        self.assertIn('deployment', ZuulJob.API)
+        self.assertIn('deployment', ZuulJob.Variant.API)
 
     def test_openstack_cli_jenkins_zuul_system(self):
         """Test that the Deployment model is added to the Job when a Jenkins
@@ -113,10 +113,10 @@ class TestOpenstackCLI(RestoreAPIs):
             sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
 
             main()
-        self.assertIn('deployment', ZuulJob.API)
+        self.assertIn('deployment', BaseJob.API)
 
     def test_openstack_cli_zuul_system_plugin_configuration(self):
-        """Test that the Deployment model is added to the Job when a Zuul
+        """Test that the Deployment model is added to the Variant when a Zuul
         system is present in the configuration and openstack plugin is added
         through the configuration.
         """
@@ -131,4 +131,4 @@ class TestOpenstackCLI(RestoreAPIs):
             sys.argv = ['-h', '--config', config_file.name]
 
             main()
-        self.assertIn('deployment', ZuulJob.API)
+        self.assertIn('deployment', ZuulJob.Variant.API)

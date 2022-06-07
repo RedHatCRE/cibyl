@@ -47,7 +47,7 @@ class RestoreAPIs(TestCase):
         QuerySelector.query_selector_functions = []
 
 
-class JobSystemAPI(TestCase):
+class JobSystemAPI(RestoreAPIs):
     """Setup a test class that applies the JobSystemAPI and Job APIs."""
 
     @classmethod
@@ -58,7 +58,7 @@ class JobSystemAPI(TestCase):
         System.API = deepcopy(JobsSystem.API)
 
 
-class ZuulSystemAPI(TestCase):
+class ZuulSystemAPI(RestoreAPIs):
     """Setup a test class that applies the ZuulSystemAPI."""
 
     @classmethod
