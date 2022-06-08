@@ -49,7 +49,7 @@ class TestQueryLevel(EndToEndTest):
 
         main()
 
-        self.assertIn('Total tenants found in query: 2', self.output)
+        self.assertIn('Total tenants found in query: 2', self.stdout)
 
     def test_get_tenants_by_name(self):
         """Checks that tenants are retrieved with the "--tenants name" flag.
@@ -64,8 +64,8 @@ class TestQueryLevel(EndToEndTest):
 
         main()
 
-        self.assertIn('Tenant: example-tenant', self.output)
-        self.assertIn('Total tenants found in query: 1', self.output)
+        self.assertIn('Tenant: example-tenant', self.stdout)
+        self.assertIn('Total tenants found in query: 1', self.stdout)
 
     def test_get_projects(self):
         """Checks that projects are retrieved with the "--projects" flag.
@@ -83,7 +83,7 @@ class TestQueryLevel(EndToEndTest):
 
         self.assertIn(
             "Total projects found in query for tenant 'example-tenant': 3",
-            self.output
+            self.stdout
         )
 
     def test_get_projects_by_name(self):
@@ -103,12 +103,12 @@ class TestQueryLevel(EndToEndTest):
 
         self.assertIn(
             "Project: test1",
-            self.output
+            self.stdout
         )
 
         self.assertIn(
             "Total projects found in query for tenant 'example-tenant': 1",
-            self.output
+            self.stdout
         )
 
     def test_get_project_url(self):
@@ -127,12 +127,12 @@ class TestQueryLevel(EndToEndTest):
 
         self.assertIn(
             "Project: test1",
-            self.output
+            self.stdout
         )
 
         self.assertIn(
             "URL: http://localhost:9000/t/example-tenant/project/test1",
-            self.output
+            self.stdout
         )
 
     def test_get_jobs(self):
@@ -151,7 +151,7 @@ class TestQueryLevel(EndToEndTest):
 
         self.assertIn(
             "Total jobs found in query for tenant 'example-tenant': 65",
-            self.output
+            self.stdout
         )
 
     def test_get_jobs_by_name(self):
@@ -170,12 +170,12 @@ class TestQueryLevel(EndToEndTest):
 
         self.assertIn(
             "Job: build-docker-image",
-            self.output
+            self.stdout
         )
 
         self.assertIn(
             "Total jobs found in query for tenant 'example-tenant': 1",
-            self.output
+            self.stdout
         )
 
     def test_get_jobs_by_url(self):
@@ -195,12 +195,12 @@ class TestQueryLevel(EndToEndTest):
 
         self.assertIn(
             'Job: build-docker-image',
-            self.output
+            self.stdout
         )
 
         self.assertIn(
             "Total jobs found in query for tenant 'example-tenant': 1",
-            self.output
+            self.stdout
         )
 
     def test_get_job_url(self):
@@ -219,13 +219,13 @@ class TestQueryLevel(EndToEndTest):
 
         self.assertIn(
             "Job: build-docker-image",
-            self.output
+            self.stdout
         )
 
         self.assertIn(
             "URL: "
             "http://localhost:9000/t/example-tenant/job/build-docker-image",
-            self.output
+            self.stdout
         )
 
     def test_get_job_variants(self):
@@ -243,7 +243,6 @@ class TestQueryLevel(EndToEndTest):
         main()
 
         expected = IndentedTextBuilder()
-        expected.add('Environment: env_1', 0)
         expected.add('System: zuul_system', 1)
         expected.add('Tenant: example-tenant', 2)
         expected.add('Projects: ', 3)
@@ -256,7 +255,7 @@ class TestQueryLevel(EndToEndTest):
 
         self.assertIn(
             expected.build(),
-            self.output
+            self.stdout
         )
 
 
@@ -297,8 +296,8 @@ class TestQueryComposing(EndToEndTest):
         expected2.add('Projects: ', 3)
         expected2.add('Project: test2', 4)
 
-        self.assertIn(expected1.build(), self.output)
-        self.assertIn(expected2.build(), self.output)
+        self.assertIn(expected1.build(), self.stdout)
+        self.assertIn(expected2.build(), self.stdout)
 
     def test_tenants_with_jobs(self):
         """Checks that '--tenants --project projectA' gets you all tenants
@@ -314,7 +313,6 @@ class TestQueryComposing(EndToEndTest):
         main()
 
         expected1 = IndentedTextBuilder()
-        expected1.add('Environment: env_1', 0)
         expected1.add('System: zuul_system', 1)
         expected1.add('Tenant: example-tenant', 2)
         expected1.add('Projects: ', 3)
@@ -325,8 +323,8 @@ class TestQueryComposing(EndToEndTest):
         expected2 = IndentedTextBuilder()
         expected2.add('Tenant: example-tenant-2', 2)
 
-        self.assertIn(expected1.build(), self.output)
-        self.assertIn(expected2.build(), self.output)
+        self.assertIn(expected1.build(), self.stdout)
+        self.assertIn(expected2.build(), self.stdout)
 
     def test_projects_with_jobs(self):
         """Checks that '--tenants --project projectA' gets you all tenants
@@ -353,8 +351,8 @@ class TestQueryComposing(EndToEndTest):
         expected2.add('Jobs: ', 3)
         expected2.add('Job: build-docker-image', 4)
 
-        self.assertIn(expected1.build(), self.output)
-        self.assertIn(expected2.build(), self.output)
+        self.assertIn(expected1.build(), self.stdout)
+        self.assertIn(expected2.build(), self.stdout)
 
 
 class TestOutputFormatting(EndToEndTest):
@@ -387,7 +385,7 @@ class TestOutputFormatting(EndToEndTest):
 
         self.assertNotIn(
             "Total jobs found in query for tenant 'example-tenant':",
-            self.output
+            self.stdout
         )
 
     def test_no_jobs_on_projects_query(self):
@@ -407,7 +405,7 @@ class TestOutputFormatting(EndToEndTest):
 
         self.assertNotIn(
             "Total jobs found in query for tenant 'example-tenant':",
-            self.output
+            self.stdout
         )
 
     def test_no_tenants_message(self):
@@ -425,7 +423,7 @@ class TestOutputFormatting(EndToEndTest):
 
         self.assertIn(
             'No tenants found in query.',
-            self.output
+            self.stdout
         )
 
     def test_no_projects_message(self):
@@ -444,7 +442,7 @@ class TestOutputFormatting(EndToEndTest):
 
         self.assertIn(
             'No projects found in query.',
-            self.output
+            self.stdout
         )
 
     def test_no_jobs_message(self):
@@ -463,7 +461,7 @@ class TestOutputFormatting(EndToEndTest):
 
         self.assertIn(
             'No jobs found in query.',
-            self.output
+            self.stdout
         )
 
 
@@ -495,9 +493,9 @@ class TestDefaults(EndToEndTest):
 
         main()
 
-        self.assertIn('Tenant: example-tenant', self.output)
-        self.assertNotIn('Tenant: example-tenant-2', self.output)
-        self.assertIn('Total tenants found in query: 1', self.output)
+        self.assertIn('Tenant: example-tenant', self.stdout)
+        self.assertNotIn('Tenant: example-tenant-2', self.stdout)
+        self.assertIn('Total tenants found in query: 1', self.stdout)
 
     def test_default_tenants_are_overridden(self):
         """Checks that the '--tenants' argument overrides the default
@@ -513,6 +511,6 @@ class TestDefaults(EndToEndTest):
 
         main()
 
-        self.assertIn('Tenant: example-tenant', self.output)
-        self.assertIn('Tenant: example-tenant-2', self.output)
-        self.assertIn('Total tenants found in query: 2', self.output)
+        self.assertIn('Tenant: example-tenant', self.stdout)
+        self.assertIn('Tenant: example-tenant-2', self.stdout)
+        self.assertIn('Total tenants found in query: 2', self.stdout)
