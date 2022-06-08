@@ -14,39 +14,21 @@
 #    under the License.
 """
 import logging
-import os
 import re
-import yaml
-
 import xml.etree.ElementTree as ET
-
-from functools import partial
 from io import StringIO
-from typing import Dict
 
-from cibyl.cli.argument import Argument
-from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.job import Job
-from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.node import Node
-from cibyl.plugins.openstack.package import Package
-from cibyl.plugins.openstack.service import Service
-from cibyl.plugins.openstack.utils import translate_topology_string
-from cibyl.sources.source import speed_index
-from cibyl.utils.dicts import subset
 from cibyl.sources.plugins import SourceExtension
-from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
-                                   IP_PATTERN, NETWORK_BACKEND_PATTERN,
-                                   RELEASE_PATTERN, SERVICES_PATTERN,
-                                   STORAGE_BACKEND_PATTERN, TOPOLOGY_PATTERN,
-                                   apply_filters, filter_topology,
-                                   satisfy_exact_match)
+from cibyl.sources.source import speed_index
 
 LOG = logging.getLogger(__name__)
 
-TOPOLOGY = "[a-zA-Z0-9:,]+:[0-9]+" # e.g. controller:3,database:3,messaging:3,networker:2,compute:2
+# e.g. controller:3,database:3,messaging:3,networker:2,compute:2
+TOPOLOGY = "[a-zA-Z0-9:,]+:[0-9]+"
 NODE_NAME_COUNTER = "[a-zA-Z]+:[0-9]+"
 
 class JenkinsJobBuilder(SourceExtension):
@@ -54,37 +36,38 @@ class JenkinsJobBuilder(SourceExtension):
         if "topology" in kwargs:
             topology = self._get_topology(path, **kwargs)
             nodes = {}
-            for component in topology.split(","):
-                role, amount = component.split(":")
-                for i in range(int(amount)):
-                    node_name = role + f"-{i}"
-                    nodes[node_name] = Node(node_name, role=role)
+            # for component in topology.split(","):
+            #     role, amount = component.split(":")
+            #     for i in range(int(amount)):
+            #         node_name = role + f"-{i}"
+            #         nodes[node_name] = Node(node_name, role=role)
+
             return nodes
         else:
             return {}
 
     def _get_topology(self, path, **kwargs):
-        topology = ""
+        topology_str = ""
         if "topology" in kwargs:
             root = ET.parse(path).getroot()
-
+            result = set([])
             for script in root.iter("script"):
                 file = StringIO(script.text)
-                result = set([])
-                with open(file) as f:
-                    lines = [line.rstrip() for line in f if "TOPOLOGY=" in line or "TOPOLOGY =" in line]
-
-                    for line in lines:
-                        topology = re.findall(TOPOLOGY, line)
-                        for t in topology:
-                            nodes = re.findall(NODE_NAME_COUNTER, t)
-                            nodeSet = set(nodes)
-                            list = result.union(nodeSet)
-                            topology = topology + ",".join(list)
-
-            if topology == "" and kwargs['topology'].value is not None:
+                lines = [line.rstrip() for line in file if
+                         "TOPOLOGY=" in line or "TOPOLOGY =" in line]
+                for line in lines:
+                    topology_lst = re.findall(TOPOLOGY, line)
+                    for el in topology_lst:
+                        nodeSet = set(re.findall(NODE_NAME_COUNTER, el))
+                        result = result.union(nodeSet)
+            topology_str = ",".join(result)
+            # e.g. --topology cont, --topology controller:3
+            if kwargs['topology'].value is not None and len(
+                    list(filter(lambda x: kwargs['topology'].value[0] in x,
+                                result))) == 0:
                 return None
-        return topology
+
+        return topology_str
 
     def _get_ip_version(self, path, **kwargs):
         if "ip_version" in kwargs:
@@ -94,36 +77,42 @@ class JenkinsJobBuilder(SourceExtension):
 
     @speed_index({'base': 3})
     def get_deployment(self, **kwargs):
+
+        filterted_out = []
         jobs = {}
         for repo in self.repos:
             # filter according to jobs paramater if specified by kwargs
-            jobs.update(self.get_jobs_from_repo(frozenset(repo.items()), **kwargs))
+            jobs.update(
+                self.get_jobs_from_repo(frozenset(repo.items()), **kwargs))
 
         for job_name in jobs:
             path = self._xml_files[job_name]
 
             topology = self._get_topology(path, **kwargs)
 
-            # filter out jobs according to topology filter
+
+            # compute what is filtered out according to topology filter
             if topology is None and kwargs['topology'].value is not None:
-                del jobs[job_name]
+                filterted_out += [job_name]
                 continue
 
-            deployment = Deployment(release = "",
-                                    infra_type = "",
+            deployment = Deployment("",
+                                    "",
                                     nodes=self._get_nodes(path, **kwargs),
                                     services={},
-                                    ip_version=self._get_ip_version(path, **kwargs),
-                                    ml2_driver="",
-                                    topology= topology,
-                                    network_backend="",
-                                    storage_backend="",
-                                    dvr="",
-                                    ironic_inspector="",
-                                    cleaning_network="",
-                                    tls_everywhere="",
-                                    security_group="")
+                                    topology=topology,
+                                    network="",
+                                    storage="",
+                                    ironic="",
+                                    test_collection="",
+                                    overcloud_templates="",
+                                    stages="")
 
             jobs[job_name].add_deployment(deployment)
 
+        # filter out jobs
+        for el in filterted_out:
+            del jobs[el]
+
         return AttributeDictValue("jobs", attr_type=Job, value=jobs)
+

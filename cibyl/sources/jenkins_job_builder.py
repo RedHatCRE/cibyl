@@ -13,7 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-
 import logging
 import os
 import re
@@ -29,7 +28,6 @@ from cibyl.sources.git import GitSource
 from cibyl.sources.source import safe_request_generic, speed_index
 
 LOG = logging.getLogger(__name__)
-
 
 safe_request = partial(safe_request_generic,
                        custom_error=JenkinsJobBuilderError)
@@ -52,25 +50,28 @@ class JenkinsJobBuilder(GitSource):
     def _generate_xml(self):
         """Use tox to generate jenkins job xml files."""
         for repo in self.repos:
-            subprocess.run(["tox",  "-e", "jobs"], check=True,
+            subprocess.run(["tox", "-e", "jobs"], check=True,
                            cwd=repo.get('dest'))
 
     @speed_index({'base': 1})
     def get_jobs(self, **kwargs):
         """Get jobs from a given repo
-
-            :returns: container of Job objects extracted from JJB generated xml files
+            :returns: container of Job objects extracted from JJB generated
+                      xml files
             :rtype: :class:`AttributeDictValue`
         """
         all_jobs = {}
         for repo in self.repos:
-            all_jobs.update(self.get_jobs_from_repo(frozenset(repo.items()), **kwargs))
+
+            all_jobs.update(
+                self.get_jobs_from_repo(frozenset(repo.items()), **kwargs))
         return AttributeDictValue("jobs", attr_type=Job, value=all_jobs)
 
     def get_jobs_from_repo(self, repo, **kwargs):
         """Get jobs from a given repo
 
-            :returns: container of Job objects extracted from JJB generated xml files
+            :returns: container of Job objects extracted from JJB generated
+                      xml files
             :rtype: :class:`AttributeDictValue`
         """
         repo = dict(repo)  # convert set 2 dictionary
