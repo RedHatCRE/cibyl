@@ -16,6 +16,7 @@
 from copy import deepcopy
 from unittest import TestCase
 
+from cibyl import features
 from cibyl.cli.query import QuerySelector
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.base.system import JobsSystem, System
@@ -35,6 +36,7 @@ class RestoreAPIs(TestCase):
         cls.original_zuul_job_api = deepcopy(ZuulJob.API)
         cls.original_system_api = deepcopy(System.API)
         cls.plugin_attributes = deepcopy(Job.plugin_attributes)
+        cls.feature_paths = deepcopy(features.features_locations)
 
     @classmethod
     def tearDownClass(cls):
@@ -45,6 +47,7 @@ class RestoreAPIs(TestCase):
         ZuulJob.API = deepcopy(cls.original_zuul_job_api)
         System.API = deepcopy(cls.original_system_api)
         QuerySelector.query_selector_functions = []
+        features.features_locations = deepcopy(cls.feature_paths)
 
 
 class JobSystemAPI(RestoreAPIs):

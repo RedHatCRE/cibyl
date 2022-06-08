@@ -215,6 +215,10 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         # Begin with the text common to all systems
         printer.add(super().print_system(system), indent)
 
+        if self.query == QueryType.FEATURES:
+            # if the user has only requested features, there is no need to
+            # print anythin else
+            return printer.build()
         # Continue with text specific for this system type
         if self.query >= QueryType.TENANTS:
             if hasattr(system, 'tenants'):

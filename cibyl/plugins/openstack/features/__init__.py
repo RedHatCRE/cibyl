@@ -13,18 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
+
+from cibyl.features import FeatureTemplate
+
+LOG = logging.getLogger(__name__)
 
 
-class CibylException(Exception):
-    """Parent class for all cibyl exceptions for easier control of the
-    exceptions' representation.
-    """
+class OpenstackFeatureTemplate(FeatureTemplate):
+    """Skeleton for an openstack specific feature."""
 
-    def __init__(self, message=''):
-        """Constructor.
-
-        :param message: The reason for this error.
-        :type message: str
-        """
-        self.message = message
-        super().__init__(*[message])
+    def get_method_to_query(self):
+        return "get_deployment"
