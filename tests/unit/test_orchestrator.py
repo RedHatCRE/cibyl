@@ -20,9 +20,7 @@ import cibyl.orchestrator
 from cibyl.config import Config
 from cibyl.exceptions.config import (CHECK_DOCS_MSG, InvalidConfiguration,
                                      NonSupportedSystemKey)
-from cibyl.exceptions.source import NoValidSources
-from cibyl.orchestrator import Orchestrator, source_information_from_method
-from cibyl.sources.source import Source
+from cibyl.orchestrator import Orchestrator
 
 
 class TestOrchestrator(TestCase):
@@ -172,54 +170,6 @@ class TestOrchestrator(TestCase):
             self.orchestrator.environments[0].systems[0].name.value, 'system3')
         self.assertEqual(
             self.orchestrator.environments[0].systems[1].name.value, 'system4')
-
-    @patch("cibyl.orchestrator.get_source_method")
-    def test_orchestrator_select_source(self, patched_method):
-        """Testing Orchestartor select_source_method method"""
-        self.orchestrator.config.data = self.valid_env_sources
-        self.orchestrator.create_ci_environments()
-        self.orchestrator.parser.ci_args["sources"] = Mock()
-        self.orchestrator.parser.ci_args["sources"].value = ["jenkins"]
-        system = Mock()
-        system.name = Mock()
-        system.name.value = "system"
-        system.sources = Mock()
-        source = Mock()
-        source.name = "jenkins"
-        system.sources = [source]
-        argument = Mock()
-        argument.func = None
-        self.orchestrator.select_source_method(system, argument)
-        patched_method.assert_called_with(
-            "system", [source], None, args=self.orchestrator.parser.ci_args)
-
-    def test_orchestrator_select_source_invalid_source(self):
-        """Testing Orchestrator select_source_method method with no valid
-        source.
-        """
-        self.orchestrator.config.data = self.valid_env_sources
-        self.orchestrator.create_ci_environments()
-        self.orchestrator.parser.ci_args["sources"] = Mock()
-        self.orchestrator.parser.ci_args["sources"].value = ["unknown"]
-        system = Mock()
-        system.name = Mock()
-        system.name.value = "system"
-        system.sources = Mock()
-        source = Source(name="source", driver="jenkins")
-        system.sources = [source]
-        argument = Mock()
-        argument.func = None
-        self.assertRaises(NoValidSources,
-                          self.orchestrator.select_source_method,
-                          system, argument)
-
-    def test_source_information_from_method(self):
-        """Test that the source_information_from_method methods provides the
-        correct representation of the source."""
-        source = Source(name="source", driver="driver")
-        expected = "source: 'source' of type: 'driver'"
-        output = source_information_from_method(source.setup)
-        self.assertEqual(expected, output)
 
     def test_extend_parser(self):
         """Test that extend_parser creates the right cli arguments for a single

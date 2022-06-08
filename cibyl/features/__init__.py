@@ -1,0 +1,186 @@
+"""
+#    Copyright 2022 Red Hat
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+"""
+
+import logging
+import os
+import re
+from abc import ABC, abstractmethod
+from collections import defaultdict
+from importlib.util import module_from_spec, spec_from_file_location
+from inspect import getmembers, isabstract, isclass
+
+from cibyl.exceptions.cli import InvalidArgument
+from cibyl.exceptions.features import MissingFeature
+from cibyl.exceptions.source import NoSupportedSourcesFound, SourceException
+from cibyl.sources.source import (select_source_method,
+                                  source_information_from_method)
+from cibyl.utils.colors import Colors
+
+LOG = logging.getLogger(__name__)
+
+MODULE_PATTERN = re.compile(r"([a-zA-Z][a-zA-Z_]*)\.py")
+
+
+def is_feature_class(symbol):
+    """Check whether the symbols imported from a module correspond to
+    classes defining a feature. We assume that the symbol in question
+    defines a feature if it is a concrete class and is defined inside a module
+    within a subpackage name features.
+
+    :param symbol: An imported symbol to check
+    :type symbol: object
+    :returns: Whether the symbol defines a feature
+    :rtype: bool
+    """
+    is_concrete_class = isclass(symbol) and not isabstract(symbol)
+    return is_concrete_class and "features" in symbol.__module__
+
+
+# have the core features folder as the default location to search for
+# features, since __path__ is a list this can be easily extended through
+# plugins
+features_locations = __path__
+features_by_category = defaultdict(list)
+all_features = {}
+
+
+def add_feature_location(location: str):
+    """Add an additional location where to find features."""
+    features_locations.append(location)
+
+
+def load_features(feature_paths: list = None):
+    global features_locations
+    if feature_paths:
+        features_locations = feature_paths
+    for location in features_locations:
+        for module_path in os.listdir(location):
+            module_match = MODULE_PATTERN.match(module_path)
+            if not module_match:
+                continue
+            module_name = module_match.group(1)
+            # import the module directly from file, and add the _features
+            # suffix to the imported modules to help distinguish the
+            # classes defined there
+            # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
+            spec = spec_from_file_location(module_name+"_features",
+                                           f"{location}/{module_path}")
+            try:
+                module = module_from_spec(spec)
+                spec.loader.exec_module(module)
+            except Exception as ex:
+                msg = f"Could not load feature from module  {module_path}"
+                msg += f" in path {location}"
+                raise MissingFeature(msg) from ex
+            features = getmembers(module, predicate=is_feature_class)
+            for feature_name, feature in features:
+                all_features[feature_name.lower()] = feature
+                features_by_category[module_name].append(feature_name)
+
+
+def get_string_all_features():
+    """Get a string representation listing all available features to use in
+    an exception message."""
+    msg = ""
+    for category, features_names in features_by_category.items():
+        msg += f"\n{Colors.blue(category.title())}:"
+        for feature_name in features_names:
+            feature = all_features[feature_name.lower()]
+            docstring = getattr(feature, "__doc__", "")
+            msg += f"\n{Colors.red(' * ')}{Colors.blue(feature_name)}"
+            if docstring:
+                msg += f"{Colors.red(' - '+feature.__doc__)}"
+    return msg
+
+
+def get_feature(name_feature):
+    """Get the function associated with the given feature name
+
+    :param feature_name: Name of the feature
+    :type feature_name: str
+
+    :returns: class that implements the given feature
+    :rtype: class
+    :raises: InvalidArgument
+    """
+    try:
+        feature_class = all_features[name_feature.lower()]
+    except KeyError as err:
+        msg = f"No feature {name_feature}. Choose one of the following "
+        msg += "features:\n"
+        msg += get_string_all_features()
+        raise InvalidArgument(msg) from err
+    return feature_class()
+
+
+class FeatureTemplate(ABC):
+    """Skeleton for a generic feature, this is meant to provide a few helpful
+    methods to write features. If the query method of this class will be used,
+    the get_method_to_query and get_template_args should be implemented, if not
+    the feature class must implement a query method that calls a source to
+    obtain information and returns the collection of models that the source
+    reports."""
+    method_to_query = ""
+
+    def __init__(self, name):
+        self.name = name
+
+    @abstractmethod
+    def get_method_to_query(self):
+        """Get the source method that will be called to obtain the information
+        that defines the feature."""
+        pass
+
+    @abstractmethod
+    def get_template_args(self):
+        """Get the arguments necessary to obtain the information that defines
+        the feature."""
+        pass
+
+    def query(self, system, **kwargs):
+        """Execute the sources query that would provide the information that
+        defines the feature."""
+        debug = kwargs.get("debug", False)
+        args = self.get_template_args()
+        args.update(system.export_attributes_to_source())
+        args.update(kwargs)
+        try:
+            source_methods = select_source_method(system,
+                                                  self.get_method_to_query(),
+                                                  **kwargs)
+        except NoSupportedSourcesFound as exception:
+            # if no sources are found in the system for this
+            # particular query, jump to the next one without
+            # stopping execution
+            LOG.error(exception, exc_info=debug)
+            return
+        query_result = {}
+        for source_method, _ in source_methods:
+            try:
+                query_result = source_method(**args)
+                system.register_query()
+                return query_result
+            except SourceException as exception:
+                source_info = source_information_from_method(
+                        source_method)
+                LOG.error("Error in %s with system %s. %s",
+                          source_info, system.name.value,
+                          exception, exc_info=debug)
+        msg = f"Feature {self.name} could not query any source for system "
+        msg += f"{system.name.value}"
+        LOG.warning(msg)
+        # use a return value of None to mark that no query was performed
+        return

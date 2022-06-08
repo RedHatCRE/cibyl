@@ -22,6 +22,7 @@ from cibyl.exceptions.model import NonSupportedModelType
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.base.job import Job
 from cibyl.models.model import Model
+from cibyl.models.product.feature import Feature
 from cibyl.sources.source import Source
 
 
@@ -61,7 +62,16 @@ class System(Model):
         'queried': {
             'attr_type': bool,
             'arguments': []
-        }
+        },
+        'features': {
+            'attr_type': Feature,
+            'attribute_value_class': AttributeDictValue,
+            'arguments': [
+                Argument(name='--features', arg_type=str,
+                         nargs="*",
+                         description="Template to query for a given feature")
+            ]
+        },
     }
     """Defines the CLI arguments for all systems.
     """
@@ -154,6 +164,10 @@ class System(Model):
                 self.add_toplevel_model(model)
         else:
             raise NonSupportedModelType(instances.attr_type)
+
+    def add_feature(self, feature):
+        """Add a feature to the system."""
+        self.features[feature.name.value] = feature
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):

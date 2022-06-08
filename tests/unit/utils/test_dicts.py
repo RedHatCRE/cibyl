@@ -15,10 +15,14 @@
 """
 from unittest import TestCase
 
-from cibyl.utils.dicts import chunk_dictionary_into_lists, nsubset, subset
+from cibyl.models.attribute import AttributeDictValue
+from cibyl.models.ci.base.job import Job
+from cibyl.utils.dicts import (chunk_dictionary_into_lists, intersect_models,
+                               nsubset, subset)
 
 
 class TestSubset(TestCase):
+    """Test subset function of utils.dicts module."""
     def test_subset_is_generated(self):
         """Checks that this is capable of creating a dictionary from another.
         """
@@ -79,3 +83,20 @@ class TestChunkDictionaryResult(TestCase):
         self.assertEqual(200, len(lists[0]))
         self.assertEqual(200, len(lists[1]))
         self.assertEqual(100, len(lists[2]))
+
+
+class TestIntersectModels(TestCase):
+    """Test intersect_models function of utils.dicts module."""
+    def test_intersect_jobs(self):
+
+        jobs1 = {"job1": Job("job1", url="url"), "jobs2": Job("job2")}
+        jobs2 = {"job1": Job("job1"), "jobs3": Job("job3")}
+        models1 = AttributeDictValue("models1", attr_type=Job,
+                                     value=jobs1)
+        models2 = AttributeDictValue("models2", attr_type=Job,
+                                     value=jobs2)
+        intersection = intersect_models(models1, models2)
+        self.assertEqual(len(intersection), 1)
+        job = intersection["job1"]
+        self.assertEqual(job.name.value, "job1")
+        self.assertEqual(job.url.value, "url")
