@@ -21,13 +21,13 @@ from cibyl.outputs.cli.ci.system.common.builds import (get_duration_section,
 from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
                                                        has_plugin_section)
 from cibyl.outputs.cli.ci.system.common.stages import print_stage
-from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
-from cibyl.outputs.cli.printer import ColoredPrinter
+from cibyl.outputs.cli.ci.system.impls.base.colored import \
+    ColoredBaseSystemPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
 
 
-class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
+class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
     """Printer meant for :class:`JobsSystem`, decorated with colors for
     easier read.
     """
@@ -36,23 +36,20 @@ class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
     def print_system(self, system, indent=0):
         printer = IndentedTextBuilder()
 
-        printer.add(self.palette.blue('System: '), indent)
-        printer[-1].append(system.name.value)
-
-        if self.verbosity > 0:
-            printer[-1].append(f' (type: {system.system_type.value})')
+        # Begin with the text common to all systems
+        printer.add(super().print_system(system, indent=indent), indent)
 
         if self.query != QueryType.NONE:
             for job in system.jobs.values():
                 printer.add(self.print_job(job), indent+1)
 
-            if system.is_queried():
+            if not system.is_queried():
+                printer.add(self.palette.blue('No query performed'), indent+1)
+            elif self.query != QueryType.FEATURES:
                 header = 'Total jobs found in query: '
 
                 printer.add(self.palette.blue(header), indent+1)
                 printer[-1].append(len(system.jobs))
-            else:
-                printer.add(self.palette.blue('No query performed'), indent+1)
 
         return printer.build()
 
@@ -72,6 +69,10 @@ class ColoredJobsSystemPrinter(ColoredPrinter, CISystemPrinter):
             if job.url.value:
                 printer.add(self.palette.blue('URL: '), 1)
                 printer[-1].append(job.url.value)
+
+        if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
+            # if features are used, do not print further below
+            return printer.build()
 
         if job.builds.value:
             for build in job.builds.values():

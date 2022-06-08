@@ -14,10 +14,12 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
-from cibyl.exceptions.source import NoSupportedSourcesFound
-from cibyl.sources.source import get_source_method, is_source_valid
+from cibyl.exceptions.source import NoSupportedSourcesFound, NoValidSources
+from cibyl.sources.source import (Source, get_source_method, is_source_valid,
+                                  select_source_method,
+                                  source_information_from_method)
 from cibyl.sources.source_factory import SourceFactory
 
 
@@ -83,3 +85,42 @@ class TestGetSourceMethod(TestCase):
          that implements the function get_builds.""""".replace("\n", " ")
         with self.assertRaises(NoSupportedSourcesFound, msg=msg):
             get_source_method("test_system", [], "get_builds", {})
+
+    @patch("cibyl.sources.source.get_source_method")
+    def test_select_source(self, patched_method):
+        """Testing select_source_method function"""
+        system = Mock()
+        system.name = Mock()
+        system.name.value = "system"
+        system.sources = Mock()
+        source = Mock()
+        source.name = "jenkins"
+        system.sources = [source]
+        argument = Mock()
+        argument.func = None
+        select_source_method(system, None)
+        patched_method.assert_called_with(
+            "system", [source], None, args={})
+
+    def test_select_source_invalid_source(self):
+        """Testing select_source_method function with no valid
+        source.
+        """
+        system = Mock()
+        system.name = Mock()
+        system.name.value = "system"
+        system.sources = Mock()
+        system.sources = []
+        argument = Mock()
+        argument.func = None
+        self.assertRaises(NoValidSources,
+                          select_source_method,
+                          system, "")
+
+    def test_source_information_from_method(self):
+        """Test that the source_information_from_method methods provides the
+        correct representation of the source."""
+        source = Source(name="source", driver="driver")
+        expected = "source: 'source' of type: 'driver'"
+        output = source_information_from_method(source.setup)
+        self.assertEqual(expected, output)

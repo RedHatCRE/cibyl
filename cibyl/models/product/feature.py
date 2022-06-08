@@ -1,5 +1,5 @@
 """
-#    Copyright 2022 Red Hat
+# Copyright 2022 Red Hat
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -13,18 +13,27 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+# pylint: disable=no-member
+from cibyl.models.model import Model
 
 
-class CibylException(Exception):
-    """Parent class for all cibyl exceptions for easier control of the
-    exceptions' representation.
-    """
+class Feature(Model):
+    """Represents a Feature present (or not) in a CI environment."""
 
-    def __init__(self, message=''):
-        """Constructor.
+    API = {
+        'name': {
+            'attr_type': str,
+            'arguments': []
+        },
+        'present': {
+            'attr_type': bool,
+            'arguments': []
+        },
+    }
 
-        :param message: The reason for this error.
-        :type message: str
-        """
-        self.message = message
-        super().__init__(*[message])
+    def __init__(self, name, present):
+        # Let IDEs know this model's attributes
+        self.name = None
+        self.present = None
+
+        super().__init__({'name': name, 'present': present})

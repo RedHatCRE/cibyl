@@ -13,18 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.exceptions import CibylException
 
 
-class CibylException(Exception):
-    """Parent class for all cibyl exceptions for easier control of the
-    exceptions' representation.
+class MissingFeature(CibylException):
+    """Represents an error loading a feature.
     """
 
-    def __init__(self, message=''):
+    def __init__(self, message='Feature not found.'):
         """Constructor.
-
-        :param message: The reason for this error.
-        :type message: str
         """
-        self.message = message
-        super().__init__(*[message])
+        super().__init__(message)
