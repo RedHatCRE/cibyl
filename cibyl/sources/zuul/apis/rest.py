@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 from urllib.parse import urljoin
 
 from overrides import overrides
@@ -23,6 +24,8 @@ from cibyl.sources.zuul.apis import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
                                      ZuulProjectAPI, ZuulTenantAPI,
                                      ZuulVariantAPI)
 from cibyl.utils.io import Closeable
+
+LOG = logging.getLogger(__name__)
 
 
 class ZuulSession(Closeable):
@@ -198,10 +201,10 @@ class ZuulVariantRESTClient(ZuulVariantAPI):
 
         def get_parent_variables():
             if not recursive:
-                return {}
+                return
 
             if not self.parent:
-                return {}
+                return
 
             parent = ZuulJobRESTClient(
                 self._session,
@@ -211,8 +214,17 @@ class ZuulVariantRESTClient(ZuulVariantAPI):
                 }
             )
 
-            for variant in parent.variants():
-                result.update(variant.variables(recursive))
+            # There is weird error where sometimes a job exists,
+            # but Zuul fails to get any data on it, failing with a
+            # 500 error. For such cases, this needs to be aware of
+            # it and continue with the data it could collect.
+
+            try:
+                for variant in parent.variants():
+                    result.update(variant.variables(recursive))
+            except ZuulAPIError as ex:
+                LOG.debug("Failed to get variables for variant: '%s'. "
+                          "Reason: '%s'.", parent.name, ex.message)
 
         result = {}
 
