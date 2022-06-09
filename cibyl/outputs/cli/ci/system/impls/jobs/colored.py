@@ -74,9 +74,13 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
             # if features are used, do not print further below
             return printer.build()
 
-        if job.builds.value:
-            for build in job.builds.values():
-                printer.add(self.print_build(build), 1)
+        if self.query >= QueryType.BUILDS:
+            if job.builds.value:
+                for build in job.builds.values():
+                    printer.add(self.print_build(build), 1)
+            else:
+                msg = 'No builds in query.'
+                printer.add(self.palette.red(msg), 1)
 
         if has_plugin_section(job):
             printer.add(get_plugin_section(self, job), 1)
