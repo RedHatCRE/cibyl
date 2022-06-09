@@ -15,12 +15,10 @@
 """
 
 import logging
-import os
 import re
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from importlib.util import module_from_spec, spec_from_file_location
-from inspect import getmembers, isabstract, isclass
+from inspect import isclass
 
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.features import MissingFeature
@@ -28,6 +26,8 @@ from cibyl.exceptions.source import NoSupportedSourcesFound, SourceException
 from cibyl.sources.source import (select_source_method,
                                   source_information_from_method)
 from cibyl.utils.colors import Colors
+from cibyl.utils.files import FileSearch
+from cibyl.utils.reflection import get_classes_in, load_module
 
 LOG = logging.getLogger(__name__)
 
@@ -37,16 +37,15 @@ MODULE_PATTERN = re.compile(r"([a-zA-Z][a-zA-Z_]*)\.py")
 def is_feature_class(symbol):
     """Check whether the symbols imported from a module correspond to
     classes defining a feature. We assume that the symbol in question
-    defines a feature if it is a concrete class and is defined inside a module
-    within a subpackage name features.
+    defines a feature if it inherits from the FeatureDefinition class.
 
     :param symbol: An imported symbol to check
     :type symbol: object
     :returns: Whether the symbol defines a feature
     :rtype: bool
     """
-    is_concrete_class = isclass(symbol) and not isabstract(symbol)
-    return is_concrete_class and "features" in symbol.__module__
+    return isclass(symbol) and issubclass(symbol, FeatureDefinition) and \
+        symbol is not FeatureDefinition
 
 
 # have the core features folder as the default location to search for
@@ -67,25 +66,22 @@ def load_features(feature_paths: list = None):
     if feature_paths:
         features_locations = feature_paths
     for location in features_locations:
-        for module_path in os.listdir(location):
-            module_match = MODULE_PATTERN.match(module_path)
-            if not module_match:
-                continue
-            module_name = module_match.group(1)
-            # import the module directly from file, and add the _features
-            # suffix to the imported modules to help distinguish the
-            # classes defined there
-            # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
-            spec = spec_from_file_location(module_name+"_features",
-                                           f"{location}/{module_path}")
+        file_search = FileSearch(location)
+        file_search.with_recursion()
+        file_search.with_extension('.py')
+        # avoid trying to import this module, since it'll give problems with
+        # the usage of __path__ variable
+        file_search.with_excluded(['__init__'])
+        for module_path in file_search.get():
             try:
-                module = module_from_spec(spec)
-                spec.loader.exec_module(module)
+                module = load_module(module_path)
             except Exception as ex:
-                msg = f"Could not load feature from module  {module_path}"
+                msg = f"Could not load feature from module {module_path}"
                 msg += f" in path {location}"
                 raise MissingFeature(msg) from ex
-            features = getmembers(module, predicate=is_feature_class)
+            features = get_classes_in(module, predicate=is_feature_class,
+                                      return_name=True)
+            module_name = module.__name__
             for feature_name, feature in features:
                 all_features[feature_name.lower()] = feature
                 features_by_category[module_name].append(feature_name)
@@ -124,6 +120,12 @@ def get_feature(name_feature):
         msg += get_string_all_features()
         raise InvalidArgument(msg) from err
     return feature_class()
+
+
+class FeatureDefinition:
+    """Flag that indicates that the class is meant to define a Cibyl
+    feature.
+    """
 
 
 class FeatureTemplate(ABC):

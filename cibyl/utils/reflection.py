@@ -38,12 +38,23 @@ def load_module(path):
     return module
 
 
-def get_classes_in(__module):
+def get_classes_in(__module, predicate=None, return_name=False):
     """Gets all class symbols stored within a Python module.
 
     :param __module: The module to get the classes from.
     :type __module: :class:`types.ModuleType`
+    :param predicate: A callable to pass to inspect.getmembers to filter the
+    symbols found
+    :type predicate: callable
+    :param return_name: Whether to return the name of the classes found, as
+    inpect.getmembers does
+    :type return_name: bool
     :return: List of all classes stored in the module.
     :rtype: list[type]
     """
-    return [cls for _, cls in inspect.getmembers(__module, inspect.isclass)]
+    if predicate is None:
+        predicate = inspect.isclass
+    if return_name:
+        return inspect.getmembers(__module, predicate)
+    else:
+        return [cls for _, cls in inspect.getmembers(__module, predicate)]
