@@ -11,16 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.6', '3.9' ]
+        python-version: ['3.6', '3.9']
     steps:
-      - name: "Install SSH key"
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.RHOS_INFRA_PRIVATE_KEY }}
-          known_hosts: ${{ secrets.KNOWN_HOSTS }}
-          if_key_exists: replace
-      - name: "Checkout repo"
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v1
       - name: "Setup Python"
         uses: actions/setup-python@v2
         with:
@@ -30,4 +23,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install tox
       - name: "Run tox"
-        run: tox -e linters,unit,intr,e2e,coverage,docs
+        run: tox
