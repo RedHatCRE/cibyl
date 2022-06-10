@@ -15,10 +15,10 @@
 """
 
 from cibyl.cli.argument import Argument
-from cibyl.features import FeatureTemplate
+from cibyl.features import FeatureDefinition, FeatureTemplate
 
 
-class Feature1(FeatureTemplate):
+class Feature1(FeatureTemplate, FeatureDefinition):
     """Feature for testing1"""
 
     def __init__(self):
@@ -36,7 +36,7 @@ class Feature1(FeatureTemplate):
         return {"jobs": jobs}
 
 
-class Feature2(FeatureTemplate):
+class Feature2(FeatureTemplate, FeatureDefinition):
     """Feature for testing2"""
     def __init__(self):
         super().__init__("Feature2")
@@ -53,7 +53,7 @@ class Feature2(FeatureTemplate):
         return {"jobs": jobs}
 
 
-class Feature3(FeatureTemplate):
+class Feature3(FeatureTemplate, FeatureDefinition):
     def __init__(self):
         super().__init__("Feature3")
 

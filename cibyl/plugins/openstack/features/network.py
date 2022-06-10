@@ -16,12 +16,13 @@
 import logging
 
 from cibyl.cli.argument import Argument
+from cibyl.features import FeatureDefinition
 from cibyl.plugins.openstack.features import OpenstackFeatureTemplate
 
 LOG = logging.getLogger(__name__)
 
 
-class HA(OpenstackFeatureTemplate):
+class HA(OpenstackFeatureTemplate, FeatureDefinition):
     """Highly available Openstack deployment with at least 2 controllers."""
     def __init__(self):
         super().__init__("HA")
@@ -36,7 +37,7 @@ class HA(OpenstackFeatureTemplate):
         return {'controllers': ha_arg}
 
 
-class IPV4(OpenstackFeatureTemplate):
+class IPV4(OpenstackFeatureTemplate, FeatureDefinition):
     """Openstack deployment using IPv4."""
     def __init__(self):
         super().__init__("IPV4")
@@ -51,7 +52,7 @@ class IPV4(OpenstackFeatureTemplate):
         return {'ip_version': ip_arg}
 
 
-class IPV6(OpenstackFeatureTemplate):
+class IPV6(OpenstackFeatureTemplate, FeatureDefinition):
     """Openstack deployment using IPv6."""
     def __init__(self):
         super().__init__("IPV6")
