@@ -46,7 +46,7 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
 
         return printer.build()
 
-    def print_system(self, system, indent=1):
+    def print_system(self, system, indent=0):
         """
         :param system: The system.
         :type system: :class:`cibyl.models.ci.base.system.System`

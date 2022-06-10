@@ -36,10 +36,15 @@ class NoValidSources(CibylException):
             sources = Colors.blue('\n  '.join(sources))
             sources = f"Available sources:\n  {sources}"
         if system:
-            system = f"defined for the system {system}."
-        self.message = f"""No valid source found {system}. \
-Please ensure the specified sources with --source argument are present in \
-the configuration.\n{sources}"""
+            system = f"defined for the system {system.name.value}"
+        self.message = f"""No valid source found {system}.
+
+Define sources for the system with the "sources" mapping
+
+  <ENVIRONMENT_NAME>:
+      <SYSTEM_NAME>:
+          sources:
+              <SOURCE_NAME>"""
 
         super().__init__(self.message)
 
