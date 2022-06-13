@@ -15,7 +15,7 @@
 """
 import re
 import sre_constants
-from typing import Dict, Pattern
+from typing import Dict, List, Pattern
 
 from cibyl.cli.argument import Argument
 from cibyl.cli.ranged_argument import RANGE_OPERATORS
@@ -75,7 +75,8 @@ def satisfy_exact_match(model: Dict[str, str], user_input: Argument,
 
 
 def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
-                                   field_to_check: str):
+                                   field_to_check: str,
+                                   default_user_value: List[str] = None):
     """Check whether model should be included according to the user input. The
     model should be added if the information provided field_to_check
     (the model name or url for example) is an exact case-insensitive match to
@@ -86,13 +87,19 @@ def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
     :param user_input: input argument specified by the user
     :type model_urls: :class:`.Argument`
     :param field_to_check: Job field to perform the check
-    :param field_to_check: str
+    :type field_to_check: str
+    :param default_user_value: Default value to use if the user input contains
+    no value
+    :type default_user_value: list
     :returns: Whether the model satisfies user input
     :rtype: bool
     """
     if model[field_to_check] is None:
         return False
-    lowercase_input = [status.lower() for status in user_input.value]
+    value = user_input.value
+    if not value and default_user_value:
+        value = default_user_value
+    lowercase_input = [status.lower() for status in value]
     return model[field_to_check].lower() in lowercase_input
 
 

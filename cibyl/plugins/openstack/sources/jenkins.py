@@ -43,6 +43,7 @@ from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
                                    RELEASE_PATTERN, SERVICES_PATTERN,
                                    STORAGE_BACKEND_PATTERN, TOPOLOGY_PATTERN,
                                    apply_filters, filter_topology,
+                                   satisfy_case_insensitive_match,
                                    satisfy_exact_match)
 
 LOG = logging.getLogger(__name__)
@@ -279,6 +280,12 @@ accurate results", len(jobs_found))
         for attribute in self.deployment_attr:
             # check for user provided that should have an exact match
             input_attr = kwargs.get(attribute)
+            if attribute in ('dvr', 'tls_everywhere') and input_attr:
+                checks_to_apply.append(partial(satisfy_case_insensitive_match,
+                                       user_input=input_attr,
+                                       field_to_check=attribute,
+                                       default_user_value=['True']))
+                continue
             if input_attr and input_attr.value:
                 checks_to_apply.append(partial(satisfy_exact_match,
                                        user_input=input_attr,
