@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.plugins.openstack.sources.zuul import ReleaseFinder
+from cibyl.plugins.openstack.sources.zuul.release import ReleaseFinder
 
 
 class TestReleaseFinder(TestCase):
