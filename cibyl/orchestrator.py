@@ -181,9 +181,14 @@ class Orchestrator:
         if user_features and not user_features.value:
             # throw error in case cibyl is called with --features argument but
             # without any specified feature
-            msg = "No feature specified. Choose one of the following "
-            msg += "features:"
-            msg += get_string_all_features()
+            features_string = get_string_all_features()
+            if features_string:
+                msg = "No feature specified. Choose one of the following "
+                msg += "features:"
+                msg += features_string
+            else:
+                msg = "No features were found, please make sure that the "
+                msg += "plugin that provides the requested feature is added."
             raise InvalidArgument(msg)
         return [get_feature(feature_name)
                 for feature_name in user_features.value]
