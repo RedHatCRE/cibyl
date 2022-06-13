@@ -43,7 +43,7 @@ class TenantsRequest(Request):
         """Constructor.
 
         :param zuul: Low-Level Zuul API.
-        :type zuul: :class:`cibyl.sources.zuul.api.ZuulAPI`
+        :type zuul: :class:`cibyl.sources.zuul.apis.ZuulAPI`
         """
         super().__init__()
 
@@ -85,7 +85,7 @@ class ProjectsRequest(Request):
         """Constructor.
 
         :param tenant: Low-Level API to the tenant to get the projects from.
-        :type tenant: :class:`cibyl.sources.zuul.api.ZuulTenantAPI`
+        :type tenant: :class:`cibyl.sources.zuul.apis.ZuulTenantAPI`
         """
         super().__init__()
 
@@ -231,7 +231,7 @@ class VariantsRequest(Request):
         """Constructor.
 
         :param job: Low-Level API to the job to get the variants from.
-        :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
+        :type job: :class:`cibyl.sources.zuul.apis.ZuulJobAPI`
         """
         super().__init__()
 
@@ -256,7 +256,7 @@ class BuildsRequest(Request):
         """Constructor.
 
         :param job: Low-Level API to the job to get the builds from.
-        :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
+        :type job: :class:`cibyl.sources.zuul.apis.ZuulJobAPI`
         """
         super().__init__()
 
@@ -366,7 +366,7 @@ class TenantResponse:
         """Constructor.
 
         :param tenant: Low-Level API to access the tenant's data.
-        :type tenant: :class:`cibyl.sources.zuul.api.ZuulTenantAPI`
+        :type tenant: :class:`cibyl.sources.zuul.apis.ZuulTenantAPI`
         """
         self._tenant = tenant
 
@@ -401,7 +401,7 @@ class ProjectResponse:
         """Constructor.
 
         :param project: Low-Level API to access the project's data.
-        :type project: :class:`cibyl.sources.zuul.api.ZuulProjectAPI`
+        :type project: :class:`cibyl.sources.zuul.apis.ZuulProjectAPI`
         """
         self._project = project
 
@@ -441,7 +441,7 @@ class PipelineResponse:
         """Constructor.
 
         :param pipeline: Low-Level API to access the pipeline's data.
-        :type pipeline: :class:`cibyl.sources.zuul.api.ZuulPipelineAPI`
+        :type pipeline: :class:`cibyl.sources.zuul.apis.ZuulPipelineAPI`
         """
         self._pipeline = pipeline
 
@@ -488,7 +488,7 @@ class JobResponse:
         """Constructor.
 
         :param job: Low-Level API to access the job's data.
-        :type job: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
+        :type job: :class:`cibyl.sources.zuul.apis.ZuulJobAPI`
         """
         self._job = job
 
@@ -539,7 +539,7 @@ class VariantResponse:
         """Constructor.
 
         :param variant: Low-Level API to access the variant's data.
-        :type variant: :class:`cibyl.sources.zuul.api.ZuulVariantAPI`
+        :type variant: :class:`cibyl.sources.zuul.apis.ZuulVariantAPI`
         """
         self._variant = variant
 
@@ -585,7 +585,7 @@ class BuildResponse:
         """Constructor.
 
         :param build: Low-Level API to access the build's data.
-        :type build: :class:`cibyl.sources.zuul.api.ZuulBuildAPI`
+        :type build: :class:`cibyl.sources.zuul.apis.ZuulBuildAPI`
         """
         self._build = build
 

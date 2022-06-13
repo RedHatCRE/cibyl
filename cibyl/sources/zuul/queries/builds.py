@@ -19,10 +19,10 @@ def perform_builds_query(job, **kwargs):
     """Query for builds.
 
     :param job: API to interact with the owner of the builds.
-    :type job: :class:`cibyl.sources.zuul.requests.JobResponse`
+    :type job: :class:`cibyl.sources.zuul.transactions.JobResponse`
     :param kwargs: See :func:`handle_query`.
     :return: List of retrieved builds.
-    :rtype: list[:class:`cibyl.sources.zuul.requests.BuildResponse`]
+    :rtype: list[:class:`cibyl.sources.zuul.transactions.BuildResponse`]
     """
     result = []
 

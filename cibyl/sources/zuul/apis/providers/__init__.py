@@ -33,7 +33,7 @@ class PipelinesProvider(ABC):
     def pipelines(self):
         """
         :return: The pipelines from this entity.
-        :rtype: :class:`cibyl.sources.zuul.api.ZuulPipelineAPI`
+        :rtype: :class:`cibyl.sources.zuul.apis.ZuulPipelineAPI`
         """
         raise NotImplementedError
 
@@ -55,6 +55,6 @@ class JobsProvider(ABC):
     def jobs(self):
         """
         :return: The pipelines from this entity.
-        :rtype: :class:`cibyl.sources.zuul.api.ZuulJobAPI`
+        :rtype: :class:`cibyl.sources.zuul.apis.ZuulJobAPI`
         """
         raise NotImplementedError

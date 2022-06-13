@@ -25,26 +25,54 @@ LOG = logging.getLogger(__name__)
 
 
 def _default_job_query(api, **kwargs):
+    """Retrieves the jobs by querying the Zuul host.
+
+    :param api: API to interact with Zuul with.
+    :type api: :class:`cibyl.sources.zuul.apis.ZuulAPI`
+    :param kwargs: See :func:`cibyl.sources.zuul.actions.handle_query`.
+    :return: List of retrieved jobs.
+    :rtype: list[:class:`cibyl.sources.zuul.transactions.JobResponse`]
+    """
     return perform_jobs_query(api, **kwargs)
 
 
 def _default_variant_query(job, **kwargs):
+    """Retrieves variants of a job by querying the Zuul host.
+
+    :param job: The job to get the variants for.
+    :type job: :class:`cibyl.sources.zuul.transactions.JobResponse`
+    :param kwargs: See :func:`handle_query`.
+    :return: List of retrieved variants.
+    :rtype: list[:class:`cibyl.sources.zuul.transactions.VariantResponse`]
+    """
     return job.variants().get()
 
 
 class DeploymentGenerator:
+    """Factory for generation of :class:`Deployment`.
+    """
+
     class Tools:
+        """Tools the factory will use to do its task.
+        """
         release_finder = ReleaseFinder()
+        """Takes care of finding the release of the deployment."""
 
     def __init__(self, tools=Tools()):
+        """Constructor.
+
+        :param tools: The tools this will use.
+        :type tools: :class:`DeploymentGenerator.Tools`
+        """
         self._tools = tools
 
     def generate_deployment_for(self, variant, **kwargs):
-        """
+        """Creates a new deployment based on the data from a job's variant.
 
-        :param variant:
+        :param variant: The variant to fetch data from.
         :type variant: :class:`cibyl.sources.zuul.transactions.VariantResponse`
-        :return:
+        :return: The deployment.
+        :rtype: :class:`Deployment`
         """
 
         def get_release():
@@ -54,6 +82,7 @@ class DeploymentGenerator:
             if 'release' in kwargs:
                 return release_finder.find_release_for(variant)
 
+            # Nothing means to ignore this field.
             return ''
 
         release_finder = self._tools.release_finder
@@ -67,6 +96,10 @@ class DeploymentGenerator:
 
 
 class SpecArgumentHandler:
+    """Figures out what jobs to fetch the deployment for based on the
+    command line's arguments.
+    """
+
     def get_target_jobs(self, **kwargs):
         if 'jobs' not in kwargs:
             if 'spec' not in kwargs:
@@ -92,23 +125,51 @@ class SpecArgumentHandler:
 
 
 class DeploymentQuery:
+    """Takes care of performing the 'get_deployment' query.
+    """
+
     @dataclass
     class Queries:
+        """A collection of functions that this uses to perform its task.
+        """
         jobs = staticmethod(_default_job_query)
+        """Provider of the jobs to get the deployment for."""
         variants = staticmethod(_default_variant_query)
+        """Provider of variants on a job."""
 
     @dataclass
     class Tools:
+        """A collection of utilities that this uses to perform its task.
+        """
         deployment_generator = DeploymentGenerator()
+        """Generates the deployment model."""
         spec_arg_handler = SpecArgumentHandler()
+        """Indicates which jobs are to be fetched."""
         output_builder = QueryOutputBuilder()
+        """Builds the query output."""
 
     def __init__(self, api, queries=Queries(), tools=Tools()):
+        """Constructor.
+
+        :param api: API to interact with Zuul with.
+        :type api: :class:`cibyl.sources.zuul.apis.ZuulAPI`
+        :param queries: Functions this uses to get the data it works with.
+        :type queries: :class:`DeploymentQuery.Queries`
+        :param tools: Utilities this uses to achieve its function.
+        :type tools: :class:`DeploymentQuery.Tools`
+        """
         self._api = api
         self._queries = queries
         self._tools = tools
 
     def perform_query(self, **kwargs):
+        """Performs the 'get_deployment' query.
+
+        :param kwargs: Arguments coming from the command line.
+        :return: Output of the query.
+        :rtype: :class:`cibyl.sources.zuul.output.QueryOutput`
+        """
+
         def get_jobs_query_args():
             result = kwargs.copy()
             result['jobs'] = argh.get_target_jobs(**kwargs)
