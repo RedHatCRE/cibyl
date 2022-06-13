@@ -45,14 +45,28 @@ class DeploymentGenerator:
         )
 
 
+def _default_job_query(api, **kwargs):
+    return perform_jobs_query(api, **kwargs)
+
+
+def _default_variant_query(job, **kwargs):
+    return job.variants().get()
+
+
 class DeploymentQuery:
+    @dataclass
+    class Queries:
+        jobs = _default_job_query
+        variants = _default_variant_query
+
     @dataclass
     class Tools:
         deployment_generator = DeploymentGenerator()
         output_builder = QueryOutputBuilder()
 
-    def __init__(self, api, tools=Tools()):
+    def __init__(self, api, queries=Queries(), tools=Tools()):
         self._api = api
+        self._queries = queries
         self._tools = tools
 
     def perform_query(self, **kwargs):
@@ -62,10 +76,8 @@ class DeploymentQuery:
         if 'spec' in kwargs:
             kwargs['jobs'] = kwargs.pop('spec')
 
-        for job in perform_jobs_query(self._api, **kwargs):
-            output.with_job(job)
-
-            for variant in job.variants().get():
+        for job in self._queries.jobs(self._api, **kwargs):
+            for variant in self._queries.variants(job, **kwargs):
                 model = output.with_variant(variant)
                 model.deployment.value = dgen.generate_deployment_for(variant)
 
