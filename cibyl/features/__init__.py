@@ -115,9 +115,14 @@ def get_feature(name_feature):
     try:
         feature_class = all_features[name_feature.lower()]
     except KeyError as err:
-        msg = f"No feature {name_feature}. Choose one of the following "
-        msg += "features:\n"
-        msg += get_string_all_features()
+        features_string = get_string_all_features()
+        if features_string:
+            msg = f"No feature {name_feature}. Choose one of the following "
+            msg += "features:\n"
+            msg += features_string
+        else:
+            msg = "No features were found, please make sure that the plugin "
+            msg += "that provides the requested feature is added."
         raise InvalidArgument(msg) from err
     return feature_class()
 
