@@ -23,7 +23,8 @@ from inspect import isclass
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.features import MissingFeature
 from cibyl.exceptions.source import NoSupportedSourcesFound, SourceException
-from cibyl.sources.source import (select_source_method,
+from cibyl.sources.source import (get_source_instance_from_method,
+                                  select_source_method,
                                   source_information_from_method)
 from cibyl.utils.colors import Colors
 from cibyl.utils.files import FileSearch
@@ -177,6 +178,8 @@ class FeatureTemplate(ABC):
         query_result = {}
         for source_method, _ in source_methods:
             try:
+                source_obj = get_source_instance_from_method(source_method)
+                source_obj.ensure_source_setup()
                 query_result = source_method(**args)
                 system.register_query()
                 return query_result

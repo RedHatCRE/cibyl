@@ -35,7 +35,8 @@ from cibyl.models.ci.system_factory import SystemType
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.models.product.feature import Feature
 from cibyl.publisher import Publisher
-from cibyl.sources.source import (select_source_method,
+from cibyl.sources.source import (get_source_instance_from_method,
+                                  select_source_method,
                                   source_information_from_method)
 from cibyl.sources.source_factory import SourceFactory
 from cibyl.utils.dicts import intersect_models
@@ -162,15 +163,6 @@ class Orchestrator:
         validator = Validator(self.parser.ci_args)
         self.environments = validator.validate_environments(self.environments)
 
-    def setup_sources(self):
-        """Setup all enabled sources present in the environment."""
-        for env in self.environments:
-            if env.enabled:
-                for system in env.systems:
-                    for source in system.sources:
-                        if source.enabled:
-                            source.setup()
-
     def load_features(self):
         """Read user-requested features and setup the right argument to query
         the information for them."""
@@ -275,6 +267,8 @@ class Orchestrator:
                             continue
                     source_info = source_information_from_method(
                             source_method)
+                    source_obj = get_source_instance_from_method(source_method)
+                    source_obj.ensure_source_setup()
                     start_time = time.time()
                     LOG.info(f"Performing query on system {system.name}")
                     LOG.debug("Running %s and speed index %d",

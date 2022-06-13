@@ -17,7 +17,8 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 from cibyl.exceptions.source import NoSupportedSourcesFound, NoValidSources
-from cibyl.sources.source import (Source, get_source_method, is_source_valid,
+from cibyl.sources.source import (Source, get_source_instance_from_method,
+                                  get_source_method, is_source_valid,
                                   select_source_method,
                                   source_information_from_method)
 from cibyl.sources.source_factory import SourceFactory
@@ -124,3 +125,43 @@ class TestGetSourceMethod(TestCase):
         expected = "source: 'source' of type: 'driver'"
         output = source_information_from_method(source.setup)
         self.assertEqual(expected, output)
+
+
+class TestGetSourceInstanceFromMethod(TestCase):
+    """Test the get_source_instance_from_method function from source module."""
+    def test_get_source_methods_get_builds(self):
+        """Test that get_source_method returns the correct ordering after
+        asking for get_builds method."""
+        source = SourceFactory.create_source("zuul", "zuul", url="url")
+
+        source_out = get_source_instance_from_method(source.get_builds)
+
+        self.assertTrue(source_out, source)
+
+
+class TestSourceSetup(TestCase):
+    """Test that setup functionality for Source class."""
+    def setUp(self):
+        self.source = Source()
+
+    def test_default_setup_false(self):
+        """Test that is_setup return False by default."""
+        self.assertFalse(self.source.is_setup())
+
+    @patch.object(Source, 'setup')
+    def test_setup(self, setup_mock):
+        """Test that ensure_source_setup calls setup and sets the right value
+        for _setup attribute."""
+        self.source.ensure_source_setup()
+        self.assertTrue(self.source.is_setup())
+        setup_mock.assert_called_once()
+
+    @patch.object(Source, 'setup')
+    def test_setup_multiple_calls(self, setup_mock):
+        """Test that multiple calls to ensure_source_setup calls setup
+        just once and sets the right value for _setup attribute."""
+        self.source.ensure_source_setup()
+        self.source.ensure_source_setup()
+        self.source.ensure_source_setup()
+        self.assertTrue(self.source.is_setup())
+        setup_mock.assert_called_once()
