@@ -26,7 +26,6 @@ from cibyl.cli.query import get_query_type
 from cibyl.cli.validator import Validator
 from cibyl.config import Config, ConfigFactory
 from cibyl.exceptions.cli import InvalidArgument
-from cibyl.exceptions.config import NonSupportedSystemKey
 from cibyl.exceptions.source import NoSupportedSourcesFound, SourceException
 from cibyl.features import get_feature, get_string_all_features, load_features
 from cibyl.models.attribute import AttributeDictValue
@@ -96,37 +95,50 @@ class Orchestrator:
             re_result = re.search(r'unexpected keyword argument (.*)',
                                   ex.args[0])
             if re_result:
-                raise NonSupportedSystemKey(system_name, re_result.group(1))
+                raise conf_exc.NonSupportedSystemKey(
+                    system_name, re_result.group(1))
+            re_missing_arg = re.search(r'required positional argument: (.*)',
+                                       ex.args[0])
+            if re_missing_arg:
+                raise conf_exc.MissingSystemKey(
+                    system_name, re_missing_arg.group(1))
+            raise
 
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""
-        try:
-            if self.config.data:
-                env_data = self.config.data.get('environments', {}).items()
-            else:
-                env_data = {}
+        env_data = self.config.data.get('environments', {})
 
-            for env_name, systems_dict in env_data:
+        if isinstance(env_data, str):
+            raise conf_exc.MissingSystems(env_data)
+        if not env_data:
+            raise conf_exc.MissingEnvironments()
+
+        for env_name, systems_dict in env_data.items():
+            if isinstance(systems_dict, str):
+                raise conf_exc.MissingSystemType(systems_dict, SystemType)
+            try:
                 enabled = systems_dict.get('enabled', True)
                 if not enabled:
                     continue
-                environment = Environment(name=env_name, enabled=enabled)
+            except AttributeError:
+                raise conf_exc.MissingSystems(env_name)
+            environment = Environment(name=env_name, enabled=enabled)
 
-                for system_name, single_system in systems_dict.items():
+            for system_name, single_system in systems_dict.items():
+                try:
                     sources_dict = single_system.pop('sources', {})
                     sources = []
-
                     for source_name, source_data in sources_dict.items():
                         sources.append(
                             self.get_source(source_name, source_data))
+                except AttributeError:
+                    raise conf_exc.MissingSystemSources(system_name)
 
-                    self.add_system_to_environment(environment, system_name,
-                                                   sources, single_system)
+                self.add_system_to_environment(environment, system_name,
+                                               sources, single_system)
 
-                self.environments.append(environment)
-            self.set_system_api()
-        except (AttributeError, TypeError) as exception:
-            raise conf_exc.InvalidConfiguration from exception
+            self.environments.append(environment)
+        self.set_system_api()
 
     def set_system_api(self):
         """Modify the System API depending on the type of systems present in
@@ -169,9 +181,14 @@ class Orchestrator:
         if user_features and not user_features.value:
             # throw error in case cibyl is called with --features argument but
             # without any specified feature
-            msg = "No feature specified. Choose one of the following "
-            msg += "features:"
-            msg += get_string_all_features()
+            features_string = get_string_all_features()
+            if features_string:
+                msg = "No feature specified. Choose one of the following "
+                msg += "features:"
+                msg += features_string
+            else:
+                msg = "No features were found, please make sure that the "
+                msg += "plugin that provides the requested feature is added."
             raise InvalidArgument(msg)
         return [get_feature(feature_name)
                 for feature_name in user_features.value]

@@ -37,18 +37,18 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
         printer = IndentedTextBuilder()
 
         # Begin with the text common to all systems
-        printer.add(super().print_system(system, indent=indent), indent)
+        printer.add(super().print_system(system, indent=indent), indent+1)
 
         if self.query != QueryType.NONE:
             for job in system.jobs.values():
-                printer.add(self.print_job(job), indent+1)
+                printer.add(self.print_job(job), indent+2)
 
             if not system.is_queried():
-                printer.add(self.palette.blue('No query performed'), indent+1)
+                printer.add(self.palette.blue('No query performed'), indent+2)
             elif self.query != QueryType.FEATURES:
                 header = 'Total jobs found in query: '
 
-                printer.add(self.palette.blue(header), indent+1)
+                printer.add(self.palette.blue(header), indent+2)
                 printer[-1].append(len(system.jobs))
 
         return printer.build()
@@ -74,9 +74,13 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
             # if features are used, do not print further below
             return printer.build()
 
-        if job.builds.value:
-            for build in job.builds.values():
-                printer.add(self.print_build(build), 1)
+        if self.query >= QueryType.BUILDS:
+            if job.builds.value:
+                for build in job.builds.values():
+                    printer.add(self.print_build(build), 1)
+            else:
+                msg = 'No builds in query.'
+                printer.add(self.palette.red(msg), 1)
 
         if has_plugin_section(job):
             printer.add(get_plugin_section(self, job), 1)

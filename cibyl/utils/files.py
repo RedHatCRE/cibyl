@@ -34,6 +34,7 @@ class FileSearch:
         self._directory = directory
         self._recursive = False
         self._extensions = []
+        self._excluded = []
 
     def with_recursion(self):
         """Extends the search to the folders inside the directory and beyond.
@@ -56,6 +57,19 @@ class FileSearch:
         :rtype: :class:`FileSearch`
         """
         self._extensions.append(extension)
+        return self
+
+    def with_excluded(self, excluded):
+        """Limits the search to files that are not in the excluded list. If this
+        is called more than once, then the filters are joined together
+        following an 'OR' approach.
+
+        :param excluded: The file names to filter by.
+        :type excluded: list
+        :return: The instance.
+        :rtype: :class:`FileSearch`
+        """
+        self._excluded.extend(excluded)
         return self
 
     def get(self):
@@ -82,6 +96,9 @@ class FileSearch:
                 if self._extensions:
                     if get_file_extension(path) not in self._extensions:
                         continue
+                if self._excluded:
+                    if get_file_name_from_path(path) in self._excluded:
+                        continue
 
                 result.append(path)
 
@@ -101,6 +118,7 @@ class FileSearch:
 
         other._recursive = self._recursive
         other._extensions = self._extensions
+        other._excluded = self._excluded
 
         return other
 
