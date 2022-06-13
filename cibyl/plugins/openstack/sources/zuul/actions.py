@@ -56,8 +56,8 @@ def _default_variant_query(job, **kwargs):
 class DeploymentQuery:
     @dataclass
     class Queries:
-        jobs = _default_job_query
-        variants = _default_variant_query
+        jobs = staticmethod(_default_job_query)
+        variants = staticmethod(_default_variant_query)
 
     @dataclass
     class Tools:
