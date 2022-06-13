@@ -87,6 +87,8 @@ class SpecArgumentHandler:
         if not kwargs['spec']:
             return kwargs['jobs']  # Only 'jobs' has a value
 
+        LOG.warning("Ignoring argument '--jobs' in favor of '--spec'.")
+
         return kwargs['spec']  # If both have a value, prefer 'spec'
 
 
@@ -108,10 +110,16 @@ class DeploymentQuery:
         self._tools = tools
 
     def perform_query(self, **kwargs):
+        def get_jobs_query_args():
+            result = kwargs.copy()
+            result['jobs'] = argh.get_target_jobs(**kwargs)
+            return result
+
         output = self._tools.output_builder
+        argh = self._tools.spec_arg_handler
         dgen = self._tools.deployment_generator
 
-        for job in self._queries.jobs(self._api, **kwargs):
+        for job in self._queries.jobs(self._api, **get_jobs_query_args()):
             for variant in self._queries.variants(job, **kwargs):
                 model = output.with_variant(variant)
                 model.deployment.value = dgen.generate_deployment_for(
