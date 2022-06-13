@@ -19,6 +19,7 @@ from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.base.job import Job as BaseJob
 from cibyl.models.model import Model
+from cibyl.utils.dicts import subset
 
 
 class Job(BaseJob):
@@ -113,7 +114,7 @@ class Job(BaseJob):
                 self.variables == other.variables
 
     API = {
-        **BaseJob.API,
+        **subset(BaseJob.API, ['name', 'url', 'builds']),
         'variants': {
             'attr_type': Variant,
             'attribute_value_class': AttributeListValue,

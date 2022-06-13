@@ -13,22 +13,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from unittest import TestCase
-
+from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.zuul.tenant import Tenant
-from cibyl.plugins.openstack.sources.zuul import Zuul
+from cibyl.plugins.openstack.sources.zuul.actions import DeploymentQuery
+from cibyl.sources.plugins import SourceExtension
+from cibyl.sources.source import speed_index
 
 
-class TestGetDeployment(TestCase):
-    """Tests for :meth:`Zuul.get_deployment`.
+class Zuul(SourceExtension):
+    """
+    @DynamicAttrs: Will use attributes of source it extends.
     """
 
-    def test_returned_type(self):
-        """Checks that the returned attribute is of 'Tenant' type.
-        """
-        source = Zuul()
+    @speed_index({'base': 2})
+    def get_deployment(self, **kwargs):
+        query = DeploymentQuery(self._api)
 
-        result = source.get_deployment()
-
-        self.assertEqual(result.name, 'tenants')
-        self.assertEqual(result.attr_type, Tenant)
+        return AttributeDictValue(
+            name='tenants',
+            attr_type=Tenant,
+            value=query.perform_query(**kwargs)
+        )
