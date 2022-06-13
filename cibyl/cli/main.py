@@ -114,7 +114,6 @@ def main():
         # from the CI models
         orchestrator.parser.parse()
         orchestrator.validate_environments()
-        orchestrator.setup_sources()
         features = orchestrator.load_features()
         orchestrator.query_and_publish(arguments["output_style"],
                                        features=features)

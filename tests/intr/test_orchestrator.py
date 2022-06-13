@@ -43,6 +43,8 @@ class TestOrchestrator(TestCase):
         sys.stdout = cls._original_stdout
         cls._null_stdout.close()
 
+    @patch.object(Jenkins, 'setup', return_value="")
+    @patch('cibyl.orchestrator.get_source_instance_from_method')
     @patch('cibyl.orchestrator.source_information_from_method',
            return_value="")
     @patch.object(SourceMethodsStore, '_method_information_tuple')
@@ -50,13 +52,15 @@ class TestOrchestrator(TestCase):
     @patch.object(OSPJenkins, 'get_deployment', side_effect=JenkinsError)
     @patch('cibyl.plugins.get_classes_in', return_value=[OSPJenkins])
     def test_args_level(self, _get_classes_mock, jenkins_deployment,
-                        jenkins_jobs, store_mock, _):
+                        jenkins_jobs, store_mock, _, source_instance_mock,
+                        jenkins_setup_mock):
         """Test that the args level is updated properly in run_query."""
         store_mock.side_effect = [("jenkins", "get_deployment"),
                                   ("jenkins", "get_deployment"),
                                   ("jenkins", "get_jobs"),
                                   ("jenkins", "get_jobs"),
                                   ("jenkins", "get_jobs")]
+        source_instance_mock.return_value = Jenkins(url="url")
         with NamedTemporaryFile() as config_file:
             config_file.write(b"environments:\n")
             config_file.write(b"  env:\n")
@@ -73,3 +77,4 @@ class TestOrchestrator(TestCase):
             main()
         jenkins_deployment.assert_called_once()
         jenkins_jobs.assert_not_called()
+        jenkins_setup_mock.assert_called_once()
