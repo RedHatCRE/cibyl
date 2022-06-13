@@ -83,9 +83,6 @@ class DeploymentQuery:
         output = self._tools.output_builder
         dgen = self._tools.deployment_generator
 
-        if 'spec' in kwargs:
-            kwargs['jobs'] = kwargs.pop('spec')
-
         for job in self._queries.jobs(self._api, **kwargs):
             for variant in self._queries.variants(job, **kwargs):
                 model = output.with_variant(variant)
