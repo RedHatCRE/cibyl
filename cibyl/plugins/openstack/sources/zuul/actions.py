@@ -13,12 +13,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
+
 from dataclasses import dataclass
 
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.sources.zuul.release import ReleaseFinder
 from cibyl.sources.zuul.output import QueryOutputBuilder
 from cibyl.sources.zuul.queries.jobs import perform_jobs_query
+
+LOG = logging.getLogger(__name__)
+
+
+def _default_job_query(api, **kwargs):
+    return perform_jobs_query(api, **kwargs)
+
+
+def _default_variant_query(job, **kwargs):
+    return job.variants().get()
 
 
 class DeploymentGenerator:
@@ -55,12 +67,27 @@ class DeploymentGenerator:
         )
 
 
-def _default_job_query(api, **kwargs):
-    return perform_jobs_query(api, **kwargs)
+class SpecArgumentHandler:
+    def get_target_jobs(self, **kwargs):
+        if 'jobs' not in kwargs:
+            if 'spec' not in kwargs:
+                return None  # Neither of the two arguments were passed
 
+            return kwargs['spec']  # Only 'spec' were passed
 
-def _default_variant_query(job, **kwargs):
-    return job.variants().get()
+        if 'spec' not in kwargs:
+            return kwargs['jobs']  # Only 'jobs' were passed
+
+        if not kwargs['jobs']:
+            if not kwargs['spec']:
+                return ''  # Neither of the two arguments have a value
+
+            return kwargs['spec']  # Only 'spec' has a value
+
+        if not kwargs['spec']:
+            return kwargs['jobs']  # Only 'jobs' has a value
+
+        return kwargs['spec']  # If both have a value, prefer 'spec'
 
 
 class DeploymentQuery:
@@ -72,6 +99,7 @@ class DeploymentQuery:
     @dataclass
     class Tools:
         deployment_generator = DeploymentGenerator()
+        spec_arg_handler = SpecArgumentHandler()
         output_builder = QueryOutputBuilder()
 
     def __init__(self, api, queries=Queries(), tools=Tools()):

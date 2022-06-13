@@ -17,7 +17,8 @@ from unittest import TestCase
 from unittest.mock import Mock, call
 
 from cibyl.plugins.openstack.sources.zuul.actions import (DeploymentGenerator,
-                                                          DeploymentQuery)
+                                                          DeploymentQuery,
+                                                          SpecArgumentHandler)
 
 
 class TestDeploymentGenerator(TestCase):
@@ -99,6 +100,109 @@ class TestDeploymentGenerator(TestCase):
         finder.find_release_for.assert_called_once_with(variant)
 
 
+class TestSpecArgumentHandler(TestCase):
+    """Tests for :class:`SpecArgumentHandler`.
+    """
+
+    def test_jobs_but_empty_spec(self):
+        """Check that if no job is indicated on the 'spec' arg, the jobs
+        from the 'jobs' arg will be used.
+        """
+        job = 'job'
+
+        kwargs = {
+            'jobs': job,
+            'spec': None
+        }
+
+        handler = SpecArgumentHandler()
+
+        self.assertEqual(job, handler.get_target_jobs(**kwargs))
+
+    def test_spec_but_empty_jobs(self):
+        """Check that if no job is indicated on the 'jobs' arg, the jobs
+        from the 'spec' arg will be used.
+        """
+        job = 'job'
+
+        kwargs = {
+            'jobs': None,
+            'spec': job
+        }
+
+        handler = SpecArgumentHandler()
+
+        self.assertEqual(job, handler.get_target_jobs(**kwargs))
+
+    def test_empty_spec_and_jobs(self):
+        """Check that if both arguments are empty, then all jobs will be
+        targeted.
+        """
+        kwargs = {
+            'jobs': None,
+            'spec': None
+        }
+
+        handler = SpecArgumentHandler()
+
+        # Empty means all jobs
+        self.assertEqual('', handler.get_target_jobs(**kwargs))
+
+    def test_different_spec_and_jobs(self):
+        """Checks that if both arguments have a value, the 'spec' on is
+        preferred.
+        """
+        job1 = 'job1'
+        job2 = 'job2'
+
+        kwargs = {
+            'jobs': job1,
+            'spec': job2
+        }
+
+        handler = SpecArgumentHandler()
+
+        self.assertEqual(job2, handler.get_target_jobs(**kwargs))
+
+    def test_spec_but_no_jobs(self):
+        """Checks if the 'spec' argument is present but the 'jobs' is not,
+        then the jobs from the 'spec' argument are returned.
+        """
+        job = 'job'
+
+        kwargs = {
+            'spec': job
+        }
+
+        handler = SpecArgumentHandler()
+
+        self.assertEqual(job, handler.get_target_jobs(**kwargs))
+
+    def test_jobs_but_no_spec(self):
+        """Checks if the 'jobs' argument is present but the 'spec' is not,
+        then the jobs from the 'jobs' argument are returned.
+        """
+        job = 'job'
+
+        kwargs = {
+            'jobs': job
+        }
+
+        handler = SpecArgumentHandler()
+
+        self.assertEqual(job, handler.get_target_jobs(**kwargs))
+
+    def test_neither_argument(self):
+        """Checks that nothing is returned if neither argument is present.
+        """
+        kwargs = {
+        }
+
+        handler = SpecArgumentHandler()
+
+        self.assertEqual(None, handler.get_target_jobs(**kwargs))
+
+
 class TestDeploymentQuery(TestCase):
     """Tests for :class:`DeploymentQuery`.
     """
@@ -155,13 +259,15 @@ class TestDeploymentQuery(TestCase):
 
         api = Mock()
 
-        output = Mock()
-        output.with_variant = Mock()
-        output.with_variant.side_effect = models
-
         dgen = Mock()
         dgen.generate_deployment_for = Mock()
         dgen.generate_deployment_for.side_effect = deployments
+
+        argh = Mock()
+
+        output = Mock()
+        output.with_variant = Mock()
+        output.with_variant.side_effect = models
 
         queries = Mock()
         queries.jobs = jobs
@@ -169,6 +275,7 @@ class TestDeploymentQuery(TestCase):
 
         tools = Mock()
         tools.deployment_generator = dgen
+        tools.spec_arg_handler = argh
         tools.output_builder = output
 
         query = DeploymentQuery(api, queries, tools)
