@@ -42,7 +42,7 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
 
         if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
             for feature in system.features.values():
-                printer.add(self.print_feature(feature), 1)
+                printer.add(self.print_feature(feature), indent+1)
 
         return printer.build()
 
