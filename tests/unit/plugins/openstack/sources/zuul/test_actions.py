@@ -16,8 +16,8 @@
 from unittest import TestCase
 from unittest.mock import Mock, call
 
-from cibyl.plugins.openstack.sources.zuul.actions import DeploymentGenerator, \
-    DeploymentQuery
+from cibyl.plugins.openstack.sources.zuul.actions import (DeploymentGenerator,
+                                                          DeploymentQuery)
 
 
 class TestDeploymentGenerator(TestCase):
