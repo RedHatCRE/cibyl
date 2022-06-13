@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 from urllib.parse import urljoin
 
 from overrides import overrides
@@ -20,8 +21,11 @@ from requests import HTTPError, Session
 
 from cibyl.sources.zuul.apis import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
                                      ZuulJobAPI, ZuulPipelineAPI,
-                                     ZuulProjectAPI, ZuulTenantAPI)
+                                     ZuulProjectAPI, ZuulTenantAPI,
+                                     ZuulVariantAPI)
 from cibyl.utils.io import Closeable
+
+LOG = logging.getLogger(__name__)
 
 
 class ZuulSession(Closeable):
@@ -165,6 +169,74 @@ class ZuulBuildRESTClient(ZuulBuildAPI):
         self._session.close()
 
 
+class ZuulVariantRESTClient(ZuulVariantAPI):
+    """Implementation of a Zuul client through the use of Zuul's REST-API.
+    """
+
+    def __init__(self, session, job, variant):
+        """Constructor. See parent for more information.
+
+        :param session: The link through which the REST-API will be contacted.
+        :type session: :class:`ZuulSession`
+        """
+        super().__init__(job, variant)
+
+        self._session = session
+
+    def __eq__(self, other):
+        if not issubclass(type(other), ZuulVariantAPI):
+            return False
+
+        if self is other:
+            return True
+
+        return \
+            self.job == other.job and \
+            self.raw == other.raw
+
+    @overrides
+    def variables(self, recursive=False):
+        def get_own_variables():
+            result.update(self.raw['variables'])
+
+        def get_parent_variables():
+            if not recursive:
+                return
+
+            if not self.parent:
+                return
+
+            parent = ZuulJobRESTClient(
+                self._session,
+                self._job.tenant,
+                {
+                    'name': self.parent
+                }
+            )
+
+            # There is weird error where sometimes a job exists,
+            # but Zuul fails to get any data on it, failing with a
+            # 500 error. For such cases, this needs to be aware of
+            # it and continue with the data it could collect.
+
+            try:
+                for variant in parent.variants():
+                    result.update(variant.variables(recursive))
+            except ZuulAPIError as ex:
+                LOG.debug("Failed to get variables for variant: '%s'. "
+                          "Reason: '%s'.", parent.name, ex.message)
+
+        result = {}
+
+        get_own_variables()
+        get_parent_variables()
+
+        return result
+
+    def close(self):
+        self._session.close()
+
+
 class ZuulJobRESTClient(ZuulJobAPI):
     """Implementation of a Zuul client through the use of Zuul's REST-API.
     """
@@ -201,9 +273,13 @@ class ZuulJobRESTClient(ZuulJobAPI):
 
     @overrides
     def variants(self):
-        return self._session.get(
-            f'tenant/{self.tenant.name}/job/{self.name}'
-        )
+        url = f'tenant/{self.tenant.name}/job/{self.name}'
+        variants = self._session.get(url)
+
+        return [
+            ZuulVariantRESTClient(self._session, self, variant)
+            for variant in variants
+        ]
 
     @overrides
     def builds(self):

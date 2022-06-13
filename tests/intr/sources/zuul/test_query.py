@@ -538,12 +538,14 @@ class TestHandleQuery(TestCase):
     def test_get_job_variants(self):
         """Checks the '--variants' options.
         """
-        variant1 = {
-            'parent': 'job1',
+        variant1 = Mock()
+        variant1.raw = {
+            'parent': 'parent_of_job1'
         }
 
-        variant2 = {
-            'parent': 'job2',
+        variant2 = Mock()
+        variant2.raw = {
+            'parent': 'parent_of_job2'
         }
 
         job1 = Mock()
@@ -573,6 +575,9 @@ class TestHandleQuery(TestCase):
         api.tenants = Mock()
         api.tenants.return_value = [tenant]
 
+        variant1.job = job1
+        variant2.job = job2
+
         job1.tenant = tenant
         job2.tenant = tenant
 
@@ -589,13 +594,13 @@ class TestHandleQuery(TestCase):
                         job1.name: Job(
                             job1.name, job1.url,
                             variants=[
-                                Job.Variant.from_data(variant1)
+                                Job.Variant.from_data(variant1.raw)
                             ]
                         ),
                         job2.name: Job(
                             job2.name, job2.url,
                             variants=[
-                                Job.Variant.from_data(variant2)
+                                Job.Variant.from_data(variant2.raw)
                             ]
                         )
                     }

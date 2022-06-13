@@ -21,7 +21,8 @@ from cibyl.sources.zuul.apis.rest import (ZuulBuildRESTClient,
                                           ZuulPipelineRESTClient,
                                           ZuulProjectRESTClient,
                                           ZuulRESTClient, ZuulSession,
-                                          ZuulTenantRESTClient)
+                                          ZuulTenantRESTClient,
+                                          ZuulVariantRESTClient)
 
 
 class TestZuulSession(TestCase):
@@ -141,7 +142,13 @@ class TestZuulJobRESTClient(TestCase):
 
         client = ZuulJobRESTClient(session, tenant, job)
 
-        self.assertEqual(variants, client.variants())
+        self.assertEqual(
+            [
+                ZuulVariantRESTClient(session, client, variants[0]),
+                ZuulVariantRESTClient(session, client, variants[1])
+            ],
+            client.variants()
+        )
 
         session.get.assert_called_once_with(
             f"tenant/{tenant.name}/job/{job['name']}"
