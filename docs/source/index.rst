@@ -81,6 +81,7 @@ Index
 
    development/tests
    development/sources
+   development/features
    development/contribute
 
 

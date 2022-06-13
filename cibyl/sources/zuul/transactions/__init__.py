@@ -552,6 +552,14 @@ class VariantResponse:
         return JobResponse(self._variant.job)
 
     @property
+    def name(self):
+        """
+        :return: The variants name. Most likely, it will match its job's name.
+        :rtype: str
+        """
+        return self._variant.name
+
+    @property
     def data(self):
         """
         :return: Raw data of this variant

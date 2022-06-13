@@ -41,4 +41,4 @@ class TestJenkins(EndToEndTest):
 
             main()
 
-            self.assertIn('Total jobs found in query: 2', self.output)
+            self.assertIn('Total jobs found in query: 2', self.stdout)

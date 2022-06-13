@@ -17,6 +17,7 @@ import logging
 
 from overrides import overrides
 
+from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
@@ -39,4 +40,22 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
         if self.verbosity > 0:
             printer[-1].append(f' (type: {system.system_type.value})')
 
+        if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
+            for feature in system.features.values():
+                printer.add(self.print_feature(feature), 1)
+
+        return printer.build()
+
+    def print_feature(self, feature):
+        """Print a feature present in a system.
+        :param feature: The feature.
+        :type feature: :class:`cibyl.models.ci.base.feature.Feature`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
+        printer = IndentedTextBuilder()
+        name = feature.name.value
+        present = feature.present.value
+        printer.add(self.palette.blue(f'{name} feature: '), 0)
+        printer[-1].append(present)
         return printer.build()

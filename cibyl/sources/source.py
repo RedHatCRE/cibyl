@@ -21,7 +21,7 @@ from typing import Dict
 import requests
 
 from cibyl.cli.argument import Argument
-from cibyl.exceptions.source import NoSupportedSourcesFound
+from cibyl.exceptions.source import NoSupportedSourcesFound, NoValidSources
 from cibyl.utils.attrdict import AttrDict
 
 LOG = logging.getLogger(__name__)
@@ -178,3 +178,43 @@ def speed_index(speed):
         setattr(func, 'speed_index', speed)
         return func
     return decorator
+
+
+def source_information_from_method(source_method):
+    """Obtain source information from a method of a source object.
+
+    :param source_method: Source method that is used
+    :type source_method: method
+    :returns: string with source information identifying the object that the
+    method belongs to
+    :rtype: str
+    """
+    source = source_method.__self__
+    info_str = f"source: '{source.name}' of type: '{source.driver}'"
+    if LOG.getEffectiveLevel() <= logging.DEBUG:
+        info_str += f" using method {source_method.__name__}"
+    return info_str
+
+
+def select_source_method(system, method, **kwargs):
+    """Select the apropiate source considering the user input.
+
+    :param system: system to select sources from
+    :type system: :class:`.System`
+    :param argument: argument that is considered for the query
+    :type argument: :class:`.Argument`
+
+    :returns: List of pairs with source method and its speed index sorted
+    by the speed index value
+    :rtype: tuple
+    """
+    sources_user = kwargs.get("sources")
+    system_sources = system.sources
+    if sources_user:
+        system_sources = [source for source in system.sources if
+                          source.name in sources_user.value]
+    if not system_sources:
+        raise NoValidSources(system,
+                             [source.name for source in system.sources])
+    return get_source_method(system.name.value, system_sources,
+                             method, args=kwargs)

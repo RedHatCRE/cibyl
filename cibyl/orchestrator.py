@@ -25,36 +25,25 @@ from cibyl.cli.parser import Parser
 from cibyl.cli.query import get_query_type
 from cibyl.cli.validator import Validator
 from cibyl.config import Config, ConfigFactory
+from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import NonSupportedSystemKey
-from cibyl.exceptions.source import (NoSupportedSourcesFound, NoValidSources,
-                                     SourceException)
+from cibyl.exceptions.source import NoSupportedSourcesFound, SourceException
+from cibyl.features import get_feature, get_string_all_features, load_features
+from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.environment import Environment
 from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.system_factory import SystemType
 from cibyl.models.ci.zuul.system import ZuulSystem
+from cibyl.models.product.feature import Feature
 from cibyl.publisher import Publisher
-from cibyl.sources.source import get_source_method
+from cibyl.sources.source import (select_source_method,
+                                  source_information_from_method)
 from cibyl.sources.source_factory import SourceFactory
+from cibyl.utils.dicts import intersect_models
 from cibyl.utils.source_methods_store import SourceMethodsStore
 from cibyl.utils.status_bar import StatusBar
 
 LOG = logging.getLogger(__name__)
-
-
-def source_information_from_method(source_method):
-    """Obtain source information from a method of a source object.
-
-    :param source_method: Source method that is used
-    :type source_method: method
-    :returns: string with source information identifying the object that the
-    method belongs to
-    :rtype: str
-    """
-    source = source_method.__self__
-    info_str = f"source: '{source.name}' of type: '{source.driver}'"
-    if LOG.getEffectiveLevel() <= logging.DEBUG:
-        info_str += f" using method {source_method.__name__}"
-    return info_str
 
 
 class Orchestrator:
@@ -152,29 +141,6 @@ class Orchestrator:
         else:
             System.API = deepcopy(JobsSystem.API)
 
-    def select_source_method(self, system, argument):
-        """Select the apropiate source considering the user input.
-
-        :param system: system to select sources from
-        :type system: :class:`.System`
-        :param argument: argument that is considered for the query
-        :type argument: :class:`.Argument`
-
-        :returns: List of pairs with source method and its speed index sorted
-        by the speed index value
-        :rtype: tuple
-        """
-        sources_user = self.parser.ci_args.get("sources")
-        system_sources = system.sources
-        if sources_user:
-            system_sources = [source for source in system.sources if
-                              source.name in sources_user.value]
-        if not system_sources:
-            raise NoValidSources(system,
-                                 [source.name for source in system.sources])
-        return get_source_method(system.name.value, system_sources,
-                                 argument.func, args=self.parser.ci_args)
-
     def validate_environments(self):
         """Validate and filter environments created from configuration file
         according to user input."""
@@ -193,8 +159,60 @@ class Orchestrator:
                         if source.enabled:
                             source.setup()
 
+    def load_features(self):
+        """Read user-requested features and setup the right argument to query
+        the information for them."""
+        user_features = self.parser.ci_args.get('features')
+        if not user_features:
+            return []
+        load_features()
+        if user_features and not user_features.value:
+            # throw error in case cibyl is called with --features argument but
+            # without any specified feature
+            msg = "No feature specified. Choose one of the following "
+            msg += "features:"
+            msg += get_string_all_features()
+            raise InvalidArgument(msg)
+        return [get_feature(feature_name)
+                for feature_name in user_features.value]
+
+    def run_features(self, system, features_to_run):
+        """Run user-requested features, the output of each feature will be
+        stored in the system attributes. This output can either be
+        whether the feature is tested in the system or jobs where the feature
+        is tested."""
+        features_combination = None
+        for feature_to_run in features_to_run:
+            feature_info = feature_to_run.query(system,
+                                                **self.parser.ci_args,
+                                                **self.parser.app_args)
+            if feature_info is None:
+                # no successful query was performed
+                system.add_feature(Feature(feature_to_run.name,
+                                           "N/A"))
+                # set the returned info to an empty container to have an empty
+                # intersection
+                feature_info = AttributeDictValue("name")
+            else:
+                system.add_feature(Feature(feature_to_run.name,
+                                           bool(feature_info)))
+
+            if "jobs" in self.parser.ci_args:
+                if features_combination is None:
+                    features_combination = feature_info
+                else:
+                    features_combination = intersect_models(
+                            features_combination, feature_info)
+
+        if "jobs" in self.parser.ci_args:
+            # add the combined result for all features requested, e.g.
+            # the jobs that match all the features
+            system.populate(features_combination)
+
     def run_query(self, system, start_level=1):
         """Execute query based on provided arguments."""
+        if not system.is_enabled():
+            return
         debug = self.parser.app_args.get("debug", False)
         # sort cli arguments in decreasing order by level
         sorted_args = sorted(self.parser.ci_args.values(),
@@ -208,8 +226,6 @@ class Orchestrator:
                     # associated, we should not consider it here, e.g.
                     # --sources
                     continue
-                if not system.is_enabled():
-                    return
                 # we update last_level if the the arg has a func attribute
                 # and valid sources to query
                 last_level = arg.level
@@ -218,7 +234,9 @@ class Orchestrator:
                 # result of the source method call
                 system_args = system.export_attributes_to_source()
                 try:
-                    source_methods = self.select_source_method(system, arg)
+                    ci_args = self.parser.ci_args
+                    source_methods = select_source_method(system, arg.func,
+                                                          **ci_args)
                 except NoSupportedSourcesFound as exception:
                     # if no sources are found in the system for this
                     # particular query, jump to the next one without
@@ -282,7 +300,7 @@ class Orchestrator:
                 else:
                     self.parser.extend(arguments, group_name, level=level)
 
-    def query_and_publish(self, output_style="colorized"):
+    def query_and_publish(self, output_style="colorized", features=None):
         """Iterate over the environments and their systems and publish
         the results of the queries.
 
@@ -294,7 +312,10 @@ class Orchestrator:
                 query=get_query_type(**self.parser.ci_args),
                 verbosity=self.parser.app_args.get('verbosity'))
             for system in env.systems:
-                self.run_query(system)
+                if features:
+                    self.run_features(system, features)
+                else:
+                    self.run_query(system)
                 self.publisher.publish(
                     model_instance=system,
                     style=output_style,

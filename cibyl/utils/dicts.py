@@ -15,6 +15,8 @@
 """
 import logging
 
+from cibyl.models.attribute import AttributeDictValue
+
 LOG = logging.getLogger(__name__)
 
 
@@ -88,3 +90,26 @@ def chunk_dictionary_into_lists(dictionary: dict, size: int = 300) -> list:
             )[chunk_max_value:chunk_max_value + size]
         )
     return chunked_list
+
+
+def intersect_models(dict1, dict2):
+    """Combine two dictionaries that are returned from a source method call to
+    keep only those models that are present in both. It assumes that the models
+    present in both dictionaries are identical and takes them for the first
+    input dictionary.
+
+    :param dict1: The first dictionary with models.
+    :type dict1: dict
+    :param dict2: The second dictionary with models.
+    :type dict2: dict
+    :return: A new dictionary that contains only the models present in both
+    input dictionaries.
+    :rtype: dict
+    """
+    # TODO: jgilaber implement an intersection method in all models so that the
+    # intersection works for models that might contain other models, e.g.
+    # tenants in zuul
+    intersection = dict1.keys() & dict2.keys()
+    models = {key: dict1[key] for key in intersection}
+    return AttributeDictValue(dict1.name, attr_type=dict1.attr_type,
+                              value=models)

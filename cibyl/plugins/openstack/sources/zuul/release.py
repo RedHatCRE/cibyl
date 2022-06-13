@@ -13,6 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
 class ReleaseFinder:
@@ -58,6 +61,8 @@ class ReleaseFinder:
         :return: The release if it was found, 'N/A' if not.
         :rtype: str
         """
+        LOG.debug("Searching for release on variant: '%s'.", variant.name)
+
         variables = variant.variables(recursive=True)
 
         for search_term in self.search_terms:

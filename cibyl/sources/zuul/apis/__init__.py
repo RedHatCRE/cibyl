@@ -189,6 +189,14 @@ class ZuulVariantAPI(Closeable, ABC):
         return self._job
 
     @property
+    def name(self):
+        """
+        :return: The name of the variant.
+        :rtype: str
+        """
+        return self.raw['name']
+
+    @property
     def parent(self):
         """
         :return: Name of the parent job of this variant.
