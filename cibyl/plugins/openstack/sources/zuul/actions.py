@@ -14,7 +14,6 @@
 #    under the License.
 """
 import logging
-
 from dataclasses import dataclass
 
 from cibyl.plugins.openstack import Deployment
