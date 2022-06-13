@@ -28,17 +28,27 @@ class DeploymentGenerator:
     def __init__(self, tools=Tools()):
         self._tools = tools
 
-    def generate_deployment_for(self, variant):
+    def generate_deployment_for(self, variant, **kwargs):
         """
 
         :param variant:
         :type variant: :class:`cibyl.sources.zuul.transactions.VariantResponse`
         :return:
         """
+
+        def get_release():
+            if 'spec' in kwargs:
+                return release_finder.find_release_for(variant)
+
+            if 'release' in kwargs:
+                return release_finder.find_release_for(variant)
+
+            return ''
+
         release_finder = self._tools.release_finder
 
         return Deployment(
-            release=release_finder.find_release_for(variant),
+            release=get_release(),
             infra_type='',
             nodes={},
             services={}
@@ -79,6 +89,8 @@ class DeploymentQuery:
         for job in self._queries.jobs(self._api, **kwargs):
             for variant in self._queries.variants(job, **kwargs):
                 model = output.with_variant(variant)
-                model.deployment.value = dgen.generate_deployment_for(variant)
+                model.deployment.value = dgen.generate_deployment_for(
+                    variant, **kwargs
+                )
 
         return output.assemble()
