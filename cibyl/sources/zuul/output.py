@@ -87,7 +87,8 @@ class QueryOutputBuilder:
         tenant is not on the model, then it is also added to it.
 
         :param pipeline: The pipeline to add.
-        :type pipeline: :class:`cibyl.sources.zuul.transactions.PipelineResponse`
+        :type pipeline: :class:`
+            cibyl.sources.zuul.transactions.PipelineResponse`
         :return: Model for this pipeline.
         :rtype: :class:`Pipeline`
         """

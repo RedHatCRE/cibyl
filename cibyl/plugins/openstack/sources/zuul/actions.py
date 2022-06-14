@@ -14,9 +14,8 @@
 #    under the License.
 """
 import logging
-from enum import Enum
-
 from dataclasses import dataclass
+from enum import Enum
 
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.sources.zuul.release import ReleaseFinder
