@@ -4,7 +4,7 @@
 
   environments:                 # List of CI/CD environments
     production:                 # An environment called "production"
-      production_jenkins        # A single system called "production_jenkins"
+      production_jenkins:       # A single system called "production_jenkins"
         system_type: jenkins    # The type of the system (jenkins or zuul)
         sources:                # List of sources belong to "production_jenkins" system
           jenkins_api:          # The name of the source which belongs to "production_jenkins" system

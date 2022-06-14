@@ -76,9 +76,21 @@ class Source(AttrDict):
 
     def __init__(self, name: str = None, driver: str = None, **kwargs):
         kwargs.setdefault('enabled', True)
+        kwargs.setdefault('_setup', False)
         kwargs.setdefault('priority', 0)
 
         super().__init__(name=name, driver=driver, **kwargs)
+
+    def is_setup(self):
+        """Return wether the source has been setup."""
+        return self._setup
+
+    def ensure_source_setup(self):
+        """Ensure that setup is called for the source. If setup was previously
+        called, do nothing."""
+        if not self.is_setup():
+            self._setup = True
+            self.setup()
 
     @abstractmethod
     def setup(self):
@@ -218,3 +230,14 @@ def select_source_method(system, method, **kwargs):
                              [source.name for source in system.sources])
     return get_source_method(system.name.value, system_sources,
                              method, args=kwargs)
+
+
+def get_source_instance_from_method(source_method):
+    """Obtain the source object from a method that belongs to said object.
+
+    :param source_method: Source method that is used
+    :type source_method: method
+    :returns: source instance the input method belongs to
+    :rtype: :class:`.Source`
+    """
+    return source_method.__self__

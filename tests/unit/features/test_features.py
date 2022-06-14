@@ -17,12 +17,20 @@ import inspect
 import os
 from copy import deepcopy
 from unittest import TestCase
+from unittest.mock import patch
 
 from cibyl import features
 from cibyl.exceptions.cli import InvalidArgument
+from cibyl.exceptions.jenkins import JenkinsError
+from cibyl.exceptions.source import NoValidSources
 from cibyl.features import (FeatureTemplate, get_feature,
                             get_string_all_features, is_feature_class,
                             load_features)
+from cibyl.models.attribute import AttributeDictValue
+from cibyl.models.ci.base.job import Job
+from cibyl.models.ci.base.system import JobsSystem
+from cibyl.sources.jenkins import Jenkins
+from cibyl.sources.source import Source
 from cibyl.utils.colors import Colors
 from tests.unit.features.data.testing import Feature1, Feature2
 from tests.utils import RestoreAPIs
@@ -89,3 +97,46 @@ class TestFeaturesLoader(RestoreAPIs):
         self.assertEqual(len(features.features_locations), 2)
         self.assertIn(self.feature_path, features.features_locations)
         features.features_locations = deepcopy(original_location)
+
+    @patch.object(Jenkins, 'get_jobs')
+    def test_query(self, jenkins_jobs):
+        """Test a successful query using the query method of the
+        FeatureTemplate class."""
+        job = Job('job')
+        jenkins_jobs.return_value = AttributeDictValue('jobs',
+                                                       value={'job': job})
+        source = Jenkins(url='url')
+        system = JobsSystem('test', 'test-type', sources=[source])
+        feature1 = get_feature("Feature1")
+        result = feature1.query(system)
+        self.assertTrue(system.is_queried())
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result['job'].name.value, 'job')
+
+    def test_query_no_sources(self):
+        """Test that query method of the FeatureTemplate class returns None if
+        no source was found."""
+        system = JobsSystem('test', 'test-type')
+        feature1 = get_feature("Feature1")
+        with self.assertRaises(NoValidSources):
+            feature1.query(system)
+
+    def test_query_no_sources_support_query(self):
+        """Test that query method of the FeatureTemplate class returns None if
+        no source was found."""
+        source = Source('test')
+        system = JobsSystem('test', 'test-type', sources=[source])
+        feature1 = get_feature("Feature1")
+        self.assertIsNone(feature1.query(system))
+
+    @patch('cibyl.features.source_information_from_method',
+           return_value="")
+    @patch.object(Jenkins, 'get_jobs')
+    def test_query_sources_exception(self, jenkins_jobs, _):
+        """Test that query method of the FeatureTemplate class returns None if
+        all sources raises errors when queried."""
+        source = Jenkins(url='url')
+        jenkins_jobs.side_effect = JenkinsError
+        system = JobsSystem('test', 'test-type', sources=[source])
+        feature1 = get_feature("Feature1")
+        self.assertIsNone(feature1.query(system))

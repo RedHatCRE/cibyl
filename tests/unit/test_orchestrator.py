@@ -14,12 +14,11 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import cibyl.orchestrator
 from cibyl.config import Config
-from cibyl.exceptions.config import (CHECK_DOCS_MSG, InvalidConfiguration,
-                                     NonSupportedSystemKey)
+from cibyl.exceptions.config import CHECK_DOCS_MSG, NonSupportedSystemKey
 from cibyl.orchestrator import Orchestrator
 
 
@@ -29,10 +28,11 @@ class TestOrchestrator(TestCase):
     def setUp(self):
         self.orchestrator = Orchestrator()
 
-        self.invalid_config_data = {
+        self.missing_envs_config = {'environments': {}}
+
+        self.missing_system_type_config = {
             'environments': {
-                'env1': {
-                    'system1'}}}
+                'env1': 'system'}}
 
         self.valid_single_env_config_data = {
             'environments': {
@@ -134,18 +134,24 @@ class TestOrchestrator(TestCase):
 
         factory_call.assert_called_once_with(path_to_config)
 
-    def test_orchestrator_create_ci_environments(self):
-        """Testing Orchestartor query method"""
-        # No Environments
-        self.assertEqual(self.orchestrator.create_ci_environments(), None)
-        self.assertEqual(self.orchestrator.environments, [])
-
-        # Invalid configuration
+    def test_orchestrator_create_ci_envs_missing_envs(self):
+        """Testing orchestrator environments creation by using configuration
+        with missing environments."""
         self.orchestrator.config = Mock(Config())
-        self.orchestrator.config.data = self.invalid_config_data
-        with self.assertRaises(InvalidConfiguration):
+        self.orchestrator.config.data = self.missing_envs_config
+        with self.assertRaises(cibyl.exceptions.config.MissingEnvironments):
             self.orchestrator.create_ci_environments()
 
+    def test_orchestrator_create_ci_envs_missing_system_type(self):
+        """Testing orchestrator environments creation by using configuration
+        with missing system type."""
+        self.orchestrator.config = Mock(Config())
+        self.orchestrator.config.data = self.missing_system_type_config
+        with self.assertRaises(cibyl.exceptions.config.MissingSystemType):
+            self.orchestrator.create_ci_environments()
+
+    def test_orchestrator_create_ci_environments(self):
+        """Testing orchestrator environments creation."""
         # Single environment configuration
         self.orchestrator.config.data = self.valid_single_env_config_data
         self.orchestrator.environments = []
@@ -216,15 +222,6 @@ class TestOrchestrator(TestCase):
         self.assertEqual(len(env.systems.value), 1)
         self.assertEqual(env.name.value, 'env4')
         self.assertEqual(env.systems[0].name.value, 'system1')
-
-    @patch("cibyl.sources.elasticsearch.api.ElasticSearch.setup")
-    def test_setup_sources(self, patched_setup):
-        """Test that setup_sources calls the setup method of the sources
-        enabled in the environment."""
-        self.orchestrator.config.data = self.valid_env_sources_disabled
-        self.orchestrator.create_ci_environments()
-        self.orchestrator.setup_sources()
-        patched_setup.assert_called_once_with()
 
     def test_not_supported_system_key_jobs_system(self):
         """Test that a NonSupportedSystemKey is raised if the configuration

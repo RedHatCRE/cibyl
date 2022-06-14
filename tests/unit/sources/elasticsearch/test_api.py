@@ -280,6 +280,17 @@ class TestElasticSearch(TestCase):
         es_api.setup()
         mock_client.assert_called_with("https://example.com", 9200)
 
+    @patch('cibyl.sources.elasticsearch.api.ElasticSearchClient')
+    def test_ensure_setup(self, mock_client):
+        """Test ensure_setup method of ElasticSearch"""
+        es_api = ElasticSearch(elastic_client=None,
+                               url="https://example.com:9200")
+        client = mock_client.return_value
+        client.connect.side_effect = None
+        es_api.ensure_source_setup()
+        self.assertTrue(es_api.is_setup())
+        mock_client.assert_called_with("https://example.com", 9200)
+
 
 class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
     """Test cases for :class:`ElasticSearch` with openstack plugin."""
