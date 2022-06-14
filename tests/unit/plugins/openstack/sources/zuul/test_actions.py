@@ -16,10 +16,10 @@
 from unittest import TestCase
 from unittest.mock import Mock, call
 
-from cibyl.plugins.openstack.sources.zuul.actions import (DeploymentGenerator,
+from cibyl.plugins.openstack.sources.zuul.actions import (DeploymentFiltering,
+                                                          DeploymentGenerator,
                                                           DeploymentQuery,
-                                                          SpecArgumentHandler,
-                                                          DeploymentFiltering)
+                                                          SpecArgumentHandler)
 
 
 class TestDeploymentGenerator(TestCase):
