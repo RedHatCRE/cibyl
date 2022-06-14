@@ -64,6 +64,9 @@ class Argument():
             parsed_expressions.append(Range(operator, operand))
         return parsed_expressions
 
+    def __bool__(self):
+        return bool(self.value)
+
     def __eq__(self, other):
         return self.name == other.name and self.value == other.value
 

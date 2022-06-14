@@ -42,7 +42,7 @@ class QueryOutputBuilder:
         already present on the model, then this is ignored.
 
         :param tenant: The tenant to add.
-        :type tenant: :class:`cibyl.sources.zuul.requests.TenantResponse`
+        :type tenant: :class:`cibyl.sources.zuul.transactions.TenantResponse`
         :return: Model for this tenant.
         :rtype: :class:`Tenant`
         """
@@ -63,7 +63,7 @@ class QueryOutputBuilder:
         tenant is not on the model, then it is also added to it.
 
         :param project: The project to add.
-        :type project: :class:`cibyl.sources.zuul.requests.ProjectResponse`
+        :type project: :class:`cibyl.sources.zuul.transactions.ProjectResponse`
         :return: Model for this project.
         :rtype: :class:`Project`
         """
@@ -87,7 +87,8 @@ class QueryOutputBuilder:
         tenant is not on the model, then it is also added to it.
 
         :param pipeline: The pipeline to add.
-        :type pipeline: :class:`cibyl.sources.zuul.requests.PipelineResponse`
+        :type pipeline: :class:`
+            cibyl.sources.zuul.transactions.PipelineResponse`
         :return: Model for this pipeline.
         :rtype: :class:`Pipeline`
         """
@@ -111,7 +112,7 @@ class QueryOutputBuilder:
         tenant is not on the model, then it is also added to it.
 
         :param job: The job to add.
-        :type job: :class:`cibyl.sources.zuul.requests.JobResponse`
+        :type job: :class:`cibyl.sources.zuul.transactions.JobResponse`
         :return: Model for this job.
         :rtype: :class:`Job`
         """
@@ -136,7 +137,7 @@ class QueryOutputBuilder:
         job is not on the model, then it is also added.
 
         :param variant: The variant to add.
-        :type variant: :class:`cibyl.sources.zuul.requests.VariantResponse`
+        :type variant: :class:`cibyl.sources.zuul.transactions.VariantResponse`
         :return: Model for this variant
         :rtype: :class:`Job.Variant`
         """
@@ -157,7 +158,7 @@ class QueryOutputBuilder:
         job is not on the model, then it is also added to it.
 
         :param build: The build to add.
-        :type build: :class:`cibyl.sources.zuul.requests.BuildResponse`
+        :type build: :class:`cibyl.sources.zuul.transactions.BuildResponse`
         :return: Model for this build.
         :rtype: :class:`Build`
         """

@@ -20,10 +20,10 @@ def perform_pipelines_query(zuul, **kwargs):
     """Query for pipelines.
 
     :param zuul: API to interact with Zuul with.
-    :type zuul: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :type zuul: :class:`cibyl.sources.zuul.apis.ZuulAPI`
     :param kwargs: See :func:`handle_query`.
     :return: List of retrieved pipelines.
-    :rtype: list[:class:`cibyl.sources.zuul.requests.PipelineResponse`]
+    :rtype: list[:class:`cibyl.sources.zuul.transactions.PipelineResponse`]
     """
     result = []
 
