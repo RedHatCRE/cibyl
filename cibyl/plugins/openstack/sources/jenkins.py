@@ -480,22 +480,23 @@ accurate results", len(jobs_found))
             LOG.debug("Found no artifact %s for job %s", artifact_path,
                       job_name)
 
-        artifact_path = "infrared/test.yml"
-        artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
-        try:
-            artifact = self.send_request(item="", query="",
-                                         url=artifact_url,
-                                         raw_response=True)
-            artifact = yaml.safe_load(artifact)
-            test = artifact.get("test", {})
-            setup = test.get("setup")
-            tests = test.get("tests", [])
-            test_names = {get_file_name_from_path(test) for test in tests}
-            job["test_collection"] = TestCollection(test_names, setup)
+        if spec:
+            artifact_path = "infrared/test.yml"
+            artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
+            try:
+                artifact = self.send_request(item="", query="",
+                                             url=artifact_url,
+                                             raw_response=True)
+                artifact = yaml.safe_load(artifact)
+                test = artifact.get("test", {})
+                setup = test.get("setup")
+                tests = test.get("tests", [])
+                test_names = {get_file_name_from_path(test) for test in tests}
+                job["test_collection"] = TestCollection(test_names, setup)
 
-        except JenkinsError:
-            LOG.debug("Found no artifact %s for job %s", artifact_path,
-                      job_name)
+            except JenkinsError:
+                LOG.debug("Found no artifact %s for job %s", artifact_path,
+                          job_name)
 
         if query_topology:
             if not job.get("topology", ""):
