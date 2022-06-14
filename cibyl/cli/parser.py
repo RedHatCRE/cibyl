@@ -91,6 +91,11 @@ class Parser:
             help="Causes Cibyl to print more debug messages. "
                  "Adding multiple -v will increase the verbosity.")
 
+    def print_help(self):
+        """Call argparse's print_help method to show the help message with the
+        arguments that are currently added."""
+        self.argument_parser.print_help()
+
     def parse(self, arguments=None):
         """Parse application and CI models arguments.
 

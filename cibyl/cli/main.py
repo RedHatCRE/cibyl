@@ -19,7 +19,7 @@ import sys
 from cibyl.cli.output import OutputStyle
 from cibyl.exceptions import CibylException
 from cibyl.exceptions.cli import InvalidArgument
-from cibyl.exceptions.config import ConfigurationNotFound
+from cibyl.exceptions.config import ConfigurationNotFound, EmptyConfiguration
 from cibyl.orchestrator import Orchestrator
 from cibyl.plugins import enable_plugins
 from cibyl.utils.colors import Colors
@@ -84,15 +84,15 @@ def main():
     # to run the app parser only once, after we update it with the loaded
     # arguments from the CI models based on the loaded configuration file
     arguments = raw_parsing(sys.argv)
+    configure_logging(arguments.get('log_mode'),
+                      arguments.get('log_file'),
+                      arguments.get('logging'))
+    orchestrator = Orchestrator()
 
     try:
-        configure_logging(arguments.get('log_mode'),
-                          arguments.get('log_file'),
-                          arguments.get('logging'))
-        orchestrator = Orchestrator()
         try:
             orchestrator.load_configuration(arguments.get('config_file_path'))
-        except ConfigurationNotFound as ex:
+        except (ConfigurationNotFound, EmptyConfiguration) as ex:
             # Check if the error is to be ignored
             if not arguments.get('help', False):
                 raise ex
@@ -118,6 +118,13 @@ def main():
         orchestrator.query_and_publish(arguments["output_style"],
                                        features=features)
     except CibylException as ex:
+        if arguments.get('help', False):
+            # if the user wants to see the --help, we should show it even if
+            # there was some exception raised, e.g. empty or not found
+            # configuration, missing environments, systems, etc.
+            orchestrator.parser.print_help()
+            sys.exit(1)
+
         if arguments["debug"]:
             raise ex
 
