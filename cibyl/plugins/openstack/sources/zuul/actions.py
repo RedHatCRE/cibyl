@@ -187,12 +187,13 @@ class DeploymentFiltering:
         filters = []
 
         if 'release' in kwargs:
-            value = kwargs['release'].value
+            patterns = kwargs['release'].value
 
-            if value:
-                filters.append(
-                    lambda dpl: matches_regex(value, dpl.release.value)
-                )
+            if patterns:
+                for pattern in patterns:
+                    filters.append(
+                        lambda dpl: matches_regex(pattern, dpl.release.value)
+                    )
 
         self._filters += filters
 

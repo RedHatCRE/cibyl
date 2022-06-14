@@ -39,7 +39,7 @@ class TestDeploymentQuery(TestCase):
             return [variant1, variant2]
 
         release_arg = Mock()
-        release_arg.value = '1.*'
+        release_arg.value = ['1.*']
 
         kwargs = {
             'release': release_arg
