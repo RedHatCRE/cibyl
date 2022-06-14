@@ -98,14 +98,19 @@ class TestFeaturesLoader(RestoreAPIs):
         self.assertIn(self.feature_path, features.features_locations)
         features.features_locations = deepcopy(original_location)
 
+    @patch('cibyl.features.get_source_instance_from_method')
+    @patch('cibyl.features.source_information_from_method')
     @patch.object(Jenkins, 'get_jobs')
-    def test_query(self, jenkins_jobs):
+    def test_query(self, jenkins_jobs, source_information_patched,
+                   get_source_instance_patched):
         """Test a successful query using the query method of the
         FeatureTemplate class."""
         job = Job('job')
         jenkins_jobs.return_value = AttributeDictValue('jobs',
                                                        value={'job': job})
+        source_information_patched.return_value = ""
         source = Jenkins(url='url')
+        get_source_instance_patched.return_value = source
         system = JobsSystem('test', 'test-type', sources=[source])
         feature1 = get_feature("Feature1")
         result = feature1.query(system)
@@ -129,14 +134,18 @@ class TestFeaturesLoader(RestoreAPIs):
         feature1 = get_feature("Feature1")
         self.assertIsNone(feature1.query(system))
 
-    @patch('cibyl.features.source_information_from_method',
-           return_value="")
+    @patch('cibyl.features.get_source_instance_from_method')
+    @patch('cibyl.features.source_information_from_method')
     @patch.object(Jenkins, 'get_jobs')
-    def test_query_sources_exception(self, jenkins_jobs, _):
+    def test_query_sources_exception(self, jenkins_jobs,
+                                     source_information_patched,
+                                     get_source_instance_patched):
         """Test that query method of the FeatureTemplate class returns None if
         all sources raises errors when queried."""
         source = Jenkins(url='url')
         jenkins_jobs.side_effect = JenkinsError
+        source_information_patched.return_value = ""
+        get_source_instance_patched.return_value = source
         system = JobsSystem('test', 'test-type', sources=[source])
         feature1 = get_feature("Feature1")
         self.assertIsNone(feature1.query(system))
