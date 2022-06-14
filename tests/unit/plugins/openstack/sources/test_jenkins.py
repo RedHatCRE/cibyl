@@ -331,8 +331,7 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb"),
-                JenkinsError]  # mock test.yaml
+                                   False, "path/to/ovb")]
         # one call to get_packages_node and get_containers_node per node
         artifacts.extend([JenkinsError()]*(5*2))
         artifacts.extend([services])
@@ -340,8 +339,7 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb"),
-                JenkinsError])  # mock test.yaml
+                                   False, "path/to/ovb")])
         # one call to get_packages_node and get_containers_node per node
         artifacts.extend([JenkinsError()]*(3*2))
         artifacts.extend([services])
@@ -350,8 +348,7 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb"),
-                JenkinsError])  # mock test.yaml
+                                   False, "path/to/ovb")])
         # one call to get_packages_node and get_containers_node per node
         artifacts.extend([JenkinsError()]*(4*2))
         artifacts.extend([services])
@@ -829,17 +826,14 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", dvr_status[0], False, ""),
-                JenkinsError(),  # test.yaml
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", dvr_status[1],
                                    False, ""),
-                JenkinsError(),  # test.yaml
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", dvr_status[2],
-                                   False, ""),
-                JenkinsError()]
+                                   False, "")]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -891,17 +885,14 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", dvr_status[0], False, "",
                                    ml2_driver="ovs"),
-                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", dvr_status[1],
                                    False, "", ml2_driver="ovn"),
-                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", dvr_status[2],
-                                   False, ""),
-                JenkinsError()]  # mock test.yaml
+                                   False, "")]
         # one call to get_packages_node and get_containers_node per node, plus
         # one to get_services
 
@@ -956,18 +947,15 @@ tripleo_ironic_conductor.service loaded    active     running
                                    "ceph", "geneve", dvr_status[0], False, "",
                                    ml2_driver="ovs",
                                    overcloud_templates=["a", "b"]),
-                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", dvr_status[1],
                                    False, "", ml2_driver="ovn",
                                    overcloud_templates=["c"]),
-                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", dvr_status[2],
-                                   False, ""),
-                JenkinsError()]  # mock test.yaml
+                                   False, "")]
         # one call to get_packages_node and get_containers_node per node, plus
         # one to get_services
 
@@ -1052,17 +1040,14 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False, tls_status[0], ""),
-                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", False,
                                    tls_status[1], ""),
-                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", False,
-                                   tls_status[2], ""),
-                JenkinsError()]
+                                   tls_status[2], "")]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1115,17 +1100,14 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(""),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False, tls_status[0], ""),
-                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(""),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", False,
                                    tls_status[1], ""),
-                JenkinsError(),  # mock test.yaml
                 get_yaml_from_topology_string(""),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", False,
-                                   tls_status[2], ""),
-                JenkinsError()]
+                                   tls_status[2], "")]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -1279,8 +1261,7 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb"),
-                JenkinsError]  # mock test.yaml
+                                   False, "path/to/ovb")]
         # one call to get_packages_node and get_containers_node per node
         artifacts.extend([JenkinsError()]*(5*2))
         artifacts.extend([services])
@@ -1288,8 +1269,7 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[1]),
                 get_yaml_overcloud(ip_versions[1], releases[1],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb"),
-                JenkinsError])  # mock test.yaml
+                                   False, "path/to/ovb")])
         # one call to get_packages_node and get_containers_node per node
         artifacts.extend([JenkinsError()]*(3*2))
         artifacts.extend([services])
@@ -1298,8 +1278,7 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[2]),
                 get_yaml_overcloud(ip_versions[2], releases[2],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb"),
-                JenkinsError])  # mock test.yaml
+                                   False, "path/to/ovb")])
         # one call to get_packages_node and get_containers_node per node
         artifacts.extend([JenkinsError()]*(4*2))
         artifacts.extend([services])
@@ -1745,8 +1724,7 @@ tripleo_ironic_conductor.service loaded    active     running
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
                                    "ceph", "geneve", False,
-                                   False, "path/to/ovb"),
-                JenkinsError()]  # mock test.yaml
+                                   False, "path/to/ovb")]
         # two call to get_packages_node and get_containers_node per node
         for _ in range(5):
             artifacts.append(containers)
