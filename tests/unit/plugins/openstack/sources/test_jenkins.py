@@ -367,8 +367,9 @@ tripleo_ironic_conductor.service loaded    active     running
             "infra_type": Argument("infra_type", str, "", value=[]),
             "nodes": Argument("nodes", str, "", value=[]),
             "ip_version": Argument("ip_version", str, "", value=[]),
-            "dvr": Argument("dvr", str, "", value=[]),
-            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
+            "dvr": Argument("dvr", str, "", value=['False']),
+            "tls_everywhere": Argument("tls_everywhere", str, "",
+                                       value=['False']),
             "network_backend": Argument("network_backend", str, "", value=[]),
             "storage_backend": Argument("storage_backend", str, "", value=[])
         }
@@ -731,7 +732,8 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.infra_type.value, "ovb")
 
     def test_get_deployment_filter_dvr(self):
-        """Test that get_deployment filters by dvr."""
+        """Test that get_deployment filters by dvr using a case-insensitive
+        matching."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont_no_dvr',
                      'test_16_ipv6_job_1comp_2cont_dvr', 'test_job']
         response = {'jobs': [{'_class': 'folder'}]}
@@ -743,7 +745,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.jenkins.send_request = Mock(side_effect=[response])
 
         args = {
-            "dvr": Argument("dvr", str, "", value=["False"])
+            "dvr": Argument("dvr", str, "", value=["false"])
         }
         jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
@@ -760,36 +762,24 @@ tripleo_ironic_conductor.service loaded    active     running
 
     def test_get_deployment_artifacts_ironic_inspector(self):
         """ Test that get_deployment filters by ironic_inspector."""
-        job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
-        ip_versions = ['4', '6', 'unknown']
-        releases = ['17.3', '16', '']
-        dvr_status = ['True', 'True', '']
-        topologies = ["compute:2,controller:3", "compute:1,controller:2",
-                      "compute:2,controller:2"]
+        job_name = 'test_17.3_ipv4_job'
+        ip_version = '4'
+        release = '17.3'
+        dvr_status = 'True'
+        topology = "compute:2,controller:3"
 
         response = {'jobs': [{'_class': 'folder'}]}
         logs_url = 'href="link">Browse logs'
-        for job_name in job_names:
-            response['jobs'].append({'_class': 'org.job.WorkflowJob',
-                                     'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+        response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                 'name': job_name, 'url': 'url',
+                                 'lastCompletedBuild': {'description':
+                                                        logs_url}})
         artifacts = [
-                get_yaml_from_topology_string(topologies[0]),
-                get_yaml_overcloud(ip_versions[0], releases[0],
-                                   "ceph", "geneve", dvr_status[0], False, "",
+                get_yaml_from_topology_string(topology),
+                get_yaml_overcloud(ip_version, release,
+                                   "ceph", "geneve", dvr_status, False, "",
                                    ironic_inspector=True),
-                JenkinsError(),  # mock test.yaml
-                get_yaml_from_topology_string(topologies[1]),
-                get_yaml_overcloud(ip_versions[1], releases[1],
-                                   "ceph", "geneve", dvr_status[1],
-                                   False, "", ironic_inspector=False),
-                JenkinsError(),  # mock test.yaml
-                get_yaml_from_topology_string(topologies[2]),
-                get_yaml_overcloud(ip_versions[2], releases[2],
-                                   "ceph", "geneve", dvr_status[2],
-                                   False, ""),
-                JenkinsError()]
+                JenkinsError()]  # mock test.yaml
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
 
@@ -798,11 +788,9 @@ tripleo_ironic_conductor.service loaded    active     running
             "release": Argument("release", str, "", value=[]),
             "infra_type": Argument("infra_type", str, "", value=[]),
             "nodes": Argument("nodes", str, "", value=[]),
-            "ip_version": Argument("ip_version", str, "", value=[]),
-            "dvr": Argument("dvr", str, "", value=[]),
             "ironic_inspector": Argument("ironic_inspector", str, "",
                                          value=["True"]),
-            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
             "network_backend": Argument("network_backend", str, "", value=[]),
             "storage_backend": Argument("storage_backend", str, "", value=[])
         }
@@ -814,10 +802,9 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
-        self.assertEqual(deployment.release.value, releases[0])
-        self.assertEqual(deployment.ip_version.value, ip_versions[0])
-        self.assertEqual(deployment.topology.value, topologies[0])
-        self.assertEqual(deployment.dvr.value, dvr_status[0])
+        self.assertEqual(deployment.release.value, release)
+        self.assertEqual(deployment.ip_version.value, ip_version)
+        self.assertEqual(deployment.topology.value, topology)
         self.assertEqual(deployment.ironic_inspector.value, "True")
 
     def test_get_deployment_artifacts_dvr(self):
@@ -827,7 +814,7 @@ tripleo_ironic_conductor.service loaded    active     running
         job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
         ip_versions = ['4', '6', 'unknown']
         releases = ['17.3', '16', '']
-        dvr_status = ['True', 'True', '']
+        dvr_status = ['True', 'True', 'True']
         topologies = ["compute:2,controller:3", "compute:1,controller:2",
                       "compute:2,controller:2"]
 
@@ -863,7 +850,6 @@ tripleo_ironic_conductor.service loaded    active     running
             "nodes": Argument("nodes", str, "", value=[]),
             "ip_version": Argument("ip_version", str, "", value=[]),
             "dvr": Argument("dvr", str, "", value=[]),
-            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
             "network_backend": Argument("network_backend", str, "", value=[]),
             "storage_backend": Argument("storage_backend", str, "", value=[])
         }
@@ -889,7 +875,7 @@ tripleo_ironic_conductor.service loaded    active     running
         job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
         ip_versions = ['4', '6', 'unknown']
         releases = ['17.3', '16', '']
-        dvr_status = ['True', 'True', '']
+        dvr_status = ['True', 'True', 'True']
         topologies = ["compute:2,controller:3", "compute:1,controller:2",
                       "compute:2,controller:2"]
 
@@ -929,7 +915,6 @@ tripleo_ironic_conductor.service loaded    active     running
             "ip_version": Argument("ip_version", str, "", value=[]),
             "dvr": Argument("dvr", str, "", value=[]),
             "ml2_driver": Argument("ml2_driver", str, "", value=["ovs"]),
-            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
             "network_backend": Argument("network_backend", str, "", value=[]),
             "storage_backend": Argument("storage_backend", str, "", value=[])
         }
@@ -954,7 +939,7 @@ tripleo_ironic_conductor.service loaded    active     running
         job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
         ip_versions = ['4', '6', 'unknown']
         releases = ['17.3', '16', '']
-        dvr_status = ['True', 'True', '']
+        dvr_status = ['True', 'True', 'True']
         topologies = ["compute:2,controller:3", "compute:1,controller:2",
                       "compute:2,controller:2"]
 
@@ -998,7 +983,6 @@ tripleo_ironic_conductor.service loaded    active     running
             "ml2_driver": Argument("ml2_driver", str, "", value=[]),
             "overcloud_templates": Argument("overcloud_templates", str, "",
                                             value=["a"]),
-            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
             "network_backend": Argument("network_backend", str, "", value=[]),
             "storage_backend": Argument("storage_backend", str, "", value=[])
         }
@@ -1053,7 +1037,7 @@ tripleo_ironic_conductor.service loaded    active     running
         job_names = ['test_17.3_ipv4_job', 'test_16_ipv6_job', 'test_job']
         ip_versions = ['4', '6', 'unknown']
         releases = ['17.3', '16', '']
-        tls_status = ['True', 'True', '']
+        tls_status = ['True', 'True', 'True']
         topologies = ["compute:2,controller:3", "compute:1,controller:2",
                       "compute:2,controller:2"]
 
@@ -1088,7 +1072,7 @@ tripleo_ironic_conductor.service loaded    active     running
             "infra_type": Argument("infra_type", str, "", value=[]),
             "nodes": Argument("nodes", str, "", value=[]),
             "ip_version": Argument("ip_version", str, "", value=[]),
-            "dvr": Argument("dvr", str, "", value=[]),
+            "dvr": Argument("dvr", str, "", value=['False']),
             "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
             "network_backend": Argument("network_backend", str, "", value=[]),
             "storage_backend": Argument("storage_backend", str, "", value=[])
@@ -1116,7 +1100,7 @@ tripleo_ironic_conductor.service loaded    active     running
                      'test_16_ipv6_1comp_2cont_job', 'test_2comp_2cont_job']
         ip_versions = ['4', '6', 'unknown']
         releases = ['17.3', '16', '']
-        tls_status = ['True', 'True', '']
+        tls_status = ['True', 'True', 'True']
         topologies = ["compute:2,controller:3", "compute:1,controller:2",
                       "compute:2,controller:2"]
 
@@ -1332,8 +1316,9 @@ tripleo_ironic_conductor.service loaded    active     running
             "infra_type": Argument("infra_type", str, "", value=[]),
             "nodes": Argument("nodes", str, "", value=[]),
             "ip_version": Argument("ip_version", str, "", value=[]),
-            "dvr": Argument("dvr", str, "", value=[]),
-            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
+            "dvr": Argument("dvr", str, "", value=['False']),
+            "tls_everywhere": Argument("tls_everywhere", str, "",
+                                       value=['False']),
             "network_backend": Argument("network_backend", str, "", value=[]),
             "storage_backend": Argument("storage_backend", str, "", value=[])
         }
@@ -1777,8 +1762,9 @@ tripleo_ironic_conductor.service loaded    active     running
             "infra_type": Argument("infra_type", str, "", value=[]),
             "nodes": Argument("nodes", str, "", value=[]),
             "ip_version": Argument("ip_version", str, "", value=[]),
-            "dvr": Argument("dvr", str, "", value=[]),
-            "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
+            "dvr": Argument("dvr", str, "", value=['False']),
+            "tls_everywhere": Argument("tls_everywhere", str, "",
+                                       value=['False']),
             "network_backend": Argument("network_backend", str, "", value=[]),
             "storage_backend": Argument("storage_backend", str, "", value=[])
         }
