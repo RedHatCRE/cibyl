@@ -117,7 +117,10 @@ class TestSpecArgumentHandler(TestCase):
 
         handler = SpecArgumentHandler()
 
-        self.assertEqual(job, handler.get_target_jobs(**kwargs))
+        self.assertEqual(
+            SpecArgumentHandler.Option.JOBS,
+            handler.get_target_jobs(**kwargs)
+        )
 
     def test_spec_but_empty_jobs(self):
         """Check that if no job is indicated on the 'jobs' arg, the jobs
@@ -132,7 +135,10 @@ class TestSpecArgumentHandler(TestCase):
 
         handler = SpecArgumentHandler()
 
-        self.assertEqual(job, handler.get_target_jobs(**kwargs))
+        self.assertEqual(
+            SpecArgumentHandler.Option.SPEC,
+            handler.get_target_jobs(**kwargs)
+        )
 
     def test_empty_spec_and_jobs(self):
         """Check that if both arguments are empty, then all jobs will be
@@ -146,7 +152,10 @@ class TestSpecArgumentHandler(TestCase):
         handler = SpecArgumentHandler()
 
         # Empty means all jobs
-        self.assertEqual('', handler.get_target_jobs(**kwargs))
+        self.assertEqual(
+            SpecArgumentHandler.Option.EMPTY,
+            handler.get_target_jobs(**kwargs)
+        )
 
     def test_different_spec_and_jobs(self):
         """Checks that if both arguments have a value, the 'spec' on is
@@ -162,7 +171,10 @@ class TestSpecArgumentHandler(TestCase):
 
         handler = SpecArgumentHandler()
 
-        self.assertEqual(job2, handler.get_target_jobs(**kwargs))
+        self.assertEqual(
+            SpecArgumentHandler.Option.SPEC,
+            handler.get_target_jobs(**kwargs)
+        )
 
     def test_spec_but_no_jobs(self):
         """Checks if the 'spec' argument is present but the 'jobs' is not,
@@ -176,7 +188,10 @@ class TestSpecArgumentHandler(TestCase):
 
         handler = SpecArgumentHandler()
 
-        self.assertEqual(job, handler.get_target_jobs(**kwargs))
+        self.assertEqual(
+            SpecArgumentHandler.Option.SPEC,
+            handler.get_target_jobs(**kwargs)
+        )
 
     def test_jobs_but_no_spec(self):
         """Checks if the 'jobs' argument is present but the 'spec' is not,
@@ -190,7 +205,10 @@ class TestSpecArgumentHandler(TestCase):
 
         handler = SpecArgumentHandler()
 
-        self.assertEqual(job, handler.get_target_jobs(**kwargs))
+        self.assertEqual(
+            SpecArgumentHandler.Option.JOBS,
+            handler.get_target_jobs(**kwargs)
+        )
 
     def test_neither_argument(self):
         """Checks that nothing is returned if neither argument is present.
@@ -200,7 +218,10 @@ class TestSpecArgumentHandler(TestCase):
 
         handler = SpecArgumentHandler()
 
-        self.assertEqual(None, handler.get_target_jobs(**kwargs))
+        self.assertEqual(
+            SpecArgumentHandler.Option.NONE,
+            handler.get_target_jobs(**kwargs)
+        )
 
 
 class TestDeploymentQuery(TestCase):
