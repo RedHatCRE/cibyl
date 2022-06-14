@@ -38,6 +38,10 @@ class Job(BaseJob):
                 'attr_type': str,
                 'arguments': []
             },
+            'name': {
+                'attr_type': str,
+                'arguments': []
+            },
             'description': {
                 'attr_type': str,
                 'arguments': []
@@ -57,7 +61,7 @@ class Job(BaseJob):
         """
 
         def __init__(self,
-                     parent,
+                     parent, name,
                      description=None,
                      branches=None,
                      variables=None):
@@ -65,6 +69,8 @@ class Job(BaseJob):
 
             :param parent: Name of the parent job of this variant.
             :type: parent: str
+            :param name: Name of the variant.
+            :type name: str
             :param description: Description of the variant.
             :type description: str
             :param branches: Branches the variant targets.
@@ -75,6 +81,7 @@ class Job(BaseJob):
             super().__init__(
                 {
                     'parent': parent,
+                    'name': name,
                     'description': description,
                     'branches': branches,
                     'variables': variables
@@ -95,6 +102,7 @@ class Job(BaseJob):
             """
             return Job.Variant(
                 parent=data.get('parent', 'Unknown'),
+                name=data.get('name', 'Unknown'),
                 description=data.get('description'),
                 branches=data.get('branches'),
                 variables=data.get('variables')
