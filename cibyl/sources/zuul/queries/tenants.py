@@ -24,10 +24,10 @@ def perform_tenants_query(zuul, **kwargs):
     """Query for tenants.
 
     :param zuul: API to interact with Zuul with.
-    :type zuul: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :type zuul: :class:`cibyl.sources.zuul.apis.ZuulAPI`
     :param kwargs: See :func:`handle_query`.
     :return: List of retrieved tenants.
-    :rtype: list[:class:`cibyl.sources.zuul.requests.TenantResponse`]
+    :rtype: list[:class:`cibyl.sources.zuul.transactions.TenantResponse`]
     """
     tenants = TenantsRequest(zuul)
 

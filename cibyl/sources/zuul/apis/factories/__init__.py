@@ -31,6 +31,6 @@ class ZuulAPIFactory(ABC):
         :param kwargs: Additional arguments.
         :type kwargs: Any
         :return: The API instance.
-        :type: :class:`cibyl.sources.zuul.api.ZuulAPI`
+        :type: :class:`cibyl.sources.zuul.apis.ZuulAPI`
         """
         raise NotImplementedError

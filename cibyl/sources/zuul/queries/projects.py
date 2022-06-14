@@ -20,10 +20,10 @@ def perform_projects_query(zuul, **kwargs):
     """Query for projects.
 
     :param zuul: API to interact with Zuul with.
-    :type zuul: :class:`cibyl.sources.zuul.api.ZuulAPI`
+    :type zuul: :class:`cibyl.sources.zuul.apis.ZuulAPI`
     :param kwargs: See :func:`handle_query`.
     :return: List of retrieved projects.
-    :rtype: list[:class:`cibyl.sources.zuul.requests.ProjectResponse`]
+    :rtype: list[:class:`cibyl.sources.zuul.transactions.ProjectResponse`]
     """
     result = []
 
