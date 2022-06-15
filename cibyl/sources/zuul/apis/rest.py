@@ -228,8 +228,9 @@ class ZuulVariantRESTClient(ZuulVariantAPI):
 
         result = {}
 
-        get_own_variables()
+        # Own variables will overwrite parent ones.
         get_parent_variables()
+        get_own_variables()
 
         return result
 
