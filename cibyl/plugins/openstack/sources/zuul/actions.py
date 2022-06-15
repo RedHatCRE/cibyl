@@ -16,11 +16,13 @@
 import logging
 from dataclasses import dataclass
 from enum import Enum
+from typing import Callable
 
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.sources.zuul.release import ReleaseFinder
 from cibyl.sources.zuul.output import QueryOutputBuilder
 from cibyl.sources.zuul.queries.jobs import perform_jobs_query
+from cibyl.utils.filtering import matches_regex
 
 LOG = logging.getLogger(__name__)
 
@@ -47,50 +49,6 @@ def _default_variant_query(job, **kwargs):
     :rtype: list[:class:`cibyl.sources.zuul.transactions.VariantResponse`]
     """
     return job.variants().get()
-
-
-class DeploymentGenerator:
-    """Factory for generation of :class:`Deployment`.
-    """
-
-    class Tools:
-        """Tools the factory will use to do its task.
-        """
-        release_finder = ReleaseFinder()
-        """Takes care of finding the release of the deployment."""
-
-    def __init__(self, tools=Tools()):
-        """Constructor.
-
-        :param tools: The tools this will use.
-        :type tools: :class:`DeploymentGenerator.Tools`
-        """
-        self._tools = tools
-
-    def generate_deployment_for(self, variant, **kwargs):
-        """Creates a new deployment based on the data from a job's variant.
-
-        :param variant: The variant to fetch data from.
-        :type variant: :class:`cibyl.sources.zuul.transactions.VariantResponse`
-        :return: The deployment.
-        :rtype: :class:`Deployment`
-        """
-
-        def get_release():
-            if any(term in kwargs for term in ('spec', 'release')):
-                return release_finder.find_release_for(variant)
-
-            # Nothing means to ignore this field.
-            return ''
-
-        release_finder = self._tools.release_finder
-
-        return Deployment(
-            release=get_release(),
-            infra_type='',
-            nodes={},
-            services={}
-        )
 
 
 class SpecArgumentHandler:
@@ -155,6 +113,105 @@ class SpecArgumentHandler:
         return SpecArgumentHandler.Option.SPEC
 
 
+class DeploymentGenerator:
+    """Factory for generation of :class:`Deployment`.
+    """
+
+    class Tools:
+        """Tools the factory will use to do its task.
+        """
+        release_finder = ReleaseFinder()
+        """Takes care of finding the release of the deployment."""
+
+    def __init__(self, tools=Tools()):
+        """Constructor.
+
+        :param tools: The tools this will use.
+        :type tools: :class:`DeploymentGenerator.Tools`
+        """
+        self._tools = tools
+
+    def generate_deployment_for(self, variant, **kwargs):
+        """Creates a new deployment based on the data from a job's variant.
+
+        :param variant: The variant to fetch data from.
+        :type variant: :class:`cibyl.sources.zuul.transactions.VariantResponse`
+        :return: The deployment.
+        :rtype: :class:`Deployment`
+        """
+
+        def get_release():
+            if any(term in kwargs for term in ('spec', 'release')):
+                return release_finder.find_release_for(variant)
+
+            # Nothing means to ignore this field.
+            return ''
+
+        release_finder = self._tools.release_finder
+
+        return Deployment(
+            release=get_release(),
+            infra_type='',
+            nodes={},
+            services={}
+        )
+
+
+class DeploymentFiltering:
+    """Takes care of applying the filters coming from the command line to a
+    deployment.
+    """
+    Filter = Callable[[Deployment], bool]
+    """Type of the filters stored in this class."""
+
+    def __init__(self, filters=None):
+        """Constructor.
+
+        :param filters: Collection of filters that will be applied to
+            deployments.
+        :type filters: list[:class:`DeploymentFiltering.Filter`]
+        """
+        if not filters:
+            filters = []
+
+        self._filters = filters
+
+    def add_filters_from(self, **kwargs):
+        """Generates and adds to this filters coming from the command line
+        arguments. The arguments are interpreted, the filters generated from
+        them and then appended to the list of filters already present here.
+
+        :param kwargs: The command line arguments.
+        """
+        filters = []
+
+        if 'release' in kwargs:
+            patterns = kwargs['release'].value
+
+            if patterns:
+                for pattern in patterns:
+                    filters.append(
+                        lambda dpl: matches_regex(pattern, dpl.release.value)
+                    )
+
+        self._filters += filters
+
+    def is_valid_deployment(self, deployment):
+        """Checks whether a deployment is valid and should be returned as
+        part of the query output.
+
+        :param deployment: The deployment to check.
+        :type deployment: :class:`Deployment`
+        :return: Whether it passes the filters in this instance or not.
+        :rtype: bool
+        """
+        for check in self._filters:
+            if not check(deployment):
+                return False
+
+        return True
+
+
 class DeploymentQuery:
     """Takes care of performing the 'get_deployment' query.
     """
@@ -176,6 +233,8 @@ class DeploymentQuery:
         """Generates the deployment model."""
         spec_arg_handler = SpecArgumentHandler()
         """Indicates which jobs are to be fetched."""
+        deployment_filter = DeploymentFiltering()
+        """Allows to filter out undesired deployments."""
         output_builder = QueryOutputBuilder()
         """Builds the query output."""
 
@@ -213,13 +272,18 @@ class DeploymentQuery:
 
         output = self._tools.output_builder
         argh = self._tools.spec_arg_handler
+        filters = self._tools.deployment_filter
         dgen = self._tools.deployment_generator
+
+        # Prepare filters beforehand
+        filters.add_filters_from(**kwargs)
 
         for job in self._queries.jobs(self._api, **get_jobs_query_args()):
             for variant in self._queries.variants(job, **kwargs):
-                model = output.with_variant(variant)
-                model.deployment.value = dgen.generate_deployment_for(
-                    variant, **kwargs
-                )
+                deployment = dgen.generate_deployment_for(variant, **kwargs)
+
+                if filters.is_valid_deployment(deployment):
+                    model = output.with_variant(variant)
+                    model.deployment.value = deployment
 
         return output.assemble()
