@@ -29,7 +29,7 @@ class ServerSource(Source):
     def check_builds_for_test(self, **kwargs):
         """Ensure that some build information is passed when requesting
         tests."""
-        if not kwargs.get('builds') and not kwargs.get('last_build'):
+        if not any(arg in kwargs for arg in ('builds', 'last_build')):
             raise MissingArgument('Please specify some builds (--builds) \
 to get the tests from. Or use (--last-build) to get the tests from the last \
 one')
