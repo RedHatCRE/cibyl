@@ -67,6 +67,6 @@ class ReleaseFinder:
 
         for search_term in self.search_terms:
             if search_term in variables:
-                return variables[search_term]
+                return str(variables[search_term])
 
         return 'N/A'
