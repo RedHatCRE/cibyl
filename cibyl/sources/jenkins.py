@@ -32,6 +32,7 @@ from cibyl.models.ci.base.stage import Stage
 from cibyl.models.ci.base.test import Test
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import safe_request_generic, speed_index
+from cibyl.utils.dicts import subset
 from cibyl.utils.filtering import (apply_filters,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_range_match,
@@ -102,6 +103,17 @@ def filter_jobs(jobs_found: List[Dict], **kwargs):
                                        field_to_check="name"))
 
     return apply_filters(jobs_found, *checks_to_apply)
+
+
+def has_filter_builds(**kwargs):
+    """Check if the kwargs contain any argument with value to filter builds.
+
+    :returns: Whether there is any builds-related argument that has a value to
+    filter the found builds.
+    :rtype: bool
+    """
+    build_args = subset(kwargs, ["builds", "last_build", "build_status"])
+    return any(arg.value for arg in build_args.values())
 
 
 def filter_builds(builds_found: List[Dict], **kwargs):
@@ -324,9 +336,11 @@ class Jenkins(ServerSource):
             :rtype: :class:`AttributeDictValue`
         """
 
-        if kwargs.get('last_build'):
+        if 'last_build' in kwargs:
             return self.get_last_build(**kwargs)
         jobs_found = self.get_jobs(**kwargs)
+        jobs_with_builds = {}
+        filtering_builds = has_filter_builds(**kwargs)
         if kwargs.get('verbosity', 0) > 0 and len(jobs_found) > 80:
             LOG.warning("This might take a couple of minutes...\
 try reducing verbosity for quicker query")
@@ -350,6 +364,11 @@ try reducing verbosity for quicker query")
                                          stages=build_stages)
                     job.add_build(build_object)
 
+            has_builds = bool(job.builds.value)
+            if (filtering_builds and has_builds) or not filtering_builds:
+                jobs_with_builds[job_name] = job
+
+        jobs_found.value = jobs_with_builds
         return jobs_found
 
     def get_last_build(self, **kwargs):
@@ -363,6 +382,7 @@ try reducing verbosity for quicker query")
 
         jobs_found = self.send_request(self.jobs_last_build_query)["jobs"]
         jobs_filtered = filter_jobs(jobs_found, **kwargs)
+        filtering_builds = has_filter_builds(**kwargs)
 
         job_objects = {}
         for job in jobs_filtered:
@@ -381,7 +401,9 @@ try reducing verbosity for quicker query")
                                       duration=build.get('duration'),
                                       stages=build_stages)
                     job_object.add_build(build_obj)
-            job_objects[name] = job_object
+            has_builds = bool(job_object.builds.value)
+            if (filtering_builds and has_builds) or not filtering_builds:
+                job_objects[name] = job_object
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
