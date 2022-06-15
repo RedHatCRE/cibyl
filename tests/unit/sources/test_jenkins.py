@@ -142,6 +142,71 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(builds_found["2"].build_id.value, "2")
         self.assertEqual(builds_found["2"].status.value, "FAILURE")
 
+    def test_get_builds_job_filtered(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_builds` is
+            correct and it filters out jobs that have no builds.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1'},
+                             {'_class': 'org..job.WorkflowRun',
+                              'name': "missing", 'url': 'url1'}]}
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': "SUCCESS"},
+                                {'number': 2, 'result': "FAILURE"}]}
+        builds2 = {'_class': '_empty',
+                   'allBuilds': [{'number': 1, 'result': "UNSTABLE"},
+                                 {'number': 2, 'result': "UNSTABLE"}]}
+        self.jenkins.send_request = Mock(side_effect=[response, builds,
+                                                      builds2])
+
+        build_arg = Argument("build_status", arg_type=str, description="",
+                             value=["success"])
+        jobs = self.jenkins.get_builds(build_status=build_arg)
+        self.assertEqual(len(jobs), 1)
+        job = jobs["ansible"]
+        self.assertEqual(job.name.value, "ansible")
+        self.assertEqual(job.url.value, "url1")
+        builds_found = job.builds.value
+        self.assertEqual(len(builds_found), 1)
+        self.assertEqual(builds_found["1"].build_id.value, "1")
+        self.assertEqual(builds_found["1"].status.value, "SUCCESS")
+
+    def test_get_builds_jobs_without_builds_kep(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_builds` is
+            correct and it keeps jobs that have no builds when no filtering is
+            done.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1'},
+                             {'_class': 'org..job.WorkflowRun',
+                              'name': "missing", 'url': 'url1'}]}
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': "SUCCESS"},
+                                {'number': 2, 'result': "FAILURE"}]}
+        self.jenkins.send_request = Mock(side_effect=[response, builds,
+                                                      None])
+
+        build_arg = Argument("build_status", arg_type=str, description="",
+                             value=[])
+        jobs = self.jenkins.get_builds(build_status=build_arg)
+        self.assertEqual(len(jobs), 2)
+        job = jobs["ansible"]
+        self.assertEqual(job.name.value, "ansible")
+        self.assertEqual(job.url.value, "url1")
+        builds_found = job.builds.value
+        self.assertEqual(len(builds_found), 2)
+        self.assertEqual(builds_found["1"].build_id.value, "1")
+        self.assertEqual(builds_found["1"].status.value, "SUCCESS")
+        self.assertEqual(builds_found["2"].build_id.value, "2")
+        self.assertEqual(builds_found["2"].status.value, "FAILURE")
+        job = jobs["missing"]
+        self.assertEqual(job.name.value, "missing")
+        self.assertEqual(job.url.value, "url1")
+        builds_found = job.builds.value
+        self.assertEqual(len(builds_found), 0)
+
     def test_get_builds_with_stages(self):
         """
             Tests that the internal logic from :meth:`Jenkins.get_builds` is
@@ -203,6 +268,23 @@ class TestJenkinsSource(TestCase):
         build = job.builds.value["1"]
         self.assertEqual(build.build_id.value, "1")
         self.assertEqual(build.status.value, "SUCCESS")
+
+    def test_get_last_build_filter_jobs(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_last_build`
+        is correct and it filters jobs that do not have any build matching the
+        criteria.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1',
+                              'lastBuild': {'number': 1, 'result': "SUCCESS"}
+                              }]}
+        self.jenkins.send_request = Mock(side_effect=[response])
+
+        build_arg = Argument("build_status", arg_type=str, description="",
+                             value=["failure"])
+        jobs = self.jenkins.get_last_build(build_status=build_arg)
+        self.assertEqual(len(jobs), 0)
 
     def test_get_last_build_with_stages(self):
         """
