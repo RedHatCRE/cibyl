@@ -19,8 +19,6 @@ from cibyl.models.attribute import AttributeValue
 class ModelMeta(type):
     def __new__(mcs, *args, **kwargs):
         # Get information on the class signature
-        name = args[0]
-        bases = args[1]
         attrs = args[2]
 
         # Let each model class have their own API and plugins

@@ -15,10 +15,10 @@
 """
 
 from cibyl.exceptions.plugin import MissingPlugin
-from cibyl.plugins import enable_plugins
-from cibyl.plugins.openstack import Plugin
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.zuul.job import Job as ZuulJob
+from cibyl.plugins import enable_plugins
+from cibyl.plugins.openstack import Plugin
 from tests.utils import RestoreAPIs
 
 
