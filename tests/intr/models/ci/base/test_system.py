@@ -15,6 +15,7 @@
 """
 from unittest import TestCase
 
+from cibyl.config import AppConfig
 from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.orchestrator import Orchestrator
@@ -27,35 +28,41 @@ class TestAPI(TestCase):
             'environments': {
                 'env3': {
                     'system3': {
-                        'system_type': 'jenkins'},
+                        'system_type': 'jenkins',
+                        'sources': {}},
                     'system4': {
-                        'system_type': 'zuul'}
+                        'system_type': 'zuul',
+                        'sources': {}}
                 }}}
         self.config_reverse = {
             'environments': {
                 'env3': {
                     'system4': {
-                        'system_type': 'zuul'},
+                        'system_type': 'zuul',
+                        'sources': {}},
                     'system3': {
-                        'system_type': 'jenkins'}
+                        'system_type': 'jenkins',
+                        'sources': {}}
                 }}}
         self.config_jenkins = {
             'environments': {
                 'env3': {
                     'system3': {
-                        'system_type': 'jenkins'}}}}
+                        'system_type': 'jenkins',
+                        'sources': {}}}}}
         self.config_zuul = {
             'environments': {
                 'env3': {
                     'system3': {
-                        'system_type': 'zuul'}}}}
+                        'system_type': 'zuul',
+                        'sources': {}}}}}
         self.orchestrator = Orchestrator()
 
     def test_system_api_zuul_jenkins(self):
         """Checks that the creation of multiple types of systems leads to
         the combined API of all of them.
         """
-        self.orchestrator.config.data = self.config
+        self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
         self.assertEqual(System.API, ZuulSystem.API)
 
@@ -63,7 +70,7 @@ class TestAPI(TestCase):
         """Checks that the creation of multiple types of systems leads to
         the combined API of all of them.
         """
-        self.orchestrator.config.data = self.config_reverse
+        self.orchestrator.config = AppConfig(data=self.config_reverse)
         self.orchestrator.create_ci_environments()
         self.assertEqual(System.API, ZuulSystem.API)
 
@@ -71,7 +78,7 @@ class TestAPI(TestCase):
         """Checks that the creation of multiple types of systems leads to
         the combined API of all of them.
         """
-        self.orchestrator.config.data = self.config_zuul
+        self.orchestrator.config = AppConfig(data=self.config_zuul)
         self.orchestrator.create_ci_environments()
         self.assertEqual(System.API, ZuulSystem.API)
 
@@ -79,6 +86,6 @@ class TestAPI(TestCase):
         """Checks that the creation of multiple types of systems leads to
         the combined API of all of them.
         """
-        self.orchestrator.config.data = self.config_jenkins
+        self.orchestrator.config = AppConfig(data=self.config_jenkins)
         self.orchestrator.create_ci_environments()
         self.assertEqual(System.API, JobsSystem.API)

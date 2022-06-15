@@ -24,7 +24,7 @@ import cibyl.exceptions.config as conf_exc
 from cibyl.cli.parser import Parser
 from cibyl.cli.query import get_query_type
 from cibyl.cli.validator import Validator
-from cibyl.config import Config, ConfigFactory
+from cibyl.config import AppConfig
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.source import NoSupportedSourcesFound, SourceException
 from cibyl.features import get_feature, get_string_all_features, load_features
@@ -64,15 +64,11 @@ class Orchestrator:
 
     def __init__(self, environments: list = None):
         """Orchestrator constructor method"""
-        self.config = Config()
         self.parser = Parser()
+        self.config = AppConfig()
         self.publisher = Publisher()
         if not environments:
             self.environments = []
-
-    def load_configuration(self, path):
-        """Loads the configuration of the application."""
-        self.config = ConfigFactory.from_path(path)
 
     def get_source(self, source_name, source_data):
         try:
@@ -107,33 +103,18 @@ class Orchestrator:
 
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""
-        env_data = self.config.data.get('environments', {})
-
-        if isinstance(env_data, str):
-            raise conf_exc.MissingSystems(env_data)
-        if not env_data:
-            raise conf_exc.MissingEnvironments()
-
-        for env_name, systems_dict in env_data.items():
-            if isinstance(systems_dict, str):
-                raise conf_exc.MissingSystemType(systems_dict, SystemType)
-            try:
-                enabled = systems_dict.get('enabled', True)
-                if not enabled:
-                    continue
-            except AttributeError:
-                raise conf_exc.MissingSystems(env_name)
+        for env_name, systems_dict in self.config.environments.items():
+            enabled = systems_dict.get('enabled', True)
+            if not enabled:
+                continue
             environment = Environment(name=env_name, enabled=enabled)
 
             for system_name, single_system in systems_dict.items():
-                try:
-                    sources_dict = single_system.pop('sources', {})
-                    sources = []
-                    for source_name, source_data in sources_dict.items():
-                        sources.append(
-                            self.get_source(source_name, source_data))
-                except AttributeError:
-                    raise conf_exc.MissingSystemSources(system_name)
+                sources_dict = single_system.pop('sources', {})
+                sources = []
+                for source_name, source_data in sources_dict.items():
+                    sources.append(
+                        self.get_source(source_name, source_data))
 
                 self.add_system_to_environment(environment, system_name,
                                                sources, single_system)

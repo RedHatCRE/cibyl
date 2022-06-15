@@ -35,29 +35,29 @@ class TestConfig(TestCase):
         """Test that parsing and empty configuration file raises and error."""
         with NamedTemporaryFile() as config_file:
             config = Config()
-            self.assertRaises(EmptyConfiguration, config.load,
-                              config_file.name)
+            self.assertRaises(EmptyConfiguration, config.load_from_path,
+                              path=config_file.name)
 
     def test_contents_are_loaded(self):
         """Checks that the contents of the loaded file are made available by
         the class.
         """
-        file = 'path/to/config/file'
         yaml_return = {
             'node_a': {
                 'name': 'Test',
                 'host': 'test_host'
             }
         }
-        with patch('cibyl.config.yaml') as yaml_patched:
+        with NamedTemporaryFile() as config_file:
+            with patch('cibyl.config.yaml') as yaml_patched:
 
-            yaml_patched.parse.return_value = yaml_return
+                yaml_patched.parse.return_value = yaml_return
 
-            config = Config()
-            config.load(file)
-            yaml_patched.parse.assert_called_with(file)
+                config = Config()
+                config.load_from_path(path=config_file.name)
+                yaml_patched.parse.assert_called_with(config_file.name)
 
-        self.assertEqual(config, yaml_return)
+            self.assertEqual(config, yaml_return)
 
     def test_encrypted_constructor(self):
         self.assertEqual('', encrypted_constructor(yaml.SafeLoader,

@@ -17,6 +17,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.cli.validator import Validator
+from cibyl.config import AppConfig
 from cibyl.exceptions.model import (InvalidEnvironment, InvalidSystem,
                                     NoEnabledSystem, NoValidSystem)
 from cibyl.exceptions.source import NoValidSources
@@ -43,9 +44,11 @@ class TestValidator(TestCase):
             'environments': {
                 'env': {
                     'system3': {
-                        'system_type': 'jenkins'},
+                        'system_type': 'jenkins',
+                        'sources': {}},
                     'system4': {
-                        'system_type': 'zuul'}
+                        'system_type': 'zuul',
+                        'sources': {}}
                 },
                 'env1': {
                     'system1': {
@@ -68,9 +71,11 @@ class TestValidator(TestCase):
                 'env': {
                     'system3': {
                         'system_type': 'jenkins',
+                        'sources': {},
                         'enabled': False},
                     'system4': {
                         'system_type': 'zuul',
+                        'sources': {},
                         'enabled': False}
                 },
                 'env1': {
@@ -89,7 +94,7 @@ class TestValidator(TestCase):
 
     def tests_validator_validate_environments(self):
         """Testing Validator validate_environment method."""
-        self.orchestrator.config.data = self.config
+        self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
         self.ci_args["env_name"] = Mock()
         self.ci_args["env_name"].value = ["env"]
@@ -107,7 +112,7 @@ class TestValidator(TestCase):
 
     def tests_validator_validate_environments_systems(self):
         """Testing Validator validate_environment method."""
-        self.orchestrator.config.data = self.config
+        self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
         self.ci_args["env_name"] = Mock()
         self.ci_args["env_name"].value = ["env"]
@@ -126,7 +131,7 @@ class TestValidator(TestCase):
 
     def tests_validator_validate_environments_system_type(self):
         """Testing Validator validate_environment method."""
-        self.orchestrator.config.data = self.config
+        self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
         self.ci_args["env_name"] = Mock()
         self.ci_args["env_name"].value = ["env"]
@@ -145,7 +150,7 @@ class TestValidator(TestCase):
 
     def tests_validator_validate_environments_system_type_no_systems(self):
         """Testing Validator validate_environment method."""
-        self.orchestrator.config.data = self.config
+        self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
         self.ci_args["env_name"] = Mock()
         self.ci_args["env_name"].value = ["env"]
@@ -161,7 +166,7 @@ class TestValidator(TestCase):
 
     def tests_validator_validate_environments_no_envs(self):
         """Testing Validator validate_environment method."""
-        self.orchestrator.config.data = self.config
+        self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
         self.ci_args["envs"] = Mock()
         self.ci_args["envs"].value = ["unknown"]
@@ -177,7 +182,7 @@ class TestValidator(TestCase):
 
     def tests_validator_validate_environments_no_systems(self):
         """Testing Validator validate_environment method."""
-        self.orchestrator.config.data = self.config
+        self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
         self.ci_args["systems"] = Mock()
         self.ci_args["systems"].value = ["unknown"]
@@ -191,7 +196,7 @@ class TestValidator(TestCase):
 
     def test_validator_validate_sources(self):
         """Test Validator validate_environments with sources."""
-        self.orchestrator.config.data = self.config
+        self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
         self.ci_args["sources"] = Mock()
         self.ci_args["sources"].value = ["zuul"]
@@ -213,7 +218,7 @@ class TestValidator(TestCase):
 
     def test_validator_validate_no_sources(self):
         """Test Validator validate_environments with no sources."""
-        self.orchestrator.config.data = self.config
+        self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
         self.ci_args["env_name"] = Mock()
         self.ci_args["env_name"].value = ["env"]
@@ -228,7 +233,7 @@ class TestValidator(TestCase):
 
     def test_validator_validate_no_enabled_system(self):
         """Test Validator validate_environments with no enabled systems."""
-        self.orchestrator.config.data = self.config_enable
+        self.orchestrator.config = AppConfig(data=self.config_enable)
         self.orchestrator.create_ci_environments()
 
         original_envs = self.orchestrator.environments
@@ -239,7 +244,7 @@ class TestValidator(TestCase):
 
     def test_validator_validate_override_no_enabled_system(self):
         """Test Validator validate_environments overriding disabled systems."""
-        self.orchestrator.config.data = self.config_enable
+        self.orchestrator.config = AppConfig(data=self.config_enable)
         self.orchestrator.create_ci_environments()
         self.ci_args["systems"] = Mock()
         self.ci_args["systems"].value = ["system3", "system4"]
