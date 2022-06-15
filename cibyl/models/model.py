@@ -16,11 +16,23 @@
 from cibyl.models.attribute import AttributeValue
 
 
-class Model:
-    """Represents a base class inherited by CI and product models."""
+class ModelMeta(type):
+    def __new__(mcs, *args, **kwargs):
+        # Get information on the class signature
+        attrs = args[2]
 
-    API = {}
-    plugin_attributes = {}
+        # Let each model class have their own API and plugins
+        if 'API' not in attrs:
+            attrs['API'] = {}
+
+        if 'plugin_attributes' not in attrs:
+            attrs['plugin_attributes'] = {}
+
+        return super().__new__(mcs, *args, **kwargs)
+
+
+class Model(metaclass=ModelMeta):
+    """Represents a base class inherited by CI and product models."""
 
     def __init__(self, attributes):
         for attribute_name, attribute_dict in self.API.items():
