@@ -21,8 +21,14 @@ from cibyl.models.ci.zuul.job import Job as ZuulJob
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.utils.dicts import subset
 
+PLUGIN_ARGUMENTS = ('release', 'spec', 'infra_type', 'nodes', 'controllers',
+                    'computes', 'node_name', 'role', 'containers',
+                    'container_image', 'packages', 'services', 'ip_version',
+                    'topology', 'dvr', 'ml2_driver', 'tls_everywhere',
+                    'ironic_inspector', 'network_backend', 'storage_backend')
 
-def add_deployment(self, deployment: Deployment):
+
+def add_deployment(self, deployment: Deployment) -> None:
     """Add a deployment to the job.
 
     :param deployment: Deployment to add to the job
@@ -31,19 +37,11 @@ def add_deployment(self, deployment: Deployment):
     self.deployment.value = deployment
 
 
-def get_query_openstack(**kwargs):
+def get_query_openstack(**kwargs) -> QueryType:
     """Deduce the query type from openstack cli arguments."""
     result = QueryType.NONE
-    possible_deployment_args = []
-    for attr_options in Deployment.API.values():
-        for cli_arg in attr_options.get('arguments', []):
-            # remove leading '-' in cli argument
-            cli_arg_name = cli_arg.name.strip("-")
-            # replace separator '-' by '_', since that is the way the parser
-            # stores the arguments
-            possible_deployment_args.append(cli_arg_name.replace("-", "_"))
 
-    deployment_args = subset(kwargs, possible_deployment_args)
+    deployment_args = subset(kwargs, PLUGIN_ARGUMENTS)
     if deployment_args:
         result = QueryType.JOBS
 
