@@ -172,10 +172,7 @@ class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
             self.assertEqual(deployment.release.value, release)
             self.assertEqual(deployment.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
-            for node_name, node_expected in zip(deployment.nodes, node_list):
-                node = deployment.nodes[node_name]
-                self.assertEqual(node.name.value, node_expected)
-                self.assertEqual(node.role.value, node_expected.split("-")[0])
+            self.assertEqual(len(deployment.nodes.value), 0)
 
     def test_get_deployment_many_jobs(self):
         """ Test that get_deployment reads properly the information obtained
@@ -513,6 +510,44 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.ip_version.value, "4")
         self.assertEqual(deployment.topology.value, "")
 
+    def test_get_deployment_job_names_nodes(self):
+        """ Test that get_deployment reads properly the information obtained
+        from job names from jenkins and provides the nodes when passed the
+        --nodes flag.
+        """
+        job_names = ['test_17.3_ipv4_job_2comp_1cont',
+                     'test_16_ipv6_job_1comp_2cont', 'test_job']
+        nodes = [["compute-0", "compute-1", "controller-0"],
+                 ["compute-0", "controller-0", "controller-1"]]
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastBuild': None})
+
+        self.jenkins.send_request = Mock(side_effect=[response])
+        args = {
+            "nodes": Argument("nodes", str, "", value=[]),
+        }
+
+        jobs = self.jenkins.get_deployment(**args)
+        self.assertEqual(len(jobs), 3)
+        for job_name, node_list in zip(job_names, nodes):
+            job = jobs[job_name]
+            deployment = job.deployment.value
+            self.assertEqual(job.name.value, job_name)
+            self.assertEqual(job.url.value, "url")
+            self.assertEqual(len(job.builds.value), 0)
+            self.assertEqual(deployment.release.value, "")
+            self.assertEqual(deployment.ip_version.value, "")
+            self.assertEqual(deployment.topology.value, "")
+            self.assertEqual(len(deployment.nodes.value), len(node_list))
+            for node_name, node_expected in zip(deployment.nodes, node_list):
+                node = deployment.nodes[node_name]
+                self.assertEqual(node.name.value, node_expected)
+                self.assertEqual(node.role.value, node_expected.split("-")[0])
+
     def test_get_deployment_filter_topology(self):
         """Test that get_deployment filters by topology."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont',
@@ -650,7 +685,6 @@ tripleo_ironic_conductor.service loaded    active     running
         """Test that get_deployment filters by controller."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont',
                      'test_16_ipv6_job_1comp_2cont', 'test_job']
-        topology_value = "compute:2,controller:1"
         response = {'jobs': [{'_class': 'folder'}]}
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
@@ -671,13 +705,12 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "")
         self.assertEqual(deployment.ip_version.value, "")
-        self.assertEqual(deployment.topology.value, topology_value)
+        self.assertEqual(deployment.topology.value, "")
 
     def test_get_deployment_filter_computes(self):
         """Test that get_deployment filters by computes."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont',
                      'test_16_ipv6_job_1comp_2cont', 'test_job']
-        topology_value = "compute:2,controller:1"
         response = {'jobs': [{'_class': 'folder'}]}
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
@@ -698,7 +731,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "")
         self.assertEqual(deployment.ip_version.value, "")
-        self.assertEqual(deployment.topology.value, topology_value)
+        self.assertEqual(deployment.topology.value, "")
 
     def test_get_deployment_filter_infra_type(self):
         """Test that get_deployment filters by infra type."""
@@ -1437,14 +1470,6 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.security_group.value, "openvswitch")
         self.assertEqual(deployment.overcloud_templates.value,
                          set(["a", "b"]))
-        for component in topology.split(","):
-            role, amount = component.split(":")
-            for i in range(int(amount)):
-                node_name = role+f"-{i}"
-                node = Node(node_name, role)
-                node_found = deployment.nodes[node_name]
-                self.assertEqual(node_found.name, node.name)
-                self.assertEqual(node_found.role, node.role)
         services = deployment.services
         self.assertEqual(len(services), 0)
         test_collection = deployment.test_collection.value
@@ -1510,14 +1535,6 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.security_group.value, "openvswitch")
         self.assertEqual(deployment.overcloud_templates.value,
                          set(["a", "b"]))
-        for component in topology.split(","):
-            role, amount = component.split(":")
-            for i in range(int(amount)):
-                node_name = role+f"-{i}"
-                node = Node(node_name, role)
-                node_found = deployment.nodes[node_name]
-                self.assertEqual(node_found.name, node.name)
-                self.assertEqual(node_found.role, node.role)
         services = deployment.services
         self.assertEqual(len(services), 0)
         stages = deployment.stages.value
@@ -1596,14 +1613,6 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.tls_everywhere.value, "False")
         self.assertEqual(deployment.infra_type.value, "ovb")
         self.assertEqual(deployment.security_group.value, "native ovn")
-        for component in topology.split(","):
-            role, amount = component.split(":")
-            for i in range(int(amount)):
-                node_name = role+f"-{i}"
-                node = Node(node_name, role)
-                node_found = deployment.nodes[node_name]
-                self.assertEqual(node_found.name, node.name)
-                self.assertEqual(node_found.role, node.role)
         services = deployment.services
         self.assertEqual(len(services), 0)
         test_collection = deployment.test_collection.value
