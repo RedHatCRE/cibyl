@@ -18,7 +18,7 @@ import logging
 import os
 import re
 from functools import partial
-from typing import Dict
+from typing import Dict, Tuple
 
 import yaml
 
@@ -50,7 +50,7 @@ LOG = logging.getLogger(__name__)
 
 
 def filter_models_by_name(job: dict, user_input: Argument,
-                          field_to_check: str):
+                          field_to_check: str) -> bool:
     """Check whether job should be included according to the user input. The
     model should be added if the models provided in the field designated by the
     variable field_to_check are present in the user_input values.
@@ -69,7 +69,7 @@ def filter_models_by_name(job: dict, user_input: Argument,
     return bool(job[field_to_check])
 
 
-def should_query_for_nodes_topology(**kwargs):
+def should_query_for_nodes_topology(**kwargs) -> Tuple[bool, bool]:
     """Check the user cli arguments to ascertain whether we should query for
     nodes and the topology value of a deployment.
     :returns: Whether we should query for nodes and topology
@@ -87,7 +87,7 @@ def should_query_for_nodes_topology(**kwargs):
     return query_nodes, query_topology
 
 
-def filter_nodes(job: dict, user_input: Argument, field_to_check: str):
+def filter_nodes(job: dict, user_input: Argument, field_to_check: str) -> bool:
     """Check whether job should be included according to the user input. The
     model should be added if the node models provided in the field designated
     by the variable field_to_check are present in the user_input values.
@@ -102,7 +102,7 @@ def filter_nodes(job: dict, user_input: Argument, field_to_check: str):
     :rtype: bool
     """
     valid_nodes = 0
-    for node in job['nodes'].values():
+    for node in job.get('nodes', {}).values():
         attr = getattr(node, field_to_check)
         attr.value = subset(attr.value, user_input.value)
         valid_nodes += len(attr)
@@ -111,7 +111,7 @@ def filter_nodes(job: dict, user_input: Argument, field_to_check: str):
 
 
 def filter_models_set_field(job: dict, user_input: Argument,
-                            field_to_check: str):
+                            field_to_check: str) -> bool:
     """Check whether job should be included according to the user input. The
     model should be added if the models provided in the field designated
     by the variable field_to_check (represented by a set)
@@ -149,7 +149,7 @@ class Jenkins(SourceExtension):
                    "test_collection"]
     possible_attributes = deployment_attr+spec_params
 
-    def add_job_info_from_name(self, job:  Dict[str, str], **kwargs):
+    def add_job_info_from_name(self, job:  Dict[str, str], **kwargs) -> None:
         """Add information to the job by using regex on the job name. Check if
         properties exist before adding them in case it's used as fallback when
         artifacts do not contain all the necessary information.
@@ -210,7 +210,8 @@ class Jenkins(SourceExtension):
             if "tls" in job_name.lower():
                 job["tls_everywhere"] = "True"
 
-    def job_missing_deployment_info(self, job: Dict[str, str], **kwargs):
+    def job_missing_deployment_info(self, job: Dict[str, str],
+                                    **kwargs) -> bool:
         """Check if a given Jenkins job has all deployment attributes.
 
         :param job: Dictionary representation of a jenkins job
@@ -226,7 +227,7 @@ class Jenkins(SourceExtension):
         return False
 
     @speed_index({'base': 2})
-    def get_deployment(self, **kwargs):
+    def get_deployment(self, **kwargs) -> AttributeDictValue:
         """Get deployment information for jobs from jenkins server.
 
         :returns: container of jobs with deployment information from
@@ -373,7 +374,7 @@ accurate results", len(jobs_found))
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
-    def add_job_info_from_artifacts(self, job: dict, **kwargs):
+    def add_job_info_from_artifacts(self, job: dict, **kwargs) -> None:
         """Add information to the job by querying the last build artifacts.
 
         :param job: Dictionary representation of a jenkins job
@@ -563,7 +564,8 @@ accurate results", len(jobs_found))
             if spec:
                 self.add_unable_to_find_info_message(job)
 
-    def get_packages_node(self, node_name, logs_url, job_name):
+    def get_packages_node(self, node_name, logs_url,
+                          job_name) -> Dict[str, Package]:
         """Get a list of packages installed in a openstack node from the job
         logs.
 
@@ -593,7 +595,8 @@ accurate results", len(jobs_found))
                       job_name)
         return packages
 
-    def get_packages_container(self, container_name, logs_url, job_name):
+    def get_packages_container(self, container_name, logs_url,
+                               job_name) -> Dict[str, Package]:
         """Get a list of packages installed in a container from the job
         logs.
 
@@ -623,7 +626,8 @@ accurate results", len(jobs_found))
                       job_name)
         return packages
 
-    def get_containers_node(self, node_name, logs_url, job_name):
+    def get_containers_node(self, node_name, logs_url,
+                            job_name) -> Dict[str, Container]:
         """Get a list of containers used in a openstack node from the job
         logs.
 
@@ -663,7 +667,7 @@ accurate results", len(jobs_found))
                       job_name)
         return containers
 
-    def get_topology_from_job_name(self, job: Dict[str, str]):
+    def get_topology_from_job_name(self, job: Dict[str, str]) -> None:
         """Extract the openstack topology from the job name.
 
         :param job: Dictionary representation of a jenkins job
@@ -681,7 +685,7 @@ accurate results", len(jobs_found))
         else:
             job["topology"] = ""
 
-    def add_unable_to_find_info_message(self, job):
+    def add_unable_to_find_info_message(self, job: Dict[str, str]) -> None:
         """Set a message explaining the reason for missing fields in spec.
 
         :param job: Dictionary representation of a jenkins job
