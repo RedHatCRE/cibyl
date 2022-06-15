@@ -1797,6 +1797,12 @@ class TestFilters(TestCase):
         containers = job['nodes']['node1'].containers.value
         self.assertEqual(containers, {})
 
+    def test_filter_nodes_job_without_nodes(self):
+        job = {'name': 'job', 'url': 'url'}
+        containers = Mock()
+        containers.value = ["cont2"]
+        self.assertFalse(filter_nodes(job, containers, 'containers'))
+
     def test_filter_models_by_name(self):
         """Test that filter_models_by_name filters job according to
         user input."""
