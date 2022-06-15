@@ -116,6 +116,17 @@ def has_filter_builds(**kwargs):
     return any(arg.value for arg in build_args.values())
 
 
+def has_filter_tests(**kwargs):
+    """Check if the kwargs contain any argument with value to filter tests.
+
+    :returns: Whether there is any tests-related argument that has a value to
+    filter the found tests.
+    :rtype: bool
+    """
+    test_args = subset(kwargs, ["tests", "test_result", "test_duration"])
+    return any(arg.value for arg in test_args.values())
+
+
 def filter_builds(builds_found: List[Dict], **kwargs):
     """Filter the result from the Jenkins API according to user input"""
     checks_to_apply = []
@@ -177,6 +188,19 @@ def filter_tests(tests_found: List[Dict], **kwargs):
                                        field_to_check="duration"))
 
     return apply_filters(tests_found, *checks_to_apply)
+
+
+def has_tests_job(job: Job):
+    """Check if a job has any tests added.
+    :param job: Job to check
+    :type job: :class:`Job`
+    :returns: whether the job has any tests
+    :rtype: bool
+    """
+    for build in job.builds.values():
+        if build.tests.value:
+            return True
+    return False
 
 
 # pylint: disable=no-member
@@ -418,8 +442,10 @@ try reducing verbosity for quicker query")
         """
 
         self.check_builds_for_test(**kwargs)
+        filtering_tests = has_filter_tests(**kwargs)
 
         jobs_found = self.get_builds(**kwargs)
+        final_jobs = {}
 
         for job_name, job in jobs_found.items():
             for build_id, build in job.builds.items():
@@ -471,5 +497,8 @@ try reducing verbosity for quicker query")
                                  class_name=test.get('className'),
                                  result=test.get('status'),
                                  duration=duration_in_ms))
+            has_tests = has_tests_job(job)
+            if (filtering_tests and has_tests) or not filtering_tests:
+                final_jobs[job_name] = job
 
-        return AttributeDictValue("jobs", attr_type=Job, value=jobs_found)
+        return AttributeDictValue("jobs", attr_type=Job, value=final_jobs)

@@ -840,21 +840,168 @@ class TestJenkinsSource(TestCase):
         jobs = self.jenkins.get_tests(builds=build_kwargs, tests=tests_kwargs,
                                       test_duration=test_duration,
                                       test_result=tests_result)
+        self.assertEqual(len(jobs), 0)
+
+    def test_get_tests_detect_failed_build(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_tests`
+            properly handles the cases where the input is wrong or tests can't
+            be requested.
+        """
+
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': 'ansible', 'url': 'url1'}]}
+
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': 'failure'}]}
+
+        # Mock the --builds command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=['1'])
+        tests_kwargs = MagicMock()
+        type(tests_kwargs).value = PropertyMock(return_value=['test1',
+                                                              'test3'])
+
+        self.jenkins.send_request = Mock(side_effect=[response, builds])
+
+        jobs = self.jenkins.get_tests(builds=build_kwargs, tests=tests_kwargs)
+        self.assertEqual(self.jenkins.send_request.call_count, 2)
+        self.assertEqual(len(jobs), 0)
+
+    def test_get_tests_detect_test_404(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_tests`
+            properly handles the cases where the input is wrong or tests can't
+            be requested.
+        """
+
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': 'ansible', 'url': 'url1'}]}
+
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': 'SUCCESS'}]}
+
+        # Mock the --builds command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=['1'])
+        tests_kwargs = MagicMock()
+        type(tests_kwargs).value = PropertyMock(return_value=['test1',
+                                                              'test3'])
+
+        self.jenkins.send_request = Mock(side_effect=[response, builds,
+                                                      JenkinsError("404")])
+
+        jobs = self.jenkins.get_tests(builds=build_kwargs, tests=tests_kwargs)
+        self.assertEqual(self.jenkins.send_request.call_count, 3)
+        self.assertEqual(len(jobs), 0)
+
+    def test_get_tests_raise_test_exception(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_tests`
+            properly handles the cases where there is an exception querying for
+            tests.
+        """
+
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': 'ansible', 'url': 'url1'}]}
+
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': 'SUCCESS'}]}
+
+        # Mock the --builds command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=['1'])
+        tests_kwargs = MagicMock()
+        type(tests_kwargs).value = PropertyMock(return_value=['test1',
+                                                              'test3'])
+
+        self.jenkins.send_request = Mock(side_effect=[response, builds,
+                                                      JenkinsError("error")])
+
+        with self.assertRaises(JenkinsError):
+            self.jenkins.get_tests(builds=build_kwargs, tests=tests_kwargs)
+        self.assertEqual(self.jenkins.send_request.call_count, 3)
+
+    def test_get_tests_no_test_suites(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_tests` is
+            correct and detects when the API response for tests does not
+            contain any tests.
+        """
+
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': 'ansible', 'url': 'url1'}]}
+
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': 'SUCCESS'},
+                                {'number': 2, 'result': 'SUCCESS'}]}
+
+        tests = {'_class': '_empty'}
+
+        # Mock the --builds command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=['1'])
+        tests_kwargs = MagicMock()
+        type(tests_kwargs).value = PropertyMock(return_value=[])
+
+        self.jenkins.send_request = Mock(side_effect=[response, builds, tests])
+
+        jobs = self.jenkins.get_tests(builds=build_kwargs, tests=tests_kwargs)
         self.assertEqual(len(jobs), 1)
         job = jobs['ansible']
         self.assertEqual(job.name.value, 'ansible')
         self.assertEqual(job.url.value, 'url1')
-
         builds_found = job.builds.value
         self.assertEqual(len(builds_found), 1)
         self.assertEqual(builds_found['1'].build_id.value, '1')
         self.assertEqual(builds_found['1'].status.value, 'SUCCESS')
+        self.assertEqual(self.jenkins.send_request.call_count, 3)
 
-        tests_found = job.builds.value['1'].tests
-        self.assertEqual(len(tests_found), 0)
+    def test_get_tests_no_cases(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_tests` is
+            correct and detects cases where the API response contains a test
+            suite, but no test cases inside.
+        """
+
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': 'ansible', 'url': 'url1'}]}
+
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': 'SUCCESS'},
+                                {'number': 2, 'result': 'SUCCESS'}]}
+
+        tests = {'_class': '_empty',
+                 'suites': [
+                    {'wrong_keyword': [
+                        {'className': '', 'name': 'setUpClass (class1)'},
+                        {'className': 'class1', 'duration': 1,
+                         'name': 'test1', 'status': 'PASSED'},
+                        {'className': 'class2', 'duration': 0,
+                         'name': 'test2', 'status': 'SKIPPED'},
+                        {'className': 'class2', 'duration': 2.4,
+                         'name': 'test3', 'status': 'FAILED'}]}]}
+
+        # Mock the --builds command line argument
+        build_kwargs = MagicMock()
+        type(build_kwargs).value = PropertyMock(return_value=['1'])
+        tests_kwargs = MagicMock()
+        type(tests_kwargs).value = PropertyMock(return_value=[])
+        self.jenkins.send_request = Mock(side_effect=[response, builds, tests])
+
+        jobs = self.jenkins.get_tests(builds=build_kwargs, tests=tests_kwargs)
+        self.assertEqual(len(jobs), 1)
+        job = jobs['ansible']
+        self.assertEqual(job.name.value, 'ansible')
+        self.assertEqual(job.url.value, 'url1')
+        builds_found = job.builds.value
+        self.assertEqual(len(builds_found), 1)
+        self.assertEqual(builds_found['1'].build_id.value, '1')
+        self.assertEqual(builds_found['1'].status.value, 'SUCCESS')
+        self.assertEqual(self.jenkins.send_request.call_count, 3)
 
     def test_get_tests_no_builds_info(self):
-        """Test that calling get_test without build informantion raises an
+        """Test that calling get_test without build information raises an
         exception."""
         self.assertRaises(MissingArgument, self.jenkins.get_tests)
 
