@@ -102,7 +102,7 @@ def filter_nodes(job: dict, user_input: Argument, field_to_check: str):
     :rtype: bool
     """
     valid_nodes = 0
-    for node in job['nodes'].values():
+    for node in job.get('nodes', {}).values():
         attr = getattr(node, field_to_check)
         attr.value = subset(attr.value, user_input.value)
         valid_nodes += len(attr)
