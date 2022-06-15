@@ -98,3 +98,23 @@ class TestReleaseFinder(TestCase):
             'N/A',
             finder.find_release_for(variant)
         )
+
+    def test_transforms_release_into_string(self):
+        """Checks that if the release is not provided as a string, this will
+        convert it into one before returning it.
+        """
+        release = 1
+        search_term = 'release'
+
+        variant = Mock()
+        variant.variables = Mock()
+        variant.variables.return_value = {
+            search_term: release
+        }
+
+        finder = ReleaseFinder(search_terms=[search_term])
+
+        self.assertEqual(
+            '1',
+            finder.find_release_for(variant)
+        )
