@@ -40,7 +40,8 @@ class TestZuulGitAPI(TestCase):
                 'driver': None,
                 'enabled': True,
                 'priority': 0,
-                '_setup': False}
+                '_setup': False,
+                '_down': False}
         self.assertEqual(data, ZuulLocal(REPOS))
 
     def test_zuuld_repos_with_valid_repo(self):
