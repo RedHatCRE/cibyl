@@ -303,6 +303,7 @@ class TestElasticSearch(TestCase):
         self.assertTrue(es_api.is_setup())
         mock_client.assert_called_with("https://example.com", 9200)
 
+
 class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
     """Test cases for :class:`ElasticSearch` with openstack plugin."""
 

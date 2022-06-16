@@ -166,6 +166,7 @@ class TestSourceSetup(TestCase):
         self.assertTrue(self.source.is_setup())
         setup_mock.assert_called_once()
 
+
 class TestSourceTearDown(TestCase):
     """Test that teardown functionality for Source class."""
     def setUp(self):
