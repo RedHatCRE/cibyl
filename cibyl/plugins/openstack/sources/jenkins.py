@@ -18,7 +18,7 @@ import logging
 import os
 import re
 from functools import partial
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union
 
 import yaml
 
@@ -47,6 +47,9 @@ from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
                                    satisfy_exact_match)
 
 LOG = logging.getLogger(__name__)
+# shorthand for the type that will hold the job information obtained from the
+# Jenkins API response
+JenkinsJob = Dict[str, Union[dict, str]]
 
 
 def filter_models_by_name(job: dict, user_input: Argument,
@@ -87,7 +90,8 @@ def should_query_for_nodes_topology(**kwargs) -> Tuple[bool, bool]:
     return query_nodes, query_topology
 
 
-def filter_nodes(job: dict, user_input: Argument, field_to_check: str) -> bool:
+def filter_nodes(job: JenkinsJob, user_input: Argument,
+                 field_to_check: str) -> bool:
     """Check whether job should be included according to the user input. The
     model should be added if the node models provided in the field designated
     by the variable field_to_check are present in the user_input values.
@@ -110,7 +114,7 @@ def filter_nodes(job: dict, user_input: Argument, field_to_check: str) -> bool:
     return valid_nodes > 0
 
 
-def filter_models_set_field(job: dict, user_input: Argument,
+def filter_models_set_field(job: JenkinsJob, user_input: Argument,
                             field_to_check: str) -> bool:
     """Check whether job should be included according to the user input. The
     model should be added if the models provided in the field designated
@@ -149,7 +153,7 @@ class Jenkins(SourceExtension):
                    "test_collection"]
     possible_attributes = deployment_attr+spec_params
 
-    def add_job_info_from_name(self, job:  Dict[str, str], **kwargs) -> None:
+    def add_job_info_from_name(self, job: JenkinsJob, **kwargs) -> None:
         """Add information to the job by using regex on the job name. Check if
         properties exist before adding them in case it's used as fallback when
         artifacts do not contain all the necessary information.
@@ -210,8 +214,16 @@ class Jenkins(SourceExtension):
             if "tls" in job_name.lower():
                 job["tls_everywhere"] = "True"
 
-    def job_missing_deployment_info(self, job: Dict[str, str],
-                                    **kwargs) -> bool:
+        topology = job.get("topology")
+        if not job.get("nodes") and "nodes" in kwargs and topology:
+            job["nodes"] = {}
+            for component in topology.split(","):
+                role, amount = component.split(":")
+                for i in range(int(amount)):
+                    node_name = role+f"-{i}"
+                    job["nodes"][node_name] = Node(node_name, role=role)
+
+    def job_missing_deployment_info(self, job: JenkinsJob, **kwargs) -> bool:
         """Check if a given Jenkins job has all deployment attributes.
 
         :param job: Dictionary representation of a jenkins job
@@ -337,14 +349,13 @@ accurate results", len(jobs_found))
         for job in job_deployment_info:
             name = job.get('name')
             job_objects[name] = Job(name=name, url=job.get('url'))
-            topology = job.get("topology", "")
-            if not job.get("nodes") and topology:
-                job["nodes"] = {}
-                for component in topology.split(","):
-                    role, amount = component.split(":")
-                    for i in range(int(amount)):
-                        node_name = role+f"-{i}"
-                        job["nodes"][node_name] = Node(node_name, role=role)
+            topology = ""
+            if "topology" in kwargs or spec:
+                # since querying for topology is used as a prequisite to
+                # querying for any node-related information (packages,
+                # containers, ...) make sure that the user asked for it before
+                # adding it
+                topology = job.get("topology", "")
             network_backend = job.get("network_backend", "")
             storage_backend = job.get("storage_backend", "")
             tls_everywhere = job.get("tls_everywhere", "")
@@ -374,7 +385,7 @@ accurate results", len(jobs_found))
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
-    def add_job_info_from_artifacts(self, job: dict, **kwargs) -> None:
+    def add_job_info_from_artifacts(self, job: JenkinsJob, **kwargs) -> None:
         """Add information to the job by querying the last build artifacts.
 
         :param job: Dictionary representation of a jenkins job
@@ -564,8 +575,8 @@ accurate results", len(jobs_found))
             if spec:
                 self.add_unable_to_find_info_message(job)
 
-    def get_packages_node(self, node_name, logs_url,
-                          job_name) -> Dict[str, Package]:
+    def get_packages_node(self, node_name: str, logs_url: str,
+                          job_name: str) -> Dict[str, Package]:
         """Get a list of packages installed in a openstack node from the job
         logs.
 
@@ -595,8 +606,8 @@ accurate results", len(jobs_found))
                       job_name)
         return packages
 
-    def get_packages_container(self, container_name, logs_url,
-                               job_name) -> Dict[str, Package]:
+    def get_packages_container(self, container_name: str, logs_url: str,
+                               job_name: str) -> Dict[str, Package]:
         """Get a list of packages installed in a container from the job
         logs.
 
@@ -626,8 +637,8 @@ accurate results", len(jobs_found))
                       job_name)
         return packages
 
-    def get_containers_node(self, node_name, logs_url,
-                            job_name) -> Dict[str, Container]:
+    def get_containers_node(self, node_name: str, logs_url: str,
+                            job_name: str) -> Dict[str, Container]:
         """Get a list of containers used in a openstack node from the job
         logs.
 
@@ -667,7 +678,7 @@ accurate results", len(jobs_found))
                       job_name)
         return containers
 
-    def get_topology_from_job_name(self, job: Dict[str, str]) -> None:
+    def get_topology_from_job_name(self, job: JenkinsJob) -> None:
         """Extract the openstack topology from the job name.
 
         :param job: Dictionary representation of a jenkins job
@@ -685,7 +696,7 @@ accurate results", len(jobs_found))
         else:
             job["topology"] = ""
 
-    def add_unable_to_find_info_message(self, job: Dict[str, str]) -> None:
+    def add_unable_to_find_info_message(self, job: JenkinsJob) -> None:
         """Set a message explaining the reason for missing fields in spec.
 
         :param job: Dictionary representation of a jenkins job
