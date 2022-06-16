@@ -295,3 +295,39 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
         }
 
         self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_spec_packages(self):
+        """Checks that "Jobs" is returned for "--packages" if the
+        openstack plugin is added and is run in combination of arguments like
+        --tenants.
+        """
+        args = {
+            'tenants': None,
+            'packages': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_spec_services(self):
+        """Checks that "Jobs" is returned for "--services" if the
+        openstack plugin is added and is run in combination of arguments like
+        --tenants.
+        """
+        args = {
+            'tenants': None,
+            'services': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+
+    def test_get_spec_containers(self):
+        """Checks that "Jobs" is returned for "--containers" if the
+        openstack plugin is added and is run in combination of arguments like
+        --tenants.
+        """
+        args = {
+            'tenants': None,
+            'containers': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))

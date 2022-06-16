@@ -16,7 +16,6 @@
 
 from typing import Dict
 
-from cibyl.cli.argument import Argument
 from cibyl.models.model import Model
 
 # pylint: disable=no-member
@@ -28,13 +27,11 @@ class Service(Model):
     API = {
         'name': {
             'attr_type': str,
-            'arguments': [Argument(name='--service-name', arg_type=str,
-                                   description="Service name")]
+            'arguments': []
         },
         'configuration': {
             'attr_type': dict,
-            'arguments': [Argument(name='--service-config', arg_type=str,
-                                   description="Service configuration")]
+            'arguments': []
         }
     }
 
