@@ -285,6 +285,7 @@ class Orchestrator:
                                   source_info, system.name.value,
                                   exception, exc_info=debug)
                         continue
+                    source_obj.ensure_teardown()
                     source_methods_store.add_call(source_method, True)
                     end_time = time.time()
                     LOG.info("Took %.2fs to query system %s using %s",

@@ -38,7 +38,7 @@ LOG = logging.getLogger(__name__)
 class ElasticSearch(ServerSource):
     """Elasticsearch Source"""
 
-    def __init__(self, driver: str = 'elasticsearch',
+    def __init__(self: object, driver: str = 'elasticsearch',
                  name: str = "elasticsearch", priority: int = 0,
                  elastic_client: object = None,
                  enabled: bool = True, url: str = None) -> None:
@@ -46,21 +46,31 @@ class ElasticSearch(ServerSource):
                          enabled=enabled)
         self.url = url
         self.es_client = elastic_client
+        try:
+            url_parsed = urlsplit(self.url)
+            self.host = f"{url_parsed.scheme}://{url_parsed.hostname}"
+            self.port = url_parsed.port
+        except Exception as exception:
+            raise ElasticSearchError(
+                'The URL given is not valid'
+            ) from exception
 
-    def setup(self):
+    def setup(self: object) -> None:
         """ Ensure that a connection to the elasticsearch server can be
         established.
         """
         if self.es_client is None:
-            try:
-                url_parsed = urlsplit(self.url)
-                host = f"{url_parsed.scheme}://{url_parsed.hostname}"
-                port = url_parsed.port
-            except Exception as exception:
-                raise ElasticSearchError(
-                    'The URL given is not valid'
-                ) from exception
-            self.es_client = ElasticSearchClient(host, port).connect()
+            self.es_client = ElasticSearchClient(
+                self.host,
+                self.port
+            ).connect()
+
+    def teardown(self: object) -> None:
+        if self.es_client:
+            ElasticSearchClient(
+                self.host,
+                self.port
+            ).disconnect(self.es_client)
 
     @speed_index({'base': 1})
     def get_jobs(self: object, **kwargs: Argument) -> list:
@@ -266,7 +276,7 @@ class ElasticSearch(ServerSource):
         return AttributeDictValue("jobs", attr_type=Job, value=job_object)
 
     @speed_index({'base': 3})
-    def get_tests(self, **kwargs):
+    def get_tests(self: object, **kwargs: Argument):
         """
             Get tests for a elasticsearch job.
 

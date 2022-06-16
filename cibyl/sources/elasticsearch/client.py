@@ -48,8 +48,24 @@ class ElasticSearchClient:
         """
         es_client = Elasticsearch(self.address)
         if not es_client.ping():
-            raise ElasticSearchError(f"Error connecting to "
-                                     f"Elasticsearch: {self.address}")
+            message = 'Error connecting to '
+            message += f"Elasticsearch: {self.address}"
+            raise ElasticSearchError(message)
         LOG.debug(f"Connection established successfully with elasticsearch"
                   f" instance: {self.address}")
         return es_client
+
+    def disconnect(self: object, es_client: Elasticsearch) -> None:
+        """Explicitly closes connections with the
+        elasticsearch instance
+
+        :return: None
+        """
+        try:
+            es_client.transport.close()
+            LOG.debug(f"Connection successfully closed with elasticsearch"
+                      f" instance: {self.address}")
+        except Exception as exception:
+            message = 'Could not close the connextion with elasticsearch'
+            message += f" instance: {self.address}"
+            raise ElasticSearchError(message) from exception
