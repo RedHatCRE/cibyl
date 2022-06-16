@@ -335,7 +335,7 @@ accurate results", len(jobs_found))
                             user_input=input_overcloud_templates)
             checks_to_apply.append(check)
 
-        for attribute in ['containers', 'packages']:
+        for attribute in ('containers', 'packages'):
             input_attr = kwargs.get(attribute)
             if input_attr and input_attr.value:
                 checks_to_apply.append(partial(filter_nodes,
