@@ -37,6 +37,7 @@ class ElasticSearchClient:
         :param port: Port for sending REST requests to the instance
         :type port: str, optional"""
         self.address = f"{host}:{port}"
+        self.connection = None
 
     def connect(self: object) -> Elasticsearch:
         """Connects to the elasticsearch instance
@@ -46,23 +47,23 @@ class ElasticSearchClient:
         :raises: ElasticSearchError:
                  If exists an unhandled connection error
         """
-        es_client = Elasticsearch(self.address)
-        if not es_client.ping():
+        self.connection = Elasticsearch(self.address)
+        if not self.connection.ping():
             message = 'Error connecting to '
             message += f"Elasticsearch: {self.address}"
             raise ElasticSearchError(message)
         LOG.debug(f"Connection established successfully with elasticsearch"
                   f" instance: {self.address}")
-        return es_client
+        return self
 
-    def disconnect(self: object, es_client: Elasticsearch) -> None:
+    def disconnect(self: object) -> None:
         """Explicitly closes connections with the
         elasticsearch instance
 
         :return: None
         """
         try:
-            es_client.transport.close()
+            self.connection.transport.close()
             LOG.debug(f"Connection successfully closed with elasticsearch"
                       f" instance: {self.address}")
         except Exception as exception:

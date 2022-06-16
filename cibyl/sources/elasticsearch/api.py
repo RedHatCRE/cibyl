@@ -67,10 +67,7 @@ class ElasticSearch(ServerSource):
 
     def teardown(self: object) -> None:
         if self.es_client:
-            ElasticSearchClient(
-                self.host,
-                self.port
-            ).disconnect(self.es_client)
+            self.es_client.disconnect()
 
     @speed_index({'base': 1})
     def get_jobs(self: object, **kwargs: Argument) -> list:
@@ -142,7 +139,7 @@ class ElasticSearch(ServerSource):
             # https://github.com/elastic/elasticsearch-py/issues/91
             # For aggregations we should use the search method of the client
             if 'aggs' in query:
-                results = self.es_client.search(
+                results = self.es_client.connection.search(
                     index=index,
                     body=query,
                     size=10000,
@@ -152,7 +149,7 @@ class ElasticSearch(ServerSource):
                 return buckets
             # For normal queries we can use the scan helper
             hits = [item for item in scan(
-                self.es_client,
+                self.es_client.connection,
                 index=index,
                 query=query,
                 size=10000
