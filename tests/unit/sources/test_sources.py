@@ -165,3 +165,30 @@ class TestSourceSetup(TestCase):
         self.source.ensure_source_setup()
         self.assertTrue(self.source.is_setup())
         setup_mock.assert_called_once()
+
+class TestSourceTearDown(TestCase):
+    """Test that teardown functionality for Source class."""
+    def setUp(self):
+        self.source = Source()
+
+    def test_default_down_false(self):
+        """Test that is_down return False by default."""
+        self.assertFalse(self.source.is_down())
+
+    @patch.object(Source, 'teardown')
+    def test_teardown(self, teardown_mock):
+        """Test that ensure_teardown call teardown and sets the right value
+        for _down attribute."""
+        self.source.ensure_teardown()
+        self.assertTrue(self.source.is_down())
+        teardown_mock.assert_called_once()
+
+    @patch.object(Source, 'teardown')
+    def test_setup_multiple_calls(self, teardown_mock):
+        """Test that multiple calls to ensure_teardown calls setup
+        just once and sets the right value for _down attribute."""
+        self.source.ensure_teardown()
+        self.source.ensure_teardown()
+        self.source.ensure_teardown()
+        self.assertTrue(self.source.is_down())
+        teardown_mock.assert_called_once()

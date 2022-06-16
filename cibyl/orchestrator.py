@@ -268,7 +268,10 @@ class Orchestrator:
                     source_info = source_information_from_method(
                             source_method)
                     source_obj = get_source_instance_from_method(source_method)
+                    print("TEST")
+                    exit(0)
                     source_obj.ensure_source_setup()
+                    print("TEST")
                     start_time = time.time()
                     LOG.info(f"Performing query on system {system.name}")
                     LOG.debug("Running %s and speed index %d",
