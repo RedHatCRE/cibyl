@@ -50,7 +50,7 @@ class ElasticSearch(ServerSource):
             url_parsed = urlsplit(self.url)
             self.host = f"{url_parsed.scheme}://{url_parsed.hostname}"
             self.port = url_parsed.port
-        except Exception as exception:
+        except ValueError as exception:
             raise ElasticSearchError(
                 'The URL given is not valid'
             ) from exception
