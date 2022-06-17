@@ -14,7 +14,6 @@
 #    under the License.
 """
 
-import logging
 import os
 import re
 from functools import partial
@@ -33,7 +32,7 @@ from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.service import Service
 from cibyl.plugins.openstack.test_collection import TestCollection
 from cibyl.plugins.openstack.utils import translate_topology_string
-from cibyl.sources.jenkins import detect_job_info_regex, filter_jobs
+from cibyl.sources.jenkins import LOG, detect_job_info_regex, filter_jobs
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import subset
@@ -46,7 +45,6 @@ from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match)
 
-LOG = logging.getLogger(__name__)
 # shorthand for the type that will hold the job information obtained from the
 # Jenkins API response
 JenkinsJob = Dict[str, Union[dict, str]]

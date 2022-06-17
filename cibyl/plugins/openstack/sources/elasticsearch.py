@@ -14,8 +14,6 @@
 #    under the License.
 """
 
-import logging
-
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
@@ -23,8 +21,6 @@ from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import chunk_dictionary_into_lists
 from cibyl.utils.filtering import IP_PATTERN
-
-LOG = logging.getLogger(__name__)
 
 
 class ElasticSearch(SourceExtension):
