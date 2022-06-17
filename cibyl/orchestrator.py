@@ -191,27 +191,29 @@ class Orchestrator:
         whether the feature is tested in the system or jobs where the feature
         is tested."""
         features_combination = None
-        for feature_to_run in features_to_run:
-            feature_info = feature_to_run.query(system,
-                                                **self.parser.ci_args,
-                                                **self.parser.app_args)
-            if feature_info is None:
-                # no successful query was performed
-                system.add_feature(Feature(feature_to_run.name,
-                                           "N/A"))
-                # set the returned info to an empty container to have an empty
-                # intersection
-                feature_info = AttributeDictValue("name")
-            else:
-                system.add_feature(Feature(feature_to_run.name,
-                                           bool(feature_info)))
 
-            if "jobs" in self.parser.ci_args:
-                if features_combination is None:
-                    features_combination = feature_info
+        with StatusBar(f"Fetching features ({system.name})"):
+            for feature_to_run in features_to_run:
+                feature_info = feature_to_run.query(system,
+                                                    **self.parser.ci_args,
+                                                    **self.parser.app_args)
+                if feature_info is None:
+                    # no successful query was performed
+                    system.add_feature(Feature(feature_to_run.name,
+                                               "N/A"))
+                    # set the returned info to an empty container
+                    # to have an empty intersection
+                    feature_info = AttributeDictValue("name")
                 else:
-                    features_combination = intersect_models(
-                            features_combination, feature_info)
+                    system.add_feature(Feature(feature_to_run.name,
+                                               bool(feature_info)))
+
+                if "jobs" in self.parser.ci_args:
+                    if features_combination is None:
+                        features_combination = feature_info
+                    else:
+                        features_combination = intersect_models(
+                                features_combination, feature_info)
 
         if "jobs" in self.parser.ci_args:
             # add the combined result for all features requested, e.g.
