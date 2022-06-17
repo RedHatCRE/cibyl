@@ -181,6 +181,7 @@ class ElasticSearch(ServerSource):
                 }
             )
 
+        chunked_list_of_jobs = []
         for _, job in jobs_found.items():
 
             chunked_list_of_jobs = chunk_dictionary_into_lists(
