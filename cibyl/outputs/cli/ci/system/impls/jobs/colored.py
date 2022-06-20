@@ -23,7 +23,7 @@ from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
 from cibyl.outputs.cli.ci.system.common.stages import print_stage
 from cibyl.outputs.cli.ci.system.impls.base.colored import \
     ColoredBaseSystemPrinter
-from cibyl.utils.sorting import sort, nsort
+from cibyl.utils.sorting import nsort, sort
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
 
