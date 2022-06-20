@@ -23,7 +23,7 @@ from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
 from cibyl.outputs.cli.ci.system.common.stages import print_stage
 from cibyl.outputs.cli.ci.system.impls.base.colored import \
     ColoredBaseSystemPrinter
-from cibyl.utils.sorting import sort
+from cibyl.utils.sorting import sort, nsort
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
 
@@ -77,7 +77,7 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
 
         if self.query >= QueryType.BUILDS:
             if job.builds.value:
-                for build in sort(job.builds.values(), self._build_sorter):
+                for build in nsort(job.builds.values(), self._build_sorter):
                     printer.add(self.print_build(build), 1)
             else:
                 msg = 'No builds in query.'

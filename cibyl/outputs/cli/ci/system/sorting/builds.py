@@ -32,4 +32,9 @@ class SortBuildsByUUID(Comparator):
         if uuid_left == uuid_right:
             return 0
 
+        # If IDs are numbers, compare as so. Otherwise, compare as strings.
+        if uuid_left.isnumeric() and uuid_right.isnumeric():
+            uuid_left = int(uuid_left)
+            uuid_right = int(uuid_right)
+
         return -1 if uuid_left < uuid_right else 1
