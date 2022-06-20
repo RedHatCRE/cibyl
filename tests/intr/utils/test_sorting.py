@@ -15,8 +15,8 @@
 """
 from unittest import TestCase
 
-from cibyl.utils.sorting import NativeComparator, BubbleSortAlgorithm, sort, \
-    nsort
+from cibyl.utils.sorting import (BubbleSortAlgorithm, NativeComparator, nsort,
+                                 sort)
 
 
 class TestNativeComparator(TestCase):
