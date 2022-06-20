@@ -19,7 +19,10 @@ from overrides import overrides
 
 from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
+from cibyl.outputs.cli.ci.system.sorting.jobs import SortJobsByName
 from cibyl.outputs.cli.printer import ColoredPrinter
+from cibyl.utils.colors import DefaultPalette
+from cibyl.utils.sorting import BubbleSortAlgorithm
 from cibyl.utils.strings import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
@@ -29,6 +32,20 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
     """Default printer for all system models. This one is decorated with
     colors for easier read.
     """
+
+    def __init__(self,
+                 query=QueryType.NONE,
+                 verbosity=0,
+                 palette=DefaultPalette(),
+                 job_sorter=BubbleSortAlgorithm(SortJobsByName())):
+        """Constructor. See parent for more information.
+
+        :param job_sorter: Determines the order on which jobs are printed.
+        :rtype job_sorter: :class:`cibyl.utils.sorting.Comparator`
+        """
+        super().__init__(query, verbosity, palette)
+
+        self._job_sorter = job_sorter
 
     @overrides
     def print_system(self, system, indent=0):

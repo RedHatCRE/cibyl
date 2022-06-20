@@ -26,6 +26,7 @@ from cibyl.outputs.cli.ci.system.impls.base.colored import \
     ColoredBaseSystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.filtering import apply_filters
+from cibyl.utils.sorting import sort
 from cibyl.utils.strings import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
@@ -287,7 +288,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result.add(self.palette.blue('Jobs: '), 1)
 
             if tenant.jobs.value:
-                for job in tenant.jobs.values():
+                for job in sort(tenant.jobs.values(), self._job_sorter):
                     result.add(create_printer().print_job(job), 2)
 
                 result.add(
