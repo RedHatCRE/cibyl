@@ -77,7 +77,7 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
 
         if self.query >= QueryType.BUILDS:
             if job.builds.value:
-                for build in job.builds.values():
+                for build in sort(job.builds.values(), self._build_sorter):
                     printer.add(self.print_build(build), 1)
             else:
                 msg = 'No builds in query.'
