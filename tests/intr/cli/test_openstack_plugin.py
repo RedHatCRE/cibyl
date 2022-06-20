@@ -60,6 +60,7 @@ class TestOpenstackCLI(RestoreAPIs):
             config_file.write(b"  env:\n")
             config_file.write(b"    system:\n")
             config_file.write(b"      system_type: zuul\n")
+            config_file.write(b"      sources: {}\n")
             config_file.seek(0)
             sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
 
@@ -75,6 +76,7 @@ class TestOpenstackCLI(RestoreAPIs):
             config_file.write(b"  env:\n")
             config_file.write(b"    system:\n")
             config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources: {}\n")
             config_file.seek(0)
             sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
 
@@ -90,8 +92,10 @@ class TestOpenstackCLI(RestoreAPIs):
             config_file.write(b"  env:\n")
             config_file.write(b"    system:\n")
             config_file.write(b"      system_type: zuul\n")
+            config_file.write(b"      sources: {}\n")
             config_file.write(b"    system2:\n")
             config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources: {}\n")
             config_file.seek(0)
             sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
 
@@ -107,8 +111,10 @@ class TestOpenstackCLI(RestoreAPIs):
             config_file.write(b"  env:\n")
             config_file.write(b"    system:\n")
             config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources: {}\n")
             config_file.write(b"    system2:\n")
             config_file.write(b"      system_type: zuul\n")
+            config_file.write(b"      sources: {}\n")
             config_file.seek(0)
             sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
 
@@ -125,6 +131,7 @@ class TestOpenstackCLI(RestoreAPIs):
             config_file.write(b"  env:\n")
             config_file.write(b"    system:\n")
             config_file.write(b"      system_type: zuul\n")
+            config_file.write(b"      sources: {}\n")
             config_file.write(b"plugins:\n")
             config_file.write(b"  - openstack\n")
             config_file.seek(0)

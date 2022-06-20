@@ -16,8 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-import cibyl.orchestrator
-from cibyl.config import Config
+from cibyl.config import AppConfig
 from cibyl.exceptions.config import CHECK_DOCS_MSG, NonSupportedSystemKey
 from cibyl.orchestrator import Orchestrator
 
@@ -38,19 +37,23 @@ class TestOrchestrator(TestCase):
             'environments': {
                 'env1': {
                     'system1': {
-                        'system_type': 'jenkins'}}}}
+                        'system_type': 'jenkins',
+                        'sources': {}}}}}
 
         self.valid_multiple_envs_config_data = {
             'environments': {
                 'env3': {
                     'system3': {
-                        'system_type': 'jenkins'},
+                        'system_type': 'jenkins',
+                        'sources': {}},
                     'system4': {
-                        'system_type': 'zuul'}
+                        'system_type': 'zuul',
+                        'sources': {}}
                 },
                 'env4': {
                     'system1': {
-                        'system_type': 'zuul'}
+                        'system_type': 'zuul',
+                        'sources': {}}
                 }
             }
         }
@@ -123,37 +126,11 @@ class TestOrchestrator(TestCase):
         """Testing Orchestrator config attribute and method"""
         self.assertTrue(hasattr(self.orchestrator, 'config'))
 
-        path_to_config = 'some/path'
-
-        factory_call = cibyl.orchestrator.ConfigFactory.from_path = Mock()
-        factory_call.return_value = Mock()
-
-        self.orchestrator.load_configuration(path_to_config)
-
-        self.assertEqual(factory_call.return_value, self.orchestrator.config)
-
-        factory_call.assert_called_once_with(path_to_config)
-
-    def test_orchestrator_create_ci_envs_missing_envs(self):
-        """Testing orchestrator environments creation by using configuration
-        with missing environments."""
-        self.orchestrator.config = Mock(Config())
-        self.orchestrator.config.data = self.missing_envs_config
-        with self.assertRaises(cibyl.exceptions.config.MissingEnvironments):
-            self.orchestrator.create_ci_environments()
-
-    def test_orchestrator_create_ci_envs_missing_system_type(self):
-        """Testing orchestrator environments creation by using configuration
-        with missing system type."""
-        self.orchestrator.config = Mock(Config())
-        self.orchestrator.config.data = self.missing_system_type_config
-        with self.assertRaises(cibyl.exceptions.config.MissingSystemType):
-            self.orchestrator.create_ci_environments()
-
     def test_orchestrator_create_ci_environments(self):
         """Testing orchestrator environments creation."""
         # Single environment configuration
-        self.orchestrator.config.data = self.valid_single_env_config_data
+        self.orchestrator.config = AppConfig(
+            data=self.valid_single_env_config_data)
         self.orchestrator.environments = []
         self.orchestrator.create_ci_environments()
         self.assertEqual(len(self.orchestrator.environments), 1)
@@ -164,7 +141,8 @@ class TestOrchestrator(TestCase):
             self.orchestrator.environments[0].systems[0].name.value, 'system1')
 
         # Multiple environments configuration
-        self.orchestrator.config.data = self.valid_multiple_envs_config_data
+        self.orchestrator.config = AppConfig(
+            data=self.valid_multiple_envs_config_data)
         self.orchestrator.environments = []
         self.orchestrator.create_ci_environments()
         self.assertEqual(len(self.orchestrator.environments), 2)
@@ -180,7 +158,8 @@ class TestOrchestrator(TestCase):
     def test_extend_parser(self):
         """Test that extend_parser creates the right cli arguments for a single
         jenkins system."""
-        self.orchestrator.config.data = self.valid_single_env_config_data
+        self.orchestrator.config = AppConfig(
+            data=self.valid_single_env_config_data)
         self.orchestrator.create_ci_environments()
         for env in self.orchestrator.environments:
             self.orchestrator.extend_parser(attributes=env.API)
@@ -193,7 +172,8 @@ class TestOrchestrator(TestCase):
     def test_extend_parser_zuul_system(self):
         """Test that extend_parser creates the right cli arguments for multiple
         environments and systems."""
-        self.orchestrator.config.data = self.valid_multiple_envs_config_data
+        self.orchestrator.config = AppConfig(
+            data=self.valid_multiple_envs_config_data)
         self.orchestrator.create_ci_environments()
         for env in self.orchestrator.environments:
             self.orchestrator.extend_parser(attributes=env.API)
@@ -212,7 +192,8 @@ class TestOrchestrator(TestCase):
 
     def test_validate_environments(self):
         """Test that validate_environments filters the environments."""
-        self.orchestrator.config.data = self.valid_multiple_envs_config_data
+        self.orchestrator.config = AppConfig(
+            data=self.valid_multiple_envs_config_data)
         self.orchestrator.create_ci_environments()
         self.orchestrator.parser.ci_args["systems"] = Mock()
         self.orchestrator.parser.ci_args["systems"].value = ["system1"]
@@ -231,8 +212,9 @@ class TestOrchestrator(TestCase):
                 'env1': {
                     'system1': {
                         'system_type': 'jenkins',
+                        'sources': {},
                         'tenants': 'tenant'}}}}
-        self.orchestrator.config.data = config
+        self.orchestrator.config = AppConfig(data=config)
         msg = "The following key in jenkins system type is not supported:"
         msg += f" tenants\n\n{CHECK_DOCS_MSG}"
         with self.assertRaises(NonSupportedSystemKey, msg=msg):
@@ -246,8 +228,9 @@ class TestOrchestrator(TestCase):
                 'env1': {
                     'system1': {
                         'system_type': 'zuul',
+                        'sources': {},
                         'non-existing': 'tenant'}}}}
-        self.orchestrator.config.data = config
+        self.orchestrator.config = AppConfig(data=config)
         msg = "The following key in jenkins system type is not supported:"
         msg += f" non-existing\n\n{CHECK_DOCS_MSG}"
         with self.assertRaises(NonSupportedSystemKey, msg=msg):
@@ -255,7 +238,7 @@ class TestOrchestrator(TestCase):
 
     def test_create_envs_with_sources_enabled_attribute(self):
         """Test that all sources support the enabled parameter."""
-        self.orchestrator.config.data = self.all_sources_enabled
+        self.orchestrator.config = AppConfig(data=self.all_sources_enabled)
         self.orchestrator.create_ci_environments()
         env = self.orchestrator.environments[0]
         system = env.systems[0]
