@@ -81,7 +81,7 @@ class TestFeaturesLoader(RestoreAPIs):
         """Test that get_string_all_features provides the correct string
         representation."""
         output = get_string_all_features()
-        expected = f"\n{Colors.blue('Testing')}:\n"
+        expected = f"\n\n{Colors.blue('Testing')}:\n"
         expected += f"{Colors.red(' * ')}{Colors.blue('Feature1')}"
         expected += f"{Colors.red(' - Feature for testing1')}\n"
         expected += f"{Colors.red(' * ')}{Colors.blue('Feature2')}"
