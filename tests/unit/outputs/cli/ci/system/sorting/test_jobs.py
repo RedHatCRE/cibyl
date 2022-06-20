@@ -27,10 +27,10 @@ class TestSortJobsByName(TestCase):
         """Checks that two jobs are equal if they share the same name.
         """
         job1 = Mock()
-        job1.name = 'job'
+        job1.name.value = 'job'
 
         job2 = Mock()
-        job2.name = 'job'
+        job2.name.value = 'job'
 
         comparator = SortJobsByName()
 
@@ -43,10 +43,10 @@ class TestSortJobsByName(TestCase):
         """Checks that the comparator will sort jobs in alphabetical order.
         """
         job1 = Mock()
-        job1.name = 'A'
+        job1.name.value = 'A'
 
         job2 = Mock()
-        job2.name = 'B'
+        job2.name.value = 'B'
 
         comparator = SortJobsByName()
 

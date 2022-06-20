@@ -21,12 +21,15 @@ class SortJobsByName(Comparator):
         """
 
         :param left:
-        :type left: :class:`cibyl.models.ci.zuul.job.Job`
+        :type left: :class:`cibyl.models.ci.base.job.Job`
         :param right:
-        :type right: :class:`cibyl.models.ci.zuul.job.Job`
+        :type right: :class:`cibyl.models.ci.base.job.Job`
         :return:
         """
-        if left.name == right.name:
+        name_left = left.name.value.lower()
+        name_right = right.name.value.lower()
+
+        if name_left == name_right:
             return 0
 
-        return -1 if left.name < right.name else 1
+        return -1 if name_left < name_right else 1
