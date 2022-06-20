@@ -17,14 +17,14 @@ from cibyl.utils.sorting import Comparator
 
 
 class SortJobsByName(Comparator):
-    def compare(self, left, right):
-        """
+    """Sorts jobs in alphabetical order based on their name.
+    """
 
-        :param left:
+    def compare(self, left, right):
+        """See parent function for more information.
+
         :type left: :class:`cibyl.models.ci.base.job.Job`
-        :param right:
         :type right: :class:`cibyl.models.ci.base.job.Job`
-        :return:
         """
         name_left = left.name.value.lower()
         name_right = right.name.value.lower()

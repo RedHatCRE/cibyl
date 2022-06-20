@@ -38,6 +38,11 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
                  verbosity=0,
                  palette=DefaultPalette(),
                  job_sorter=BubbleSortAlgorithm(SortJobsByName())):
+        """Constructor. See parent for more information.
+
+        :param job_sorter: Determines the order on which jobs are printed.
+        :rtype job_sorter: :class:`cibyl.utils.sorting.Comparator`
+        """
         super().__init__(query, verbosity, palette)
 
         self._job_sorter = job_sorter
@@ -54,7 +59,7 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
 
         if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
             for feature in system.features.values():
-                printer.add(self.print_feature(feature), indent + 1)
+                printer.add(self.print_feature(feature), indent+1)
 
         return printer.build()
 
