@@ -21,8 +21,10 @@ from cibyl.features import FeatureDefinition, FeatureTemplate
 class Feature1(FeatureTemplate, FeatureDefinition):
     """Feature for testing1"""
 
+    name = "Feature1"
+
     def __init__(self):
-        super().__init__("Feature1")
+        super().__init__(self.name)
 
     def get_method_to_query(self):
         return "get_jobs"
@@ -38,8 +40,11 @@ class Feature1(FeatureTemplate, FeatureDefinition):
 
 class Feature2(FeatureTemplate, FeatureDefinition):
     """Feature for testing2"""
+
+    name = "Feature2"
+
     def __init__(self):
-        super().__init__("Feature2")
+        super().__init__(self.name)
 
     def get_method_to_query(self):
         return "get_jobs"
@@ -54,8 +59,11 @@ class Feature2(FeatureTemplate, FeatureDefinition):
 
 
 class Feature3(FeatureTemplate, FeatureDefinition):
+
+    name = "Feature3"
+
     def __init__(self):
-        super().__init__("Feature3")
+        super().__init__(self.name)
 
     def get_method_to_query(self):
         return "get_jobs"

@@ -84,13 +84,6 @@ class Deployment(Model):
                                    description="Topology used in the "
                                                "deployment")]
         },
-        'dvr': {
-            'attr_type': str,
-            'arguments': [Argument(name='--dvr', arg_type=str,
-                                   func='get_deployment', nargs='*',
-                                   description="Whether dvr is used in the "
-                                               "deployment")]
-        },
         'ml2_driver': {
             'attr_type': str,
             'arguments': [Argument(name='--ml2-driver', arg_type=str,
@@ -98,22 +91,16 @@ class Deployment(Model):
                                    description="ML2 driver used in the "
                                                "deployment")]
         },
+        'cleaning_network': {
+            'arguments': []
+        },
+        'dvr': {
+            'arguments': []
+        },
         'tls_everywhere': {
-            'attr_type': str,
-            'arguments': [Argument(name='--tls-everywhere', arg_type=str,
-                                   func='get_deployment', nargs='*',
-                                   description="Whether tls-everywhere is "
-                                               "used in the deployment")]
+            'arguments': []
         },
         'ironic_inspector': {
-            'attr_type': str,
-            'arguments': [Argument(name='--ironic-inspector', arg_type=str,
-                                   func='get_deployment', nargs='*',
-                                   description="Whether ironic inspector is "
-                                               "used in the deployment "
-                                               "overcloud")]
-        },
-        'cleaning_network': {
             'arguments': []
         },
         'security_group': {

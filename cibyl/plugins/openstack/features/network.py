@@ -24,8 +24,11 @@ LOG = logging.getLogger(__name__)
 
 class HA(OpenstackFeatureTemplate, FeatureDefinition):
     """Highly available Openstack deployment with at least 2 controllers."""
+
+    name = "HA"
+
     def __init__(self):
-        super().__init__("HA")
+        super().__init__(self.name)
 
     def get_template_args(self):
         """Get the arguments necessary to obtain the information that defines
@@ -39,8 +42,11 @@ class HA(OpenstackFeatureTemplate, FeatureDefinition):
 
 class IPV4(OpenstackFeatureTemplate, FeatureDefinition):
     """Openstack deployment using IPv4."""
+
+    name = "IPV4"
+
     def __init__(self):
-        super().__init__("IPV4")
+        super().__init__(self.name)
 
     def get_template_args(self):
         """Get the arguments necessary to obtain the information that defines
@@ -54,8 +60,11 @@ class IPV4(OpenstackFeatureTemplate, FeatureDefinition):
 
 class IPV6(OpenstackFeatureTemplate, FeatureDefinition):
     """Openstack deployment using IPv6."""
+
+    name = "IPV6"
+
     def __init__(self):
-        super().__init__("IPV6")
+        super().__init__(self.name)
 
     def get_template_args(self):
         """Get the arguments necessary to obtain the information that defines
@@ -65,3 +74,20 @@ class IPV6(OpenstackFeatureTemplate, FeatureDefinition):
                           func="get_deployment",
                           value=["6"])
         return {'ip_version': ip_arg}
+
+
+class DVR(OpenstackFeatureTemplate, FeatureDefinition):
+    """Openstack deployment configured with 'Distributed Virtual Router'"""
+
+    name = "DVR"
+
+    def __init__(self):
+        super().__init__(self.name)
+
+    def get_template_args(self):
+        """Get the arguments necessary to obtain the information that defines
+        the feature."""
+        dvr_arg = Argument("dvr", arg_type=str,
+                           description="DVR enabled",
+                           func="get_deployment")
+        return {'dvr': dvr_arg}

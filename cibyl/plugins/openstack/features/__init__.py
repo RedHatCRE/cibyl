@@ -23,5 +23,8 @@ LOG = logging.getLogger(__name__)
 class OpenstackFeatureTemplate(FeatureTemplate):
     """Skeleton for an openstack specific feature."""
 
+    def __init__(self, name: str):
+        self.name = name
+
     def get_method_to_query(self):
         return "get_deployment"
