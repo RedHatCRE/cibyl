@@ -167,10 +167,10 @@ class Orchestrator:
         """Read user-requested features and setup the right argument to query
         the information for them."""
         user_features = self.parser.ci_args.get('features')
-        if not user_features:
+        if user_features is None:
             return []
         load_features()
-        if user_features and not user_features.value:
+        if not user_features.value:
             # throw error in case cibyl is called with --features argument but
             # without any specified feature
             features_string = get_string_all_features()
