@@ -23,6 +23,7 @@ from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
 from cibyl.outputs.cli.ci.system.common.stages import print_stage
 from cibyl.outputs.cli.ci.system.impls.base.colored import \
     ColoredBaseSystemPrinter
+from cibyl.utils.sorting import sort
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
 
@@ -40,7 +41,7 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
         printer.add(super().print_system(system, indent=indent), indent+1)
 
         if self.query != QueryType.NONE:
-            for job in system.jobs.values():
+            for job in sort(system.jobs.values(), self._job_sorter):
                 printer.add(self.print_job(job), indent+2)
 
             if not system.is_queried():
