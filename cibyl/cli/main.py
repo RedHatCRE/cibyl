@@ -91,7 +91,8 @@ def main():
 
     try:
         try:
-            orchestrator.load_configuration(arguments.get('config_file_path'))
+            orchestrator.config.load(path=arguments.get('config_file_path'))
+            orchestrator.config.verify()
         except (ConfigurationNotFound, EmptyConfiguration) as ex:
             # Check if the error is to be ignored
             if not arguments.get('help', False):
@@ -101,7 +102,7 @@ def main():
         if not plugins:
             # if user has not specified any plugins,
             # read them from configuration
-            plugins = orchestrator.config.data.get('plugins', [])
+            plugins = orchestrator.config.plugins
         # add plugins after the environments are created, since the environment
         # might modify some of the models APIs
         if plugins:
