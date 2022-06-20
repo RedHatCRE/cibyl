@@ -19,6 +19,7 @@ from overrides import overrides
 
 from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
+from cibyl.outputs.cli.ci.system.sorting.builds import SortBuildsByUUID
 from cibyl.outputs.cli.ci.system.sorting.jobs import SortJobsByName
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.colors import DefaultPalette
@@ -37,15 +38,19 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
                  query=QueryType.NONE,
                  verbosity=0,
                  palette=DefaultPalette(),
-                 job_sorter=BubbleSortAlgorithm(SortJobsByName())):
+                 job_sorter=BubbleSortAlgorithm(SortJobsByName()),
+                 build_sorter=BubbleSortAlgorithm(SortBuildsByUUID())):
         """Constructor. See parent for more information.
 
         :param job_sorter: Determines the order on which jobs are printed.
-        :rtype job_sorter: :class:`cibyl.utils.sorting.Comparator`
+        :type job_sorter: :class:`cibyl.utils.sorting.SortingAlgorithm`
+        :param build_sorter: Determines the order on which builds are printed.
+        :type build_sorter: :class:`cibyl.utils.sorting.SortingAlgorithm`
         """
         super().__init__(query, verbosity, palette)
 
         self._job_sorter = job_sorter
+        self._build_sorter = build_sorter
 
     @overrides
     def print_system(self, system, indent=0):
