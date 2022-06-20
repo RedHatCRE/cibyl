@@ -514,3 +514,41 @@ class TestDefaults(EndToEndTest):
         self.assertIn('Tenant: example-tenant', self.stdout)
         self.assertIn('Tenant: example-tenant-2', self.stdout)
         self.assertIn('Total tenants found in query: 2', self.stdout)
+
+
+class TestOthers(EndToEndTest):
+    """Tests miscellaneous behaviours of the Zuul source.
+    """
+    zuul = OpenDevZuulContainer()
+
+    @classmethod
+    def setUpClass(cls):
+        cls.zuul.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.zuul.stop()
+
+    def test_jobs_are_alphabetically_ordered(self):
+        """Checks that when printed, jobs are alphabetically ordered.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '--jobs', '^nodejs-.*'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: nodejs-npm', 3)
+        expected.add('Job: nodejs-npm-run-docs', 3)
+        expected.add('Job: nodejs-npm-run-lint', 3)
+        expected.add('Job: nodejs-npm-run-test', 3)
+        expected.add('Job: nodejs-run-docs', 3)
+        expected.add('Job: nodejs-run-lint', 3)
+        expected.add('Job: nodejs-run-test', 3)
+        expected.add('Job: nodejs-run-test-browser', 3)
+
+        self.assertIn(expected.build(), self.stdout)
