@@ -58,8 +58,8 @@ class ReleaseFinder:
 
         :param variant: The variant to consult.
         :type variant: :class:`cibyl.sources.zuul.transactions.VariantResponse`
-        :return: The release if it was found, 'N/A' if not.
-        :rtype: str
+        :return: The release if it was found, None if not.
+        :rtype: str or None
         """
         LOG.debug("Searching for release on variant: '%s'.", variant.name)
 
@@ -69,4 +69,4 @@ class ReleaseFinder:
             if search_term in variables:
                 return str(variables[search_term])
 
-        return 'N/A'
+        return None

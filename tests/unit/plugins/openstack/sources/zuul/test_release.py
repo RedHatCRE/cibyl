@@ -95,7 +95,7 @@ class TestReleaseFinder(TestCase):
         finder = ReleaseFinder(search_terms=[])
 
         self.assertEqual(
-            'N/A',
+            None,
             finder.find_release_for(variant)
         )
 
