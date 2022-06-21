@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from github import Github as GitHubAPIv3
+from github import Github as GitHubAPIv3, GithubException
 from github.Repository import Repository
 
-from cibyl.utils.github import GitHub as IGitHub
+from cibyl.utils.github import GitHub as IGitHub, GitHubError
 from cibyl.utils.github import Repository as IRepository
 
 RepoAPIv3 = Repository
@@ -36,10 +36,15 @@ class Repository(IRepository):
         return self._api
 
     def download_file(self, path, encoding='utf-8'):
-        file = self._api.get_contents(path)
+        try:
+            file = self._api.get_contents(path)
 
-        # Decoded content is still in binary, it has to be passed to string yet
-        return file.decoded_content.decode(encoding)
+            # Decoded content is still in binary,
+            # it has to be passed to string yet
+            return file.decoded_content.decode(encoding)
+        except GithubException as ex:
+            msg = f"Failed to fetch file at: '{path}'"
+            raise GitHubError(msg) from ex
 
 
 class PyGitHub(IGitHub):
@@ -56,6 +61,10 @@ class PyGitHub(IGitHub):
         return self._api
 
     @staticmethod
+    def from_no_login():
+        return PyGitHub.from_login('', '')
+
+    @staticmethod
     def from_login(user, password):
         return PyGitHub(
             GitHubAPIv3(
@@ -68,6 +77,10 @@ class PyGitHub(IGitHub):
         def full_name():
             return f'{owner}/{name}'
 
-        api = self._api.get_repo(full_name())
+        try:
+            api = self._api.get_repo(full_name())
 
-        return Repository(api)
+            return Repository(api)
+        except GithubException as ex:
+            msg = f"Failed to fetch repository: '{full_name()}'"
+            raise GitHubError(msg) from ex

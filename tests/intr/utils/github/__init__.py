@@ -13,26 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from abc import ABC, abstractmethod
-
-
-class GitHubError(Exception):
-    """"""
-
-
-class Repository(ABC):
-    @abstractmethod
-    def download_file(self, path):
-        """
-
-        :param path:
-        :return:
-        :rtype: str
-        """
-        raise NotImplementedError
-
-
-class GitHub(ABC):
-    @abstractmethod
-    def get_repository(self, owner, name):
-        raise NotImplementedError
