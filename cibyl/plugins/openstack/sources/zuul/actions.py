@@ -142,9 +142,11 @@ class DeploymentGenerator:
 
         def get_release():
             if any(term in kwargs for term in ('spec', 'release')):
-                return release_finder.find_release_for(variant)
+                release = release_finder.find_release_for(variant)
 
-            # Nothing means to ignore this field.
+                return release if release else 'N/A'
+
+            # Nothing means to not output this field.
             return ''
 
         release_finder = self._tools.release_finder
