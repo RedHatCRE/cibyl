@@ -13,10 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from github import Github as GitHubAPIv3, GithubException
+from github import Github as GitHubAPIv3
+from github import GithubException
 from github.Repository import Repository
 
-from cibyl.utils.github import GitHub as IGitHub, GitHubError
+from cibyl.utils.github import GitHub as IGitHub
+from cibyl.utils.github import GitHubError
 from cibyl.utils.github import Repository as IRepository
 
 RepoAPIv3 = Repository
