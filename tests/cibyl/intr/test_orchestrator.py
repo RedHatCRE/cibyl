@@ -17,7 +17,7 @@ import logging
 import sys
 from io import StringIO
 from tempfile import NamedTemporaryFile
-from unittest import TestCase
+from unittest import TestCase, skip
 from unittest.mock import patch
 
 from cibyl.cli.main import main
@@ -27,7 +27,9 @@ from cibyl.models.ci.base.build import Build
 from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.sources.jenkins import Jenkins as OSPJenkins
+from cibyl.plugins.openstack.sources.zuul import Zuul as OSPZuul
 from cibyl.sources.jenkins import Jenkins
+from cibyl.sources.zuul.source import Zuul
 
 
 class TestOrchestrator(TestCase):
@@ -131,3 +133,172 @@ class TestOrchestrator(TestCase):
         self.assertIn("Network:", output)
         self.assertIn("IP version: 4", output)
         self.assertIn("Total jobs found in query: 1", output)
+
+    @patch.object(Jenkins, 'setup', return_value="")
+    @patch('cibyl.orchestrator.get_source_instance_from_method')
+    @patch('cibyl.orchestrator.source_information_from_method',
+           return_value="")
+    @patch.object(Jenkins, 'get_tests', side_effect=JenkinsError)
+    @patch.object(OSPJenkins, 'get_deployment', side_effect=JenkinsError)
+    @patch('cibyl.plugins.get_classes_in', return_value=[OSPJenkins])
+    def test_args_level_tests_and_deployment(self, _get_classes_mock,
+                                             jenkins_deployment,
+                                             jenkins_tests, _,
+                                             source_instance_mock,
+                                             jenkins_setup_mock):
+        """Test that the args level is correctly considered and the correct
+        number of source queries are done."""
+        source_instance_mock.return_value = Jenkins(url="url")
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources:\n")
+            config_file.write(b"        jenkins:\n")
+            config_file.write(b"          driver: jenkins\n")
+            config_file.write(b"          url: url\n")
+            config_file.seek(0)
+            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
+                        '--jobs', 'DFG-compute', '--spec', '--tests']
+
+            main()
+        jenkins_deployment.assert_called_once()
+        jenkins_tests.assert_called_once()
+        jenkins_setup_mock.assert_called_once()
+
+    @patch.object(Jenkins, 'setup', return_value="")
+    @patch('cibyl.orchestrator.get_source_instance_from_method')
+    @patch('cibyl.orchestrator.source_information_from_method',
+           return_value="")
+    @patch.object(Jenkins, 'get_builds', side_effect=JenkinsError)
+    @patch.object(OSPJenkins, 'get_deployment', side_effect=JenkinsError)
+    @patch('cibyl.plugins.get_classes_in', return_value=[OSPJenkins])
+    def test_args_level_builds_and_deployment(self, _get_classes_mock,
+                                              jenkins_deployment,
+                                              jenkins_builds, _,
+                                              source_instance_mock,
+                                              jenkins_setup_mock):
+        """Test that the args level is correctly considered and the correct
+        number of source queries are done."""
+        source_instance_mock.return_value = Jenkins(url="url")
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources:\n")
+            config_file.write(b"        jenkins:\n")
+            config_file.write(b"          driver: jenkins\n")
+            config_file.write(b"          url: url\n")
+            config_file.seek(0)
+            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
+                        '--jobs', 'DFG-compute', '--spec', '--builds']
+
+            main()
+        jenkins_deployment.assert_called_once()
+        jenkins_builds.assert_called_once()
+        jenkins_setup_mock.assert_called_once()
+
+    @patch.object(Jenkins, 'setup', return_value="")
+    @patch('cibyl.orchestrator.get_source_instance_from_method')
+    @patch('cibyl.orchestrator.source_information_from_method',
+           return_value="")
+    @patch.object(Jenkins, 'get_tests', side_effect=JenkinsError)
+    @patch.object(OSPJenkins, 'get_deployment', side_effect=JenkinsError)
+    @patch('cibyl.plugins.get_classes_in', return_value=[OSPJenkins])
+    def test_args_level_tests_and_packages(self, _get_classes_mock,
+                                           jenkins_deployment,
+                                           jenkins_tests, _,
+                                           source_instance_mock,
+                                           jenkins_setup_mock):
+        """Test that the args level is correctly considered and the correct
+        number of source queries are done."""
+        source_instance_mock.return_value = Jenkins(url="url")
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources:\n")
+            config_file.write(b"        jenkins:\n")
+            config_file.write(b"          driver: jenkins\n")
+            config_file.write(b"          url: url\n")
+            config_file.seek(0)
+            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
+                        '--jobs', 'DFG-compute', '--spec', '--tests',
+                        '--builds']
+
+            main()
+        jenkins_deployment.assert_called_once()
+        jenkins_tests.assert_called_once()
+        jenkins_setup_mock.assert_called_once()
+
+    @skip("Should be skipped until get_tests is implemented in Zuul")
+    @patch.object(Zuul, 'setup', return_value="")
+    @patch('cibyl.orchestrator.get_source_instance_from_method')
+    @patch('cibyl.orchestrator.source_information_from_method',
+           return_value="")
+    @patch.object(Zuul, 'get_tests', side_effect=JenkinsError)
+    @patch.object(OSPZuul, 'get_deployment', side_effect=JenkinsError)
+    @patch('cibyl.plugins.get_classes_in', return_value=[OSPZuul])
+    def test_args_level_tests_and_deployment_zuul(self, _get_classes_mock,
+                                                  zuul_deployment,
+                                                  zuul_tests, _,
+                                                  source_instance_mock,
+                                                  zuul_setup_mock):
+        """Test that the args level is correctly considered and the correct
+        number of source queries are done."""
+        source_instance_mock.return_value = Zuul(url="url", name="zuul",
+                                                 driver="zuul")
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: zuul\n")
+            config_file.write(b"      sources:\n")
+            config_file.write(b"        zuul:\n")
+            config_file.write(b"          driver: zuul\n")
+            config_file.write(b"          url: url\n")
+            config_file.seek(0)
+            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
+                        '--jobs', 'DFG-compute', '--spec', '--tests']
+
+            main()
+        zuul_deployment.assert_called_once()
+        zuul_tests.assert_called_once()
+        zuul_setup_mock.assert_called_once()
+
+    @patch.object(Zuul, 'setup', return_value="")
+    @patch('cibyl.orchestrator.get_source_instance_from_method')
+    @patch('cibyl.orchestrator.source_information_from_method',
+           return_value="")
+    @patch.object(Zuul, 'get_builds', side_effect=JenkinsError)
+    @patch.object(OSPZuul, 'get_deployment', side_effect=JenkinsError)
+    @patch('cibyl.plugins.get_classes_in', return_value=[OSPZuul])
+    def test_args_level_builds_and_deployment_zuul(self, _get_classes_mock,
+                                                   zuul_deployment,
+                                                   zuul_builds, _,
+                                                   source_instance_mock,
+                                                   zuul_setup_mock):
+        """Test that the args level is correctly considered and the correct
+        number of source queries are done."""
+        source_instance_mock.return_value = Zuul(name="zuul", driver="zuul",
+                                                 url="url")
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: zuul\n")
+            config_file.write(b"      sources:\n")
+            config_file.write(b"        zuul:\n")
+            config_file.write(b"          driver: zuul\n")
+            config_file.write(b"          url: url\n")
+            config_file.seek(0)
+            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
+                        '--jobs', 'DFG-compute', '--spec', '--builds']
+
+            main()
+        zuul_deployment.assert_called_once()
+        zuul_builds.assert_called_once()
+        zuul_setup_mock.assert_called_once()
