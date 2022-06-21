@@ -16,6 +16,7 @@
 from github import Github as GitHubAPIv3
 from github import GithubException
 from github.Repository import Repository
+from overrides import overrides
 
 from cibyl.utils.github import GitHub as IGitHub
 from cibyl.utils.github import GitHubError
@@ -45,6 +46,7 @@ class Repository(IRepository):
         """
         return self._api
 
+    @overrides
     def download_file(self, path, encoding='utf-8'):
         try:
             file = self.api.get_contents(path)
@@ -103,6 +105,7 @@ class PyGitHub(IGitHub):
             )
         )
 
+    @overrides
     def get_repository(self, owner, name):
         def full_name():
             return f'{owner}/{name}'
