@@ -23,21 +23,29 @@ RepoAPIv3 = Repository
 
 
 class Repository(IRepository):
-    def __init__(self, api):
-        """
+    """Implementation of the :class:`IRepository` using the PyGithub library as
+    base.
+    """
 
-        :param api:
+    def __init__(self, api):
+        """Constructor.
+
+        :param api: PyGithub session used to interact with GitHub.
         :type api: :class:`RepoAPIv3`
         """
         self._api = api
 
     @property
     def api(self):
+        """
+        :return: API being in used to interact with GitHub.
+        :rtype: :class:`RepoAPIv3`
+        """
         return self._api
 
     def download_file(self, path, encoding='utf-8'):
         try:
-            file = self._api.get_contents(path)
+            file = self.api.get_contents(path)
 
             # Decoded content is still in binary,
             # it has to be passed to string yet
@@ -48,24 +56,44 @@ class Repository(IRepository):
 
 
 class PyGitHub(IGitHub):
-    def __init__(self, api):
-        """
+    """Implementation of the :class:`IGitHub` using the PyGithub library as
+    base.
+    """
 
-        :param api:
+    def __init__(self, api):
+        """Constructor.
+
+        :param api: PyGithub session used to interact with GitHub.
         :type api: :class:`GitHubAPIv3`
         """
         self._api = api
 
     @property
     def api(self):
+        """
+        :return: API being in used to interact with GitHub.
+        :rtype: :class:`GitHubAPIv3`
+        """
         return self._api
 
     @staticmethod
     def from_no_login():
+        """Creates a new session without any login credentials. This will be
+        able to access as much as a guest client is able to.
+
+        :return: The instance.
+        :rtype: :class:`PyGitHub`
+        """
         return PyGitHub.from_login('', '')
 
     @staticmethod
     def from_login(user, password):
+        """Creates a new session with login credentials. This will be able to
+        access as much as the logged-in user has access to.
+
+        :return: The instance.
+        :rtype: :class:`PyGitHub`
+        """
         return PyGitHub(
             GitHubAPIv3(
                 login_or_token=user,
@@ -78,9 +106,9 @@ class PyGitHub(IGitHub):
             return f'{owner}/{name}'
 
         try:
-            api = self._api.get_repo(full_name())
+            repo = self.api.get_repo(full_name())
 
-            return Repository(api)
+            return Repository(repo)
         except GithubException as ex:
             msg = f"Failed to fetch repository: '{full_name()}'"
             raise GitHubError(msg) from ex
