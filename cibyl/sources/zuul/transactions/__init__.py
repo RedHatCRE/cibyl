@@ -21,7 +21,11 @@ License:
 #
 """
 from abc import ABC
+from typing import Dict, List
 
+from cibyl.sources.zuul.apis import (ZuulAPI, ZuulBuildAPI, ZuulJobAPI,
+                                     ZuulTenantAPI, ZuulVariantAPI)
+from cibyl.sources.zuul.apis.providers import JobsProvider, PipelinesProvider
 from cibyl.utils.filtering import apply_filters, matches_regex
 
 
@@ -29,7 +33,7 @@ class Request(ABC):
     """Base class for any kind of request.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Constructor.
         """
         self._filters = []
@@ -39,7 +43,7 @@ class TenantsRequest(Request):
     """High-Level petition focused on retrieval of data related to tenants.
     """
 
-    def __init__(self, zuul):
+    def __init__(self, zuul: 'ZuulAPI') -> None:
         """Constructor.
 
         :param zuul: Low-Level Zuul API.
@@ -49,7 +53,7 @@ class TenantsRequest(Request):
 
         self._zuul = zuul
 
-    def with_name(self, *pattern):
+    def with_name(self, *pattern: str) -> 'TenantsRequest':
         """Will limit request to tenants whose name follows a certain pattern.
 
         :param pattern: Regex pattern for the desired name.
@@ -66,7 +70,7 @@ class TenantsRequest(Request):
         self._filters.append(test)
         return self
 
-    def get(self):
+    def get(self) -> List['TenantsRequest']:
         """Performs the request.
 
         :return: Answer from the host.
@@ -81,7 +85,7 @@ class ProjectsRequest(Request):
     """High-Level petition focused on retrieval of data related to projects.
     """
 
-    def __init__(self, tenant):
+    def __init__(self, tenant: 'ZuulTenantAPI') -> None:
         """Constructor.
 
         :param tenant: Low-Level API to the tenant to get the projects from.
@@ -91,16 +95,16 @@ class ProjectsRequest(Request):
 
         self._tenant = tenant
 
-    def with_name(self, *pattern):
+    def with_name(self, *pattern: str) -> 'ProjectsRequest':
         """Will limit request to projects whose name follows a certain pattern.
 
         :param pattern: Regex pattern for the desired name.
         :type pattern: str
         :return: The request's instance.
-        :rtype: :class:`ProjectRequest`
+        :rtype: :class:`ProjectsRequest`
         """
 
-        def test(project):
+        def test(project) -> bool:
             return any(
                 matches_regex(patt, project.name) for patt in pattern
             )
@@ -108,7 +112,7 @@ class ProjectsRequest(Request):
         self._filters.append(test)
         return self
 
-    def get(self):
+    def get(self) -> List['ProjectResponse']:
         """Performs the request.
 
         :return: Answer from the host.
@@ -123,18 +127,19 @@ class PipelinesRequest(Request):
     """High-Level petition focused on retrieval of data related to pipelines.
     """
 
-    def __init__(self, provider):
+    def __init__(self, provider: 'PipelinesProvider') -> None:
         """Constructor.
 
         :param provider: Low-Level API to the provider to get the pipelines
             from.
-        :type provider: :class:`cibyl.sources.zuul.providers.PipelinesProvider`
+        :type provider: :class:
+            `cibyl.sources.zuul.apis.providers.PipelinesProvider`
         """
         super().__init__()
 
         self._provider = provider
 
-    def with_name(self, *pattern):
+    def with_name(self, *pattern: str) -> 'PipelinesRequest':
         """Will limit request to pipelines whose name follows a certain
         pattern.
 
@@ -167,7 +172,7 @@ class JobsRequest(Request):
     """High-Level petition focused on retrieval of data related to jobs.
     """
 
-    def __init__(self, provider):
+    def __init__(self, provider: 'JobsProvider') -> None:
         """Constructor.
 
         :param provider: Low-Level API to the provider to get the jobs from.
@@ -177,7 +182,7 @@ class JobsRequest(Request):
 
         self._provider = provider
 
-    def with_name(self, *pattern):
+    def with_name(self, *pattern: str) -> 'JobsRequest':
         """Will limit request to jobs whose name follows a certain pattern.
 
         :param pattern: Regex pattern for the desired name.
@@ -203,7 +208,7 @@ class JobsRequest(Request):
         :rtype: :class:`JobsRequest`
         """
 
-        def test(job):
+        def test(job: 'ZuulJobAPI') -> bool:
             return any(
                 matches_regex(patt, job.url) for patt in pattern
             )
@@ -211,7 +216,7 @@ class JobsRequest(Request):
         self._filters.append(test)
         return self
 
-    def get(self):
+    def get(self) -> List['JobResponse']:
         """Performs the request.
 
         :return: Answer from the host.
@@ -227,7 +232,7 @@ class VariantsRequest(Request):
     variants.
     """
 
-    def __init__(self, job):
+    def __init__(self, job: 'ZuulJobAPI') -> None:
         """Constructor.
 
         :param job: Low-Level API to the job to get the variants from.
@@ -237,7 +242,7 @@ class VariantsRequest(Request):
 
         self._job = job
 
-    def get(self):
+    def get(self) -> List['VariantResponse']:
         """Performs the request.
 
         :return: Answer from the host.
@@ -252,7 +257,7 @@ class BuildsRequest(Request):
     """High-Level petition focused on retrieval of data related to builds.
     """
 
-    def __init__(self, job):
+    def __init__(self, job: 'ZuulJobAPI') -> None:
         """Constructor.
 
         :param job: Low-Level API to the job to get the builds from.
@@ -263,7 +268,7 @@ class BuildsRequest(Request):
         self._job = job
         self._last_build_only = False
 
-    def with_uuid(self, *pattern):
+    def with_uuid(self, *pattern: str) -> 'BuildsRequest':
         """Will limit request to builds whose uuid follows a certain pattern.
 
         :param pattern: Regex pattern for the desired uuid.
@@ -272,7 +277,7 @@ class BuildsRequest(Request):
         :rtype: :class:`BuildsRequest`
         """
 
-        def test(build):
+        def test(build: 'BuildsRequest') -> bool:
             return any(
                 matches_regex(patt, build.uuid) for patt in pattern
             )
@@ -280,7 +285,7 @@ class BuildsRequest(Request):
         self._filters.append(test)
         return self
 
-    def with_status(self, *pattern):
+    def with_status(self, *pattern: str) -> 'BuildsRequest':
         """Will limit request to builds whose status follows a certain pattern.
 
         :param pattern: Regex pattern for the desired status.
@@ -289,7 +294,7 @@ class BuildsRequest(Request):
         :rtype: :class:`BuildsRequest`
         """
 
-        def test(build):
+        def test(build: 'BuildsRequest') -> bool:
             return any(
                 matches_regex(patt, build.result) for patt in pattern
             )
@@ -297,7 +302,7 @@ class BuildsRequest(Request):
         self._filters.append(test)
         return self
 
-    def with_project(self, *pattern):
+    def with_project(self, *pattern: str) -> 'BuildsRequest':
         """Will limit request to builds that belong to a project which
         follows a certain pattern.
 
@@ -333,21 +338,21 @@ class BuildsRequest(Request):
         self._filters.append(test)
         return self
 
-    def with_last_build_only(self):
+    def with_last_build_only(self) -> 'BuildsRequest':
         """Will only return the latest build that meets the filters.
 
         :return: The request's instance.
-        :rtype: :class:`BuildRequest`
+        :rtype: :class:`BuildsRequest`
         """
         # This one needs to be applied after all the other filters.
         self._last_build_only = True
         return self
 
-    def get(self):
+    def get(self) -> List['BuildResponse']:
         """Performs the request.
 
         :return: Answer from the host.
-        :rtype: list[:class:`BuildsResponse`]
+        :rtype: list[:class:`BuildResponse`]
         """
         builds = apply_filters(self._job.builds(), *self._filters)
 
@@ -484,7 +489,7 @@ class JobResponse:
     """Response for a :class:`JobsRequest`.
     """
 
-    def __init__(self, job):
+    def __init__(self, job: 'ZuulJobAPI') -> None:
         """Constructor.
 
         :param job: Low-Level API to access the job's data.
@@ -493,7 +498,7 @@ class JobResponse:
         self._job = job
 
     @property
-    def tenant(self):
+    def tenant(self) -> 'TenantResponse':
         """
         :return: Response to this job's tenant.
         :rtype: :class:`TenantResponse`
@@ -501,7 +506,7 @@ class JobResponse:
         return TenantResponse(self._job.tenant)
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         :return: The job's name.
         :rtype: str
@@ -509,21 +514,21 @@ class JobResponse:
         return self._job.name
 
     @property
-    def url(self):
+    def url(self) -> str:
         """
         :return: The job's URL.
         :rtype: str
         """
         return self._job.url
 
-    def variants(self):
+    def variants(self) -> 'VariantsRequest':
         """
         :return: A request to this job's variants.
         :rtype: :class:`VariantsRequest`
         """
         return VariantsRequest(self._job)
 
-    def builds(self):
+    def builds(self) -> 'BuildsRequest':
         """
         :return: A request to this job's builds.
         :rtype: :class:`BuildsRequest`
@@ -535,7 +540,7 @@ class VariantResponse:
     """Response for a :class:`VariantsRequest`.
     """
 
-    def __init__(self, variant):
+    def __init__(self, variant: 'ZuulVariantAPI') -> None:
         """Constructor.
 
         :param variant: Low-Level API to access the variant's data.
@@ -544,7 +549,7 @@ class VariantResponse:
         self._variant = variant
 
     @property
-    def job(self):
+    def job(self) -> 'JobResponse':
         """
         :return: Response for this variant's job.
         :rtype: :class:`JobResponse`
@@ -552,7 +557,7 @@ class VariantResponse:
         return JobResponse(self._variant.job)
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         :return: The variants name. Most likely, it will match its job's name.
         :rtype: str
@@ -560,14 +565,14 @@ class VariantResponse:
         return self._variant.name
 
     @property
-    def data(self):
+    def data(self) -> Dict[str, object]:
         """
         :return: Raw data of this variant
         :rtype: dict[str, Any]
         """
         return self._variant.raw
 
-    def variables(self, recursive=False):
+    def variables(self, recursive: bool = False) -> Dict[str, object]:
         """
         :param recursive: Whether to gather the variables of parent as well.
         :type recursive: bool
@@ -581,7 +586,7 @@ class BuildResponse:
     """Response for a :class:`BuildsRequest`.
     """
 
-    def __init__(self, build):
+    def __init__(self, build: 'ZuulBuildAPI') -> None:
         """Constructor.
 
         :param build: Low-Level API to access the build's data.
@@ -590,7 +595,7 @@ class BuildResponse:
         self._build = build
 
     @property
-    def job(self):
+    def job(self) -> 'JobResponse':
         """
         :return: Response for this build's job.
         :rtype: :class:`JobResponse`
@@ -598,7 +603,7 @@ class BuildResponse:
         return JobResponse(self._build.job)
 
     @property
-    def data(self):
+    def data(self) -> Dict[str, any]:
         """
         :return: Raw data of this build.
         :rtype: dict[str, Any]

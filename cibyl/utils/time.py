@@ -15,12 +15,12 @@
 """
 
 
-def as_minutes(ms):
+def as_minutes(ms: int) -> float:
     """Converts ms to mins.
 
     :param ms: The ms to converts.
     :type ms: int
     :return: The time in minutes.
-    :rtype: int
+    :rtype: float
     """
     return ms / 60000

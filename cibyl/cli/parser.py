@@ -26,8 +26,9 @@ class CustomAction(argparse.Action):
     whether an argument data is populated, the function associated
     with the argument and the level in the models.
     """
-    def __init__(self, *args, func=None, populated=False, level=-1,
-                 ranged=False, **kwargs):
+    def __init__(self, *args, func=None, populated: bool = False,
+                 level: int = -1,
+                 ranged: bool = False, **kwargs) -> None:
         """
         argparse custom action.
         :param func: the function the argument is associated with
@@ -38,7 +39,7 @@ class CustomAction(argparse.Action):
         self.ranged = ranged
         super().__init__(*args, **kwargs)
 
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(self, parser, namespace, values, option_string=None) -> None:
         if self.default and not values:
             values = self.default
         setattr(namespace, self.dest, Argument(

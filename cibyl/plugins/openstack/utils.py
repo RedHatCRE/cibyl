@@ -28,7 +28,7 @@ class TopologyAbbreviations:
                      'novactl': 'novacontrol'}
 
     @staticmethod
-    def translate(abbreviation):
+    def translate(abbreviation: str) -> str:
         """Translate an abbreviation into a long form name of a component of an
         openstack deployment topology. If the short form does not have a long
         form associated, return the short form.
@@ -42,7 +42,7 @@ class TopologyAbbreviations:
                                                        abbreviation)
 
 
-def translate_topology_string(short_topology: str):
+def translate_topology_string(short_topology: str) -> str:
     """Translate a topology string in short form (as typically found in job
     names) to a long form one.
 

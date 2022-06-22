@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Callable, Tuple
 
 
 class SourceMethodsStore:
@@ -24,12 +25,13 @@ class SourceMethodsStore:
     def __init__(self):
         self.cache = {}
 
-    def _method_information_tuple(self, source_method):
+    def _method_information_tuple(self,
+                                  source_method: Callable) -> Tuple[str, str]:
         """Obtain a tuple representation in the format (source_name,
         method_name) from the input source_method.
 
         :param source_method: Source method that is used
-        :type source_method: method
+        :type source_method: typing.Callable
         :returns: The internal representation of the source_method in the cache
         :rtype: tuple(str, str)
         """
@@ -37,32 +39,32 @@ class SourceMethodsStore:
         method_name = source_method.__name__
         return (source.name, method_name)
 
-    def has_been_called(self, source_method):
+    def has_been_called(self, source_method: Callable) -> bool:
         """Check whether a particular source method has already been called
         before.
 
         :param source_method: Source method that is used
-        :type source_method: method
+        :type source_method: typing.Callable
         :returns: Whether the source method has been called before
         :rtype: bool
         """
         return self._method_information_tuple(source_method) in self.cache
 
-    def add_call(self, source_method, success):
+    def add_call(self, source_method: Callable, success: bool) -> None:
         """Add a particular source method to the call cache, with a given
         status.
 
         :param source_method: Source method that is used
-        :type source_method: method
+        :type source_method: typing.Callable
         :param success: Whether the source method call was successful
         :type success: bool
         """
         self.cache[self._method_information_tuple(source_method)] = success
 
-    def get_status(self, source_method):
+    def get_status(self, source_method: Callable) -> object:
         """Return the success of a previous call to source_method.
 
         :param source_method: Source method that is used
-        :type source_method: method
+        :type source_method: typing.Callable
         """
         return self.cache[self._method_information_tuple(source_method)]

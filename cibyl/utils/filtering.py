@@ -39,7 +39,7 @@ SERVICES_PATTERN = re.compile(services_pattern_str)
 
 
 def satisfy_regex_match(model: Dict[str, str], pattern: Pattern,
-                        field_to_check: str):
+                        field_to_check: str) -> bool:
     """Check whether model (job or build) should be included according to
     the user input.
     The model should be added if the information provided field_to_check
@@ -58,7 +58,7 @@ def satisfy_regex_match(model: Dict[str, str], pattern: Pattern,
 
 
 def satisfy_exact_match(model: Dict[str, str], user_input: Argument,
-                        field_to_check: str):
+                        field_to_check: str) -> bool:
     """Check whether model should be included according to the user input. The
     model should be added if the information provided field_to_check
     (the model name or url for example) is present in the user_input values.
@@ -75,9 +75,9 @@ def satisfy_exact_match(model: Dict[str, str], user_input: Argument,
     return model[field_to_check] in user_input.value
 
 
-def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
-                                   field_to_check: str,
-                                   default_user_value: List[str] = None):
+def satisfy_case_insensitive_match(
+    model: Dict[str, str], user_input: Argument,
+        field_to_check: str, default_user_value: List[str] = None) -> bool:
     """Check whether model should be included according to the user input. The
     model should be added if the information provided field_to_check
     (the model name or url for example) is an exact case-insensitive match to

@@ -15,6 +15,7 @@
 """
 
 import logging
+from typing import List
 
 from cibyl.exceptions.model import (InvalidEnvironment, InvalidSystem,
                                     NoEnabledSystem, NoValidSystem)
@@ -31,8 +32,8 @@ class Validator:
     def __init__(self, ci_args: dict):
         self.ci_args = ci_args
 
-    def _check_input_environments(self, all_envs, argument,
-                                  exception_to_raise):
+    def _check_input_environments(self, all_envs: List[str], argument: str,
+                                  exception_to_raise: object) -> None:
         """Check if the user input environments exist in the configuration.
 
         :param all_envs: Environments defined in the configuration
@@ -49,7 +50,7 @@ class Validator:
                 if env_name not in all_envs:
                     raise exception_to_raise(env_name, all_envs)
 
-    def _consistent_environment(self, env):
+    def _consistent_environment(self, env: str) -> bool:
         """Check if an environment should be used according to user input.
 
         :param env: Model to validate
@@ -62,7 +63,7 @@ class Validator:
             return env.name.value in user_env.value
         return True
 
-    def _consistent_system(self, system):
+    def _consistent_system(self, system: object) -> bool:
         """Check if a system should be used according to user input.
 
         :param system: Model to validate
@@ -83,7 +84,7 @@ class Validator:
 
         return True
 
-    def _system_has_valid_sources(self, system):
+    def _system_has_valid_sources(self, system: object) -> bool:
         """Check if a system should be used according to user input from
         sources point of view.
 
@@ -148,7 +149,7 @@ class Validator:
                 user_systems.extend(env_systems)
         return user_envs, user_systems
 
-    def _system_is_enabled(self, system):
+    def _system_is_enabled(self, system: object) -> bool:
         """Check if a system should be used according to enabled parameter in
         configuration file.
 
@@ -159,7 +160,7 @@ class Validator:
         """
         return system.is_enabled()
 
-    def override_enabled_systems(self, systems):
+    def override_enabled_systems(self, systems: List[str]) -> None:
         """Ensure that systems specified by the user with the --systems
         argument are enabled.
 
@@ -176,7 +177,7 @@ class Validator:
             if system.name.value in user_systems.value:
                 system.enable()
 
-    def validate_environments(self, environments):
+    def validate_environments(self, environments: List[str]) -> List[list]:
         """Filter environments and systems according to user input.
 
         :returns: Environments and systems that can be used according to user

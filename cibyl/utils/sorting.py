@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
+from typing import Iterable
 
 from overrides import overrides
 
@@ -25,7 +26,7 @@ class Comparator(ABC):
     """
 
     @abstractmethod
-    def compare(self, left, right):
+    def compare(self, left: object, right: object) -> int:
         """Compares the two arguments for order.
 
         :param left: First object to be compared.
@@ -45,7 +46,7 @@ class NativeComparator(Comparator):
     '__eq__' and '__lt__' methods."""
 
     @overrides
-    def compare(self, left, right):
+    def compare(self, left: object, right: object) -> int:
         if left == right:
             return 0
 
@@ -58,7 +59,7 @@ class SortingAlgorithm(ABC):
     These rules are defines by the comparator in use.
     """
 
-    def __init__(self, comparator=NativeComparator()):
+    def __init__(self, comparator: 'Comparator' = NativeComparator()) -> None:
         """Constructor.
 
         :param comparator: Comparison function this uses to determine order.
@@ -67,7 +68,7 @@ class SortingAlgorithm(ABC):
         self._comparator = comparator
 
     @abstractmethod
-    def sort(self, iterable):
+    def sort(self, iterable: Iterable) -> None:
         """Sorts the given collection in ascending order. The original
         collection remains untouched, instead, a sorted copy of it is returned.
 
@@ -86,7 +87,7 @@ class BubbleSortAlgorithm(SortingAlgorithm):
     """
 
     @overrides
-    def sort(self, iterable):
+    def sort(self, iterable: Iterable) -> None:
         def compare(lft, rght):
             return self._comparator.compare(lft, rght)
 
@@ -104,7 +105,7 @@ class BubbleSortAlgorithm(SortingAlgorithm):
         return result
 
 
-def sort(iterable, algorithm=BubbleSortAlgorithm()):
+def sort(iterable, algorithm: Iterable = BubbleSortAlgorithm()) -> list:
     """Shortcut for sorting the elements of a collection.
 
     :param iterable: The collection to sort.
@@ -118,7 +119,7 @@ def sort(iterable, algorithm=BubbleSortAlgorithm()):
     return algorithm.sort(iterable)
 
 
-def nsort(iterable, algorithm=BubbleSortAlgorithm()):
+def nsort(iterable, algorithm: Iterable = BubbleSortAlgorithm()) -> Iterable:
     """Same as :func:`sort`, but this one reverses the collection before
     returning it. Use this function to get sorting in descending order.
     """

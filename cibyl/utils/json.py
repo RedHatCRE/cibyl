@@ -25,7 +25,7 @@ class JSONValidatorFactory(ABC):
     """
 
     @abstractmethod
-    def from_file(self, file):
+    def from_file(self, file: str) -> None:
         """Builds a new validator by reading the schema from a file.
 
         :param file: Path to the file to read.
@@ -45,7 +45,7 @@ class Draft7ValidatorFactory(JSONValidatorFactory):
     """
 
     @overrides
-    def from_file(self, file):
+    def from_file(self, file: str) -> None:
         with open(file, 'r') as buffer:
             schema = json.loads(buffer.read())
 

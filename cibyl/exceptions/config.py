@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import List
+
 from cibyl.exceptions import CibylException
 from cibyl.utils.colors import Colors
 
@@ -24,7 +26,7 @@ for more information"
 class ConfigurationNotFound(CibylException):
     """Configuration file not found exception"""
 
-    def __init__(self, paths):
+    def __init__(self, paths: str) -> None:
         if paths:
             paths = f" at: '{paths}'"
         else:
@@ -38,7 +40,7 @@ class ConfigurationNotFound(CibylException):
 class EmptyConfiguration(CibylException):
     """Configuration file is empty exception."""
 
-    def __init__(self, file):
+    def __init__(self, file: str) -> None:
         self.message = f"""Configuration file {file} is empty.
 {CHECK_DOCS_MSG}"""
 
@@ -48,7 +50,7 @@ class EmptyConfiguration(CibylException):
 class InvalidSourceConfiguration(CibylException):
     """Invalid source configuration exception."""
 
-    def __init__(self, source_name, source_data):
+    def __init__(self, source_name: str, source_data: str) -> None:
         self.message = f"""Invalid source configuration.
 
 {source_name}: {source_data}\n\n{CHECK_DOCS_MSG}"""
@@ -59,7 +61,7 @@ class InvalidSourceConfiguration(CibylException):
 class NonSupportedSourceKey(CibylException):
     """Configuration section key is not supported."""
 
-    def __init__(self, source_type, key):
+    def __init__(self, source_type: str, key: str) -> None:
         self.message = f"""The following key in "{source_type}" source type \
 is not supported: {key}\n\n{CHECK_DOCS_MSG}"""
 
@@ -69,7 +71,7 @@ is not supported: {key}\n\n{CHECK_DOCS_MSG}"""
 class NonSupportedSystemKey(CibylException):
     """Configuration section key is not supported."""
 
-    def __init__(self, system_type, key):
+    def __init__(self, system_type: str, key: str) -> None:
         self.message = f"""The following key in "{system_type}" system type \
 is not supported: {key}\n\n{CHECK_DOCS_MSG}"""
 
@@ -79,7 +81,7 @@ is not supported: {key}\n\n{CHECK_DOCS_MSG}"""
 class NonSupportedSourceType(CibylException):
     """Configuration source type is not supported."""
 
-    def __init__(self, source_type, source_types):
+    def __init__(self, source_type: str, source_types: List[str]) -> None:
         types = Colors.blue("\n  ".join([t.value for t in source_types]))
         self.message = f"""The source type "{source_type}" isn't supported.
 Use one of the following source types:\n  {types}"""
@@ -90,7 +92,7 @@ Use one of the following source types:\n  {types}"""
 class MissingSourceKey(CibylException):
     """Configuration section is incomplete and missing a key."""
 
-    def __init__(self, source_type, key):
+    def __init__(self, source_type: str, key: str) -> None:
         colored_key = Colors.blue(key)
         self.message = f"""The following key in "{source_type}" source type \
 is missing and required for the source to become operational: {colored_key}"""
@@ -101,7 +103,7 @@ is missing and required for the source to become operational: {colored_key}"""
 class MissingSystemKey(CibylException):
     """System configuration is incomplete and missing a key."""
 
-    def __init__(self, system_name, key):
+    def __init__(self, system_name: str, key: str) -> None:
         colored_key = Colors.blue(key)
         self.message = f"""The following key in "{system_name}" system \
 is missing and required for the system to become operational: {colored_key}"""
@@ -112,7 +114,7 @@ is missing and required for the system to become operational: {colored_key}"""
 class MissingSourceType(CibylException):
     """Configuration source type isn't specified."""
 
-    def __init__(self, source_name, source_types):
+    def __init__(self, source_name: str, source_types: List[str]) -> None:
         types = Colors.blue("\n  ".join([t.value for t in source_types]))
         self.message = f"""Missing 'driver: <TYPE>' for source {source_name}
 Use one of the following source types:\n  {types}"""
@@ -123,7 +125,7 @@ Use one of the following source types:\n  {types}"""
 class MissingSystemType(CibylException):
     """Configuration system type isn't specified."""
 
-    def __init__(self, system_name, system_types):
+    def __init__(self, system_name: str, system_types: List[str]) -> None:
         types = Colors.blue("\n  ".join([t for t in system_types]))
         self.message = f"""Missing 'system_type: <TYPE>' for system {system_name}
 Use one of the following system types:\n  {types}"""
@@ -134,7 +136,7 @@ Use one of the following system types:\n  {types}"""
 class MissingSystemSources(CibylException):
     """Configuration system sources aren't specified."""
 
-    def __init__(self, system_name):
+    def __init__(self, system_name: str) -> None:
         self.message = f"""Missing sources for system \
 '{system_name}'
 
@@ -150,7 +152,7 @@ class MissingSystemSources(CibylException):
 class MissingEnvironments(CibylException):
     """Configuration doesn't include any environments."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.message = f"""No environments defined in the configuration file. \
 
 Configure environments with the "environments" mapping:
@@ -163,7 +165,7 @@ Configure environments with the "environments" mapping:
 class MissingSystems(CibylException):
     """An environment in the configuration doesn't include any systems."""
 
-    def __init__(self, env_name):
+    def __init__(self, env_name: str) -> None:
         self.message = f"""No systems defined in the configuration file \
 for the environment '{env_name}'
 

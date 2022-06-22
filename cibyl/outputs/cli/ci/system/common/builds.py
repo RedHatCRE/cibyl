@@ -13,12 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.models.ci.base.build import Build
 from cibyl.outputs.cli.ci.system.common.status import get_status_colored
+from cibyl.utils.colors import ColorPalette
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
 
 
-def has_status_section(build):
+def has_status_section(build: 'Build') -> bool:
     """Checks whether a build has enough data to build a status entry for
     its description.
 
@@ -30,7 +32,7 @@ def has_status_section(build):
     return build.status.value
 
 
-def get_status_section(palette, build):
+def get_status_section(palette: 'ColorPalette', build: 'Build') -> None:
     """Generates the text describing the status of a build.
 
     :param palette: The palette of colors to follow.

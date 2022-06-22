@@ -22,7 +22,7 @@ class PipelinesProvider(ABC):
 
     @property
     @abstractmethod
-    def name(self):
+    def name(self) -> None:
         """
         :return: Name of the provider.
         :rtype: str
@@ -30,7 +30,7 @@ class PipelinesProvider(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def pipelines(self):
+    def pipelines(self) -> None:
         """
         :return: The pipelines from this entity.
         :rtype: :class:`cibyl.sources.zuul.apis.ZuulPipelineAPI`
@@ -44,7 +44,7 @@ class JobsProvider(ABC):
 
     @property
     @abstractmethod
-    def name(self):
+    def name(self) -> None:
         """
         :return: Name of the provider.
         :rtype: str
@@ -52,7 +52,7 @@ class JobsProvider(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def jobs(self):
+    def jobs(self) -> None:
         """
         :return: The pipelines from this entity.
         :rtype: :class:`cibyl.sources.zuul.apis.ZuulJobAPI`

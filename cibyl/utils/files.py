@@ -17,6 +17,7 @@ import logging
 import os
 from os import PathLike
 from pathlib import Path
+from typing import List, Union
 
 LOG = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ class FileSearch:
     """Allows for complex search queries targeting files on the filesystem.
     """
 
-    def __init__(self, directory):
+    def __init__(self, directory: str) -> None:
         """Constructor.
 
         :param directory: Path to directory to look for files in.
@@ -36,7 +37,7 @@ class FileSearch:
         self._extensions = []
         self._excluded = []
 
-    def with_recursion(self):
+    def with_recursion(self) -> 'FileSearch':
         """Extends the search to the folders inside the directory and beyond.
 
         :return: The instance.
@@ -45,7 +46,7 @@ class FileSearch:
         self._recursive = True
         return self
 
-    def with_extension(self, extension):
+    def with_extension(self, extension: str) -> 'FileSearch':
         """Limits the search to files of a certain extensions. If this is
         called more than once, then the filters are joined together following
         and 'OR' approach.
@@ -59,7 +60,7 @@ class FileSearch:
         self._extensions.append(extension)
         return self
 
-    def with_excluded(self, excluded):
+    def with_excluded(self, excluded: List[str]) -> 'FileSearch':
         """Limits the search to files that are not in the excluded list. If this
         is called more than once, then the filters are joined together
         following an 'OR' approach.
@@ -80,7 +81,7 @@ class FileSearch:
         :rtype: list[str]
         """
 
-        def list_directory():
+        def list_directory() -> List[str]:
             return [
                 f'{self._directory}/{entry}'
                 for entry in os.listdir(self._directory)
@@ -104,7 +105,7 @@ class FileSearch:
 
         return result
 
-    def _copy_for(self, directory):
+    def _copy_for(self, directory: str) -> 'FileSearch':
         """Makes a copy of this search intended for another directory. The
         resulting search will follow the same filters as this one, making
         the resulting files follow the same rules.
@@ -123,7 +124,7 @@ class FileSearch:
         return other
 
 
-def is_file_available(filename):
+def is_file_available(filename: str) -> bool:
     """Checks if a file is present on the filesystem.
 
     :param filename: A path pointing to the file to be checked.
@@ -134,7 +135,9 @@ def is_file_available(filename):
     return os.path.isfile(filename)
 
 
-def get_first_available_file(filenames, file_check=is_file_available):
+def get_first_available_file(
+    filenames: List[str],
+        file_check: str = is_file_available) -> Union[bytes, str, None]:
     """Searches for the first file out of the provided paths that exists
     on the host's drive.
 
@@ -160,7 +163,7 @@ def get_first_available_file(filenames, file_check=is_file_available):
     return None
 
 
-def get_file_name_from_path(path):
+def get_file_name_from_path(path: str) -> str:
     """Get the file name from a path. Strip all leading path
     information as well as the extension.
     :param path: Path of the file
@@ -173,7 +176,7 @@ def get_file_name_from_path(path):
     return os.path.splitext(file_name)[0]
 
 
-def get_file_extension(path):
+def get_file_extension(path: str) -> str:
     """Gets the dot-prefixed extension from the path to a file.
 
     :param path: Path to the file to get the extension from.

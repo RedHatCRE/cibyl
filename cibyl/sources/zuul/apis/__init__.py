@@ -15,6 +15,7 @@
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Dict, List
 
 from deprecation import deprecated
 
@@ -34,7 +35,7 @@ class ZuulBuildAPI(Closeable, ABC):
     Zuul regarding a particular build.
     """
 
-    def __init__(self, job, build):
+    def __init__(self, job: 'ZuulJobAPI', build: dict) -> None:
         """Constructor.
 
         :param job: Job this build belongs to.
@@ -48,7 +49,7 @@ class ZuulBuildAPI(Closeable, ABC):
         self._build = build
 
     @property
-    def job(self):
+    def job(self) -> 'ZuulJobAPI':
         """
         :return: The job this build belongs to.
         :rtype: :class:`ZuulJobAPI`
@@ -56,7 +57,7 @@ class ZuulBuildAPI(Closeable, ABC):
         return self._job
 
     @property
-    def project(self):
+    def project(self) -> str:
         """
         :return: Name of the project this build belongs to.
         :rtype: str
@@ -64,7 +65,7 @@ class ZuulBuildAPI(Closeable, ABC):
         return self._build['project']
 
     @property
-    def pipeline(self):
+    def pipeline(self) -> str:
         """
         :return: Name of the pipeline that triggered this build.
         :rtype: str
@@ -72,7 +73,7 @@ class ZuulBuildAPI(Closeable, ABC):
         return self._build['pipeline']
 
     @property
-    def uuid(self):
+    def uuid(self) -> str:
         """
         :return: The build's identifier.
         :rtype: str
@@ -80,7 +81,7 @@ class ZuulBuildAPI(Closeable, ABC):
         return self._build['uuid']
 
     @property
-    def result(self):
+    def result(self) -> str:
         """
         :return: The build's result.
         :rtype: str
@@ -88,7 +89,7 @@ class ZuulBuildAPI(Closeable, ABC):
         return self._build['result']
 
     @property
-    def duration(self):
+    def duration(self) -> int:
         """
         :return: How long the build took to complete, in ms.
         :rtype: int
@@ -96,7 +97,7 @@ class ZuulBuildAPI(Closeable, ABC):
         return self._build['duration']
 
     @property
-    def artifacts(self):
+    def artifacts(self) -> List['Artifact']:
         """
         :return: Information on artifacts published by the build.
         :rtype: list[:class:`Artifact`]
@@ -127,7 +128,7 @@ class ZuulBuildAPI(Closeable, ABC):
         return result
 
     @property
-    def log_url(self):
+    def log_url(self) -> str:
         """
         :return: URL where the build's logs are stored.
         :rtype: str
@@ -135,7 +136,7 @@ class ZuulBuildAPI(Closeable, ABC):
         return self._build['log_url']
 
     @property
-    def raw(self):
+    def raw(self) -> dict:
         """
         :return: All the data known of this build, unprocessed.
         :rtype: dict
@@ -143,7 +144,7 @@ class ZuulBuildAPI(Closeable, ABC):
         return self._build
 
     @abstractmethod
-    def tests(self):
+    def tests(self) -> None:
         """
         :return: The tests run by this build.
         :rtype: list[:class:`ZuulTestAPI`]
@@ -167,7 +168,7 @@ class ZuulVariantAPI(Closeable, ABC):
         path: str
         """Path to Ansible playbook."""
 
-    def __init__(self, job, variant):
+    def __init__(self, job: 'ZuulJobAPI', variant: Dict[str, object]) -> None:
         """Constructor.
 
         :param job: Job this variant is of.
@@ -181,7 +182,7 @@ class ZuulVariantAPI(Closeable, ABC):
         self._variant = variant
 
     @property
-    def job(self):
+    def job(self) -> 'ZuulJobAPI':
         """
         :return: Job this variant is of.
         :rtype: :class:`ZuulJobAPI`
@@ -189,7 +190,7 @@ class ZuulVariantAPI(Closeable, ABC):
         return self._job
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         :return: The name of the variant.
         :rtype: str
@@ -197,7 +198,7 @@ class ZuulVariantAPI(Closeable, ABC):
         return self.raw['name']
 
     @property
-    def parent(self):
+    def parent(self) -> str:
         """
         :return: Name of the parent job of this variant.
         :rtype: str
@@ -205,7 +206,7 @@ class ZuulVariantAPI(Closeable, ABC):
         return self.raw['parent']
 
     @property
-    def context(self):
+    def context(self) -> 'ZuulVariantAPI.Context':
         """
         :return: The source context of the variant.
         :rtype: :class:`ZuulVariantAPI.Context`
@@ -219,7 +220,7 @@ class ZuulVariantAPI(Closeable, ABC):
         )
 
     @property
-    def raw(self):
+    def raw(self) -> Dict[str, object]:
         """
         :return: All the data known of this variant, unprocessed.
         :rtype: dict[str, Any]
@@ -227,7 +228,7 @@ class ZuulVariantAPI(Closeable, ABC):
         return self._variant
 
     @abstractmethod
-    def variables(self, recursive=False):
+    def variables(self, recursive: bool = False) -> None:
         """Gets the variables that specialize this variant.
 
         :param recursive: Whether to gather the variables of the variant's
@@ -244,7 +245,7 @@ class ZuulJobAPI(Closeable, ABC):
     Zuul regarding a particular job.
     """
 
-    def __init__(self, tenant, job):
+    def __init__(self, tenant: 'ZuulTenantAPI', job: dict) -> None:
         """Constructor.
 
         :param tenant: Tenant this job belongs to.
@@ -258,7 +259,7 @@ class ZuulJobAPI(Closeable, ABC):
         self._job = job
 
     @property
-    def tenant(self):
+    def tenant(self) -> 'ZuulTenantAPI':
         """
         :return: The tenant this job belongs to.
         :rtype: :class:`ZuulTenantAPI`
@@ -266,7 +267,7 @@ class ZuulJobAPI(Closeable, ABC):
         return self._tenant
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         :return: Name of the job being consulted.
         :rtype: str
@@ -275,7 +276,7 @@ class ZuulJobAPI(Closeable, ABC):
 
     @property
     @abstractmethod
-    def url(self):
+    def url(self) -> None:
         """
         :return: URL where this job can be consulted at.
         :rtype: str
@@ -283,7 +284,7 @@ class ZuulJobAPI(Closeable, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def variants(self):
+    def variants(self) -> None:
         """
         :return: The variants of this job.
         :rtype: list[ZuulVariantAPI]
@@ -292,7 +293,7 @@ class ZuulJobAPI(Closeable, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def builds(self):
+    def builds(self) -> None:
         """
         :return: The builds of this job.
         :rtype: list[:class:`ZuulBuildAPI`]
@@ -306,7 +307,7 @@ class ZuulPipelineAPI(Closeable, JobsProvider, ABC):
     Zuul regarding a particular pipeline.
     """
 
-    def __init__(self, project, pipeline):
+    def __init__(self, project: 'ZuulProjectAPI', pipeline: dict) -> None:
         """Constructor.
 
         :param project: Project this pipeline belongs to.
@@ -320,7 +321,7 @@ class ZuulPipelineAPI(Closeable, JobsProvider, ABC):
         self._pipeline = pipeline
 
     @property
-    def project(self):
+    def project(self) -> 'ZuulProjectAPI':
         """
         :return: The project this pipeline belongs to.
         :rtype: :class:`ZuulProjectAPI`
@@ -328,7 +329,7 @@ class ZuulPipelineAPI(Closeable, JobsProvider, ABC):
         return self._project
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         :return: Name of this pipeline.
         :rtype: str
@@ -336,7 +337,7 @@ class ZuulPipelineAPI(Closeable, JobsProvider, ABC):
         return self._pipeline['name']
 
     @abstractmethod
-    def jobs(self):
+    def jobs(self) -> None:
         """
         :return: The jobs on this pipeline.
         :rtype: list[:class:`ZuulJobAPI`]
@@ -350,7 +351,7 @@ class ZuulProjectAPI(Closeable, PipelinesProvider, ABC):
     Zuul regarding a particular project.
     """
 
-    def __init__(self, tenant, project):
+    def __init__(self, tenant: 'ZuulTenantAPI', project: dict) -> None:
         """Constructor.
 
         :param tenant: Tenant this job belongs to.
@@ -364,7 +365,7 @@ class ZuulProjectAPI(Closeable, PipelinesProvider, ABC):
         self._project = project
 
     @property
-    def tenant(self):
+    def tenant(self) -> 'ZuulTenantAPI':
         """
         :return: The tenant this project belongs to.
         :rtype: :class:`ZuulTenantAPI`
@@ -372,7 +373,7 @@ class ZuulProjectAPI(Closeable, PipelinesProvider, ABC):
         return self._tenant
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         :return: Name of the project being consulted.
         :rtype: str
@@ -381,7 +382,7 @@ class ZuulProjectAPI(Closeable, PipelinesProvider, ABC):
 
     @property
     @abstractmethod
-    def url(self):
+    def url(self) -> None:
         """
         :return: URL where this project can be consulted at.
         :rtype: str
@@ -389,7 +390,7 @@ class ZuulProjectAPI(Closeable, PipelinesProvider, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def pipelines(self):
+    def pipelines(self) -> None:
         """
         :return: The pipelines on this project.
         :rtype: list[:class:`ZuulPipelineAPI`]
@@ -403,7 +404,7 @@ class ZuulTenantAPI(Closeable, JobsProvider, ABC):
     Zuul regarding a particular tenant.
     """
 
-    def __init__(self, tenant):
+    def __init__(self, tenant: dict) -> None:
         """Constructor.
 
         :param tenant: Description of the tenant being consulted by this
@@ -414,7 +415,7 @@ class ZuulTenantAPI(Closeable, JobsProvider, ABC):
         self._tenant = tenant
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         :return: Name of the tenant being consulted.
         :rtype: str
@@ -422,7 +423,7 @@ class ZuulTenantAPI(Closeable, JobsProvider, ABC):
         return self._tenant['name']
 
     @abstractmethod
-    def projects(self):
+    def projects(self) -> None:
         """A project is the representation of a source code that Zuul is
         meant to interact with.
 
@@ -433,7 +434,7 @@ class ZuulTenantAPI(Closeable, JobsProvider, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def jobs(self):
+    def jobs(self) -> None:
         """A job describes the steps that need to be taken in order to test
         a project.
 
@@ -445,7 +446,7 @@ class ZuulTenantAPI(Closeable, JobsProvider, ABC):
 
     @abstractmethod
     @deprecated(details="Access builds through jobs instead.")
-    def builds(self):
+    def builds(self) -> None:
         """A build is an instance of a job running independently.
 
         :return: Information about all executed builds under this tenant.
@@ -460,7 +461,7 @@ class ZuulAPI(Closeable, ABC):
     """
 
     @abstractmethod
-    def info(self):
+    def info(self) -> None:
         """Information which define the target host. Among this info there
         are entries such as 'capabilities' or 'authentication' param.
 
@@ -471,7 +472,7 @@ class ZuulAPI(Closeable, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def tenants(self):
+    def tenants(self) -> None:
         """Gets all tenants currently present on the host.
 
         :return: A sub-api to retrieve information about all tenants on the

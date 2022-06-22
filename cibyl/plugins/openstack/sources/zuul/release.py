@@ -14,6 +14,9 @@
 #    under the License.
 """
 import logging
+from typing import List, Optional
+
+from cibyl.sources.zuul.transactions import VariantResponse
 
 LOG = logging.getLogger(__name__)
 
@@ -28,7 +31,8 @@ class ReleaseFinder:
     )
     """Default variables known to hold the job's release."""
 
-    def __init__(self, search_terms=DEFAULT_RELEASE_FIELDS):
+    def __init__(self,
+                 search_terms: List[str] = DEFAULT_RELEASE_FIELDS) -> None:
         """Constructor.
 
         :param search_terms: List containing the names of the job variables
@@ -38,7 +42,7 @@ class ReleaseFinder:
         self._search_terms = search_terms
 
     @property
-    def search_terms(self):
+    def search_terms(self) -> List[str]:
         """
         :return: List of variables that this will search through to find
             the release.
@@ -46,7 +50,7 @@ class ReleaseFinder:
         """
         return self._search_terms
 
-    def find_release_for(self, variant):
+    def find_release_for(self, variant: 'VariantResponse') -> Optional[str]:
         """Gets the RHOS target release from a job variant.
 
         This will take care of going through the variant's variables as well

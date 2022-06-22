@@ -43,7 +43,7 @@ class Argument():
             self.value = value
         self.default = default
 
-    def parse_ranges(self, expressions):
+    def parse_ranges(self, expressions: list) -> list:
         parsed_expressions = []
         if not isinstance(expressions, list):
             raise InvalidArgument(f"Argument '{self.name}' should accept "
@@ -64,11 +64,11 @@ class Argument():
             parsed_expressions.append(Range(operator, operand))
         return parsed_expressions
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.value)
 
-    def __eq__(self, other):
+    def __eq__(self, other: 'Argument') -> bool:
         return self.name == other.name and self.value == other.value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.value)
