@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from cibyl.cli.main import raw_parsing, OutputStyle
+from cibyl.cli.main import OutputStyle, raw_parsing
 from cibyl.exceptions.cli import InvalidArgument
 
 
