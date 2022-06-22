@@ -210,6 +210,7 @@ class Orchestrator:
         sorted_args = sorted(self.parser.ci_args.values(),
                              key=operator.attrgetter('level'), reverse=True)
         system_methods_stores = defaultdict(SourceMethodsStore)
+        query_result = None
         last_level = -1
         for arg in sorted_args:
             if arg.level >= start_level and arg.level >= last_level:
@@ -268,16 +269,23 @@ class Orchestrator:
                                   source_info, system.name.value,
                                   exception, exc_info=debug)
                         continue
+                    if query_result is None:
+                        query_result = model_instances_dict
+                    else:
+                        query_result = intersect_models(query_result,
+                                                        model_instances_dict)
                     source_methods_store.add_call(source_method, True)
                     end_time = time.time()
                     LOG.info("Took %.2fs to query system %s using %s",
                              end_time-start_time, system.name.value,
                              source_info)
-                    system.populate(model_instances_dict)
                     system.register_query()
                     # if one source has provided the information, there is
                     # no need to query the rest
                     break
+        if query_result:
+            # if no source could be called, there is nothing to add
+            system.populate(query_result)
 
     def extend_parser(self, attributes, group_name='Environment',
                       level=0):
