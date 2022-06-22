@@ -23,6 +23,8 @@ class OutputStyle(Enum):
     """A human-readable text based format."""
     COLORIZED = 1
     """Same as :attr:`TEXT` but colored for easier read."""
+    JSON = 2
+    """A machine-readable text based format."""
 
     @staticmethod
     def from_key(key):
@@ -31,6 +33,7 @@ class OutputStyle(Enum):
         Map of known keys:
             * 'text' -> OutputStyle.TEXT
             * 'colorized' -> OutputStyle.COLORIZED
+            * 'json' -> OutputStyle.JSON
 
         :param key: The key to get the style for.
         :type key: Any
@@ -43,5 +46,7 @@ class OutputStyle(Enum):
             return OutputStyle.TEXT
         elif key == 'colorized':
             return OutputStyle.COLORIZED
+        elif key == 'json':
+            return OutputStyle.JSON
         else:
             raise NotImplementedError(f'Unknown format: {key}')
