@@ -49,7 +49,7 @@ class TestOpenstackDeployment(TestCase):
                                             ip_version=self.ip_version,
                                             topology=self.topology,
                                             network_backend=self.network,
-                                            storage_backend=self.storage,
+                                            cinder_backend=self.storage,
                                             dvr=self.dvr,
                                             tls_everywhere=self.tls_everywhere,
                                             ml2_driver=self.ml2_driver,
@@ -70,7 +70,7 @@ class TestOpenstackDeployment(TestCase):
         self.assertEqual(self.ip_version, self.deployment.ip_version.value)
         self.assertEqual(self.topology, self.deployment.topology.value)
         self.assertEqual(self.network, self.deployment.network_backend.value)
-        self.assertEqual(self.storage, self.deployment.storage_backend.value)
+        self.assertEqual(self.storage, self.deployment.cinder_backend.value)
         self.assertEqual(self.dvr, self.deployment.dvr.value)
         self.assertEqual(self.tls_everywhere,
                          self.deployment.tls_everywhere.value)

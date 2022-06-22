@@ -106,9 +106,9 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
-   * - --storage-backend
-     - | What storage backend is
-       | used (vlan, Ceph, Netapp)
+   * - --cinder-backend
+     - | What cinder backend is
+       | used (vlan, Ceph, Netapp, nfs)
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:ballot_box_with_check:|

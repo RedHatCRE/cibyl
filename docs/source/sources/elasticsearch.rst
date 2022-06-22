@@ -33,7 +33,7 @@ The Elasticsearch source is supported by the following built-in plugins:
 
       - network_backend
 
-      - storage_backend
+      - cinder_backend
 
       - topology
 
