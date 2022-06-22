@@ -18,7 +18,7 @@ import json
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
-from cibyl.outputs.cli.ci.printer import CIPrinter
+from cibyl.outputs.cli.ci.env.printer import CIPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.colors import DefaultPalette
 

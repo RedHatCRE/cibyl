@@ -16,46 +16,46 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.outputs.cli.ci.system.sorting.builds import SortBuildsByUUID
+from cibyl.outputs.cli.ci.system.utils.sorting.jobs import SortJobsByName
 
 
-class TestSortBuildsByUUID(TestCase):
-    """Tests for :class:`SortBuildsByUUID`.
+class TestSortJobsByName(TestCase):
+    """Tests for :class:`SortJobsByName`.
     """
 
-    def test_uuids_are_equal(self):
-        """Checks that two builds are equal if they share the same uuid.
+    def test_names_are_equal(self):
+        """Checks that two jobs are equal if they share the same name.
         """
-        build1 = Mock()
-        build1.build_id.value = '0'
+        job1 = Mock()
+        job1.name.value = 'job'
 
-        build2 = Mock()
-        build2.build_id.value = '0'
+        job2 = Mock()
+        job2.name.value = 'job'
 
-        comparator = SortBuildsByUUID()
+        comparator = SortJobsByName()
 
         self.assertEqual(
             0,
-            comparator.compare(build1, build2)
+            comparator.compare(job1, job2)
         )
 
-    def test_chronological_order(self):
-        """Checks that the comparator will sort builds in chronological order.
+    def test_alphabetical_order(self):
+        """Checks that the comparator will sort jobs in alphabetical order.
         """
-        build1 = Mock()
-        build1.build_id.value = '9'
+        job1 = Mock()
+        job1.name.value = 'A'
 
-        build2 = Mock()
-        build2.build_id.value = '10'
+        job2 = Mock()
+        job2.name.value = 'B'
 
-        comparator = SortBuildsByUUID()
+        comparator = SortJobsByName()
 
         self.assertEqual(
             -1,
-            comparator.compare(build1, build2)
+            comparator.compare(job1, job2)
         )
 
         self.assertEqual(
             1,
-            comparator.compare(build2, build1)
+            comparator.compare(job2, job1)
         )

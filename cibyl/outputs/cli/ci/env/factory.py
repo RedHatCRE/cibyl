@@ -14,8 +14,8 @@
 #    under the License.
 """
 from cibyl.cli.output import OutputStyle
-from cibyl.outputs.cli.ci.colored import CIColoredPrinter
-from cibyl.outputs.cli.ci.json import JSONPrinter
+from cibyl.outputs.cli.ci.env.impl.colored import CIColoredPrinter
+from cibyl.outputs.cli.ci.env.impl.serialized import JSONPrinter
 from cibyl.utils.colors import ClearText
 
 

@@ -17,7 +17,7 @@ import json
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.outputs.cli.ci.json import JSONPrinter
+from cibyl.outputs.cli.ci.env.impl.serialized import JSONPrinter
 
 
 class TestJSONPrinter(TestCase):
