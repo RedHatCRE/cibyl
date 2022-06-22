@@ -47,12 +47,13 @@ class StatusBar(threading.Thread):
         """Prints the animation to stdout"""
         characters = ['.   ', ' .  ', '  . ', '   .']
         for character in itertools.cycle(characters):
-            animation_text = Colors.green(f'\r{self.status_text} {character}')
-            print(animation_text, end='', flush=True)
+            animation_text = Colors.green(f'{self.status_text} {character}')
+            print(animation_text, end='\r', flush=True)
             time.sleep(self.update_frequency)
 
             if self.stopEvent.isSet():
-                print('\r', end='', flush=True)
+                eraser = ' ' * len(animation_text)
+                print(eraser, end='\r', flush=True)
                 return
 
     def stop(self):
