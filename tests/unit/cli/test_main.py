@@ -14,11 +14,9 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
-import cibyl
-from cibyl.cli.main import raw_parsing
-from cibyl.cli.output import OutputStyle
+from cibyl.cli.main import OutputStyle, raw_parsing
 from cibyl.exceptions.cli import InvalidArgument
 
 
@@ -33,12 +31,12 @@ class TestRawParsing(TestCase):
 
         self.assertTrue(OutputStyle.COLORIZED, args['output_style'])
 
-    def test_f_arg(self):
+    @patch('cibyl.cli.main.OutputStyle.from_key')
+    def test_f_arg(self, parse_call: Mock):
         """Checks that user's input is read.
         """
         style = 'raw'
 
-        parse_call = cibyl.cli.main.OutputStyle.from_key = Mock()
         parse_call.return_value = OutputStyle.TEXT
 
         args = raw_parsing(['', '-f', style])
@@ -47,12 +45,12 @@ class TestRawParsing(TestCase):
 
         parse_call.assert_called_once_with(style)
 
-    def test_output_arg(self):
+    @patch('cibyl.cli.main.OutputStyle.from_key')
+    def test_output_arg(self, parse_call: Mock):
         """Checks that --output-format also works.
         """
         output = 'raw'
 
-        parse_call = cibyl.cli.main.OutputStyle.from_key = Mock()
         parse_call.return_value = OutputStyle.TEXT
 
         args = raw_parsing(['', '--output-format', output])
@@ -61,7 +59,8 @@ class TestRawParsing(TestCase):
 
         parse_call.assert_called_once_with(output)
 
-    def test_invalid_output_arg(self):
+    @patch('cibyl.cli.main.OutputStyle.from_key')
+    def test_invalid_output_arg(self, parse_call: Mock):
         """Checks reaction to unknown style.
         """
 
@@ -70,7 +69,6 @@ class TestRawParsing(TestCase):
 
         output = 'invalid'
 
-        parse_call = cibyl.cli.main.OutputStyle.from_key = Mock()
         parse_call.side_effect = raise_error
 
         with self.assertRaises(InvalidArgument):
