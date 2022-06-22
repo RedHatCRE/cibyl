@@ -80,7 +80,7 @@ class Parser:
             choices=("terminal", "file", "both"),
             help='Where to write the output, default is both')
         self.argument_parser.add_argument(
-            '--output-format', '-f', choices=("text", "colorized"),
+            '--output-format', '-f', choices=("text", "colorized", "json"),
             dest="output_style", default="colorized",
             help="Sets the output format."
         )
