@@ -53,10 +53,10 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
         self._build_sorter = build_sorter
 
     @overrides
-    def print_system(self, system, indent=0):
+    def print_system(self, system):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('System: '), indent)
+        printer.add(self._palette.blue('System: '), 0)
         printer[-1].append(system.name.value)
 
         if self.verbosity > 0:
@@ -64,7 +64,7 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
 
         if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
             for feature in system.features.values():
-                printer.add(self.print_feature(feature), indent+1)
+                printer.add(self.print_feature(feature), 1)
 
         return printer.build()
 
