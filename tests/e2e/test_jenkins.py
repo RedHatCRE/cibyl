@@ -16,6 +16,7 @@
 import sys
 
 from cibyl.cli.main import main
+from cibyl.utils.colors import Colors
 from cibyl.utils.strings import IndentedTextBuilder
 from tests.e2e.containers.jenkins import JenkinsContainer
 from tests.e2e.fixtures import EndToEndTest
@@ -68,3 +69,32 @@ class TestJenkins(EndToEndTest):
             expected.add('Total jobs found in query: 3', 2)
 
             self.assertIn(expected.build(), self.stdout)
+
+
+class TestFeatures(EndToEndTest):
+    """Tests related to the --features argument.
+    """
+
+    def test_status_bar_text_is_removed(self):
+        """Checks that the status bar is removed before the output is printed.
+        """
+        with JenkinsContainer():
+            sys.argv = [
+                '',
+                '--config',
+                'tests/e2e/data/configs/jenkins/with-openstack.yaml',
+                '-f', 'text',
+                '--features', 'IPv4'
+            ]
+
+            main()
+
+            # Check that the eraser is printed
+            status_bar_text = Colors.green(
+                'Fetching features (osp_jenkins) ' + (' ' * 4)
+            )
+
+            self.assertIn(
+                '\r' + (' ' * len(status_bar_text)) + '\r',
+                self.stdout
+            )
