@@ -71,7 +71,7 @@ def get_yaml_tests(test_suites, setup=None):
     return yaml.dump({'test': test_dict})
 
 
-def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
+def get_yaml_overcloud(ip, release, cinder_backend, network_backend, dvr,
                        tls_everywhere, infra_type, ml2_driver=None,
                        ironic_inspector=None, cleaning_network=None,
                        security_group=None, overcloud_templates=None):
@@ -82,8 +82,8 @@ def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
     :type ip: str
     :param release: Openstack version used
     :type release: str
-    :param storage_backend: Storage backend used
-    :type storage_backend: str
+    :param cinder_backend: Storage backend used
+    :type cinder_backend: str
     :param network_backend: Network backend used
     :type network_backend: str
     :param dvr: Whether dvr is used
@@ -98,8 +98,8 @@ def get_yaml_overcloud(ip, release, storage_backend, network_backend, dvr,
         ip = f"ipv{ip}"
     overcloud = {"version": release, }
     overcloud["deployment"] = {"files": infra_type}
-    if storage_backend:
-        storage = {"backend": storage_backend}
+    if cinder_backend:
+        storage = {"backend": cinder_backend}
         overcloud["storage"] = storage
     network = {"backend": network_backend, "protocol": ip, "dvr": dvr}
     if ml2_driver == "ovn":
@@ -365,7 +365,7 @@ tripleo_ironic_conductor.service loaded    active     running
             "tls_everywhere": Argument("tls_everywhere", str, "",
                                        value=['False']),
             "network_backend": Argument("network_backend", str, "", value=[]),
-            "storage_backend": Argument("storage_backend", str, "", value=[])
+            "cinder_backend": Argument("cinder_backend", str, "", value=[])
         }
         jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
@@ -379,7 +379,7 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertEqual(deployment.release.value, release)
             self.assertEqual(deployment.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
-            self.assertEqual(deployment.storage_backend.value, "ceph")
+            self.assertEqual(deployment.cinder_backend.value, "ceph")
             self.assertEqual(deployment.network_backend.value, "geneve")
             self.assertEqual(deployment.dvr.value, "False")
             self.assertEqual(deployment.tls_everywhere.value, "False")
@@ -436,7 +436,7 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertEqual(deployment.release.value, release)
             self.assertEqual(deployment.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, "")
-            self.assertEqual(deployment.storage_backend.value, "")
+            self.assertEqual(deployment.cinder_backend.value, "")
             self.assertEqual(deployment.network_backend.value, "")
             self.assertEqual(deployment.dvr.value, "")
             self.assertEqual(deployment.tls_everywhere.value, "")
@@ -651,7 +651,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.topology.value, "")
         self.assertEqual(deployment.network_backend.value, "geneve")
 
-    def test_get_deployment_filter_storage_backend(self):
+    def test_get_deployment_filter_cinder_backend(self):
         """Test that get_deployment filters by storage backend."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont_geneve_swift',
                      'test_16_ipv6_job_1comp_2cont_lvm', 'test_job']
@@ -663,8 +663,8 @@ tripleo_ironic_conductor.service loaded    active     running
 
         self.jenkins.send_request = Mock(side_effect=[response])
         args = {
-            "storage_backend": Argument("storage_backend", str, "",
-                                        value=["swift"])
+            "cinder_backend": Argument("cinder_backend", str, "",
+                                       value=["swift"])
         }
 
         jobs = self.jenkins.get_deployment(**args)
@@ -678,7 +678,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.release.value, "")
         self.assertEqual(deployment.ip_version.value, "")
         self.assertEqual(deployment.topology.value, "")
-        self.assertEqual(deployment.storage_backend.value, "swift")
+        self.assertEqual(deployment.cinder_backend.value, "swift")
         self.assertEqual(deployment.network_backend.value, "")
 
     def test_get_deployment_filter_controller(self):
@@ -822,7 +822,7 @@ tripleo_ironic_conductor.service loaded    active     running
                                          value=["True"]),
             "ip_version": Argument("ip_version", str, "", value=[]),
             "network_backend": Argument("network_backend", str, "", value=[]),
-            "storage_backend": Argument("storage_backend", str, "", value=[])
+            "cinder_backend": Argument("cinder_backend", str, "", value=[])
         }
         jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
@@ -878,7 +878,7 @@ tripleo_ironic_conductor.service loaded    active     running
             "ip_version": Argument("ip_version", str, "", value=[]),
             "dvr": Argument("dvr", str, "", value=[]),
             "network_backend": Argument("network_backend", str, "", value=[]),
-            "storage_backend": Argument("storage_backend", str, "", value=[])
+            "cinder_backend": Argument("cinder_backend", str, "", value=[])
         }
         jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
@@ -940,7 +940,7 @@ tripleo_ironic_conductor.service loaded    active     running
             "dvr": Argument("dvr", str, "", value=[]),
             "ml2_driver": Argument("ml2_driver", str, "", value=["ovs"]),
             "network_backend": Argument("network_backend", str, "", value=[]),
-            "storage_backend": Argument("storage_backend", str, "", value=[])
+            "cinder_backend": Argument("cinder_backend", str, "", value=[])
         }
         jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
@@ -1005,7 +1005,7 @@ tripleo_ironic_conductor.service loaded    active     running
             "overcloud_templates": Argument("overcloud_templates", str, "",
                                             value=["a"]),
             "network_backend": Argument("network_backend", str, "", value=[]),
-            "storage_backend": Argument("storage_backend", str, "", value=[])
+            "cinder_backend": Argument("cinder_backend", str, "", value=[])
         }
         jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
@@ -1093,7 +1093,7 @@ tripleo_ironic_conductor.service loaded    active     running
             "dvr": Argument("dvr", str, "", value=['False']),
             "tls_everywhere": Argument("tls_everywhere", str, "", value=[]),
             "network_backend": Argument("network_backend", str, "", value=[]),
-            "storage_backend": Argument("storage_backend", str, "", value=[])
+            "cinder_backend": Argument("cinder_backend", str, "", value=[])
         }
         jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
@@ -1332,7 +1332,7 @@ tripleo_ironic_conductor.service loaded    active     running
             "tls_everywhere": Argument("tls_everywhere", str, "",
                                        value=['False']),
             "network_backend": Argument("network_backend", str, "", value=[]),
-            "storage_backend": Argument("storage_backend", str, "", value=[])
+            "cinder_backend": Argument("cinder_backend", str, "", value=[])
         }
         jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
@@ -1346,7 +1346,7 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertEqual(deployment.release.value, release)
             self.assertEqual(deployment.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
-            self.assertEqual(deployment.storage_backend.value, "ceph")
+            self.assertEqual(deployment.cinder_backend.value, "ceph")
             self.assertEqual(deployment.network_backend.value, "geneve")
             self.assertEqual(deployment.dvr.value, "False")
             self.assertEqual(deployment.tls_everywhere.value, "False")
@@ -1459,7 +1459,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.release.value, release)
         self.assertEqual(deployment.ip_version.value, ip)
         self.assertEqual(deployment.topology.value, topology)
-        self.assertEqual(deployment.storage_backend.value, "ceph")
+        self.assertEqual(deployment.cinder_backend.value, "ceph")
         self.assertEqual(deployment.network_backend.value, "geneve")
         self.assertEqual(deployment.dvr.value, "False")
         self.assertEqual(deployment.tls_everywhere.value, "False")
@@ -1524,7 +1524,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.release.value, release)
         self.assertEqual(deployment.ip_version.value, ip_version)
         self.assertEqual(deployment.topology.value, topology)
-        self.assertEqual(deployment.storage_backend.value, "ceph")
+        self.assertEqual(deployment.cinder_backend.value, "ceph")
         self.assertEqual(deployment.network_backend.value, "geneve")
         self.assertEqual(deployment.dvr.value, "False")
         self.assertEqual(deployment.tls_everywhere.value, "False")
@@ -1606,7 +1606,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.release.value, release)
         self.assertEqual(deployment.ip_version.value, ip)
         self.assertEqual(deployment.topology.value, topology)
-        self.assertEqual(deployment.storage_backend.value, "ceph")
+        self.assertEqual(deployment.cinder_backend.value, "ceph")
         self.assertEqual(deployment.network_backend.value, "geneve")
         self.assertEqual(deployment.dvr.value, "False")
         self.assertEqual(deployment.ml2_driver.value, "ovn")
@@ -1656,7 +1656,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.release.value, "17.3")
         self.assertEqual(deployment.ip_version.value, "4")
         self.assertEqual(deployment.topology.value, topologies[0])
-        self.assertEqual(deployment.storage_backend.value, missing_info)
+        self.assertEqual(deployment.cinder_backend.value, missing_info)
         self.assertEqual(deployment.network_backend.value, missing_info)
         self.assertEqual(deployment.dvr.value, missing_info)
         self.assertEqual(deployment.ml2_driver.value, "ovn")
@@ -1700,7 +1700,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.release.value, "14.3")
         self.assertEqual(deployment.ip_version.value, "4")
         self.assertEqual(deployment.topology.value, topologies[0])
-        self.assertEqual(deployment.storage_backend.value, missing_info)
+        self.assertEqual(deployment.cinder_backend.value, missing_info)
         self.assertEqual(deployment.network_backend.value, missing_info)
         self.assertEqual(deployment.dvr.value, missing_info)
         self.assertEqual(deployment.ml2_driver.value, "ovs")
@@ -1753,7 +1753,7 @@ tripleo_ironic_conductor.service loaded    active     running
             "tls_everywhere": Argument("tls_everywhere", str, "",
                                        value=['False']),
             "network_backend": Argument("network_backend", str, "", value=[]),
-            "storage_backend": Argument("storage_backend", str, "", value=[])
+            "cinder_backend": Argument("cinder_backend", str, "", value=[])
         }
         jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
@@ -1767,7 +1767,7 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertEqual(deployment.release.value, release)
             self.assertEqual(deployment.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
-            self.assertEqual(deployment.storage_backend.value, "ceph")
+            self.assertEqual(deployment.cinder_backend.value, "ceph")
             self.assertEqual(deployment.network_backend.value, "geneve")
             self.assertEqual(deployment.dvr.value, "False")
             self.assertEqual(deployment.tls_everywhere.value, "False")

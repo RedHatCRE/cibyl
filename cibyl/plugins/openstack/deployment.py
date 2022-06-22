@@ -120,11 +120,11 @@ class Deployment(Model):
                                    description="Network backend used in the "
                                                "deployment")]
         },
-        'storage_backend': {
+        'cinder_backend': {
             'attr_type': str,
-            'arguments': [Argument(name='--storage-backend', arg_type=str,
+            'arguments': [Argument(name='--cinder-backend', arg_type=str,
                                    func='get_deployment', nargs='*',
-                                   description="Storage backend used in the "
+                                   description="Cinder backend used in the "
                                                "deployment")]
         },
         'stages': {
@@ -137,7 +137,7 @@ class Deployment(Model):
     def __init__(self, release: str, infra_type: str,
                  nodes: Dict[str, Node], services: Dict[str, Service],
                  ip_version: str = None, topology: str = None,
-                 network_backend: str = None, storage_backend: str = None,
+                 network_backend: str = None, cinder_backend: str = None,
                  dvr: str = None, tls_everywhere: str = None,
                  ml2_driver: str = None, ironic_inspector: str = None,
                  cleaning_network: str = None, security_group: str = None,
@@ -147,7 +147,7 @@ class Deployment(Model):
                           'nodes': nodes, 'services': services,
                           'ip_version': ip_version, 'topology': topology,
                           'network_backend': network_backend,
-                          'storage_backend': storage_backend,
+                          'cinder_backend': cinder_backend,
                           'dvr': dvr, 'tls_everywhere': tls_everywhere,
                           'ml2_driver': ml2_driver,
                           'ironic_inspector': ironic_inspector,
@@ -202,8 +202,8 @@ class Deployment(Model):
             self.topology.value = other.topology.value
         if not self.network_backend.value:
             self.network_backend.value = other.network_backend.value
-        if not self.storage_backend.value:
-            self.storage_backend.value = other.storage_backend.value
+        if not self.cinder_backend.value:
+            self.cinder_backend.value = other.cinder_backend.value
         if not self.dvr.value:
             self.dvr.value = other.dvr.value
         if not self.tls_everywhere.value:
