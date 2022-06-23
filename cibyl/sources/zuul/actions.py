@@ -130,8 +130,6 @@ def handle_query(zuul, **kwargs):
         Name of the tenants to query. Type: AttributeListValue[str].
     :key jobs:
         Name of the jobs to query. Type: AttributeListValue[str].
-    :key job_url:
-        URL of the jobs to query. Type: AttributeListValue[str].
     :key variants:
         Will fetch job variants too. Type: None.
     :key builds:

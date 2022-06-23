@@ -178,31 +178,6 @@ class TestQueryLevel(EndToEndTest):
             self.stdout
         )
 
-    def test_get_jobs_by_url(self):
-        """Checks retrieved jobs by "--jobs --job-url url" flag.
-        """
-        sys.argv = [
-            '',
-            '--config', 'tests/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
-            '-vv',
-            '--tenants', '^(example-tenant)$',
-            '--jobs', '--job-url',
-            'http://localhost:9000/t/example-tenant/job/build-docker-image'
-        ]
-
-        main()
-
-        self.assertIn(
-            'Job: build-docker-image',
-            self.stdout
-        )
-
-        self.assertIn(
-            "Total jobs found in query for tenant 'example-tenant': 1",
-            self.stdout
-        )
-
     def test_get_job_url(self):
         """Checks that "-v" will print a job's URL.
         """
