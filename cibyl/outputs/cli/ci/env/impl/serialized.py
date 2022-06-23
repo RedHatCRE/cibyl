@@ -20,9 +20,12 @@ from abc import ABC, abstractmethod
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
+from cibyl.models.ci.base.system import JobsSystem
 from cibyl.outputs.cli.ci.env.printer import CIPrinter
 from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     JSONBaseSystemPrinter
+from cibyl.outputs.cli.ci.system.impls.jobs.serialized import \
+    JSONJobsSystemPrinter
 
 LOG = logging.getLogger(__name__)
 
@@ -88,6 +91,12 @@ class JSONPrinter(SerializedDataPrinter):
 
     def print_system(self, system):
         def get_printer():
+            # Check specialized printers
+            if isinstance(system, JobsSystem):
+                return JSONJobsSystemPrinter(
+                    self.query, self.verbosity, self.indentation
+                )
+
             LOG.warning(
                 'Custom printer not found for system of type: %s. '
                 'Continuing with default printer...',
