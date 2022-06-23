@@ -392,62 +392,6 @@ class TestHandleQuery(TestCase):
             result
         )
 
-    def test_get_jobs_by_url(self):
-        """Checks the '--jobs --job_url pattern1 pattern2" option.
-        """
-        job1 = Mock()
-        job1.name = 'job1'
-        job1.url = 'url1'
-        job1.pipelines = Mock()
-        job1.pipelines.return_value = []
-
-        job2 = Mock()
-        job2.name = 'job2'
-        job2.url = 'url2'
-        job2.pipelines = Mock()
-        job2.pipelines.return_value = []
-
-        job3 = Mock()
-        job3.name = 'job3'
-        job3.url = 'url3'
-        job3.pipelines = Mock()
-        job3.pipelines.return_value = []
-
-        tenant = Mock()
-        tenant.name = 'tenant1'
-        tenant.projects = Mock()
-        tenant.projects.return_value = []
-        tenant.jobs = Mock()
-        tenant.jobs.return_value = [job1, job2, job3]
-
-        api = Mock()
-        api.tenants = Mock()
-        api.tenants.return_value = [tenant]
-
-        job1.tenant = tenant
-        job2.tenant = tenant
-        job3.tenant = tenant
-
-        in_jobs = Mock()
-        in_jobs.value = None
-
-        in_urls = Mock()
-        in_urls.value = [f'({job1.url})']
-
-        result = handle_query(api, jobs=in_jobs, job_url=in_urls)
-
-        self.assertEqual(
-            {
-                tenant.name: Tenant(
-                    tenant.name,
-                    jobs={
-                        job1.name: Job(job1.name, job1.url)
-                    }
-                )
-            },
-            result
-        )
-
     def test_get_pipelines_through_jobs(self):
         """Checks that "--jobs" also returns the pipelines of the jobs.
         """
