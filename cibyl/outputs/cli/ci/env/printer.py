@@ -15,8 +15,10 @@
 """
 from abc import ABC, abstractmethod
 
+from cibyl.outputs.cli.printer import Printer
 
-class CIPrinter(ABC):
+
+class CIPrinter(Printer, ABC):
     """Interface for printers of a CI model hierarchy.
     """
 
