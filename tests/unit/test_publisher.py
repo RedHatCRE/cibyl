@@ -42,9 +42,11 @@ class TestOrchestrator(TestCase):
 
         mock_printer_factory.return_value = printer
 
-        self.publisher.publish(model_instance=self.environment,
-                               target="terminal",
-                               style=style)
+        self.publisher.publish(
+            environment=self.environment,
+            target="terminal",
+            style=style
+        )
 
         printer.print_environment.assert_called_once_with(self.environment)
 
