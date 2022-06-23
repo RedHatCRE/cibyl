@@ -19,8 +19,8 @@ from overrides import overrides
 
 from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
-from cibyl.outputs.cli.ci.system.sorting.builds import SortBuildsByUUID
-from cibyl.outputs.cli.ci.system.sorting.jobs import SortJobsByName
+from cibyl.outputs.cli.ci.system.utils.sorting.builds import SortBuildsByUUID
+from cibyl.outputs.cli.ci.system.utils.sorting.jobs import SortJobsByName
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.colors import DefaultPalette
 from cibyl.utils.sorting import BubbleSortAlgorithm
