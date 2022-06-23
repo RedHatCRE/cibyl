@@ -20,17 +20,14 @@ from overrides import overrides
 
 from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.env.printer import CIPrinter
-from cibyl.outputs.cli.printer import ColoredPrinter
-from cibyl.utils.colors import DefaultPalette
 
 
-class SerializedDataPrinter(ColoredPrinter, CIPrinter, ABC):
+class SerializedDataPrinter(CIPrinter, ABC):
     def __init__(self,
                  load_function,
                  dump_function,
                  query=QueryType.NONE,
-                 verbosity=0,
-                 palette=DefaultPalette()):
+                 verbosity=0):
         """Constructor. See parent for more information.
 
         :param load_function:
@@ -38,7 +35,7 @@ class SerializedDataPrinter(ColoredPrinter, CIPrinter, ABC):
         :param dump_function:
         :type dump_function: (dict) -> str
         """
-        super().__init__(query, verbosity, palette)
+        super().__init__(query, verbosity)
 
         self._load = load_function
         self._dump = dump_function
@@ -69,14 +66,12 @@ class JSONPrinter(SerializedDataPrinter):
     def __init__(self,
                  query=QueryType.NONE,
                  verbosity=0,
-                 palette=DefaultPalette(),
                  indentation=4):
         super().__init__(
             load_function=self._from_json,
             dump_function=self._to_json,
             query=query,
-            verbosity=verbosity,
-            palette=palette
+            verbosity=verbosity
         )
 
         self._indentation = indentation
