@@ -70,7 +70,7 @@ class JSONPrinter(SerializedDataPrinter):
                  query=QueryType.NONE,
                  verbosity=0,
                  palette=DefaultPalette(),
-                 indentation=2):
+                 indentation=4):
         super().__init__(
             load_function=self._from_json,
             dump_function=self._to_json,
