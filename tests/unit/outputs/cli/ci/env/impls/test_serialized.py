@@ -31,6 +31,7 @@ class TestJSONPrinter(TestCase):
 
         env = Mock()
         env.name.value = name
+        env.systems = []
 
         printer = JSONPrinter()
 
@@ -38,7 +39,8 @@ class TestJSONPrinter(TestCase):
 
         self.assertEqual(
             {
-                'name': name
+                'name': name,
+                'systems': {}
             },
             result
         )

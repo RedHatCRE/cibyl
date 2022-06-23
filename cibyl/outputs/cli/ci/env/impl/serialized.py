@@ -26,29 +26,43 @@ from cibyl.utils.colors import DefaultPalette
 
 class SerializedDataPrinter(ColoredPrinter, CIPrinter, ABC):
     def __init__(self,
+                 load_function,
                  dump_function,
                  query=QueryType.NONE,
                  verbosity=0,
                  palette=DefaultPalette()):
         """Constructor. See parent for more information.
 
+        :param load_function:
+        :type load_function: (str) -> dict
         :param dump_function:
         :type dump_function: (dict) -> str
         """
         super().__init__(query, verbosity, palette)
 
+        self._load = load_function
         self._dump = dump_function
 
     @overrides
     def print_environment(self, env):
+        def get_systems():
+            systems = {}
+
+            for system in env.systems:
+                key = system.name.value
+                systems[key] = self._load(self._print_system(system))
+
+            return systems
+
         result = {
-            'name': env.name.value
+            'name': env.name.value,
+            'systems': get_systems()
         }
 
         return self._dump(result)
 
-    def print_system(self, system):
-        return ''
+    def _print_system(self, system):
+        return '{}'
 
 
 class JSONPrinter(SerializedDataPrinter):
@@ -58,6 +72,7 @@ class JSONPrinter(SerializedDataPrinter):
                  palette=DefaultPalette(),
                  indentation=2):
         super().__init__(
+            load_function=self._from_json,
             dump_function=self._to_json,
             query=query,
             verbosity=verbosity,
@@ -65,6 +80,9 @@ class JSONPrinter(SerializedDataPrinter):
         )
 
         self._indentation = indentation
+
+    def _from_json(self, obj):
+        return json.loads(obj)
 
     def _to_json(self, obj):
         return json.dumps(obj, indent=self._indentation)
