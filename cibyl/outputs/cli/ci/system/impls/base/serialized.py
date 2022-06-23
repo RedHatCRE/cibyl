@@ -23,6 +23,9 @@ from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
 
 
 class SerializedBaseSystemPrinter(CISystemPrinter, ABC):
+    """Default system printer for all serializer implementations.
+    """
+
     def __init__(self,
                  load_function,
                  dump_function,
@@ -30,9 +33,13 @@ class SerializedBaseSystemPrinter(CISystemPrinter, ABC):
                  verbosity=0):
         """Constructor. See parent for more information.
 
-        :param load_function:
+        :param load_function: Function that transforms machine-readable text
+            into a Python structure. Used to unmarshall output of sub-parts
+            of the module.
         :type load_function: (str) -> dict
-        :param dump_function:
+        :param dump_function: Function that transforms a Python structure into
+            machine-readable text. Used to marshall the data from the
+            hierarchy.
         :type dump_function: (dict) -> str
         """
         super().__init__(query, verbosity)
@@ -60,6 +67,13 @@ class SerializedBaseSystemPrinter(CISystemPrinter, ABC):
         return self._dump(result)
 
     def print_feature(self, feature):
+        """Print a feature present in a system.
+
+        :param feature: The feature.
+        :type feature: :class:`cibyl.models.ci.base.feature.Feature`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         result = {
             'name': feature.name.value,
             'present': feature.present.value
@@ -69,10 +83,19 @@ class SerializedBaseSystemPrinter(CISystemPrinter, ABC):
 
 
 class JSONBaseSystemPrinter(SerializedBaseSystemPrinter):
+    """Basic system printer that will output a system's data in JSON format.
+    """
+
     def __init__(self,
                  query=QueryType.NONE,
                  verbosity=0,
                  indentation=4):
+        """Constructor. See parent for more information.
+
+        :param indentation: Number of spaces indenting each level of the
+            JSON output.
+        :type indentation: int
+        """
         super().__init__(
             load_function=self._from_json,
             dump_function=self._to_json,
@@ -84,6 +107,10 @@ class JSONBaseSystemPrinter(SerializedBaseSystemPrinter):
 
     @property
     def indentation(self):
+        """
+        :return: Number of spaces preceding every level of the JSON output.
+        :rtype: int
+        """
         return self._indentation
 
     def _from_json(self, obj):

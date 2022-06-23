@@ -24,6 +24,10 @@ from cibyl.outputs.cli.ci.system.impls.base.serialized import \
 
 
 class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
+    """Base printer for all machine-readable printers dedicated to output
+    Jenkins systems.
+    """
+
     @overrides
     def print_system(self, system):
         # Build on top of the base answer
@@ -38,6 +42,12 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self._dump(result)
 
     def print_job(self, job):
+        """
+        :param job: The job.
+        :type job: :class:`cibyl.models.ci.base.job.Job`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         result = {
             'name': job.name.value
         }
@@ -54,6 +64,12 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self._dump(result)
 
     def print_build(self, build):
+        """
+        :param build: The build.
+        :type build: :class:`cibyl.models.ci.base.build.Build`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         result = {
             'uuid': build.build_id.value,
             'status': build.status.value,
@@ -71,6 +87,12 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self._dump(result)
 
     def print_test(self, test):
+        """
+        :param test: The test.
+        :type test: :class:`cibyl.models.ci.base.test.Test`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         result = {
             'name': test.name.value,
             'result': test.result.value,
@@ -81,6 +103,12 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self._dump(result)
 
     def print_stage(self, stage):
+        """
+        :param stage: The stage.
+        :type stage: :class:`cibyl.models.ci.base.stage.Stage`
+        :return: Textual representation of the provided model.
+        :rtype: str
+        """
         result = {
             'name': stage.name.value,
             'status': stage.status.value,
@@ -91,10 +119,19 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
 
 
 class JSONJobsSystemPrinter(SerializedJobsSystemPrinter):
+    """Printer that will output Jenkins systems in JSON format.
+    """
+
     def __init__(self,
                  query=QueryType.NONE,
                  verbosity=0,
                  indentation=4):
+        """Constructor. See parent for more information.
+
+        :param indentation: Number of spaces indenting each level of the
+            JSON output.
+        :type indentation: int
+        """
         super().__init__(
             load_function=self._from_json,
             dump_function=self._to_json,
@@ -106,6 +143,10 @@ class JSONJobsSystemPrinter(SerializedJobsSystemPrinter):
 
     @property
     def indentation(self):
+        """
+        :return: Number of spaces preceding every level of the JSON output.
+        :rtype: int
+        """
         return self._indentation
 
     def _from_json(self, obj):

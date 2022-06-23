@@ -31,6 +31,10 @@ LOG = logging.getLogger(__name__)
 
 
 class SerializedDataPrinter(CIPrinter, ABC):
+    """Base class for printers that print a CI hierarchy in a format
+    readable for machines, like JSON or YAML.
+    """
+
     def __init__(self,
                  load_function,
                  dump_function,
@@ -38,9 +42,13 @@ class SerializedDataPrinter(CIPrinter, ABC):
                  verbosity=0):
         """Constructor. See parent for more information.
 
-        :param load_function:
+        :param load_function: Function that transforms machine-readable text
+            into a Python structure. Used to unmarshall output of sub-parts
+            of the module.
         :type load_function: (str) -> dict
-        :param dump_function:
+        :param dump_function: Function that transforms a Python structure into
+            machine-readable text. Used to marshall the data from the
+            hierarchy.
         :type dump_function: (dict) -> str
         """
         super().__init__(query, verbosity)
@@ -68,14 +76,29 @@ class SerializedDataPrinter(CIPrinter, ABC):
 
     @abstractmethod
     def print_system(self, system):
+        """
+        :param system: The system.
+        :type system: :class:`cibyl.models.ci.base.system.System`
+        :return: Textual representation of the system.
+        :rtype: str
+        """
         raise NotImplementedError
 
 
 class JSONPrinter(SerializedDataPrinter):
+    """Serializer that prints a CI hierarchy in JSON format.
+    """
+
     def __init__(self,
                  query=QueryType.NONE,
                  verbosity=0,
                  indentation=4):
+        """Constructor. See parent for more information.
+
+        :param indentation: Number of spaces indenting each level of the
+            JSON output.
+        :type indentation: int
+        """
         super().__init__(
             load_function=self._from_json,
             dump_function=self._to_json,
@@ -87,8 +110,13 @@ class JSONPrinter(SerializedDataPrinter):
 
     @property
     def indentation(self):
+        """
+        :return: Number of spaces preceding every level of the JSON output.
+        :rtype: int
+        """
         return self._indentation
 
+    @overrides
     def print_system(self, system):
         def get_printer():
             # Check specialized printers
