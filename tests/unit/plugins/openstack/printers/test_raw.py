@@ -54,7 +54,7 @@ class TestOSRawPrinter(TestCase):
                                 ip_version=ip_version,
                                 topology=topology,
                                 network_backend=network,
-                                storage_backend=storage,
+                                cinder_backend=storage,
                                 dvr=dvr,
                                 tls_everywhere=tls_everywhere,
                                 overcloud_templates=templates,
@@ -81,7 +81,7 @@ class TestOSRawPrinter(TestCase):
         self.assertIn("Network backend:", result)
         self.assertIn(network, result)
         self.assertIn("Storage:", result)
-        self.assertIn("Storage backend:", result)
+        self.assertIn("Cinder backend:", result)
         self.assertIn(storage, result)
         self.assertIn("DVR:", result)
         self.assertIn(dvr, result)
@@ -170,7 +170,7 @@ class TestOSRawPrinter(TestCase):
                                 ip_version=ip_version,
                                 topology=topology,
                                 network_backend=network,
-                                storage_backend=storage,
+                                cinder_backend=storage,
                                 dvr=dvr,
                                 tls_everywhere=tls_everywhere,
                                 overcloud_templates=templates,
@@ -197,7 +197,7 @@ class TestOSRawPrinter(TestCase):
         self.assertIn("Network backend:", result)
         self.assertIn(network, result)
         self.assertIn("Storage:", result)
-        self.assertIn("Storage backend:", result)
+        self.assertIn("Cinder backend:", result)
         self.assertIn(storage, result)
         self.assertIn("DVR:", result)
         self.assertIn(dvr, result)

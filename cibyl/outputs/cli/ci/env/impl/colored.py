@@ -19,7 +19,7 @@ from overrides import overrides
 
 from cibyl.models.ci.base.system import JobsSystem
 from cibyl.models.ci.zuul.system import ZuulSystem
-from cibyl.outputs.cli.ci.printer import CIPrinter
+from cibyl.outputs.cli.ci.env.printer import CIPrinter
 from cibyl.outputs.cli.ci.system.impls.base.colored import \
     ColoredBaseSystemPrinter
 from cibyl.outputs.cli.ci.system.impls.jobs.colored import \
