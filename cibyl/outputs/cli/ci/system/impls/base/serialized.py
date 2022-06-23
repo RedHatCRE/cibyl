@@ -14,20 +14,15 @@
 #    under the License.
 """
 import json
-import logging
-from abc import ABC, abstractmethod
+from abc import ABC
 
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
-from cibyl.outputs.cli.ci.env.printer import CIPrinter
-from cibyl.outputs.cli.ci.system.impls.base.serialized import \
-    JSONBaseSystemPrinter
-
-LOG = logging.getLogger(__name__)
+from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
 
 
-class SerializedDataPrinter(CIPrinter, ABC):
+class SerializedBaseSystemPrinter(CISystemPrinter, ABC):
     def __init__(self,
                  load_function,
                  dump_function,
@@ -46,29 +41,34 @@ class SerializedDataPrinter(CIPrinter, ABC):
         self._dump = dump_function
 
     @overrides
-    def print_environment(self, env):
-        def get_systems():
-            systems = {}
-
-            for system in env.systems:
-                key = system.name.value
-                systems[key] = self._load(self._print_system(system))
-
-            return systems
-
+    def print_system(self, system):
         result = {
-            'name': env.name.value,
-            'systems': get_systems()
+            'name': system.name.value,
+            'type': system.system_type.value
+        }
+
+        if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
+            result['features'] = []
+
+            for feature in system.features.values():
+                result['features'].append(
+                    self._load(
+                        self._print_feature(feature)
+                    )
+                )
+
+        return self._dump(result)
+
+    def _print_feature(self, feature):
+        result = {
+            'name': feature.name.value,
+            'present': feature.present.value
         }
 
         return self._dump(result)
 
-    @abstractmethod
-    def _print_system(self, system):
-        raise NotImplementedError
 
-
-class JSONPrinter(SerializedDataPrinter):
+class JSONBaseSystemPrinter(SerializedBaseSystemPrinter):
     def __init__(self,
                  query=QueryType.NONE,
                  verbosity=0,
@@ -81,24 +81,6 @@ class JSONPrinter(SerializedDataPrinter):
         )
 
         self._indentation = indentation
-
-    @property
-    def indentation(self):
-        return self._indentation
-
-    def _print_system(self, system):
-        def get_printer():
-            LOG.warning(
-                'Custom printer not found for system of type: %s. '
-                'Continuing with default printer...',
-                type(system)
-            )
-
-            return JSONBaseSystemPrinter(
-                self.query, self.verbosity, self.indentation
-            )
-
-        return get_printer().print_system(system)
 
     def _from_json(self, obj):
         return json.loads(obj)

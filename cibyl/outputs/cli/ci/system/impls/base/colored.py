@@ -64,11 +64,11 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
 
         if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
             for feature in system.features.values():
-                printer.add(self.print_feature(feature), 1)
+                printer.add(self._print_feature(feature), 1)
 
         return printer.build()
 
-    def print_feature(self, feature):
+    def _print_feature(self, feature):
         """Print a feature present in a system.
         :param feature: The feature.
         :type feature: :class:`cibyl.models.ci.base.feature.Feature`
