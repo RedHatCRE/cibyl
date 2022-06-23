@@ -44,9 +44,12 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
         printer.add(self._palette.blue('Environment: '), 0)
         printer[0].append(env.name.value)
 
+        for system in env.systems:
+            printer.add(self._print_system(system), 1)
+
         return printer.build()
 
-    def print_system(self, system, indent=0):
+    def _print_system(self, system):
         """
         :param system: The system.
         :type system: :class:`cibyl.models.ci.base.system.System`
@@ -77,4 +80,4 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
                 self.query, self.verbosity, self.palette
             )
 
-        return get_printer().print_system(system, indent)
+        return get_printer().print_system(system)
