@@ -45,11 +45,11 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
         printer[0].append(env.name.value)
 
         for system in env.systems:
-            printer.add(self._print_system(system), 1)
+            printer.add(self.print_system(system), 1)
 
         return printer.build()
 
-    def _print_system(self, system):
+    def print_system(self, system):
         """
         :param system: The system.
         :type system: :class:`cibyl.models.ci.base.system.System`

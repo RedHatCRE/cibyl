@@ -53,13 +53,13 @@ class SerializedBaseSystemPrinter(CISystemPrinter, ABC):
             for feature in system.features.values():
                 result['features'].append(
                     self._load(
-                        self._print_feature(feature)
+                        self.print_feature(feature)
                     )
                 )
 
         return self._dump(result)
 
-    def _print_feature(self, feature):
+    def print_feature(self, feature):
         result = {
             'name': feature.name.value,
             'present': feature.present.value
@@ -81,6 +81,10 @@ class JSONBaseSystemPrinter(SerializedBaseSystemPrinter):
         )
 
         self._indentation = indentation
+
+    @property
+    def indentation(self):
+        return self._indentation
 
     def _from_json(self, obj):
         return json.loads(obj)

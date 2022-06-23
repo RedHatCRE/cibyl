@@ -52,7 +52,7 @@ class SerializedDataPrinter(CIPrinter, ABC):
 
             for system in env.systems:
                 key = system.name.value
-                systems[key] = self._load(self._print_system(system))
+                systems[key] = self._load(self.print_system(system))
 
             return systems
 
@@ -64,7 +64,7 @@ class SerializedDataPrinter(CIPrinter, ABC):
         return self._dump(result)
 
     @abstractmethod
-    def _print_system(self, system):
+    def print_system(self, system):
         raise NotImplementedError
 
 
@@ -86,7 +86,7 @@ class JSONPrinter(SerializedDataPrinter):
     def indentation(self):
         return self._indentation
 
-    def _print_system(self, system):
+    def print_system(self, system):
         def get_printer():
             LOG.warning(
                 'Custom printer not found for system of type: %s. '
