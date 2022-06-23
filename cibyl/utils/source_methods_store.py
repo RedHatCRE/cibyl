@@ -19,7 +19,7 @@ class SourceMethodsStore:
     """Store the source queries that have been performed. This will allow
     us to avoid sending multiple times the same queries if there are multiple
     arguments that are associated with the same function (for example --builds
-    and --build-status or --jobs and --jobs-url).
+    and --build-status).
     """
     def __init__(self):
         self.cache = {}

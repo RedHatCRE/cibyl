@@ -56,13 +56,6 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:black_square_button:|
-   * - --job-url
-     - Job URL
-     - |:ballot_box_with_check:|
-     - |:ballot_box_with_check:|
-     - |:ballot_box_with_check:|
-     - |:x:|
-     - |:x:|
    * - --builds
      - | Build numbers
        | Default: all builds

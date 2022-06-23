@@ -38,9 +38,6 @@ def perform_jobs_query(zuul, **kwargs):
             if targets:
                 jobs.with_name(*targets)
 
-        if 'job_url' in kwargs:
-            jobs.with_url(*kwargs['job_url'].value)
-
         result += jobs.get()
 
     return result

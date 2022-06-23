@@ -98,14 +98,6 @@ class TestGetQueryType(TestCase):
 
         self.assertEqual(QueryType.BUILDS, get_query_type(**args))
 
-    def test_get_job_url(self):
-        """Checks that "Jobs" is returned for "--job-url"."""
-        args = {
-            'job_url': None
-        }
-
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
-
     def test_get_variants(self):
         """Checks that "Jobs" is returned for "--variants"."""
         args = {
