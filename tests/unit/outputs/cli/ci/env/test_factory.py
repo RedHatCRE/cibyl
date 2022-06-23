@@ -17,7 +17,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.cli.output import OutputStyle
-from cibyl.outputs.cli.ci.factory import CIPrinterFactory
+from cibyl.outputs.cli.ci.env.factory import CIPrinterFactory
 from cibyl.utils.colors import ClearText, DefaultPalette
 
 
