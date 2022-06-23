@@ -13,14 +13,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import json
+from abc import ABC
+
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.system.impls.base.serialized import \
-    JSONBaseSystemPrinter
+    SerializedBaseSystemPrinter
 
 
-class JSONJobsSystemPrinter(JSONBaseSystemPrinter):
+class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
     @overrides
     def print_system(self, system):
         # Build on top of the base answer
@@ -85,3 +88,28 @@ class JSONJobsSystemPrinter(JSONBaseSystemPrinter):
         }
 
         return self._dump(result)
+
+
+class JSONJobsSystemPrinter(SerializedJobsSystemPrinter):
+    def __init__(self,
+                 query=QueryType.NONE,
+                 verbosity=0,
+                 indentation=4):
+        super().__init__(
+            load_function=self._from_json,
+            dump_function=self._to_json,
+            query=query,
+            verbosity=verbosity
+        )
+
+        self._indentation = indentation
+
+    @property
+    def indentation(self):
+        return self._indentation
+
+    def _from_json(self, obj):
+        return json.loads(obj)
+
+    def _to_json(self, obj):
+        return json.dumps(obj, indent=self._indentation)
