@@ -308,18 +308,14 @@ class Orchestrator:
 
         The query and publish is performed per system"""
         for env in self.environments:
-            self.publisher.publish(
-                model_instance=env,
-                style=output_style,
-                query=get_query_type(**self.parser.ci_args),
-                verbosity=self.parser.app_args.get('verbosity'))
             for system in env.systems:
                 if features:
                     self.run_features(system, features)
                 else:
                     self.run_query(system)
-                self.publisher.publish(
-                    model_instance=system,
-                    style=output_style,
-                    query=get_query_type(**self.parser.ci_args),
-                    verbosity=self.parser.app_args.get('verbosity'))
+
+            self.publisher.publish(
+                environment=env,
+                style=output_style,
+                query=get_query_type(**self.parser.ci_args),
+                verbosity=self.parser.app_args.get('verbosity'))

@@ -25,7 +25,7 @@ PLUGIN_ARGUMENTS = ('release', 'spec', 'infra_type', 'nodes', 'controllers',
                     'computes', 'node_name', 'role', 'containers',
                     'container_image', 'packages', 'services', 'ip_version',
                     'topology', 'dvr', 'ml2_driver', 'tls_everywhere',
-                    'ironic_inspector', 'network_backend', 'storage_backend')
+                    'ironic_inspector', 'network_backend', 'cinder_backend')
 
 
 def add_deployment(self, deployment: Deployment) -> None:

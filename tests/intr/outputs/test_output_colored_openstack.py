@@ -48,10 +48,10 @@ class TestOutputJobsSystemWithOpenstackPlugin(OpenstackPluginWithJobSystem):
         # check that output is five lines long(system line, one line per job
         # and the line for total number of jobs)
         self.assertEqual(5, len(output.split("\n")))
-        expected = "  System: test-system"
+        expected = "System: test-system"
         for i in range(3):
-            expected += f"\n    Job: job-name-{i}"
-        expected += "\n    Total jobs found in query: 3"
+            expected += f"\n  Job: job-name-{i}"
+        expected += "\n  Total jobs found in query: 3"
         self.assertEqual(output, expected)
 
 

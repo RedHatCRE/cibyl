@@ -122,7 +122,7 @@ class ElasticSearch(SourceExtension):
             'ip_version',
             'dvr',
             'network_backend',
-            'storage_backend',
+            'cinder_backend',
             'osp_release'
         ]
 
@@ -153,8 +153,8 @@ class ElasticSearch(SourceExtension):
             append_exists_field_to_query('network_backend')
             append_get_specific_field('network_backend')
         storage_argument = None
-        if 'storage_backend' in kwargs:
-            storage_argument = kwargs.get('storage_backend').value
+        if 'cinder_backend' in kwargs:
+            storage_argument = kwargs.get('cinder_backend').value
             append_exists_field_to_query('storage_backend')
             append_get_specific_field('storage_backend')
         if 'osp_release' in kwargs:
@@ -200,7 +200,7 @@ class ElasticSearch(SourceExtension):
                 "network_backend", "")
             ip_version = job_source_data.get(
                 "ip_version", "")
-            storage_backend = job_source_data.get(
+            cinder_backend = job_source_data.get(
                 "storage_backend", "")
             dvr = job_source_data.get(
                 "dvr", "")
@@ -233,7 +233,7 @@ class ElasticSearch(SourceExtension):
 
             # Check if necessary filter by storage backend:
             if storage_argument and \
-                    storage_backend not in storage_argument:
+                    cinder_backend not in storage_argument:
                 continue
 
             job_objects[job_name] = Job(name=job_name, url=job_url)
@@ -246,7 +246,7 @@ class ElasticSearch(SourceExtension):
                 topology=topology,
                 network_backend=network_backend,
                 dvr=dvr,
-                storage_backend=storage_backend,
+                cinder_backend=cinder_backend,
                 tls_everywhere=''
             )
 
