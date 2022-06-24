@@ -15,14 +15,12 @@
 """
 
 
-def ask_yes_no_question(question):
+def ask_yes_no_question(question: str) -> bool:
     """Prints a question on the CLI that the user must respond
     with a yes or no.
 
     :param question: Text of the question. Include question mark on it.
-    :type question: str
     :return: Whether the user said 'y' (True) or 'n' (False).
-    :rtype: bool
     """
     answer = ''
 

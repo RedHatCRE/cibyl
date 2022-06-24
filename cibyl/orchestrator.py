@@ -19,6 +19,7 @@ import re
 import time
 from collections import defaultdict
 from copy import deepcopy
+from typing import List
 
 import cibyl.exceptions.config as conf_exc
 from cibyl.cli.parser import Parser
@@ -35,7 +36,7 @@ from cibyl.models.ci.system_factory import SystemType
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.models.product.feature import Feature
 from cibyl.publisher import Publisher
-from cibyl.sources.source import (get_source_instance_from_method,
+from cibyl.sources.source import (Source, get_source_instance_from_method,
                                   select_source_method,
                                   source_information_from_method)
 from cibyl.sources.source_factory import SourceFactory
@@ -57,9 +58,6 @@ class Orchestrator:
         4. Update parser based on CI entities arguments
         5. Run query
         6. Print results
-
-    :param config_file_path: the absolute path of the configuration file
-    :type config_file_path: str, optional
     """
 
     def __init__(self, environments: list = None):
@@ -70,7 +68,7 @@ class Orchestrator:
         if not environments:
             self.environments = []
 
-    def get_source(self, source_name, source_data):
+    def get_source(self, source_name: str, source_data: dict) -> Source:
         try:
             return SourceFactory.create_source(
                     source_data.get('driver'),
@@ -80,8 +78,9 @@ class Orchestrator:
             raise conf_exc.InvalidSourceConfiguration(
                 source_name, source_data) from exception
 
-    def add_system_to_environment(self, environment,
-                                  system_name, sources, single_system):
+    def add_system_to_environment(self, environment: Environment,
+                                  system_name: str, sources: List[dict],
+                                  single_system: dict) -> None:
         try:
             environment.add_system(
                 name=system_name,
@@ -122,7 +121,7 @@ class Orchestrator:
             self.environments.append(environment)
         self.set_system_api()
 
-    def set_system_api(self):
+    def set_system_api(self) -> None:
         """Modify the System API depending on the type of systems present in
         the configuration."""
         zuul_system_present = False
@@ -135,7 +134,7 @@ class Orchestrator:
         else:
             System.API = deepcopy(JobsSystem.API)
 
-    def validate_environments(self):
+    def validate_environments(self) -> None:
         """Validate and filter environments created from configuration file
         according to user input."""
         # we keep only the environments consistent with the user input, this
@@ -144,7 +143,7 @@ class Orchestrator:
         validator = Validator(self.parser.ci_args)
         self.environments = validator.validate_environments(self.environments)
 
-    def load_features(self):
+    def load_features(self) -> list:
         """Read user-requested features and setup the right argument to query
         the information for them."""
         user_features = self.parser.ci_args.get('features')
@@ -166,7 +165,7 @@ class Orchestrator:
         return [get_feature(feature_name)
                 for feature_name in user_features.value]
 
-    def run_features(self, system, features_to_run):
+    def run_features(self, system: System, features_to_run: list) -> None:
         """Run user-requested features, the output of each feature will be
         stored in the system attributes. This output can either be
         whether the feature is tested in the system or jobs where the feature
@@ -201,7 +200,7 @@ class Orchestrator:
             # the jobs that match all the features
             system.populate(features_combination)
 
-    def run_query(self, system, start_level=1):
+    def run_query(self, system: System, start_level: int = 1) -> None:
         """Execute query based on provided arguments."""
         if not system.is_enabled():
             return
@@ -287,8 +286,8 @@ class Orchestrator:
             # if no source could be called, there is nothing to add
             system.populate(query_result)
 
-    def extend_parser(self, attributes, group_name='Environment',
-                      level=0):
+    def extend_parser(self, attributes: dict, group_name: str = 'Environment',
+                      level: int = 0) -> None:
         """Extend parser with arguments from CI models."""
         for attr_dict in attributes.values():
             arguments = attr_dict.get('arguments')
@@ -302,7 +301,8 @@ class Orchestrator:
                 else:
                     self.parser.extend(arguments, group_name, level=level)
 
-    def query_and_publish(self, output_style="colorized", features=None):
+    def query_and_publish(self, output_style: str = "colorized",
+                          features: list = None) -> None:
         """Iterate over the environments and their systems and publish
         the results of the queries.
 

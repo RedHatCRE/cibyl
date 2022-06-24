@@ -15,10 +15,13 @@
 """
 
 import logging
+from typing import Callable, List, Tuple
 
 from cibyl.exceptions.model import (InvalidEnvironment, InvalidSystem,
                                     NoEnabledSystem, NoValidSystem)
 from cibyl.exceptions.source import NoValidSources
+from cibyl.models.ci.base.environment import Environment
+from cibyl.models.ci.base.system import System
 
 LOG = logging.getLogger(__name__)
 
@@ -31,15 +34,19 @@ class Validator:
     def __init__(self, ci_args: dict):
         self.ci_args = ci_args
 
-    def _check_input_environments(self, all_envs, argument,
-                                  exception_to_raise):
+    def _check_input_environments(
+            self, all_envs: List[str], argument: str,
+            exception_to_raise: Callable[[str, List[str]], None]
+    ) -> None:
         """Check if the user input environments exist in the configuration.
 
         :param all_envs: Environments defined in the configuration
-        :type all_envs: list
         :param argument: Name of the cli argument to check
-        :type argument: str
-        :raises: InvalidEnvironment
+        :param exception_to_raise: Exception to be raised when input
+                                   environment does not exist in the
+                                   configuration
+        :raises: :param: `exception_to_raise` (usually InvalidEnvironment
+                          or InvalidSystem)
         """
 
         env_user_input = self.ci_args.get(argument)
@@ -49,26 +56,22 @@ class Validator:
                 if env_name not in all_envs:
                     raise exception_to_raise(env_name, all_envs)
 
-    def _consistent_environment(self, env):
+    def _consistent_environment(self, env: Environment) -> bool:
         """Check if an environment should be used according to user input.
 
         :param env: Model to validate
-        :type env: :class:`.Environment`
         :returns: Whether the environment is consistent with user input
-        :rtype: bool
         """
         user_env = self.ci_args.get("env_name")
         if user_env:
             return env.name.value in user_env.value
         return True
 
-    def _consistent_system(self, system):
+    def _consistent_system(self, system: System) -> bool:
         """Check if a system should be used according to user input.
 
         :param system: Model to validate
-        :type system: :class:`.System`
         :returns: Whether the system is consistent with user input
-        :rtype: bool
         """
         name = system.name.value
         system_type = system.system_type.value
@@ -83,21 +86,19 @@ class Validator:
 
         return True
 
-    def _system_has_valid_sources(self, system):
+    def _system_has_valid_sources(self, system: System) -> bool:
         """Check if a system should be used according to user input from
         sources point of view.
 
         :param system: Model to validate
-        :type system: :class:`.System`
         :returns: Whether the system is consistent with user input
-        :rtype: bool
         """
 
         system_sources = set(source.name for source in system.sources)
         user_sources = self.ci_args.get("sources")
         if user_sources:
             user_sources_names = set(user_sources.value)
-            unused_sources = system_sources-user_sources_names
+            unused_sources = system_sources - user_sources_names
             for source in system.sources:
                 if source.name in unused_sources:
                     source.disable()
@@ -106,26 +107,23 @@ class Validator:
 
         return True
 
-    def check_envs(self, environments, systems_check, envs_check,
-                   systems_msg, envs_msg):
+    def check_envs(self, environments: List[Environment],
+                   systems_check: Callable[[System], bool],
+                   envs_check: Callable[[Environment], bool],
+                   systems_msg: str,
+                   envs_msg: str) -> Tuple[List[Environment], List[System]]:
         """Iterate over environments and systems and apply some check to each
         of them. Only return those that satisfy the checks.
 
         :param environments: Environments to validate
-        :type environments: list
         :param systems_check: Function to use to check a system
-        :type systems_check: callable
         :param envs_check: Function to use to check an environment
-        :type envs_check: callable
         :param systems_msg: Message template to log in case of system check
         failure
-        :type systems_msg: str
         :param envs_msg: Message template to log in case of environment check
         failure
-        :type envs_msg: str
 
         :returns: Environments and systems that pass the checks
-        :rtype: list, list
         """
         user_systems = []
         user_envs = []
@@ -148,23 +146,20 @@ class Validator:
                 user_systems.extend(env_systems)
         return user_envs, user_systems
 
-    def _system_is_enabled(self, system):
+    def _system_is_enabled(self, system: System) -> bool:
         """Check if a system should be used according to enabled parameter in
         configuration file.
 
         :param system: Model to validate
-        :type system: :class:`.System`
         :returns: Whether the system is enabled
-        :rtype: bool
         """
         return system.is_enabled()
 
-    def override_enabled_systems(self, systems):
+    def override_enabled_systems(self, systems: List[System]) -> None:
         """Ensure that systems specified by the user with the --systems
         argument are enabled.
 
         :param systems: systems to check
-        :type systems: list
         """
 
         user_systems = self.ci_args.get("systems")
@@ -176,12 +171,13 @@ class Validator:
             if system.name.value in user_systems.value:
                 system.enable()
 
-    def validate_environments(self, environments):
+    def validate_environments(
+            self, environments: List[Environment]
+    ) -> List[Environment]:
         """Filter environments and systems according to user input.
 
         :returns: Environments and systems that can be used according to user
         input
-        :rtype: list, list
         """
         all_envs = []
         all_systems = []

@@ -44,7 +44,7 @@ class QuerySelector:
     both core argument and plugin provided ones."""
     query_selector_functions = []
 
-    def get_query_type_core(self, **kwargs):
+    def get_query_type_core(self, **kwargs) -> QueryType:
         """Deduces the type of query from a set of arguments related to cibyl
         core ci models.
 
@@ -57,7 +57,6 @@ class QuerySelector:
         :return: The lowest query level possible. For example,
             if both 'tenants' and 'builds' are requested, this will choose
             'builds' over 'tenants'.
-        :rtype: :class:`QueryType`
         """
 
         result = QueryType.NONE
@@ -87,7 +86,7 @@ class QuerySelector:
 
         return result
 
-    def get_type_query(self, **kwargs):
+    def get_type_query(self, **kwargs) -> QueryType:
         """Deduce the type of query from the given arguments, taking into
         account arguments provided by the plugins, if present. It will return
         the largest query type provided by either the core types or the
@@ -100,7 +99,7 @@ class QuerySelector:
         return max(core_query, plugins_query)
 
 
-def get_query_type(**kwargs):
+def get_query_type(**kwargs) -> QueryType:
     """Deduces the type of query from a set of arguments.
 
     :param kwargs: The arguments.
@@ -112,7 +111,6 @@ def get_query_type(**kwargs):
     :return: The lowest query level possible. For example,
         if both 'tenants' and 'builds' are requested, this will choose
         'builds' over 'tenants'.
-    :rtype: :class:`QueryType`
     """
     query_selector = QuerySelector()
     return query_selector.get_type_query(**kwargs)

@@ -16,6 +16,7 @@
 import logging
 import os
 from collections import UserDict
+from typing import Callable
 
 import rfc3987
 
@@ -30,7 +31,7 @@ from cibyl.utils.net import DownloadError, download_file
 LOG = logging.getLogger(__name__)
 
 
-def _ask_user_for_overwrite():
+def _ask_user_for_overwrite() -> bool:
     """Prints a question on the command line asking whether the user would
     like to continue with a file overwrite or not.
 
@@ -51,9 +52,8 @@ class Config(UserDict):
     and the app.
 
     :param data: configuration data
-    :type data: dict
     """
-    def __init__(self, data: object = None):
+    def __init__(self, data: dict = None):
         """Config Constructor"""
         if data:
             self.data = data
@@ -72,21 +72,21 @@ class Config(UserDict):
 class AppConfig(Config):
     """Representation of a Cybil's configuration file"""
 
-    def __init__(self, data: object = None):
+    def __init__(self, data: dict = None):
         """AppConfig Constructor"""
         Config.__init__(self, data=data)
 
     @property
-    def environments(self):
+    def environments(self) -> dict:
         """dict: environments section from the configuration data."""
         return self.data.get('environments', {})
 
     @property
-    def plugins(self):
+    def plugins(self) -> list:
         """dict: plugins section from the configuration data."""
         return self.data.get('plugins', [])
 
-    def load(self, path=None):
+    def load(self, path: str = None) -> None:
         """Loads the content of a configuration file/object and creates
         a reference to environments.
 
@@ -97,7 +97,7 @@ class AppConfig(Config):
         """
         super().load_from_path(path)
 
-    def verify(self):
+    def verify(self) -> None:
         """Verifies the configuration content by the context of the
         application (using concepts like environments, systems and sources.
 
@@ -140,9 +140,7 @@ class AppConfig(Config):
         """Checks whether a given system includes definition of sources.
 
         :param system_name: The name of a given system
-        :type system_name: str
         :param system_data: The configuration dict of a system
-        :type system_data: dict
         :raise MissingSystemSources: If sources are not defined for a system
         """
         if 'sources' not in system_data:
@@ -170,15 +168,13 @@ class ConfigFactory:
     """
 
     @staticmethod
-    def from_path(path):
+    def from_path(path: str) -> dict:
         """Build a configuration from a random path. This path may be a URL,
         a file path or any other. If the path is 'None', then this will look
         for the first definition available among the default paths.
 
         :param path: The path to get the definition from.
-        :type path: str or None
         :return: The configuration instance.
-        :rtype: :class:`Config`
         :raise ConfigurationNotFound: If no definition could be retrieved.
         :raise EmptyConfiguration: If configuration file is empty.
         """
@@ -191,13 +187,11 @@ class ConfigFactory:
         return ConfigFactory.from_file(path)
 
     @staticmethod
-    def from_file(file):
+    def from_file(file: str) -> dict:
         """Builds a configuration from a file located on the local filesystem.
 
         :param file: Path to the configuration definition.
-        :type file: str
         :return: The configuration instance
-        :rtype: :class:`Config`
         :raise ConfigurationNotFound: If the file does not exist.
         """
         if not is_file_available(file):
@@ -212,12 +206,11 @@ class ConfigFactory:
         return data
 
     @staticmethod
-    def from_search():
+    def from_search() -> dict:
         """Builds a configuration from the first available definition found
         between the default paths.
 
         :return: The configuration instance
-        :rtype: :class:`Config`
         :raise ConfigurationNotFound: If no definition could be found.
         """
         paths = ConfigFactory.DEFAULT_FILE_PATHS
@@ -229,9 +222,10 @@ class ConfigFactory:
         return ConfigFactory.from_file(file)
 
     @staticmethod
-    def from_url(url,
-                 dest=DEFAULT_USER_PATH,
-                 overwrite_call=_ask_user_for_overwrite):
+    def from_url(
+            url: str, dest: str = DEFAULT_USER_PATH,
+            overwrite_call: Callable[[], bool] = _ask_user_for_overwrite
+    ) -> dict:
         """Builds a configuration from a definition located on a remote
         host. The definition is accessed and downloaded into the provided path.
 
@@ -251,14 +245,11 @@ class ConfigFactory:
             )
 
         :param url: The URL where the file is located at.
-        :type url: str
         :param dest: Path where the definition will be downloaded
             into. Must contain name of the file.
-        :type dest: str
         :param overwrite_call: The function used to ask the user if they
             may overwrite the file. Change to avoid blocker.
         :return: The configuration instance
-        :rtype: :class:`Config`
         :raise ConfigurationNotFound: If the definition could not
             be downloaded.
         """

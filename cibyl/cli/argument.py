@@ -13,7 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Union
+import argparse
+from typing import List, Type, Union
 
 from cibyl.cli.ranged_argument import (EXPRESSION_PATTERN, RANGE_OPERATORS,
                                        VALID_OPS, Range)
@@ -24,12 +25,13 @@ class Argument():
     """Represents Parser's argument"""
 
     # pylint: disable=too-many-arguments,too-many-instance-attributes
-    def __init__(self, name: str, arg_type: object, description: str,
-                 nargs: Union[str, int] = 1, func: str = None,
-                 populated: bool = False, level: int = 0,
-                 ranged: bool = False,
-                 value: object = None, default: object = None):
+    def __init__(self, name: str, arg_type: Union[Type, argparse.FileType],
+                 description: str, nargs: Union[str, int] = 1,
+                 func: str = None, populated: bool = False, level: int = 0,
+                 ranged: bool = False, value: List[str] = None,
+                 default: object = None):
         self.name = name
+
         self.arg_type = arg_type
         self.description = description
         self.nargs = nargs
@@ -43,7 +45,7 @@ class Argument():
             self.value = value
         self.default = default
 
-    def parse_ranges(self, expressions):
+    def parse_ranges(self, expressions: List[str]) -> List[Range]:
         parsed_expressions = []
         if not isinstance(expressions, list):
             raise InvalidArgument(f"Argument '{self.name}' should accept "
