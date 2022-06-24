@@ -19,7 +19,7 @@ from enum import Enum
 from typing import Callable
 
 from cibyl.plugins.openstack import Deployment
-from cibyl.plugins.openstack.sources.zuul.data.variants import ReleaseSearch
+from cibyl.plugins.openstack.sources.zuul.variants import ReleaseSearch
 from cibyl.sources.zuul.output import QueryOutputBuilder
 from cibyl.sources.zuul.queries.jobs import perform_jobs_query
 from cibyl.utils.filtering import matches_regex

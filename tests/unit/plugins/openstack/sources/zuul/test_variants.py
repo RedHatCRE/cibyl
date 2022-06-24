@@ -16,8 +16,8 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.plugins.openstack.sources.zuul.data.variants import (ReleaseSearch,
-                                                                VariableSearch)
+from cibyl.plugins.openstack.sources.zuul.variants import (ReleaseSearch,
+                                                           VariableSearch)
 
 
 class TestVariableSearch(TestCase):
