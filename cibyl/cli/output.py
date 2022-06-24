@@ -27,7 +27,7 @@ class OutputStyle(Enum):
     """A machine-readable text based format."""
 
     @staticmethod
-    def from_key(key):
+    def from_key(key: str) -> 'OutputStyle':
         """Parses a key into an :class:`OutputStyle`.
 
         Map of known keys:
@@ -36,9 +36,7 @@ class OutputStyle(Enum):
             * 'json' -> OutputStyle.JSON
 
         :param key: The key to get the style for.
-        :type key: Any
         :return: The correspondent style.
-        :rtype: :class:`OutputStyle`
         :raise NotImplementedError: If no style is present for the
         given key.
         """
