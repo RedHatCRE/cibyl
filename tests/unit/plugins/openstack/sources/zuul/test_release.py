@@ -43,21 +43,6 @@ class TestReleaseFinder(TestCase):
             finder.find_release_for(variant)
         )
 
-        variant.variables.assert_called_once()
-
-    def test_finds_release_in_parent(self):
-        """Checks that the finder requests the variables of the variant's
-        parents as well.
-        """
-        variant = Mock()
-        variant.variables = Mock()
-        variant.variables.return_value = {
-        }
-
-        finder = ReleaseFinder()
-
-        finder.find_release_for(variant)
-
         variant.variables.assert_called_once_with(recursive=True)
 
     def test_search_term_priority(self):
@@ -84,7 +69,7 @@ class TestReleaseFinder(TestCase):
             finder.find_release_for(variant)
         )
 
-    def test_not_found_result(self):
+    def test_result_not_found(self):
         """Checks the returned value if the search terms were not found.
         """
         variant = Mock()
