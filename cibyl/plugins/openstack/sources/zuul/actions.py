@@ -19,7 +19,7 @@ from enum import Enum
 from typing import Callable
 
 from cibyl.plugins.openstack import Deployment
-from cibyl.plugins.openstack.sources.zuul.release import ReleaseFinder
+from cibyl.plugins.openstack.sources.zuul.data.variants import ReleaseSearch
 from cibyl.sources.zuul.output import QueryOutputBuilder
 from cibyl.sources.zuul.queries.jobs import perform_jobs_query
 from cibyl.utils.filtering import matches_regex
@@ -120,7 +120,7 @@ class DeploymentGenerator:
     class Tools:
         """Tools the factory will use to do its task.
         """
-        release_finder = ReleaseFinder()
+        release_search = ReleaseSearch()
         """Takes care of finding the release of the deployment."""
 
     def __init__(self, tools=Tools()):
@@ -142,14 +142,14 @@ class DeploymentGenerator:
 
         def get_release():
             if any(term in kwargs for term in ('spec', 'release')):
-                release = release_finder.find_release_for(variant)
+                release = release_search.search(variant)
 
                 return release if release else 'N/A'
 
             # Nothing means to not output this field.
             return ''
 
-        release_finder = self._tools.release_finder
+        release_search = self._tools.release_search
 
         return Deployment(
             release=get_release(),
