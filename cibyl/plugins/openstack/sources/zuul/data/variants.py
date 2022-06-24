@@ -24,14 +24,36 @@ LOG = logging.getLogger(__name__)
 
 
 class VariableSearch:
+    """Utility meant to make finding a variable in a Zuul job easier.
+    """
+
     def __init__(self, search_terms: Iterable[str]):
+        """Constructor.
+
+        :param search_terms: List containing the possible names of the job
+            variable to be searched. The list will be iterated following the
+            containers iterator, giving priority to terms that appear first.
+            As an example, given a list of two names for a variable: ['val1',
+            'val2'], 'val1' will always be preferred over 'val2', falling back
+            to the later one only if the first does not exist.
+        """
         self._search_terms = search_terms
 
     @property
     def search_terms(self) -> Iterable[str]:
+        """
+        :return: Possible names of the desired variable that this will
+            search for.
+        """
         return self._search_terms
 
     def search(self, variant: VariantResponse) -> Optional[Any]:
+        """Search this target's variable among the ones defined in the
+        provided variant.
+
+        :param variant: The variant to search.
+        :return: Value of the variable if it is found, None if not.
+        """
         variables = variant.variables(recursive=True)
 
         for search_term in self.search_terms:
@@ -42,6 +64,8 @@ class VariableSearch:
 
 
 class ReleaseSearch(VariableSearch):
+    """Utility designed to make finding the release variable of a job easier.
+    """
     DEFAULT_SEARCH_TERMS = (
         'rhos_release_version',
         'osp_release',
@@ -50,6 +74,8 @@ class ReleaseSearch(VariableSearch):
     """Default variables known to hold the job's release."""
 
     def __init__(self, search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS):
+        """Constructor. See parent for more information.
+        """
         super().__init__(search_terms)
 
     @overrides
@@ -66,26 +92,39 @@ class ReleaseSearch(VariableSearch):
 
 
 class FeatureSetSearch(VariableSearch):
+    """Utility designed to make finding the featureset variable of a job
+    easier.
+    """
+
     DEFAULT_SEARCH_TERMS = ('featureset',)
+    """Default variables known to hold the job's featureset."""
 
     def __init__(self, search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS):
+        """Constructor. See parent for more information.
+        """
         super().__init__(search_terms)
 
     @overrides
-    def search(self, variant: VariantResponse) -> Optional[Any]:
+    def search(self, variant: VariantResponse) -> Optional[str]:
         LOG.debug("Searching for featureset on variant: '%s'.", variant.name)
 
         return super().search(variant)
 
 
 class FeatureSetOverridesSearch(VariableSearch):
+    """Utility designed to make finding the featureset overrides of a job
+    easier.
+    """
     DEFAULT_SEARCH_TERMS = ('featureset_override',)
+    """Default variables known to hold the job's featureset overrides."""
 
     def __init__(self, search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS):
+        """Constructor. See parent for more information.
+        """
         super().__init__(search_terms)
 
     @overrides
-    def search(self, variant: VariantResponse) -> Optional[Any]:
+    def search(self, variant: VariantResponse) -> Optional[dict]:
         LOG.debug("Searching for overrides on variant: '%s'.", variant.name)
 
         return super().search(variant)
