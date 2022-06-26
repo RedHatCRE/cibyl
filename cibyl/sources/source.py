@@ -74,7 +74,7 @@ host{extra_info}"
 class Source(AttrDict):
     """Represents a data provider within a system."""
 
-    def __init__(self: object,
+    def __init__(self,
                  name: str = None,
                  driver: str = None,
                  **kwargs: Argument):
@@ -85,39 +85,39 @@ class Source(AttrDict):
 
         super().__init__(name=name, driver=driver, **kwargs)
 
-    def is_setup(self: object) -> bool:
+    def is_setup(self) -> bool:
         """Return wether the source has been setup."""
         return self._setup
 
-    def ensure_source_setup(self: object) -> None:
+    def ensure_source_setup(self) -> None:
         """Ensure that setup is called for the source. If setup was previously
         called, do nothing."""
         if not self.is_setup():
             self._setup = True
             self.setup()
 
-    def is_down(self: object) -> bool:
+    def is_down(self) -> bool:
         """Return wether the source has been teardown."""
         return self._down
 
-    def ensure_teardown(self: object) -> None:
+    def ensure_teardown(self) -> None:
         """Ensure that teardown is called for the source. If teardown was
         previously called, do nothing."""
-        if not self.is_down():
+        if self.is_setup() or not self.is_down():
             self._down = True
             self.teardown()
 
     @abstractmethod
-    def setup(self: object) -> None:
+    def setup(self) -> None:
         """Setup everything required for the source to become operational."""
         pass
 
     @abstractmethod
-    def teardown(self: object) -> None:
+    def teardown(self) -> None:
         """Release any resources allocated during setup."""
         pass
 
-    def disable(self: object) -> None:
+    def disable(self) -> None:
         """Set source as disabled."""
         self.enabled = False
 
