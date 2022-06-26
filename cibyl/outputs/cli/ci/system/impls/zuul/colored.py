@@ -26,6 +26,7 @@ from cibyl.outputs.cli.ci.system.impls.base.colored import \
     ColoredBaseSystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.filtering import apply_filters
+from cibyl.utils.sorting import sort
 from cibyl.utils.strings import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
@@ -55,7 +56,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             if self.query >= QueryType.PIPELINES:
                 if project.pipelines.value:
                     for pipeline in project.pipelines.values():
-                        result.add(self._print_pipeline(project, pipeline), 1)
+                        result.add(self.print_pipeline(project, pipeline), 1)
 
                     msg = "Total pipelines found in query for project '"
                     result.add(self.palette.blue(msg), 1)
@@ -68,7 +69,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             return result.build()
 
-        def _print_pipeline(self, project, pipeline):
+        def print_pipeline(self, project, pipeline):
             result = IndentedTextBuilder()
 
             result.add(self.palette.blue('Pipeline: '), 0)
@@ -77,7 +78,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             if self.query >= QueryType.JOBS:
                 if pipeline.jobs.value:
                     for job in pipeline.jobs.values():
-                        result.add(self._print_job(project, pipeline, job), 1)
+                        result.add(self.print_job(project, pipeline, job), 1)
 
                     msg = "Total jobs found in query for pipeline '"
                     result.add(self.palette.blue(msg), 1)
@@ -90,7 +91,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             return result.build()
 
-        def _print_job(self, project, pipeline, job):
+        def print_job(self, project, pipeline, job):
             result = IndentedTextBuilder()
 
             result.add(self.palette.blue('Job: '), 0)
@@ -105,7 +106,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
                 if builds:
                     for build in builds:
-                        msg = self._print_build(project, pipeline, job, build)
+                        msg = self.print_build(project, pipeline, job, build)
                         result.add(msg, 1)
                 else:
                     msg = 'No builds in query.'
@@ -113,7 +114,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             return result.build()
 
-        def _print_build(self, project, pipeline, job, build):
+        def print_build(self, project, pipeline, job, build):
             result = IndentedTextBuilder()
 
             result.add(self.palette.blue('Build: '), 1)
@@ -145,21 +146,21 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                 result.add(self.palette.blue('Variants: '), 1)
 
                 for variant in job.variants:
-                    result.add(self._print_variant(variant), 2)
+                    result.add(self.print_variant(variant), 2)
 
             if self.query >= QueryType.BUILDS:
                 if job.builds.value:
                     result.add(self.palette.blue('Builds: '), 1)
 
                     for build in job.builds.values():
-                        result.add(self._print_build(build), 2)
+                        result.add(self.print_build(build), 2)
                 else:
                     msg = 'No builds in query.'
                     result.add(self.palette.red(msg), 1)
 
             return result.build()
 
-        def _print_variant(self, variant):
+        def print_variant(self, variant):
             result = IndentedTextBuilder()
 
             result.add(self.palette.blue('Variant: '), 0)
@@ -185,7 +186,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             return result.build()
 
-        def _print_build(self, build):
+        def print_build(self, build):
             result = IndentedTextBuilder()
 
             result.add(self.palette.blue('Build: '), 0)
@@ -209,33 +210,33 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             return result.build()
 
     @overrides
-    def print_system(self, system, indent=0):
+    def print_system(self, system):
         printer = IndentedTextBuilder()
 
         # Begin with the text common to all systems
-        printer.add(super().print_system(system), indent)
+        printer.add(super().print_system(system), 0)
 
         if self.query == QueryType.FEATURES:
             # if the user has only requested features, there is no need to
-            # print anythin else
+            # print anything else
             return printer.build()
         # Continue with text specific for this system type
         if self.query >= QueryType.TENANTS:
             if hasattr(system, 'tenants'):
                 if system.tenants.value:
                     for tenant in system.tenants.values():
-                        printer.add(self._print_tenant(tenant), indent+1)
+                        printer.add(self.print_tenant(tenant), 1)
 
                     if system.is_queried():
                         header = 'Total tenants found in query: '
-                        printer.add(self.palette.blue(header), indent+1)
+                        printer.add(self.palette.blue(header), 1)
                         printer[-1].append(len(system.tenants))
                     else:
                         msg = 'No query performed.'
-                        printer.add(self.palette.blue(msg), indent+1)
+                        printer.add(self.palette.blue(msg), 1)
                 else:
                     msg = 'No tenants found in query.'
-                    printer.add(self.palette.red(msg), indent+1)
+                    printer.add(self.palette.red(msg), 1)
             else:
                 LOG.warning(
                     'Requested tenant printing on a non-zuul interface. '
@@ -244,7 +245,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
         return printer.build()
 
-    def _print_tenant(self, tenant):
+    def print_tenant(self, tenant):
         """
         :param tenant: The tenant.
         :type tenant: :class:`cibyl.models.ci.zuul.tenant.Tenant`
@@ -287,7 +288,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result.add(self.palette.blue('Jobs: '), 1)
 
             if tenant.jobs.value:
-                for job in tenant.jobs.values():
+                for job in sort(tenant.jobs.values(), self._job_sorter):
                     result.add(create_printer().print_job(job), 2)
 
                 result.add(

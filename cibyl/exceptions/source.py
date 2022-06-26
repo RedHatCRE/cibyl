@@ -34,17 +34,17 @@ class NoValidSources(CibylException):
     def __init__(self, system="", sources=""):
         if sources:
             sources = Colors.blue('\n  '.join(sources))
-            sources = f"Available sources:\n  {sources}"
+            sources = f"\nAvailable sources:\n  {sources}"
         if system:
-            system = f"defined for the system {system.name.value}"
-        self.message = f"""No valid source found {system}.
+            system = f" defined for the system {system.name.value}"
+        self.message = f"""No valid source found{system}.
 
 Define sources for the system with the "sources" mapping
 
   <ENVIRONMENT_NAME>:
       <SYSTEM_NAME>:
           sources:
-              <SOURCE_NAME>"""
+              <SOURCE_NAME>{sources}"""
 
         super().__init__(self.message)
 

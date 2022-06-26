@@ -17,7 +17,7 @@ import logging
 
 from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
-from cibyl.outputs.cli.ci.factory import CIPrinterFactory
+from cibyl.outputs.cli.ci.env.factory import CIPrinterFactory
 
 LOG = logging.getLogger(__name__)
 
@@ -28,8 +28,8 @@ class Publisher:
     location
     """
 
-    @staticmethod
-    def publish(model_instance,
+    def publish(self,
+                environment,
                 target="terminal",
                 style=OutputStyle.TEXT,
                 query=QueryType.NONE,
@@ -39,7 +39,4 @@ class Publisher:
         """
         if target == "terminal":
             printer = CIPrinterFactory.from_style(style, query, verbosity)
-
-            model_type = model_instance.__module__.split('.')[-1]
-            method_to_call = getattr(printer, f"print_{model_type}")
-            print(method_to_call(model_instance))
+            print(printer.print_environment(environment))

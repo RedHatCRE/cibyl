@@ -13,19 +13,23 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from abc import ABC, abstractmethod
+from cibyl.utils.sorting import Comparator
 
 
-class CIPrinter(ABC):
-    """Interface for printers of a CI model hierarchy.
+class SortJobsByName(Comparator):
+    """Sorts jobs in alphabetical order based on their name.
     """
 
-    @abstractmethod
-    def print_environment(self, env):
+    def compare(self, left, right):
+        """See parent function for more information.
+
+        :type left: :class:`cibyl.models.ci.base.job.Job`
+        :type right: :class:`cibyl.models.ci.base.job.Job`
         """
-        :param env: The environment.
-        :type env: :class:`cibyl.models.ci.base.environment.Environment`
-        :return: Textual representation of the provided model.
-        :rtype: str
-        """
-        raise NotImplementedError
+        name_left = left.name.value.lower()
+        name_right = right.name.value.lower()
+
+        if name_left == name_right:
+            return 0
+
+        return -1 if name_left < name_right else 1

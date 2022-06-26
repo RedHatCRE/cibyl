@@ -19,12 +19,13 @@ import re
 import time
 from collections import defaultdict
 from copy import deepcopy
+from typing import List
 
 import cibyl.exceptions.config as conf_exc
 from cibyl.cli.parser import Parser
 from cibyl.cli.query import get_query_type
 from cibyl.cli.validator import Validator
-from cibyl.config import Config, ConfigFactory
+from cibyl.config import AppConfig
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.source import NoSupportedSourcesFound, SourceException
 from cibyl.features import get_feature, get_string_all_features, load_features
@@ -35,7 +36,7 @@ from cibyl.models.ci.system_factory import SystemType
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.models.product.feature import Feature
 from cibyl.publisher import Publisher
-from cibyl.sources.source import (get_source_instance_from_method,
+from cibyl.sources.source import (Source, get_source_instance_from_method,
                                   select_source_method,
                                   source_information_from_method)
 from cibyl.sources.source_factory import SourceFactory
@@ -57,24 +58,17 @@ class Orchestrator:
         4. Update parser based on CI entities arguments
         5. Run query
         6. Print results
-
-    :param config_file_path: the absolute path of the configuration file
-    :type config_file_path: str, optional
     """
 
     def __init__(self, environments: list = None):
         """Orchestrator constructor method"""
-        self.config = Config()
         self.parser = Parser()
+        self.config = AppConfig()
         self.publisher = Publisher()
         if not environments:
             self.environments = []
 
-    def load_configuration(self, path):
-        """Loads the configuration of the application."""
-        self.config = ConfigFactory.from_path(path)
-
-    def get_source(self, source_name, source_data):
+    def get_source(self, source_name: str, source_data: dict) -> Source:
         try:
             return SourceFactory.create_source(
                     source_data.get('driver'),
@@ -84,8 +78,9 @@ class Orchestrator:
             raise conf_exc.InvalidSourceConfiguration(
                 source_name, source_data) from exception
 
-    def add_system_to_environment(self, environment,
-                                  system_name, sources, single_system):
+    def add_system_to_environment(self, environment: Environment,
+                                  system_name: str, sources: List[dict],
+                                  single_system: dict) -> None:
         try:
             environment.add_system(
                 name=system_name,
@@ -107,33 +102,18 @@ class Orchestrator:
 
     def create_ci_environments(self) -> None:
         """Creates CI environment entities based on loaded configuration."""
-        env_data = self.config.data.get('environments', {})
-
-        if isinstance(env_data, str):
-            raise conf_exc.MissingSystems(env_data)
-        if not env_data:
-            raise conf_exc.MissingEnvironments()
-
-        for env_name, systems_dict in env_data.items():
-            if isinstance(systems_dict, str):
-                raise conf_exc.MissingSystemType(systems_dict, SystemType)
-            try:
-                enabled = systems_dict.get('enabled', True)
-                if not enabled:
-                    continue
-            except AttributeError:
-                raise conf_exc.MissingSystems(env_name)
+        for env_name, systems_dict in self.config.environments.items():
+            enabled = systems_dict.get('enabled', True)
+            if not enabled:
+                continue
             environment = Environment(name=env_name, enabled=enabled)
 
             for system_name, single_system in systems_dict.items():
-                try:
-                    sources_dict = single_system.pop('sources', {})
-                    sources = []
-                    for source_name, source_data in sources_dict.items():
-                        sources.append(
-                            self.get_source(source_name, source_data))
-                except AttributeError:
-                    raise conf_exc.MissingSystemSources(system_name)
+                sources_dict = single_system.pop('sources', {})
+                sources = []
+                for source_name, source_data in sources_dict.items():
+                    sources.append(
+                        self.get_source(source_name, source_data))
 
                 self.add_system_to_environment(environment, system_name,
                                                sources, single_system)
@@ -141,7 +121,7 @@ class Orchestrator:
             self.environments.append(environment)
         self.set_system_api()
 
-    def set_system_api(self):
+    def set_system_api(self) -> None:
         """Modify the System API depending on the type of systems present in
         the configuration."""
         zuul_system_present = False
@@ -154,7 +134,7 @@ class Orchestrator:
         else:
             System.API = deepcopy(JobsSystem.API)
 
-    def validate_environments(self):
+    def validate_environments(self) -> None:
         """Validate and filter environments created from configuration file
         according to user input."""
         # we keep only the environments consistent with the user input, this
@@ -163,14 +143,14 @@ class Orchestrator:
         validator = Validator(self.parser.ci_args)
         self.environments = validator.validate_environments(self.environments)
 
-    def load_features(self):
+    def load_features(self) -> list:
         """Read user-requested features and setup the right argument to query
         the information for them."""
         user_features = self.parser.ci_args.get('features')
-        if not user_features:
+        if user_features is None:
             return []
         load_features()
-        if user_features and not user_features.value:
+        if not user_features.value:
             # throw error in case cibyl is called with --features argument but
             # without any specified feature
             features_string = get_string_all_features()
@@ -185,40 +165,42 @@ class Orchestrator:
         return [get_feature(feature_name)
                 for feature_name in user_features.value]
 
-    def run_features(self, system, features_to_run):
+    def run_features(self, system: System, features_to_run: list) -> None:
         """Run user-requested features, the output of each feature will be
         stored in the system attributes. This output can either be
         whether the feature is tested in the system or jobs where the feature
         is tested."""
         features_combination = None
-        for feature_to_run in features_to_run:
-            feature_info = feature_to_run.query(system,
-                                                **self.parser.ci_args,
-                                                **self.parser.app_args)
-            if feature_info is None:
-                # no successful query was performed
-                system.add_feature(Feature(feature_to_run.name,
-                                           "N/A"))
-                # set the returned info to an empty container to have an empty
-                # intersection
-                feature_info = AttributeDictValue("name")
-            else:
-                system.add_feature(Feature(feature_to_run.name,
-                                           bool(feature_info)))
 
-            if "jobs" in self.parser.ci_args:
-                if features_combination is None:
-                    features_combination = feature_info
+        with StatusBar(f"Fetching features ({system.name})"):
+            for feature_to_run in features_to_run:
+                feature_info = feature_to_run.query(system,
+                                                    **self.parser.ci_args,
+                                                    **self.parser.app_args)
+                if feature_info is None:
+                    # no successful query was performed
+                    system.add_feature(Feature(feature_to_run.name,
+                                               "N/A"))
+                    # set the returned info to an empty container
+                    # to have an empty intersection
+                    feature_info = AttributeDictValue("name")
                 else:
-                    features_combination = intersect_models(
-                            features_combination, feature_info)
+                    system.add_feature(Feature(feature_to_run.name,
+                                               bool(feature_info)))
+
+                if "jobs" in self.parser.ci_args:
+                    if features_combination is None:
+                        features_combination = feature_info
+                    else:
+                        features_combination = intersect_models(
+                                features_combination, feature_info)
 
         if "jobs" in self.parser.ci_args:
             # add the combined result for all features requested, e.g.
             # the jobs that match all the features
             system.populate(features_combination)
 
-    def run_query(self, system, start_level=1):
+    def run_query(self, system: System, start_level: int = 1) -> None:
         """Execute query based on provided arguments."""
         if not system.is_enabled():
             return
@@ -227,6 +209,7 @@ class Orchestrator:
         sorted_args = sorted(self.parser.ci_args.values(),
                              key=operator.attrgetter('level'), reverse=True)
         system_methods_stores = defaultdict(SourceMethodsStore)
+        query_result = None
         last_level = -1
         for arg in sorted_args:
             if arg.level >= start_level and arg.level >= last_level:
@@ -285,18 +268,26 @@ class Orchestrator:
                                   source_info, system.name.value,
                                   exception, exc_info=debug)
                         continue
+                    if query_result is None:
+                        query_result = model_instances_dict
+                    else:
+                        query_result = intersect_models(query_result,
+                                                        model_instances_dict)
                     source_methods_store.add_call(source_method, True)
                     end_time = time.time()
                     LOG.info("Took %.2fs to query system %s using %s",
                              end_time-start_time, system.name.value,
                              source_info)
-                    system.populate(model_instances_dict)
                     system.register_query()
                     # if one source has provided the information, there is
                     # no need to query the rest
                     break
-    def extend_parser(self, attributes, group_name='Environment',
-                      level=0):
+        if query_result:
+            # if no source could be called, there is nothing to add
+            system.populate(query_result)
+
+    def extend_parser(self, attributes: dict, group_name: str = 'Environment',
+                      level: int = 0) -> None:
         """Extend parser with arguments from CI models."""
         for attr_dict in attributes.values():
             arguments = attr_dict.get('arguments')
@@ -310,26 +301,22 @@ class Orchestrator:
                 else:
                     self.parser.extend(arguments, group_name, level=level)
 
-    def query_and_publish(self, output_style="colorized", features=None):
+    def query_and_publish(self, output_style: str = "colorized",
+                          features: list = None) -> None:
         """Iterate over the environments and their systems and publish
         the results of the queries.
 
         The query and publish is performed per system"""
         for env in self.environments:
-            self.publisher.publish(
-                model_instance=env,
-                style=output_style,
-                query=get_query_type(**self.parser.ci_args),
-                verbosity=self.parser.app_args.get('verbosity'))
             for system in env.systems:
                 if features:
                     self.run_features(system, features)
                 else:
                     self.run_query(system)
-                self.publisher.publish(
-                    model_instance=system,
-                    style=output_style,
-                    query=get_query_type(**self.parser.ci_args),
-                    verbosity=self.parser.app_args.get('verbosity'))
                 for source in system.sources:
                     source.ensure_teardown()
+            self.publisher.publish(
+                environment=env,
+                style=output_style,
+                query=get_query_type(**self.parser.ci_args),
+                verbosity=self.parser.app_args.get('verbosity'))

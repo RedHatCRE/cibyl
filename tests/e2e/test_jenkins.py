@@ -16,6 +16,8 @@
 import sys
 
 from cibyl.cli.main import main
+from cibyl.utils.colors import Colors
+from cibyl.utils.strings import IndentedTextBuilder
 from tests.e2e.containers.jenkins import JenkinsContainer
 from tests.e2e.fixtures import EndToEndTest
 
@@ -42,3 +44,57 @@ class TestJenkins(EndToEndTest):
             main()
 
             self.assertIn('Total jobs found in query: 2', self.stdout)
+
+    def test_jobs_are_alphabetically_ordered(self):
+        """Checks that jobs are printed following an alphabetical order.
+        """
+        with JenkinsContainer() as jenkins:
+            jenkins.add_job('this-is-a-job')
+            jenkins.add_job('a-job')
+            jenkins.add_job('job-x')
+
+            sys.argv = [
+                '',
+                '--config', 'tests/e2e/data/configs/jenkins.yaml',
+                '-f', 'text',
+                '--jobs'
+            ]
+
+            main()
+
+            expected = IndentedTextBuilder()
+            expected.add('Job: a-job', 2)
+            expected.add('Job: job-x', 2)
+            expected.add('Job: this-is-a-job', 2)
+            expected.add('Total jobs found in query: 3', 2)
+
+            self.assertIn(expected.build(), self.stdout)
+
+
+class TestFeatures(EndToEndTest):
+    """Tests related to the --features argument.
+    """
+
+    def test_status_bar_text_is_removed(self):
+        """Checks that the status bar is removed before the output is printed.
+        """
+        with JenkinsContainer():
+            sys.argv = [
+                '',
+                '--config',
+                'tests/e2e/data/configs/jenkins/with-openstack.yaml',
+                '-f', 'text',
+                '--features', 'IPv4'
+            ]
+
+            main()
+
+            # Check that the eraser is printed
+            status_bar_text = Colors.green(
+                'Fetching features (osp_jenkins) ' + (' ' * 4)
+            )
+
+            self.assertIn(
+                '\r' + (' ' * len(status_bar_text)) + '\r',
+                self.stdout
+            )

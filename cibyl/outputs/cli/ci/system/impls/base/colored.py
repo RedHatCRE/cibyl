@@ -19,7 +19,11 @@ from overrides import overrides
 
 from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
+from cibyl.outputs.cli.ci.system.utils.sorting.builds import SortBuildsByUUID
+from cibyl.outputs.cli.ci.system.utils.sorting.jobs import SortJobsByName
 from cibyl.outputs.cli.printer import ColoredPrinter
+from cibyl.utils.colors import DefaultPalette
+from cibyl.utils.sorting import BubbleSortAlgorithm
 from cibyl.utils.strings import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
@@ -30,11 +34,29 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
     colors for easier read.
     """
 
+    def __init__(self,
+                 query=QueryType.NONE,
+                 verbosity=0,
+                 palette=DefaultPalette(),
+                 job_sorter=BubbleSortAlgorithm(SortJobsByName()),
+                 build_sorter=BubbleSortAlgorithm(SortBuildsByUUID())):
+        """Constructor. See parent for more information.
+
+        :param job_sorter: Determines the order on which jobs are printed.
+        :type job_sorter: :class:`cibyl.utils.sorting.SortingAlgorithm`
+        :param build_sorter: Determines the order on which builds are printed.
+        :type build_sorter: :class:`cibyl.utils.sorting.SortingAlgorithm`
+        """
+        super().__init__(query, verbosity, palette)
+
+        self._job_sorter = job_sorter
+        self._build_sorter = build_sorter
+
     @overrides
-    def print_system(self, system, indent=0):
+    def print_system(self, system):
         printer = IndentedTextBuilder()
 
-        printer.add(self._palette.blue('System: '), indent)
+        printer.add(self._palette.blue('System: '), 0)
         printer[-1].append(system.name.value)
 
         if self.verbosity > 0:
@@ -42,7 +64,7 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
 
         if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
             for feature in system.features.values():
-                printer.add(self.print_feature(feature), indent+1)
+                printer.add(self.print_feature(feature), 1)
 
         return printer.build()
 

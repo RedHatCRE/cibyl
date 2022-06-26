@@ -15,6 +15,7 @@
 """
 import argparse
 import logging
+from typing import Callable, List
 
 from cibyl.cli.argument import Argument
 
@@ -26,8 +27,8 @@ class CustomAction(argparse.Action):
     whether an argument data is populated, the function associated
     with the argument and the level in the models.
     """
-    def __init__(self, *args, func=None, populated=False, level=-1,
-                 ranged=False, **kwargs):
+    def __init__(self, *args, func: Callable = None, populated: bool = False,
+                 level: int = -1, ranged: bool = False, **kwargs):
         """
         argparse custom action.
         :param func: the function the argument is associated with
@@ -38,7 +39,9 @@ class CustomAction(argparse.Action):
         self.ranged = ranged
         super().__init__(*args, **kwargs)
 
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(self, parser: argparse.ArgumentParser,
+                 namespace: argparse.Namespace, values: List[str],
+                 option_string: str = None):
         if self.default and not values:
             values = self.default
         setattr(namespace, self.dest, Argument(
@@ -80,7 +83,7 @@ class Parser:
             choices=("terminal", "file", "both"),
             help='Where to write the output, default is both')
         self.argument_parser.add_argument(
-            '--output-format', '-f', choices=("text", "colorized"),
+            '--output-format', '-f', choices=("text", "colorized", "json"),
             dest="output_style", default="colorized",
             help="Sets the output format."
         )
@@ -91,19 +94,18 @@ class Parser:
             help="Causes Cibyl to print more debug messages. "
                  "Adding multiple -v will increase the verbosity.")
 
-    def print_help(self):
+    def print_help(self) -> None:
         """Call argparse's print_help method to show the help message with the
         arguments that are currently added."""
         self.argument_parser.print_help()
 
-    def parse(self, arguments=None):
+    def parse(self, arguments: List[Argument] = None) -> None:
         """Parse application and CI models arguments.
 
         Sets the attributes ci_args and app_args with dictionaries
         including the parsed arguments.
 
         :param arguments: Arguments to parse
-        :type arguments: list
         """
         arguments = vars(self.argument_parser.parse_args(arguments))
         # Keep only the used arguments
@@ -113,15 +115,13 @@ class Parser:
                          arguments.items() if arg_value is not None and not
                          isinstance(arg_value, Argument)}
 
-    def get_group(self, group_name: str):
+    def get_group(self, group_name: str) -> argparse._ArgumentGroup:
         """Returns the argument parser group based on a given group_name
 
         :param group_name: The name of the group
-        :type group_name: str
 
         :return: An argparse argument group if it exists and matches
                  the given group name, otherwise returns None
-        :rtype: argparse._ArgumentGroup
         """
         # pylint: disable=protected-access
         # Access the private member '_action_groups' to check
@@ -131,13 +131,13 @@ class Parser:
                 return action_group
         return None
 
-    def extend(self, arguments: list, group_name: str, level: int = 0):
+    def extend(self, arguments: List[Argument], group_name: str,
+               level: int = 0) -> None:
         """Adds arguments to a specific argument parser group.
 
         :param arguments: A list of argument objects
-        :type arguments: list[argument]
         :param group_name: The name of the argument parser group
-        :type group_name: str
+        :param level: The level of the arguments in models
         """
         group = self.get_group(group_name)
         # If the group doesn't exists, we would like to add it

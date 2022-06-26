@@ -14,7 +14,6 @@
 #    under the License.
 """
 
-import logging
 import os
 import re
 from functools import partial
@@ -33,20 +32,19 @@ from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.service import Service
 from cibyl.plugins.openstack.test_collection import TestCollection
 from cibyl.plugins.openstack.utils import translate_topology_string
-from cibyl.sources.jenkins import detect_job_info_regex, filter_jobs
+from cibyl.sources.jenkins import LOG, detect_job_info_regex, filter_jobs
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import subset
 from cibyl.utils.files import get_file_name_from_path
-from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
-                                   IP_PATTERN, NETWORK_BACKEND_PATTERN,
-                                   RELEASE_PATTERN, SERVICES_PATTERN,
-                                   STORAGE_BACKEND_PATTERN, TOPOLOGY_PATTERN,
+from cibyl.utils.filtering import (CINDER_BACKEND_PATTERN, DEPLOYMENT_PATTERN,
+                                   DVR_PATTERN_NAME, IP_PATTERN,
+                                   NETWORK_BACKEND_PATTERN, RELEASE_PATTERN,
+                                   SERVICES_PATTERN, TOPOLOGY_PATTERN,
                                    apply_filters, filter_topology,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match)
 
-LOG = logging.getLogger(__name__)
 # shorthand for the type that will hold the job information obtained from the
 # Jenkins API response
 JenkinsJob = Dict[str, Union[dict, str]]
@@ -142,7 +140,7 @@ class Jenkins(SourceExtension):
     """A class representation of Jenkins client."""
 
     deployment_attr = ["topology", "release",
-                       "network_backend", "storage_backend",
+                       "network_backend", "cinder_backend",
                        "infra_type", "dvr", "ip_version",
                        "tls_everywhere", "ml2_driver",
                        "ironic_inspector"]
@@ -189,11 +187,11 @@ class Jenkins(SourceExtension):
                                                     NETWORK_BACKEND_PATTERN)
             job["network_backend"] = network_backend
 
-        missing_storage_backend = not bool(job.get("storage_backend", ""))
-        if missing_storage_backend and ("storage_backend" in kwargs or spec):
-            storage_backend = detect_job_info_regex(job_name,
-                                                    STORAGE_BACKEND_PATTERN)
-            job["storage_backend"] = storage_backend
+        missing_cinder_backend = not bool(job.get("cinder_backend", ""))
+        if missing_cinder_backend and ("cinder_backend" in kwargs or spec):
+            cinder_backend = detect_job_info_regex(job_name,
+                                                   CINDER_BACKEND_PATTERN)
+            job["cinder_backend"] = cinder_backend
 
         missing_ip_version = "ip_version" not in job or not job["ip_version"]
         if missing_ip_version and ("ip_version" in kwargs or spec):
@@ -357,7 +355,7 @@ accurate results", len(jobs_found))
                 # adding it
                 topology = job.get("topology", "")
             network_backend = job.get("network_backend", "")
-            storage_backend = job.get("storage_backend", "")
+            cinder_backend = job.get("cinder_backend", "")
             tls_everywhere = job.get("tls_everywhere", "")
             ironic_inspector = job.get("ironic_inspector", "")
             cleaning_network = job.get("cleaning_network", "")
@@ -372,7 +370,7 @@ accurate results", len(jobs_found))
                                     ml2_driver=job.get("ml2_driver", ""),
                                     topology=topology,
                                     network_backend=network_backend,
-                                    storage_backend=storage_backend,
+                                    cinder_backend=cinder_backend,
                                     dvr=job.get("dvr", ""),
                                     ironic_inspector=ironic_inspector,
                                     cleaning_network=cleaning_network,
@@ -445,8 +443,8 @@ accurate results", len(jobs_found))
                 infra = os.path.split(deployment.get('files', ""))[1]
                 job["infra_type"] = infra
             storage = overcloud.get("storage", {})
-            if "storage_backend" in kwargs or spec:
-                job["storage_backend"] = storage.get("backend", "")
+            if "cinder_backend" in kwargs or spec:
+                job["cinder_backend"] = storage.get("backend", "")
             network = overcloud.get("network", {})
             if "network_backend" in kwargs or spec:
                 job["network_backend"] = network.get("backend", "")

@@ -90,14 +90,6 @@ Arguments Matrix
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
-   * - --dvr
-     - | Does the deployment use
-       | Distributed Virtual Router
-     - |:ballot_box_with_check:|
-     - |:black_square_button:|
-     - |:ballot_box_with_check:|
-     - |:black_square_button:|
-     - |:black_square_button:|
    * - --ml2-driver
      - | Which ml2 driver does
        | the deployment use
@@ -114,30 +106,14 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
-   * - --storage-backend
-     - | What storage backend is
-       | used (vlan, Ceph, Netapp)
+   * - --cinder-backend
+     - | What cinder backend is
+       | used (vlan, Ceph, Netapp, nfs)
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
-   * - --ironic-inspector
-     - | Does the deployment use
-       | Ironic in the overcloud
-     - |:ballot_box_with_check:|
-     - |:black_square_button:|
-     - |:black_square_button:|
-     - |:black_square_button:|
-     - |:black_square_button:|
-   * - --tls-everywhere
-     - | Does the deployment uses
-       | TLS on all hosts
-     - |:ballot_box_with_check:|
-     - |:black_square_button:|
-     - |:black_square_button:|
-     - |:x:|
-     - |:x:|
    * - --containers
      - | List of containers running
        | on the hosts

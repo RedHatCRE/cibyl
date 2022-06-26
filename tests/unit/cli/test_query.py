@@ -98,14 +98,6 @@ class TestGetQueryType(TestCase):
 
         self.assertEqual(QueryType.BUILDS, get_query_type(**args))
 
-    def test_get_job_url(self):
-        """Checks that "Jobs" is returned for "--job-url"."""
-        args = {
-            'job_url': None
-        }
-
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
-
     def test_get_variants(self):
         """Checks that "Jobs" is returned for "--variants"."""
         args = {
@@ -274,12 +266,12 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
 
         self.assertEqual(QueryType.JOBS, get_query_type(**args))
 
-    def test_get_storage_backend(self):
+    def test_get_cinder_backend(self):
         """Checks that "Jobs" is returned for "--storage-backend" if the
         openstack plugin is added.
         """
         args = {
-            'storage_backend': None
+            'cinder_backend': None
         }
 
         self.assertEqual(QueryType.JOBS, get_query_type(**args))
@@ -291,7 +283,7 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
         """
         args = {
             'tenants': None,
-            'storage_backend': None
+            'cinder_backend': None
         }
 
         self.assertEqual(QueryType.JOBS, get_query_type(**args))

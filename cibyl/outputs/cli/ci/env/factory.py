@@ -14,7 +14,8 @@
 #    under the License.
 """
 from cibyl.cli.output import OutputStyle
-from cibyl.outputs.cli.ci.colored import CIColoredPrinter
+from cibyl.outputs.cli.ci.env.impl.colored import CIColoredPrinter
+from cibyl.outputs.cli.ci.env.impl.serialized import JSONPrinter
 from cibyl.utils.colors import ClearText
 
 
@@ -46,6 +47,12 @@ class CIPrinterFactory:
 
         if style == OutputStyle.COLORIZED:
             return CIColoredPrinter(
+                query=query,
+                verbosity=verbosity
+            )
+
+        if style == OutputStyle.JSON:
+            return JSONPrinter(
                 query=query,
                 verbosity=verbosity
             )

@@ -29,7 +29,7 @@ class TestOrchestrator(TestCase):
         self.env_name = "env1"
         self.environment = Environment(self.env_name)
 
-    @patch('cibyl.outputs.cli.ci.factory.CIPrinterFactory.from_style')
+    @patch('cibyl.outputs.cli.ci.env.factory.CIPrinterFactory.from_style')
     @patch('builtins.print')
     def test_publisher_publish(self, mock_print, mock_printer_factory):
         """Testing Publisher publish method"""
@@ -42,9 +42,11 @@ class TestOrchestrator(TestCase):
 
         mock_printer_factory.return_value = printer
 
-        self.publisher.publish(model_instance=self.environment,
-                               target="terminal",
-                               style=style)
+        self.publisher.publish(
+            environment=self.environment,
+            target="terminal",
+            style=style
+        )
 
         printer.print_environment.assert_called_once_with(self.environment)
 

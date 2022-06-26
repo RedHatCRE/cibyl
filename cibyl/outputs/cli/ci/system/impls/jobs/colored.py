@@ -23,6 +23,7 @@ from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
 from cibyl.outputs.cli.ci.system.common.stages import print_stage
 from cibyl.outputs.cli.ci.system.impls.base.colored import \
     ColoredBaseSystemPrinter
+from cibyl.utils.sorting import nsort, sort
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
 
@@ -33,22 +34,22 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
     """
 
     @overrides
-    def print_system(self, system, indent=0):
+    def print_system(self, system):
         printer = IndentedTextBuilder()
 
         # Begin with the text common to all systems
-        printer.add(super().print_system(system, indent=indent), indent+1)
+        printer.add(super().print_system(system), 0)
 
         if self.query != QueryType.NONE:
-            for job in system.jobs.values():
-                printer.add(self.print_job(job), indent+2)
+            for job in sort(system.jobs.values(), self._job_sorter):
+                printer.add(self.print_job(job), 1)
 
             if not system.is_queried():
-                printer.add(self.palette.blue('No query performed'), indent+2)
+                printer.add(self.palette.blue('No query performed'), 1)
             elif self.query != QueryType.FEATURES:
                 header = 'Total jobs found in query: '
 
-                printer.add(self.palette.blue(header), indent+2)
+                printer.add(self.palette.blue(header), 1)
                 printer[-1].append(len(system.jobs))
 
         return printer.build()
@@ -76,7 +77,7 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
 
         if self.query >= QueryType.BUILDS:
             if job.builds.value:
-                for build in job.builds.values():
+                for build in nsort(job.builds.values(), self._build_sorter):
                     printer.add(self.print_build(build), 1)
             else:
                 msg = 'No builds in query.'

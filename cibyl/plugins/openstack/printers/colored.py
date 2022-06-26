@@ -110,11 +110,11 @@ class OSColoredPrinter(OSPrinter):
         is_empty_storage = True
         printer.add(self.palette.blue("Storage: "), 1)
 
-        if deployment.storage_backend.value:
-            if deployment.storage_backend.value != "N/A" or self.verbosity > 0:
+        if deployment.cinder_backend.value:
+            if deployment.cinder_backend.value != "N/A" or self.verbosity > 0:
                 is_empty_storage = False
-                printer.add(self.palette.blue('Storage backend: '), 2)
-                printer[-1].append(deployment.storage_backend)
+                printer.add(self.palette.blue('Cinder backend: '), 2)
+                printer[-1].append(deployment.cinder_backend)
 
         if is_empty_storage:
             printer.pop()

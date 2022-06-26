@@ -106,10 +106,11 @@ def intersect_models(dict1, dict2):
     input dictionaries.
     :rtype: dict
     """
-    # TODO: jgilaber implement an intersection method in all models so that the
-    # intersection works for models that might contain other models, e.g.
-    # tenants in zuul
     intersection = dict1.keys() & dict2.keys()
     models = {key: dict1[key] for key in intersection}
+    for key, model in models.items():
+        # make sure that all the information present in models present in both
+        # dictionaries is incorporated
+        model.merge(dict2[key])
     return AttributeDictValue(dict1.name, attr_type=dict1.attr_type,
                               value=models)

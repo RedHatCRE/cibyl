@@ -84,8 +84,8 @@ def load_features(feature_paths: list = None):
                                       return_name=True)
             module_name = module.__name__
             for feature_name, feature in features:
-                all_features[feature_name.lower()] = feature
-                features_by_category[module_name].append(feature_name)
+                all_features[feature.name.lower()] = feature
+                features_by_category[module_name].append(feature.name)
 
 
 def get_string_all_features():
@@ -93,7 +93,7 @@ def get_string_all_features():
     an exception message."""
     msg = ""
     for category, features_names in features_by_category.items():
-        msg += f"\n{Colors.blue(category.title())}:"
+        msg += f"\n\n{Colors.blue(category.title())}:"
         for feature_name in features_names:
             feature = all_features[feature_name.lower()]
             docstring = getattr(feature, "__doc__", "")

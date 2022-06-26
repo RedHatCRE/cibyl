@@ -15,6 +15,7 @@
 """
 import logging
 import sys
+from typing import List
 
 from cibyl.cli.output import OutputStyle
 from cibyl.exceptions import CibylException
@@ -28,12 +29,11 @@ from cibyl.utils.logger import configure_logging
 LOG = logging.getLogger(__name__)
 
 
-def raw_parsing(arguments):
+def raw_parsing(arguments: List[str]) -> dict:
     """Returns config file path if one was passed with --config argument
 
     :param arguments: A list of strings representing the arguments and their
                       values, defaults to None
-    :type arguments: str, optional
     """
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
@@ -68,7 +68,7 @@ def raw_parsing(arguments):
     return args
 
 
-def setup_output_format(args):
+def setup_output_format(args: dict) -> None:
     """Parse the OutputStyle specified by the user."""
     user_output_format = args["output_style"]
     try:
@@ -78,7 +78,7 @@ def setup_output_format(args):
         raise InvalidArgument(msg) from None
 
 
-def main():
+def main() -> None:
     """CLI main entry."""
     # We parse it from sys.argv instead of argparse parser because we want
     # to run the app parser only once, after we update it with the loaded
@@ -91,7 +91,8 @@ def main():
 
     try:
         try:
-            orchestrator.load_configuration(arguments.get('config_file_path'))
+            orchestrator.config.load(path=arguments.get('config_file_path'))
+            orchestrator.config.verify()
         except (ConfigurationNotFound, EmptyConfiguration) as ex:
             # Check if the error is to be ignored
             if not arguments.get('help', False):
@@ -101,7 +102,7 @@ def main():
         if not plugins:
             # if user has not specified any plugins,
             # read them from configuration
-            plugins = orchestrator.config.data.get('plugins', [])
+            plugins = orchestrator.config.plugins
         # add plugins after the environments are created, since the environment
         # might modify some of the models APIs
         if plugins:

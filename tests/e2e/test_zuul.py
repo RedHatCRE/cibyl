@@ -178,31 +178,6 @@ class TestQueryLevel(EndToEndTest):
             self.stdout
         )
 
-    def test_get_jobs_by_url(self):
-        """Checks retrieved jobs by "--jobs --job-url url" flag.
-        """
-        sys.argv = [
-            '',
-            '--config', 'tests/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
-            '-vv',
-            '--tenants', '^(example-tenant)$',
-            '--jobs', '--job-url',
-            'http://localhost:9000/t/example-tenant/job/build-docker-image'
-        ]
-
-        main()
-
-        self.assertIn(
-            'Job: build-docker-image',
-            self.stdout
-        )
-
-        self.assertIn(
-            "Total jobs found in query for tenant 'example-tenant': 1",
-            self.stdout
-        )
-
     def test_get_job_url(self):
         """Checks that "-v" will print a job's URL.
         """
@@ -514,3 +489,41 @@ class TestDefaults(EndToEndTest):
         self.assertIn('Tenant: example-tenant', self.stdout)
         self.assertIn('Tenant: example-tenant-2', self.stdout)
         self.assertIn('Total tenants found in query: 2', self.stdout)
+
+
+class TestOthers(EndToEndTest):
+    """Tests miscellaneous behaviours of the Zuul source.
+    """
+    zuul = OpenDevZuulContainer()
+
+    @classmethod
+    def setUpClass(cls):
+        cls.zuul.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.zuul.stop()
+
+    def test_jobs_are_alphabetically_ordered(self):
+        """Checks that when printed, jobs are alphabetically ordered.
+        """
+        sys.argv = [
+            '',
+            '--config', 'tests/e2e/data/configs/zuul.yaml',
+            '-f', 'text',
+            '--jobs', '^nodejs-.*'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: nodejs-npm', 4)
+        expected.add('Job: nodejs-npm-run-docs', 4)
+        expected.add('Job: nodejs-npm-run-lint', 4)
+        expected.add('Job: nodejs-npm-run-test', 4)
+        expected.add('Job: nodejs-run-docs', 4)
+        expected.add('Job: nodejs-run-lint', 4)
+        expected.add('Job: nodejs-run-test', 4)
+        expected.add('Job: nodejs-run-test-browser', 4)
+
+        self.assertIn(expected.build(), self.stdout)

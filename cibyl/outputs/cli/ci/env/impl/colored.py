@@ -19,7 +19,7 @@ from overrides import overrides
 
 from cibyl.models.ci.base.system import JobsSystem
 from cibyl.models.ci.zuul.system import ZuulSystem
-from cibyl.outputs.cli.ci.printer import CIPrinter
+from cibyl.outputs.cli.ci.env.printer import CIPrinter
 from cibyl.outputs.cli.ci.system.impls.base.colored import \
     ColoredBaseSystemPrinter
 from cibyl.outputs.cli.ci.system.impls.jobs.colored import \
@@ -44,9 +44,12 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
         printer.add(self._palette.blue('Environment: '), 0)
         printer[0].append(env.name.value)
 
+        for system in env.systems:
+            printer.add(self.print_system(system), 1)
+
         return printer.build()
 
-    def print_system(self, system, indent=0):
+    def print_system(self, system):
         """
         :param system: The system.
         :type system: :class:`cibyl.models.ci.base.system.System`
@@ -77,4 +80,4 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
                 self.query, self.verbosity, self.palette
             )
 
-        return get_printer().print_system(system, indent)
+        return get_printer().print_system(system)

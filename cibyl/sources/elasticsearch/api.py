@@ -82,9 +82,6 @@ class ElasticSearch(ServerSource):
         if 'jobs' in kwargs:
             jobs_to_search = kwargs.get('jobs').value
             key_filter = 'job_name'
-        if 'job_url' in kwargs:
-            jobs_to_search = kwargs.get('job_url').value
-            key_filter = 'job_url'
         jobs_scope_arg = kwargs.get('jobs_scope')
         if jobs_scope_arg:
             jobs_scope_pattern = re.compile(jobs_scope_arg)
@@ -188,6 +185,7 @@ class ElasticSearch(ServerSource):
                 }
             )
 
+        chunked_list_of_jobs = []
         for _, job in jobs_found.items():
 
             chunked_list_of_jobs = chunk_dictionary_into_lists(
