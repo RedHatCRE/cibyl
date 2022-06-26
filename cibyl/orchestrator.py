@@ -295,8 +295,6 @@ class Orchestrator:
                     # if one source has provided the information, there is
                     # no need to query the rest
                     break
-        source_obj.ensure_teardown()
-
     def extend_parser(self, attributes, group_name='Environment',
                       level=0):
         """Extend parser with arguments from CI models."""
@@ -333,3 +331,6 @@ class Orchestrator:
                     style=output_style,
                     query=get_query_type(**self.parser.ci_args),
                     verbosity=self.parser.app_args.get('verbosity'))
+                # self.source_obj.ensure_teardown()
+                for source in system.sources:
+                    source.ensure_teardown()
