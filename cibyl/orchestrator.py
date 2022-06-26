@@ -331,6 +331,5 @@ class Orchestrator:
                     style=output_style,
                     query=get_query_type(**self.parser.ci_args),
                     verbosity=self.parser.app_args.get('verbosity'))
-                # self.source_obj.ensure_teardown()
                 for source in system.sources:
                     source.ensure_teardown()
