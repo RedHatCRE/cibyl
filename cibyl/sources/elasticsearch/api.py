@@ -38,7 +38,7 @@ LOG = logging.getLogger(__name__)
 class ElasticSearch(ServerSource):
     """Elasticsearch Source"""
 
-    def __init__(self: object, driver: str = 'elasticsearch',
+    def __init__(self, driver: str = 'elasticsearch',
                  name: str = "elasticsearch", priority: int = 0,
                  elastic_client: object = None,
                  enabled: bool = True, url: str = None) -> None:
@@ -55,7 +55,7 @@ class ElasticSearch(ServerSource):
                 'The URL given is not valid'
             ) from exception
 
-    def setup(self: object) -> None:
+    def setup(self) -> None:
         """ Ensure that a connection to the elasticsearch server can be
         established.
         """
@@ -65,12 +65,12 @@ class ElasticSearch(ServerSource):
                 self.port
             ).connect()
 
-    def teardown(self: object) -> None:
+    def teardown(self) -> None:
         if self.es_client:
             self.es_client.disconnect()
 
     @speed_index({'base': 1})
-    def get_jobs(self: object, **kwargs: Argument) -> list:
+    def get_jobs(self, **kwargs: Argument) -> list:
         """Get jobs from elasticsearch
 
             :returns: Job objects queried from elasticsearch
@@ -118,7 +118,7 @@ class ElasticSearch(ServerSource):
             job_objects[job_name] = Job(name=job_name, url=url)
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
-    def __query_get_hits(self: object,
+    def __query_get_hits(self,
                          query: dict,
                          index: str = '*') -> list:
         """Perform the search query to ElasticSearch
@@ -158,7 +158,7 @@ class ElasticSearch(ServerSource):
             ) from exception
 
     @speed_index({'base': 2})
-    def get_builds(self: object, **kwargs: Argument):
+    def get_builds(self, **kwargs: Argument):
         """
             Get builds from elasticsearch server.
 
@@ -244,7 +244,7 @@ class ElasticSearch(ServerSource):
 
         return jobs_found
 
-    def get_last_build(self: object, builds_jobs: AttributeDictValue):
+    def get_last_build(self, builds_jobs: AttributeDictValue):
         """
             Get last build from builds. It's determined
             by the build_id
@@ -271,7 +271,7 @@ class ElasticSearch(ServerSource):
         return AttributeDictValue("jobs", attr_type=Job, value=job_object)
 
     @speed_index({'base': 3})
-    def get_tests(self: object, **kwargs: Argument):
+    def get_tests(self, **kwargs: Argument):
         """
             Get tests for a elasticsearch job.
 
@@ -397,7 +397,7 @@ class ElasticSearch(ServerSource):
 
         return job_builds_found
 
-    def match_filter_test_by_duration(self: object,
+    def match_filter_test_by_duration(self,
                                       test_duration: float,
                                       test_duration_arguments: list) -> bool:
         """Match if the duration of a test pass all the

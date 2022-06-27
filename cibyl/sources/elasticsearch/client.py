@@ -27,7 +27,7 @@ class ElasticSearchClient:
     """Elasticsearch client to connect to the instance
     and retrieve the data from this one"""
 
-    def __init__(self: object,
+    def __init__(self,
                  host: str = "http://localhost",
                  port: int = 9200) -> None:
         """Initialization of ElasticSearchClient
@@ -39,7 +39,7 @@ class ElasticSearchClient:
         self.address = f"{host}:{port}"
         self.connection = None
 
-    def connect(self: object) -> Elasticsearch:
+    def connect(self) -> Elasticsearch:
         """Connects to the elasticsearch instance
 
         :return: Elasticsearch module instance
@@ -56,7 +56,7 @@ class ElasticSearchClient:
                   f" instance: {self.address}")
         return self
 
-    def disconnect(self: object) -> None:
+    def disconnect(self) -> None:
         """Explicitly closes connections with the
         elasticsearch instance
 
