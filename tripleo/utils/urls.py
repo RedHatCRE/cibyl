@@ -20,7 +20,4 @@ from validators import ValidationFailure
 def is_url(string: str) -> bool:
     result = validators.url(string)
 
-    if isinstance(result, ValidationFailure):
-        return False
-
-    return True
+    return True if not isinstance(result, ValidationFailure) else False
