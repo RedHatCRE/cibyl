@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from tripleo.utils.urls import is_url
+from tripleo.utils.strings import is_url
 
 Path = str
 

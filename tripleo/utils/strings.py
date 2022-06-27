@@ -14,10 +14,12 @@
 #    under the License.
 """
 import validators
-from validators import ValidationFailure
 
 
 def is_url(string: str) -> bool:
     result = validators.url(string)
 
-    return True if not isinstance(result, ValidationFailure) else False
+    if isinstance(result, bool):
+        return result
+
+    return False

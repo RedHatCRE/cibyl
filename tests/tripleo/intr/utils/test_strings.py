@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from tripleo.utils.urls import is_url
+from tripleo.utils.strings import is_url
 
 
 class TestIsURL(TestCase):
