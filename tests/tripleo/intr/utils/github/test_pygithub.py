@@ -15,8 +15,8 @@
 """
 from unittest import TestCase
 
-from cibyl.utils.github import GitHubError
-from cibyl.utils.github.pygithub import PyGitHub
+from tripleo.utils.github import GitHubError
+from tripleo.utils.github.pygithub import PyGitHub
 
 
 class TestPyGitHub(TestCase):
