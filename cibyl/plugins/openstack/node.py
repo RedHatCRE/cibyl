@@ -46,6 +46,7 @@ class Node(Model):
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--containers', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    description="Containers on the node")]
         },
         'packages': {
@@ -53,6 +54,7 @@ class Node(Model):
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--packages', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    description="Packages in the node")]
         }
     }

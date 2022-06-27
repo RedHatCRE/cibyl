@@ -32,6 +32,7 @@ class Test(Model):
             'attr_type': str,
             'arguments': [Argument(name='--test-result', arg_type=str,
                                    func='get_tests',
+                                   parent_func='get_builds',
                                    nargs='*',
                                    description="Test result")]
         },
@@ -39,6 +40,7 @@ class Test(Model):
             'attr_type': float,
             'arguments': [Argument(name='--test-duration', arg_type=str,
                                    func='get_tests', nargs='*',
+                                   parent_func='get_builds',
                                    ranged=True,
                                    description="Test duration (in seconds)")]
         },

@@ -29,7 +29,7 @@ class Argument():
                  description: str, nargs: Union[str, int] = 1,
                  func: str = None, populated: bool = False, level: int = 0,
                  ranged: bool = False, value: List[str] = None,
-                 default: object = None):
+                 default: object = None, parent_func: str = None):
         self.name = name
 
         self.arg_type = arg_type
@@ -44,6 +44,7 @@ class Argument():
         else:
             self.value = value
         self.default = default
+        self.parent_func = parent_func
 
     def parse_ranges(self, expressions: List[str]) -> List[Range]:
         parsed_expressions = []

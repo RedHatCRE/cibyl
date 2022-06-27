@@ -34,9 +34,11 @@ class Deployment(Model):
             'attr_type': str,
             'arguments': [Argument(name='--release', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    description="Deployment release version"),
                           Argument(name='--spec', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    description="Print complete openstack"
                                    " deployment")]
         },
@@ -44,6 +46,7 @@ class Deployment(Model):
             'attr_type': str,
             'arguments': [Argument(name='--infra-type', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    description="Infra type")]
         },
         'nodes': {
@@ -54,11 +57,13 @@ class Deployment(Model):
                                    description="Nodes on the deployment"),
                           Argument(name='--controllers', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    ranged=True,
                                    description="Number of controllers used "
                                                "in the deployment"),
                           Argument(name='--computes', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    ranged=True,
                                    description="Number of computes used "
                                                "in the deployment")]
@@ -68,12 +73,14 @@ class Deployment(Model):
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--services', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    description="Services in the deployment")]
         },
         'ip_version': {
             'attr_type': str,
             'arguments': [Argument(name='--ip-version', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    description="Ip version used in the "
                                                "deployment")]
         },
@@ -81,6 +88,7 @@ class Deployment(Model):
             'attr_type': str,
             'arguments': [Argument(name='--topology', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    description="Topology used in the "
                                                "deployment")]
         },
@@ -88,6 +96,7 @@ class Deployment(Model):
             'attr_type': str,
             'arguments': [Argument(name='--ml2-driver', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    description="ML2 driver used in the "
                                                "deployment")]
         },
@@ -117,6 +126,7 @@ class Deployment(Model):
             'attr_type': str,
             'arguments': [Argument(name='--network-backend', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    description="Network backend used in the "
                                                "deployment")]
         },
@@ -124,6 +134,7 @@ class Deployment(Model):
             'attr_type': str,
             'arguments': [Argument(name='--cinder-backend', arg_type=str,
                                    func='get_deployment', nargs='*',
+                                   parent_func='get_jobs',
                                    description="Cinder backend used in the "
                                                "deployment")]
         },

@@ -31,6 +31,7 @@ class Package(Model):
         'origin': {
             'attr_type': str,
             'arguments': [Argument(name='--package-origin', arg_type=str,
+                                   parent_func='get_jobs',
                                    nargs="*", func="get_deployment",
                                    description="Package origin")]
         }

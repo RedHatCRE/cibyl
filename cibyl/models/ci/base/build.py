@@ -37,6 +37,7 @@ class Build(Model):
             'attr_type': str,
             'arguments': [Argument(name='--build-status', arg_type=str,
                                    func='get_builds', nargs='*',
+                                   parent_func='get_jobs',
                                    description="Build status")]
         },
         'duration': {
@@ -48,6 +49,7 @@ class Build(Model):
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--tests', arg_type=str,
                                    nargs='*', func='get_tests',
+                                   parent_func='get_builds',
                                    description="Job test")]
         },
         'stages': {

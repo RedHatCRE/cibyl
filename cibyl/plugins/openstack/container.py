@@ -35,6 +35,7 @@ class Container(Model):
             'attr_type': str,
             'arguments': [Argument(name='--container-image', arg_type=str,
                                    nargs="*", func="get_deployment",
+                                   parent_func='get_jobs',
                                    description="Container image")]
         },
         'packages': {
