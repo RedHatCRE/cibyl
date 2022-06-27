@@ -269,9 +269,8 @@ class TestOrchestratorArgumentsFiltering(TestOrchestratorSetup):
         arguments with different func attributes."""
         self.orchestrator.parser.parse(["--jobs", "--builds"])
         args = self.orchestrator.sort_and_filter_args()
-        self.assertEqual(len(args), 2)
+        self.assertEqual(len(args), 1)
         self.assertEqual(args[0].name, "builds")
-        self.assertEqual(args[1].name, "jobs")
 
     def test_filter_args_with_no_func(self):
         """Test that sort_and_filter_args handles properly the case with two
@@ -286,9 +285,8 @@ class TestOrchestratorArgumentsFiltering(TestOrchestratorSetup):
         self.orchestrator.parser.parse(["--jobs", "--builds",
                                         "--build-status"])
         args = self.orchestrator.sort_and_filter_args()
-        self.assertEqual(len(args), 2)
+        self.assertEqual(len(args), 1)
         self.assertEqual(args[0].name, "builds")
-        self.assertEqual(args[1].name, "jobs")
 
     def test_multiple_builds_tests_arguments(self):
         """Test that sort_and_filter_args handles properly the case with two
@@ -298,10 +296,8 @@ class TestOrchestratorArgumentsFiltering(TestOrchestratorSetup):
                                         "--build-status", "--tests",
                                         "--test-result"])
         args = self.orchestrator.sort_and_filter_args()
-        self.assertEqual(len(args), 3)
+        self.assertEqual(len(args), 1)
         self.assertEqual(args[0].name, "tests")
-        self.assertEqual(args[1].name, "builds")
-        self.assertEqual(args[2].name, "jobs")
 
 
 class TestArgumentsFilteringOpenstack(OpenstackPluginWithJobSystem,
@@ -311,9 +307,145 @@ class TestArgumentsFilteringOpenstack(OpenstackPluginWithJobSystem,
     def test_multiple_deployment_arguments_different_level(self):
         """Test that sort_and_filter_args handles properly the case with many
         arguments that should query get_deployment with different levels."""
-        self.orchestrator.parser.parse(["--jobs", "--ip-version",
+        self.orchestrator.parser.parse(["--builds", "--ip-version",
                                         "--packages", '--release'])
         args = self.orchestrator.sort_and_filter_args()
         self.assertEqual(len(args), 2)
         self.assertEqual(args[0].name, "packages")
-        self.assertEqual(args[1].name, "jobs")
+        self.assertEqual(args[1].name, "builds")
+
+
+class TestOrchestratorArgsFilter(TestCase):
+    """Testing sort_and_filter_args method of the Orchestrator class."""
+
+    def setUp(self):
+        self.orchestrator = Orchestrator()
+
+        self.valid_single_jenkins_env_config_data = {
+            'environments': {
+                'env1': {
+                    'system1': {
+                        'system_type': 'jenkins',
+                        'sources': {}}}}}
+
+        self.valid_single_zuul_env_config_data = {
+            'environments': {
+                'env1': {
+                    'system1': {
+                        'system_type': 'zuul',
+                        'sources': {}}}}}
+
+        self.valid_multiple_envs_config_data = {
+            'environments': {
+                'env3': {
+                    'system3': {
+                        'system_type': 'jenkins',
+                        'sources': {}},
+                    'system4': {
+                        'system_type': 'zuul',
+                        'sources': {}}
+                }}}
+
+    def prepare_tests(self, config_data):
+        """Make some preparations to run tests in this class, this can't be
+        a setUp method because it requires data that will change from test to
+        test."""
+        self.orchestrator.config = AppConfig(data=config_data)
+        self.orchestrator.create_ci_environments()
+        for env in self.orchestrator.environments:
+            self.orchestrator.extend_parser(attributes=env.API)
+
+    def test_sort_and_filter_args_jobs_system(self):
+        """Test that the sort_and_filter_args filters multiple arguments with
+        the same func attribute."""
+        self.prepare_tests(self.valid_single_jenkins_env_config_data)
+        self.orchestrator.parser.parse(["--jobs", "--builds",
+                                        "--build-status"])
+        args = self.orchestrator.sort_and_filter_args()
+        self.assertEqual(1, len(args))
+        self.assertEqual("get_builds", args[0].func)
+        self.assertEqual("get_jobs", args[0].parent_func)
+
+    def test_sort_and_filter_args_jobs_system_jobs(self):
+        """Test that the sort_and_filter_args returns the only argument with a
+        func attribute."""
+        self.prepare_tests(self.valid_single_jenkins_env_config_data)
+        self.orchestrator.parser.parse(["--jobs"])
+        args = self.orchestrator.sort_and_filter_args()
+        self.assertEqual(1, len(args))
+        self.assertEqual("get_jobs", args[0].func)
+        self.assertIsNone(args[0].parent_func)
+
+    def test_sort_and_filter_args_jobs_system_tests(self):
+        """Test that the sort_and_filter_args filters multiple arguments with
+        the same func attribute."""
+        self.prepare_tests(self.valid_single_jenkins_env_config_data)
+        self.orchestrator.parser.parse(["--jobs", "--builds", "--build-status",
+                                        "--tests", "--test-result"])
+        args = self.orchestrator.sort_and_filter_args()
+        self.assertEqual(1, len(args))
+        self.assertEqual("get_tests", args[0].func)
+        self.assertEqual("get_builds", args[0].parent_func)
+
+    def test_sort_and_filter_args_zuul_system(self):
+        """Test that the sort_and_filter_args filters multiple arguments with
+        the same func attribute."""
+        self.prepare_tests(self.valid_single_zuul_env_config_data)
+        self.orchestrator.parser.parse(["--jobs", "--builds",
+                                        "--build-status"])
+        args = self.orchestrator.sort_and_filter_args()
+        self.assertEqual(1, len(args))
+        self.assertEqual("get_builds", args[0].func)
+        self.assertEqual("get_jobs", args[0].parent_func)
+
+    def test_sort_and_filter_args_zuul_system_tests(self):
+        """Test that the sort_and_filter_args filters multiple arguments with
+        the same func attribute."""
+        self.prepare_tests(self.valid_single_zuul_env_config_data)
+        self.orchestrator.parser.parse(["--jobs", "--builds", "--build-status",
+                                        "--tests", "--test-result"])
+        args = self.orchestrator.sort_and_filter_args()
+        self.assertEqual(1, len(args))
+        self.assertEqual("get_tests", args[0].func)
+        self.assertEqual("get_builds", args[0].parent_func)
+
+    def test_sort_and_filter_args_zuul_system_multiple_paths(self):
+        """Test that the sort_and_filter_args filters handles correctly
+        argument that connect through multiple paths."""
+        self.prepare_tests(self.valid_single_zuul_env_config_data)
+        self.orchestrator.parser.parse(["--jobs", "--tenants", "--pipelines"])
+        args = self.orchestrator.sort_and_filter_args()
+        self.assertEqual(1, len(args))
+        self.assertEqual("get_jobs", args[0].func)
+
+
+class TestOrchestratorArgsFilterOpenstackPlugin(TestOrchestratorArgsFilter,
+                                                OpenstackPluginWithJobSystem):
+    """Testing sort_and_filter_args method of the Orchestrator class with the
+    openstack plugin."""
+
+    def test_sort_and_filter_args_jobs_system_deployment_builds(self):
+        """Test that the sort_and_filter_args filters multiple arguments with
+        the same func attribute."""
+        self.prepare_tests(self.valid_single_jenkins_env_config_data)
+        self.orchestrator.parser.parse(["--ip-version", "--packages",
+                                        "--build-status"])
+        args = self.orchestrator.sort_and_filter_args()
+        self.assertEqual(2, len(args))
+        self.assertEqual("get_deployment", args[0].func)
+        self.assertEqual("get_jobs", args[0].parent_func)
+        self.assertEqual("get_builds", args[1].func)
+        self.assertEqual("get_jobs", args[1].parent_func)
+
+    def test_sort_and_filter_args_jobs_system_deployment_tests(self):
+        """Test that the sort_and_filter_args filters multiple arguments with
+        the same func attribute."""
+        self.prepare_tests(self.valid_single_jenkins_env_config_data)
+        self.orchestrator.parser.parse(["--ip-version", "--packages",
+                                        "--build-status", "--tests"])
+        args = self.orchestrator.sort_and_filter_args()
+        self.assertEqual(2, len(args))
+        self.assertEqual("get_deployment", args[0].func)
+        self.assertEqual("get_jobs", args[0].parent_func)
+        self.assertEqual("get_tests", args[1].func)
+        self.assertEqual("get_builds", args[1].parent_func)

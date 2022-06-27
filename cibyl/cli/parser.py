@@ -15,7 +15,9 @@
 """
 import argparse
 import logging
-from typing import Callable, List
+from typing import Callable, List, Optional
+
+import networkx as nx
 
 from cibyl.cli.argument import Argument
 
@@ -28,7 +30,8 @@ class CustomAction(argparse.Action):
     with the argument and the level in the models.
     """
     def __init__(self, *args, func: Callable = None, populated: bool = False,
-                 level: int = -1, ranged: bool = False, **kwargs):
+                 level: int = -1, ranged: bool = False,
+                 parent_func: Optional[str] = None,  **kwargs):
         """
         argparse custom action.
         :param func: the function the argument is associated with
@@ -37,6 +40,7 @@ class CustomAction(argparse.Action):
         self.level = level
         self.populated = populated
         self.ranged = ranged
+        self.parent_func = parent_func
         super().__init__(*args, **kwargs)
 
     def __call__(self, parser: argparse.ArgumentParser,
@@ -48,7 +52,7 @@ class CustomAction(argparse.Action):
             name=self.dest, description=self.help, arg_type=self.type,
             nargs=self.nargs, level=self.level, func=self.func,
             ranged=self.ranged, populated=self.populated,
-            value=values))
+            parent_func=self.parent_func, value=values))
 
 
 class Parser:
@@ -67,6 +71,7 @@ class Parser:
             self.app_args = {}
         self.argument_parser = argparse.ArgumentParser()
         self.__add_arguments()
+        self.graph_queries = nx.DiGraph()
 
     def __add_arguments(self) -> None:
         """Creates argparse parser with all its sub-parsers."""
@@ -98,6 +103,14 @@ class Parser:
         """Call argparse's print_help method to show the help message with the
         arguments that are currently added."""
         self.argument_parser.print_help()
+
+    def add_argument_to_tree(self, arg: Argument) -> None:
+        """Add argument to tree"""
+        if arg.func:
+            self.graph_queries.add_node(arg.func)
+        if arg.parent_func:
+            self.graph_queries.add_node(arg.parent_func)
+            self.graph_queries.add_edge(arg.parent_func, arg.func)
 
     def parse(self, arguments: List[Argument] = None) -> None:
         """Parse application and CI models arguments.
@@ -147,6 +160,8 @@ class Parser:
 
         try:
             for arg in arguments:
+                if arg.parent_func:
+                    self.add_argument_to_tree(arg)
                 group.add_argument(
                     arg.name, type=arg.arg_type,
                     help=arg.description, nargs=arg.nargs,
@@ -154,6 +169,7 @@ class Parser:
                     ranged=arg.ranged,
                     populated=arg.populated,
                     default=arg.default,
+                    parent_func=arg.parent_func,
                     level=level)
         except argparse.ArgumentError:
             pass

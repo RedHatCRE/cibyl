@@ -13,3 +13,5 @@ dataclasses~=0.8; python_version<='3.6'
 python-dateutil~=2.8.2
 PyGithub~=1.55
 validators~=0.20.0
+networkx==2.5.1; python_version<='3.6'
+networkx~=2.8.4; python_version>'3.6'

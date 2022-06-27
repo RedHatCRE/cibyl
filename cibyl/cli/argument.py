@@ -14,7 +14,7 @@
 #    under the License.
 """
 import argparse
-from typing import List, Type, Union
+from typing import Any, List, Optional, Type, Union
 
 from cibyl.cli.ranged_argument import (EXPRESSION_PATTERN, RANGE_OPERATORS,
                                        VALID_OPS, Range)
@@ -28,8 +28,8 @@ class Argument():
     def __init__(self, name: str, arg_type: Union[Type, argparse.FileType],
                  description: str, nargs: Union[str, int] = 1,
                  func: str = None, populated: bool = False, level: int = 0,
-                 ranged: bool = False, value: List[str] = None,
-                 default: object = None, parent_func: str = None):
+                 ranged: bool = False, value: Optional[List[str]] = None,
+                 default: Any = None, parent_func: Optional[str] = None):
         self.name = name
 
         self.arg_type = arg_type
