@@ -18,9 +18,9 @@ from github import GithubException
 from github.Repository import Repository
 from overrides import overrides
 
-from cibyl.utils.github import GitHub as IGitHub
-from cibyl.utils.github import GitHubError
-from cibyl.utils.github import Repository as IRepository
+from tripleo.utils.github import GitHub as IGitHub
+from tripleo.utils.github import GitHubError
+from tripleo.utils.github import Repository as IRepository
 
 RepoAPIv3 = Repository
 
