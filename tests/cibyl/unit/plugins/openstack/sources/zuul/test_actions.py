@@ -32,13 +32,13 @@ class TestDeploymentGenerator(TestCase):
         kwargs = {
         }
 
-        finder = Mock()
-        finder.find_release_for = Mock()
+        release_search = Mock()
+        release_search.search = Mock()
 
         variant = Mock()
 
         tools = DeploymentGenerator.Tools()
-        tools.release_finder = finder
+        tools.release_search = release_search
 
         generator = DeploymentGenerator(tools)
 
@@ -46,7 +46,7 @@ class TestDeploymentGenerator(TestCase):
 
         self.assertEqual('', deployment.release.value)
 
-        finder.find_release_for.assert_not_called()
+        release_search.search.assert_not_called()
 
     def test_adds_release_on_spec_arg(self):
         """Checks that the release is fetched if the 'spec' arg is passed.
@@ -57,14 +57,14 @@ class TestDeploymentGenerator(TestCase):
 
         release = 'v1.0'
 
-        finder = Mock()
-        finder.find_release_for = Mock()
-        finder.find_release_for.return_value = release
+        release_search = Mock()
+        release_search.search = Mock()
+        release_search.search.return_value = release
 
         variant = Mock()
 
         tools = DeploymentGenerator.Tools()
-        tools.release_finder = finder
+        tools.release_search = release_search
 
         generator = DeploymentGenerator(tools)
 
@@ -72,7 +72,7 @@ class TestDeploymentGenerator(TestCase):
 
         self.assertEqual(release, deployment.release.value)
 
-        finder.find_release_for.assert_called_once_with(variant)
+        release_search.search.assert_called_once_with(variant)
 
     def test_adds_release_on_release_arg(self):
         """Checks that the release is fetched if the 'release' arg is passed.
@@ -83,14 +83,14 @@ class TestDeploymentGenerator(TestCase):
 
         release = 'v1.0'
 
-        finder = Mock()
-        finder.find_release_for = Mock()
-        finder.find_release_for.return_value = release
+        release_search = Mock()
+        release_search.search = Mock()
+        release_search.search.return_value = release
 
         variant = Mock()
 
         tools = DeploymentGenerator.Tools()
-        tools.release_finder = finder
+        tools.release_search = release_search
 
         generator = DeploymentGenerator(tools)
 
@@ -98,7 +98,7 @@ class TestDeploymentGenerator(TestCase):
 
         self.assertEqual(release, deployment.release.value)
 
-        finder.find_release_for.assert_called_once_with(variant)
+        release_search.search.assert_called_once_with(variant)
 
 
 class TestSpecArgumentHandler(TestCase):
