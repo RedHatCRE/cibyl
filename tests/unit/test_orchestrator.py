@@ -19,10 +19,12 @@ from unittest.mock import Mock
 from cibyl.config import AppConfig
 from cibyl.exceptions.config import CHECK_DOCS_MSG, NonSupportedSystemKey
 from cibyl.orchestrator import Orchestrator
+from tests.utils import OpenstackPluginWithJobSystem
 
 
-class TestOrchestrator(TestCase):
-    """Testing Orchestrator class"""
+class TestOrchestratorSetup(TestCase):
+    """Setup orchestrator tests that can be reused in different test
+    classes."""
 
     def setUp(self):
         self.orchestrator = Orchestrator()
@@ -122,6 +124,9 @@ class TestOrchestrator(TestCase):
                                 'repos': {}
                                 }}}}}}
 
+
+class TestOrchestrator(TestOrchestratorSetup):
+    """Test Orchestrator methods."""
     def test_orchestrator_config(self):
         """Testing Orchestrator config attribute and method"""
         self.assertTrue(hasattr(self.orchestrator, 'config'))
@@ -246,3 +251,69 @@ class TestOrchestrator(TestCase):
         self.assertEqual(len(sources), 5)
         for source in sources:
             self.assertFalse(source.enabled)
+
+
+class TestOrchestratorArgumentsFiltering(TestOrchestratorSetup):
+    """Test the get_args_to_query method of the orchestrator."""
+
+    def setUp(self):
+        super().setUp()
+        self.orchestrator.config = AppConfig(
+            data=self.valid_single_env_config_data)
+        self.orchestrator.create_ci_environments()
+        for env in self.orchestrator.environments:
+            self.orchestrator.extend_parser(attributes=env.API)
+
+    def test_jobs_builds(self):
+        """Test that get_args_to_query handles properly the case with two
+        arguments with different func attributes."""
+        self.orchestrator.parser.parse(["--jobs", "--builds"])
+        args = self.orchestrator.get_args_to_query()
+        self.assertEqual(len(args), 2)
+        self.assertEqual(args[0].name, "builds")
+        self.assertEqual(args[1].name, "jobs")
+
+    def test_filter_args_with_no_func(self):
+        """Test that get_args_to_query handles properly the case with two
+        arguments with different func attributes."""
+        self.orchestrator.parser.parse(["--systems", "", "--envs", ""])
+        args = self.orchestrator.get_args_to_query()
+        self.assertEqual(len(args), 0)
+
+    def test_multiple_builds_arguments(self):
+        """Test that get_args_to_query handles properly the case with two
+        arguments that should query get_builds."""
+        self.orchestrator.parser.parse(["--jobs", "--builds",
+                                        "--build-status"])
+        args = self.orchestrator.get_args_to_query()
+        self.assertEqual(len(args), 2)
+        self.assertEqual(args[0].name, "builds")
+        self.assertEqual(args[1].name, "jobs")
+
+    def test_multiple_builds_tests_arguments(self):
+        """Test that get_args_to_query handles properly the case with two
+        arguments that should query get_builds and two that should query
+        get_tests."""
+        self.orchestrator.parser.parse(["--jobs", "--builds",
+                                        "--build-status", "--tests",
+                                        "--test-result"])
+        args = self.orchestrator.get_args_to_query()
+        self.assertEqual(len(args), 3)
+        self.assertEqual(args[0].name, "tests")
+        self.assertEqual(args[1].name, "builds")
+        self.assertEqual(args[2].name, "jobs")
+
+
+class TestArgumentsFilteringOpenstack(OpenstackPluginWithJobSystem,
+                                      TestOrchestratorArgumentsFiltering):
+    """Test the get_args_to_query method of the orchestrator."""
+
+    def test_multiple_deployment_arguments_different_level(self):
+        """Test that get_args_to_query handles properly the case with many
+        arguments that should query get_deployment with different levels."""
+        self.orchestrator.parser.parse(["--jobs", "--ip-version",
+                                        "--packages", '--release'])
+        args = self.orchestrator.get_args_to_query()
+        self.assertEqual(len(args), 2)
+        self.assertEqual(args[0].name, "packages")
+        self.assertEqual(args[1].name, "jobs")

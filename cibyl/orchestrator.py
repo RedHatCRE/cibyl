@@ -17,10 +17,11 @@ import logging
 import operator
 import re
 import time
-from collections import defaultdict
 from copy import deepcopy
+from typing import List
 
 import cibyl.exceptions.config as conf_exc
+from cibyl.cli.argument import Argument
 from cibyl.cli.parser import Parser
 from cibyl.cli.query import get_query_type
 from cibyl.cli.validator import Validator
@@ -40,7 +41,6 @@ from cibyl.sources.source import (get_source_instance_from_method,
                                   source_information_from_method)
 from cibyl.sources.source_factory import SourceFactory
 from cibyl.utils.dicts import intersect_models
-from cibyl.utils.source_methods_store import SourceMethodsStore
 from cibyl.utils.status_bar import StatusBar
 
 LOG = logging.getLogger(__name__)
@@ -201,33 +201,45 @@ class Orchestrator:
             # the jobs that match all the features
             system.populate(features_combination)
 
+    def get_args_to_query(self) -> List[Argument]:
+        """Get a list of arguments that provide the queries that the sources
+        should perform. This requires filtering out the argument that have no
+        func associated, sorting the arguments by level and then making sure
+        that only one of the arguments is kept if many point to the same query
+        (e.g --builds and --build-status).
+        :returns: List of arguments that contain queries for the sources
+        """
+        args_with_query = {name: arg for name, arg in
+                           self.parser.ci_args.items() if arg.func}
+        sorted_args = sorted(args_with_query.values(),
+                             key=operator.attrgetter('level'), reverse=True)
+        queries = set()
+        final_args_to_query = []
+        for arg in sorted_args:
+            if arg.func not in queries:
+                queries.add(arg.func)
+                final_args_to_query.append(arg)
+        return final_args_to_query
+
     def run_query(self, system, start_level=1):
         """Execute query based on provided arguments."""
         if not system.is_enabled():
             return
         debug = self.parser.app_args.get("debug", False)
         # sort cli arguments in decreasing order by level
-        sorted_args = sorted(self.parser.ci_args.values(),
-                             key=operator.attrgetter('level'), reverse=True)
-        system_methods_stores = defaultdict(SourceMethodsStore)
+        sorted_args = self.get_args_to_query()
+        # collect system-level arguments that can affect the
+        # result of the source method call
+        system_args = system.export_attributes_to_source()
+        ci_args = self.parser.ci_args
         query_result = None
         last_level = -1
         for arg in sorted_args:
             if arg.level >= start_level and arg.level >= last_level:
-                if not arg.func:
-                    # if an argument does not have a function
-                    # associated, we should not consider it here, e.g.
-                    # --sources
-                    continue
                 # we update last_level if the the arg has a func attribute
                 # and valid sources to query
                 last_level = arg.level
-                source_methods_store = system_methods_stores[system.name.value]
-                # collect system-level arguments that can affect the
-                # result of the source method call
-                system_args = system.export_attributes_to_source()
                 try:
-                    ci_args = self.parser.ci_args
                     source_methods = select_source_method(system, arg.func,
                                                           **ci_args)
                 except NoSupportedSourcesFound as exception:
@@ -237,33 +249,20 @@ class Orchestrator:
                     LOG.error(exception, exc_info=debug)
                     continue
                 for source_method, speed_score in source_methods:
-                    if source_methods_store.has_been_called(source_method):
-                        # we want to avoid repeating calls to the same
-                        # source method if several arguments with that
-                        # method are provided
-                        if source_methods_store.get_status(source_method):
-                            # if the previous call was successful, we do
-                            # not need to query the same method again
-                            break
-                        else:
-                            # if the previous call threw an error, let's
-                            # try a different source
-                            continue
                     source_info = source_information_from_method(
                             source_method)
                     source_obj = get_source_instance_from_method(source_method)
                     source_obj.ensure_source_setup()
                     start_time = time.time()
-                    LOG.info(f"Performing query on system {system.name}")
+                    LOG.info("Performing query on system %s", system.name)
                     LOG.debug("Running %s and speed index %d",
                               source_info, speed_score)
                     try:
                         with StatusBar(f"Performing query ({system.name})"):
                             model_instances_dict = source_method(
-                                **self.parser.ci_args, **self.parser.app_args,
+                                **ci_args, **self.parser.app_args,
                                 **system_args)
                     except SourceException as exception:
-                        source_methods_store.add_call(source_method, False)
                         LOG.error("Error in %s under system: '%s'. "
                                   "Reason: '%s'.",
                                   source_info, system.name.value,
@@ -274,7 +273,6 @@ class Orchestrator:
                     else:
                         query_result = intersect_models(query_result,
                                                         model_instances_dict)
-                    source_methods_store.add_call(source_method, True)
                     end_time = time.time()
                     LOG.info("Took %.2fs to query system %s using %s",
                              end_time-start_time, system.name.value,
@@ -306,7 +304,8 @@ class Orchestrator:
         """Iterate over the environments and their systems and publish
         the results of the queries.
 
-        The query and publish is performed per system"""
+        The query is performed per system, while the results are published
+        once per environment"""
         for env in self.environments:
             for system in env.systems:
                 if features:
