@@ -13,11 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from tripleo.utils.types import URL, Path
+from tripleo.utils.types import URL
 
-DEFAULT_REPOSITORY: URL = 'https://github.com/openstack/tripleo-quickstart.git'
+DEFAULT_REPOSITORY = URL('https://github.com/openstack/tripleo-quickstart.git')
 
-DEFAULT_ENVIRONMENT_FILE: Path = 'config/environments/default_libvirt.yml'
-DEFAULT_FEATURESET_FILE: Path = 'config/general_config/minimal.yml'
-DEFAULT_NODES_FILE: Path = 'config/nodes/1ctlr_1comp.yml'
-DEFAULT_RELEASE_FILE: Path = 'config/release/master.yml'
+DEFAULT_ENVIRONMENT_FILE = 'config/environments/default_libvirt.yml'
+DEFAULT_FEATURESET_FILE = 'config/general_config/minimal.yml'
+DEFAULT_NODES_FILE = 'config/nodes/1ctlr_1comp.yml'
+DEFAULT_RELEASE_FILE = 'config/release/master.yml'
