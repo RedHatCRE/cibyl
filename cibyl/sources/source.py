@@ -103,7 +103,7 @@ class Source(AttrDict):
     def ensure_teardown(self) -> None:
         """Ensure that teardown is called for the source. If teardown was
         previously called, do nothing."""
-        if self.is_setup() or not self.is_down():
+        if self.is_setup() and not self.is_down():
             self._down = True
             self.teardown()
 

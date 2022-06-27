@@ -287,7 +287,7 @@ class TestElasticSearch(TestCase):
                                url="https://example.com:9200")
         client = mock_client.return_value
         client.connect.side_effect = None
-        es_api.setup()
+        es_api.ensure_source_setup()
         mock_client.assert_called_with("https://example.com", 9200)
         es_api.ensure_teardown()
         self.assertTrue(es_api.is_down())

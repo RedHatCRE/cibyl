@@ -175,12 +175,16 @@ class TestSourceTearDown(TestCase):
     def test_teardown(self):
         """Test that ensure_teardown call teardown and sets the right value
         for _down attribute."""
+        self.source.ensure_source_setup()
+        self.assertTrue(self.source.is_setup())
         self.source.ensure_teardown()
         self.assertTrue(self.source.is_down())
 
-    def test_setup_multiple_calls(self):
+    def test_down_multiple_calls(self):
         """Test that multiple calls to ensure_teardown calls setup
         just once and sets the right value for _down attribute."""
+        self.source.ensure_source_setup()
+        self.assertTrue(self.source.is_setup())
         self.source.ensure_teardown()
         self.source.ensure_teardown()
         self.source.ensure_teardown()
