@@ -13,5 +13,18 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-URL = str
+from tripleo.utils.urls import is_url
+
 Path = str
+
+
+class URL(str):
+    def __new__(cls, value: str):
+        # Avoid false positives by removing leading and trailing whitespaces
+        value = value.strip()
+
+        if not is_url(value):
+            msg = f"String does not represent a valid URL: '{value}'."
+            raise ValueError(msg)
+
+        return super().__new__(cls, value)
