@@ -15,7 +15,8 @@
 """
 from tripleo.insights.types import URL
 
-DEFAULT_REPOSITORY = URL('https://github.com/openstack/tripleo-quickstart.git')
+DEFAULT_QUICKSTART = URL('https://github.com/openstack/tripleo-quickstart.git')
+DEFAULT_HEAT = URL('https://github.com/openstack/tripleo-heat-templates.git')
 
 DEFAULT_ENVIRONMENT_FILE = 'config/environments/default_libvirt.yml'
 DEFAULT_FEATURESET_FILE = 'config/general_config/minimal.yml'

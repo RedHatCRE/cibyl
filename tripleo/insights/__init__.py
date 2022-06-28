@@ -16,16 +16,17 @@
 from dataclasses import dataclass
 
 from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
-                                       DEFAULT_FEATURESET_FILE,
-                                       DEFAULT_NODES_FILE,
-                                       DEFAULT_RELEASE_FILE,
-                                       DEFAULT_REPOSITORY)
+                                       DEFAULT_FEATURESET_FILE, DEFAULT_HEAT,
+                                       DEFAULT_NODES_FILE, DEFAULT_QUICKSTART,
+                                       DEFAULT_RELEASE_FILE)
 from tripleo.insights.types import URL, Path
 
 
 @dataclass
 class DeploymentOutline:
-    repository: URL = DEFAULT_REPOSITORY
+    quickstart: URL = DEFAULT_QUICKSTART
+    heat: URL = DEFAULT_HEAT
+
     environment: Path = DEFAULT_ENVIRONMENT_FILE
     featureset: Path = DEFAULT_FEATURESET_FILE
     nodes: Path = DEFAULT_NODES_FILE
