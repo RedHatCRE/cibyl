@@ -15,11 +15,11 @@
 """
 from dataclasses import dataclass
 
-from tripleo.utils.defaults import (DEFAULT_ENVIRONMENT_FILE,
-                                    DEFAULT_FEATURESET_FILE,
-                                    DEFAULT_NODES_FILE, DEFAULT_RELEASE_FILE,
-                                    DEFAULT_REPOSITORY)
-from tripleo.utils.types import URL, Path
+from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
+                                       DEFAULT_FEATURESET_FILE,
+                                       DEFAULT_NODES_FILE, DEFAULT_RELEASE_FILE,
+                                       DEFAULT_REPOSITORY)
+from tripleo.insights.types import URL, Path
 
 
 @dataclass

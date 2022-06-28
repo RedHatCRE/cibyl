@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import patch, Mock
 
-from tripleo.utils.types import URL
+from tripleo.insights.types import URL
 
 
 class TestURL(TestCase):

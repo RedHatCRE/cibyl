@@ -13,19 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from urllib.parse import urlparse
-
-from tripleo.insights.types import URL
-from tripleo.utils.urls import is_git
-
-
-def get_repository_fullname(url: URL) -> str:
-    if not is_git(url):
-        msg = f"URL must point to a git repository: '{url}'."
-        raise ValueError(msg)
-
-    path = urlparse(url).path
-    path = path[1:]  # Remove leading '/'
-    path = path[:-4]  # Remove trailing '.git'
-
-    return path

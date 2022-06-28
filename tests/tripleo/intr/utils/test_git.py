@@ -16,7 +16,7 @@
 from unittest import TestCase
 
 from tripleo.utils.git import get_repository_fullname
-from tripleo.utils.types import URL
+from tripleo.insights.types import URL
 
 
 class TestGetRepositoryFullname(TestCase):
