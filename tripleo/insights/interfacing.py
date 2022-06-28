@@ -14,8 +14,14 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
+from typing import Optional
+
+from overrides import overrides
 
 from tripleo.insights import URL, Path
+from tripleo.utils.git.utils import get_repository_fullname
+from tripleo.utils.github import GitHub, Repository
+from tripleo.utils.github.pygithub import PyGitHub
 
 
 class GitDownloader(ABC):
@@ -27,7 +33,7 @@ class GitDownloader(ABC):
         return self._repository
 
     @abstractmethod
-    def _setup(self):
+    def _setup(self) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -36,10 +42,31 @@ class GitDownloader(ABC):
 
 
 class GitHubDownloader(GitDownloader):
+    def __init__(self,
+                 repository: URL,
+                 api: GitHub = PyGitHub.from_no_login()):
+        super().__init__(repository)
 
+        self._github_api = api
+        self._repo_api: Optional[Repository] = None
 
-    def _setup(self):
-        pass
+    @property
+    def api(self) -> GitHub:
+        return self._github_api
 
+    @overrides
+    def _setup(self) -> None:
+        self._repo_api = self._github_api.get_repository(
+            self._get_repository_owner(),
+            self._get_repository_name()
+        )
+
+    @overrides
     def download_as_text(self, file: Path) -> str:
-        pass
+        return self._repo_api.download_file(file)
+
+    def _get_repository_owner(self) -> str:
+        return get_repository_fullname(self.repository).split('/')[0]
+
+    def _get_repository_name(self) -> str:
+        return get_repository_fullname(self.repository).split('/')[1]
