@@ -14,7 +14,7 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 
 from overrides import overrides
 
@@ -22,6 +22,7 @@ from tripleo.insights.types import URL, Path
 from tripleo.utils.git.utils import get_repository_fullname
 from tripleo.utils.github import GitHub, Repository
 from tripleo.utils.github.pygithub import PyGitHub
+from tripleo.utils.urls import is_git, is_github
 
 
 class GitDownloader(ABC):
@@ -70,3 +71,15 @@ class GitHubDownloader(GitDownloader):
 
     def _get_repository_name(self) -> str:
         return get_repository_fullname(self.repository).split('/')[1]
+
+
+def get_downloaders_for(url: URL) -> List[GitHubDownloader]:
+    result = []
+
+    if is_git(url):
+        if is_github(url):
+            result.append(GitHubDownloader(url))
+
+        # Add a generic git handler here
+
+    return result
