@@ -23,7 +23,7 @@ class TestURL(TestCase):
     """Tests for :class:`URL`.
     """
 
-    @patch('tripleo.utils.types.is_url')
+    @patch('tripleo.insights.types.is_url')
     def test_new_on_valid_url(self, check_mock: Mock):
         """Checks that if the string is a URL, the string is created.
         """
@@ -35,7 +35,7 @@ class TestURL(TestCase):
 
         check_mock.assert_called_once_with(string)
 
-    @patch('tripleo.utils.types.is_url')
+    @patch('tripleo.insights.types.is_url')
     def test_error_on_invalid_url(self, check_mock: Mock):
         """Checks that if the string is not a URL, an error is thrown.
         """
@@ -48,7 +48,7 @@ class TestURL(TestCase):
 
         check_mock.assert_called_once_with(string)
 
-    @patch('tripleo.utils.types.is_url')
+    @patch('tripleo.insights.types.is_url')
     def test_trims_string(self, check_mock: Mock):
         """Checks that before verifying the string, it is trimmed first.
         """
