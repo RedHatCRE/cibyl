@@ -39,11 +39,10 @@ class ElasticSearchClient:
         self.address = f"{host}:{port}"
         self.connection = None
 
-    def connect(self) -> Elasticsearch:
+    def connect(self) -> 'ElasticSearchClient':
         """Connects to the elasticsearch instance
 
         :return: Elasticsearch module instance
-        :rtype: Elasticsearch
         :raises: ElasticSearchError:
                  If exists an unhandled connection error
         """
