@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Optional, Callable, Iterable
+from typing import Callable, Iterable, Optional
 
-from tripleo.insights import DeploymentOutline
 from tripleo.insights.exceptions import InsightsError, InvalidURL
+from tripleo.insights.io import DeploymentOutline
 from tripleo.utils.urls import is_git
 
 Outline = DeploymentOutline

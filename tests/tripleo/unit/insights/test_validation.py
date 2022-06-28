@@ -16,8 +16,8 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from tripleo.insights.exceptions import InvalidURL, InsightsError
-from tripleo.insights.validation import validate_urls, OutlineValidator
+from tripleo.insights.exceptions import InsightsError, InvalidURL
+from tripleo.insights.validation import OutlineValidator, validate_urls
 
 
 class TestValidateURLs(TestCase):
