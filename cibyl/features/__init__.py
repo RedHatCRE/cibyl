@@ -19,7 +19,7 @@ import re
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from inspect import isclass
-from typing import Type, Union
+from typing import Optional, Type, Union
 
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.features import MissingFeature
@@ -62,7 +62,7 @@ def add_feature_location(location: str) -> None:
     features_locations.append(location)
 
 
-def load_features(feature_paths: list = None) -> None:
+def load_features(feature_paths: Optional[list] = None) -> None:
     global features_locations
     if feature_paths:
         features_locations = feature_paths
@@ -109,7 +109,6 @@ def get_feature(name_feature: str) -> Type:
     :param name_feature: Name of the feature
 
     :returns: class that implements the given feature
-    :rtype: class
     :raises: InvalidArgument
     """
     try:

@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Iterable
+from typing import Iterable, Tuple, Union
 
 from cibyl.exceptions import CibylException
 from cibyl.utils.colors import Colors
@@ -26,7 +26,7 @@ for more information"
 class ConfigurationNotFound(CibylException):
     """Configuration file not found exception"""
 
-    def __init__(self, paths: str):
+    def __init__(self, paths: Union[Tuple[str], str]):
         if paths:
             paths = f" at: '{paths}'"
         else:
