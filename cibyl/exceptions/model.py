@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import List
+
 from cibyl.exceptions import CibylException
 from cibyl.exceptions.config import CHECK_DOCS_MSG
 from cibyl.utils.colors import Colors
@@ -21,7 +23,7 @@ from cibyl.utils.colors import Colors
 class NonSupportedModelType(CibylException):
     """Exception for trying to populate non-supported model"""
 
-    def __init__(self, model_type):
+    def __init__(self, model_type: object):
         self.model_type = model_type
         self.message = f"""Not supported type for model: {self.model_type}.
 Unable to populate system with pulled data"""
@@ -31,7 +33,7 @@ Unable to populate system with pulled data"""
 class NoValidSystem(CibylException):
     """Exception for a case when no valid system is found."""
 
-    def __init__(self, valid_systems=None):
+    def __init__(self, valid_systems: List[str] = None):
         self.message = """No valid system(s) defined."""
         if valid_systems:
             self.message += "\nPlease use one of the following available"
@@ -46,7 +48,7 @@ class NoValidSystem(CibylException):
 class InvalidEnvironment(CibylException):
     """Exception for a case when no valid environment is found."""
 
-    def __init__(self, environment, valid_environments=None):
+    def __init__(self, environment: str, valid_environments: List[str] = None):
         self.message = f"No such environment: {environment}"
         if valid_environments:
             self.message += "\nPlease use one of the following available"
@@ -63,7 +65,7 @@ class InvalidEnvironment(CibylException):
 class InvalidSystem(CibylException):
     """Exception for a case when non existing system is passed by the user."""
 
-    def __init__(self, system, valid_systems=None):
+    def __init__(self, system: str, valid_systems: List[str] = None):
         self.message = f"No such system: {system}"
         if valid_systems:
             self.message += "\nAvailable systems:\n"
@@ -78,7 +80,7 @@ class InvalidSystem(CibylException):
 class NoEnabledSystem(CibylException):
     """Exception for a case when no enabled system is found."""
 
-    def __init__(self, message=None):
+    def __init__(self, message: str = None):
         """Constructor."""
         if not message:
             message = "No enabled system was found. Please ensure at least one"

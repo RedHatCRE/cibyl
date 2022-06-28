@@ -21,6 +21,6 @@ class RateLimitException(SourceException):
     Exception for rate limit exceeded.
     """
 
-    def __init__(self, system, function):
+    def __init__(self, system: str, function: str):
         self.message = """Rate limit exceeded. Please use tokens."""
         super().__init__(self.message)

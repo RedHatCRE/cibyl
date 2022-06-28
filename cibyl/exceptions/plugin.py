@@ -19,7 +19,7 @@ from cibyl.exceptions import CibylException
 class MissingPlugin(CibylException):
     """Missing plugin exception"""
 
-    def __init__(self, plugin_name):
+    def __init__(self, plugin_name: str):
         self.plugin_name = plugin_name
         self.message = f"""Unable to locate the plugin {plugin_name}.
 Make sure the plugin is defined in cibyl.plugins directory
