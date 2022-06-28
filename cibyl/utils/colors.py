@@ -28,27 +28,27 @@ class Colors:
     UNDERLINE = '\033[4m'
 
     @staticmethod
-    def red(text: str):
+    def red(text: str) -> str:
         return f"{Colors.RED}{Colors.BOLD}{text}{Colors.CLOSE}"
 
     @staticmethod
-    def green(text: str):
+    def green(text: str) -> str:
         return f"{Colors.GREEN}{Colors.BOLD}{text}{Colors.CLOSE}"
 
     @staticmethod
-    def blue(text: str):
+    def blue(text: str) -> str:
         return f"{Colors.BLUE}{Colors.BOLD}{text}{Colors.CLOSE}"
 
     @staticmethod
-    def yellow(text: str):
+    def yellow(text: str) -> str:
         return f"{Colors.YELLOW}{text}{Colors.CLOSE}"
 
     @staticmethod
-    def bold(text: str):
+    def bold(text: str) -> str:
         return f"{Colors.BOLD}{text}{Colors.CLOSE}"
 
     @staticmethod
-    def underline(text: str):
+    def underline(text: str) -> str:
         return f"{Colors.UNDERLINE}{text}{Colors.CLOSE}"
 
 
@@ -121,22 +121,22 @@ class DefaultPalette(ColorPalette):
     """The default color scheme of the app.
     """
 
-    def red(self, text: str):
+    def red(self, text: str) -> str:
         return Colors.red(text)
 
-    def green(self, text: str):
+    def green(self, text: str) -> str:
         return Colors.green(text)
 
-    def blue(self, text: str):
+    def blue(self, text: str) -> str:
         return Colors.blue(text)
 
-    def yellow(self, text: str):
+    def yellow(self, text: str) -> str:
         return Colors.yellow(text)
 
-    def bold(self, text: str):
+    def bold(self, text: str) -> str:
         return Colors.bold(text)
 
-    def underline(self, text: str):
+    def underline(self, text: str) -> str:
         return Colors.underline(text)
 
 
@@ -145,20 +145,20 @@ class ClearText(ColorPalette):
     coloring wherever it is present.
     """
 
-    def red(self, text: str):
+    def red(self, text: str) -> str:
         return text
 
-    def green(self, text: str):
+    def green(self, text: str) -> str:
         return text
 
-    def blue(self, text: str):
+    def blue(self, text: str) -> str:
         return text
 
-    def yellow(self, text: str):
+    def yellow(self, text: str) -> str:
         return text
 
-    def bold(self, text: str):
+    def bold(self, text: str) -> str:
         return text
 
-    def underline(self, text: str):
+    def underline(self, text: str) -> str:
         return text
