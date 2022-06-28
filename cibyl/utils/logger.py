@@ -31,11 +31,10 @@ TERMINAL_LOGGER_FORMATTER = colorlog.ColoredFormatter(
                                     CRITICAL='bold_red,bg_white',))
 
 
-def configure_terminal_logging(level):
+def configure_terminal_logging(level: int):
     """Configure logger to print to terminal.
 
     :param level: Logging level, default DEBUG
-    :type level: int
     """
     logger = logging.getLogger('cibyl')
     stream_handler = logging.StreamHandler(sys.stderr)
@@ -44,13 +43,11 @@ def configure_terminal_logging(level):
     logger.addHandler(stream_handler)
 
 
-def configure_file_logging(log_file, level):
+def configure_file_logging(log_file: str, level: int):
     """Configure logger to print to file.
 
     :param log_file: Path to log file
-    :param log_file: str
     :param level: Logging level, default DEBUG
-    :type level: int
     """
     logger = logging.getLogger('cibyl')
     file_handler = logging.FileHandler(log_file, mode="w")
@@ -59,15 +56,13 @@ def configure_file_logging(log_file, level):
     logger.addHandler(file_handler)
 
 
-def configure_logging(log_mode, log_file, level=logging.INFO):
+def configure_logging(log_mode: str, log_file: str, level: int = logging.INFO):
     """Configure logging format and level.
 
     :param log_mode: Where to send the logs, file, terminal or both
-    :type log_mode: str
     :param log_file: Path to log file
     :param log_file: str
     :param level: Logging level, default DEBUG
-    :type level: int
     """
     # configure a top-level cibyl logger instead of the root logger,
     # to suppress logging coming from other libraries

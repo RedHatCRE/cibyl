@@ -26,7 +26,7 @@ class DownloadError(Exception):
     """
 
 
-def download_file(url, dest):
+def download_file(url: str, dest: str):
     """Downloads a file from a remote host into the local filesystem.
 
     Supported protocols are:
@@ -69,7 +69,7 @@ def download_file(url, dest):
                 file.write(chunk)
 
 
-def download_into_memory(url, session=None):
+def download_into_memory(url: str, session: requests.Session = None) -> str:
     """Downloads the contents of a URL into memory, leaving the filesystem
     untouched.
 
@@ -81,12 +81,9 @@ def download_into_memory(url, session=None):
         >>> download_into_memory('http://localhost/file.txt')
 
     :param url: URL to download.
-    :type url: str
     :param session: Session used to perform request. This function will not
         close the session, that task is up to the caller.
-    :type session: :class:`requests.Session` or None
     :return: Contents of the page.
-    :rtype: str
     :raise DownloadError: If the download failed.
     """
     LOG.info("Downloading file from: '%s'", url)

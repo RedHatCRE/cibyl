@@ -15,17 +15,17 @@
 """
 import importlib.util
 import inspect
+from types import ModuleType
+from typing import Callable, List
 
 from cibyl.utils.files import get_file_name_from_path
 
 
-def load_module(path):
+def load_module(path: str) -> ModuleType:
     """Loads a Python module given its location.
 
     :param path: Absolute path to the module to be loaded.
-    :type path: str
     :return: The loaded module.
-    :rtype: :class:`ModuleType`
     """
     spec = importlib.util.spec_from_file_location(
         get_file_name_from_path(path), path
@@ -38,19 +38,18 @@ def load_module(path):
     return module
 
 
-def get_classes_in(__module, predicate=None, return_name=False):
+def get_classes_in(
+        __module: ModuleType,
+        predicate: Callable = None,
+        return_name: bool = False) -> List[type]:
     """Gets all class symbols stored within a Python module.
 
     :param __module: The module to get the classes from.
-    :type __module: :class:`types.ModuleType`
     :param predicate: A callable to pass to inspect.getmembers to filter the
     symbols found
-    :type predicate: callable
     :param return_name: Whether to return the name of the classes found, as
     inpect.getmembers does
-    :type return_name: bool
     :return: List of all classes stored in the module.
-    :rtype: list[type]
     """
     if predicate is None:
         predicate = inspect.isclass

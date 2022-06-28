@@ -27,13 +27,11 @@ class IndentedTextBuilder:
         """A line of text.
         """
 
-        def __init__(self, text, level):
+        def __init__(self, text: str, level: int):
             """Constructor.
 
             :param text: The text on this line.
-            :type text: str
             :param level: The indentation level of this line.
-            :type level: int
             """
             self._text = text
             self._level = level
@@ -57,18 +55,17 @@ class IndentedTextBuilder:
             """
             return self._level
 
-        def append(self, text):
+        def append(self, text: str):
             """Adds additional text at the end of this line.
 
             :param text: The text to add.
             """
             self._text += str(text)
 
-    def __init__(self, spaces_per_tab=2):
+    def __init__(self, spaces_per_tab: int = 2):
         """Constructor.
 
         :param spaces_per_tab: Amount of spaces per indentation level.
-        :type spaces_per_tab: int
         """
         self._lines = []
         self._spaces_per_tab = spaces_per_tab
@@ -83,27 +80,23 @@ class IndentedTextBuilder:
         return self._lines.pop(index)
 
     @property
-    def spaces_per_tab(self):
+    def spaces_per_tab(self) -> int:
         """
         :return: Amount of spaces per indentation level.
-        :rtype: int
         """
         return self._spaces_per_tab
 
-    def add(self, text, level):
+    def add(self, text: str, level: int) -> 'IndentedTextBuilder':
         """Adds an additional line of text.
 
         :param text: The text to add.
-        :type text: str
         :param level: The indentation level.
-        :type level: int
         :return: The builder instance.
-        :rtype: :class:`IndentedTextBuilder`
         """
         self._lines.append(self.Line(text, level))
         return self
 
-    def build(self):
+    def build(self) -> str:
         """Generates the text stored in the builder.
 
         :return: The generated piece of text.
