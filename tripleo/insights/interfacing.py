@@ -63,7 +63,7 @@ class GitHubDownloader(GitDownloader):
 
     @overrides
     def download_as_text(self, file: Path) -> str:
-        return self._repo_api.download_file(file)
+        return self._repo_api.download_as_text(file)
 
     def _get_repository_owner(self) -> str:
         return get_repository_fullname(self.repository).split('/')[0]

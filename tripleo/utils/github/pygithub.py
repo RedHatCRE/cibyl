@@ -47,15 +47,15 @@ class Repository(IRepository):
         return self._api
 
     @overrides
-    def download_file(self, path, encoding='utf-8'):
+    def download_as_text(self, file, encoding='utf-8'):
         try:
-            file = self.api.get_contents(path)
+            file = self.api.get_contents(file)
 
             # Decoded content is still in binary,
             # it has to be passed to string yet
             return file.decoded_content.decode(encoding)
         except GithubException as ex:
-            msg = f"Failed to fetch file at: '{path}'"
+            msg = f"Failed to fetch file at: '{file}'"
             raise GitHubError(msg) from ex
 
 

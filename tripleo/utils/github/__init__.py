@@ -25,12 +25,12 @@ class Repository(ABC):
     """
 
     @abstractmethod
-    def download_file(self, path):
+    def download_as_text(self, file):
         """Downloads a file and decodes it as text.
 
-        :param path: Relative path to the file starting from the
+        :param file: Relative path to the file starting from the
             repository's root.
-        :type path: str
+        :type file: str
         :return: Text in the file.
         :rtype: str
         :raises GitHubError: If the file could not be downloaded.

@@ -47,7 +47,7 @@ class TestRepository(TestCase):
     """Tests for :class:`Repository`.
     """
 
-    def test_downloads_file(self):
+    def test_downloads_file_as_text(self):
         """Checks that it is capable of retrieving the text from a file.
         """
         encoding = 'utf-8'
@@ -66,7 +66,7 @@ class TestRepository(TestCase):
 
         self.assertEqual(
             contents,
-            repo.download_file(path, encoding)
+            repo.download_as_text(path, encoding)
         )
 
         api.get_contents.assert_called_once_with(path)
