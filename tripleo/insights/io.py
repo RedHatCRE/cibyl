@@ -35,4 +35,4 @@ class DeploymentOutline:
 
 @dataclass
 class DeploymentSummary:
-    ip_version: str
+    ip_version: str = 'N/A'

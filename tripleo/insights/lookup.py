@@ -13,7 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Iterable
+
+import yaml
+
+from tripleo.insights.exceptions import InvalidURL
+from tripleo.insights.interfacing import GitDownloader, get_downloaders_for
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
+from tripleo.insights.types import URL
 from tripleo.insights.validation import OutlineValidator
 
 
@@ -26,10 +33,31 @@ class DeploymentLookUp:
         return self._validator
 
     def run(self, outline: DeploymentOutline) -> DeploymentSummary:
+        result = DeploymentSummary()
+
         self._validate_outline(outline)
+
+        for api in self._get_apis_for(outline.quickstart):
+            featureset = yaml.safe_load(
+                api.download_as_text(
+                    outline.featureset
+                )
+            )
+
+            pass
+
+        return result
 
     def _validate_outline(self, outline: DeploymentOutline) -> None:
         is_valid, error = self.validator.validate(outline)
 
         if not is_valid:
             raise error
+
+    def _get_apis_for(self, url: URL) -> Iterable[GitDownloader]:
+        result = get_downloaders_for(url)
+
+        if not result:
+            raise InvalidURL(f"Found no handlers for URL: '{url}'.")
+
+        return result
