@@ -39,6 +39,7 @@ class Project(Model):
                     name='--pipelines',
                     arg_type=str, nargs='*',
                     description='Pipelines belonging to project',
+                    parent_func='get_projects',
                     func='get_pipelines'
                 )
             ]

@@ -35,6 +35,7 @@ class Pipeline(Model):
                     name='--jobs',
                     arg_type=str, nargs='*',
                     description='Jobs belonging to pipeline',
+                    parent_func='get_pipelines',
                     func='get_jobs'
                 )
             ]

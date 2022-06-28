@@ -36,6 +36,7 @@ class Tenant(Model):
                     name='--projects',
                     arg_type=str, nargs='*',
                     description='Projects belonging to tenant',
+                    parent_func='get_tenants',
                     func='get_projects'
                 )
             ]
@@ -48,6 +49,7 @@ class Tenant(Model):
                     name='--jobs',
                     arg_type=str, nargs='*',
                     description='Jobs belonging to tenant',
+                    parent_func='get_tenants',
                     func='get_jobs'
                 )
             ]

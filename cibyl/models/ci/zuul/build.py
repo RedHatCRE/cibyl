@@ -69,6 +69,7 @@ class Build(BaseBuild):
                 Argument(
                     name='--tests', arg_type=None,
                     nargs=0, func='get_tests',
+                    parent_func='get_builds',
                     description="Fetch build tests"
                 )
             ]
