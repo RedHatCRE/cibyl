@@ -16,6 +16,8 @@
 
 import logging
 import re
+from functools import partial
+from typing import Dict, List, Union
 from urllib.parse import urlsplit
 
 from elasticsearch.helpers import scan
@@ -31,8 +33,39 @@ from cibyl.sources.elasticsearch.client import ElasticSearchClient
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import chunk_dictionary_into_lists
+from cibyl.utils.filtering import (apply_filters, satisfy_exact_match,
+                                   satisfy_regex_match)
 
 LOG = logging.getLogger(__name__)
+
+
+# shorthand type for the representation returned by elasticsearch
+ElkJob = Dict[str, Union[str, dict]]
+
+
+def filter_jobs(jobs_found: List[ElkJob], **kwargs) -> List[ElkJob]:
+    """Filter the result from the Jenkins API according to user input"""
+    checks_to_apply = []
+
+    jobs_arg = kwargs.get('jobs')
+    if jobs_arg and jobs_arg.value:
+        pattern = re.compile("|".join(jobs_arg.value))
+        checks_to_apply.append(partial(satisfy_regex_match, pattern=pattern,
+                                       field_to_check="job_name"))
+
+    jobs_scope_arg = kwargs.get('jobs_scope')
+    if jobs_scope_arg:
+        pattern = re.compile(jobs_scope_arg)
+        checks_to_apply.append(partial(satisfy_regex_match, pattern=pattern,
+                                       field_to_check="job_name"))
+
+    spec_jobs_name_arg = kwargs.get('spec')
+    if spec_jobs_name_arg and spec_jobs_name_arg.value:
+        checks_to_apply.append(partial(satisfy_exact_match,
+                                       user_input=spec_jobs_name_arg,
+                                       field_to_check="job_name"))
+
+    return apply_filters(jobs_found, *checks_to_apply)
 
 
 class ElasticSearch(ServerSource):
@@ -63,51 +96,34 @@ class ElasticSearch(ServerSource):
             self.es_client = ElasticSearchClient(host, port).connect()
 
     @speed_index({'base': 1})
-    def get_jobs(self: object, **kwargs: Argument) -> list:
+    def get_jobs(self: object, **kwargs: Argument) -> AttributeDictValue:
         """Get jobs from elasticsearch
 
             :returns: Job objects queried from elasticsearch
             :rtype: :class:`AttributeDictValue`
         """
-        key_filter = 'job_name'
-        jobs_to_search = []
-        jobs_scope_pattern = None
-        if 'jobs' in kwargs:
-            jobs_to_search = kwargs.get('jobs').value
-            key_filter = 'job_name'
-        jobs_scope_arg = kwargs.get('jobs_scope')
-        if jobs_scope_arg:
-            jobs_scope_pattern = re.compile(jobs_scope_arg)
 
         # Empty query for all hits or elements
-        if not jobs_to_search:
-            query_body = {
-                "query": {
-                    "match_all": {}
-                },
-                "_source": ["job_name", "job_url"]
-            }
-        else:
-            query_body = {
-                'query': {
-                    'match_phrase_prefix': {
-                        key_filter: jobs_to_search[0]
-                    }
-                },
-                "_source": ["job_name", "job_url"]
-            }
+        query_body = {
+            "query": {
+                "match_all": {}
+            },
+            "_source": ["job_name", "job_url"]
+        }
 
         hits = self.__query_get_hits(
             query=query_body,
             index='logstash_jenkins_jobs'
         )
 
+        # make the hits list a flat list of dicts with the job information for
+        # easier filtering
+        hits = [hit['_source'] for hit in hits]
+        hits = filter_jobs(hits, **kwargs)
         job_objects = {}
         for hit in hits:
-            job_name = hit['_source']['job_name']
-            url = hit['_source']['job_url']
-            if jobs_scope_pattern and not jobs_scope_pattern.search(job_name):
-                continue
+            job_name = hit['job_name']
+            url = hit['job_url']
             job_objects[job_name] = Job(name=job_name, url=url)
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
