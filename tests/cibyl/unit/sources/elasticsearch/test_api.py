@@ -144,6 +144,22 @@ class TestElasticSearch(TestCase):
         self.assertEqual(jobs['test'].url.value, "http://domain.tld/test")
 
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
+    def test_get_jobs_filter(self: object, mock_query_hits: object) -> None:
+        """Tests that the internal logic from :meth:`ElasticSearch.get_jobs`
+            is correct and regex filtering works correctly.
+        """
+        mock_query_hits.return_value = self.job_hits
+
+        jobs_argument = Mock()
+        jobs_argument.value = ['4$']
+        jobs = self.es_api.get_jobs(jobs=jobs_argument)
+
+        self.assertEqual(len(jobs), 1)
+        self.assertTrue('test4' in jobs)
+        self.assertEqual(jobs['test4'].name.value, 'test4')
+        self.assertEqual(jobs['test4'].url.value, "http://domain.tld/test4")
+
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
     def test_get_jobs_jobs_scope(self: object, mock_query_hits: object):
         """Tests that the internal logic from :meth:`ElasticSearch.get_jobs`
             is correct using jobs_scope argument.
@@ -443,7 +459,8 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
     def test_deployment_filtering(self: object,
                                   mock_query_hits: object) -> None:
-        """Tests that the internal logic from :meth:`ElasticSearch.get_jobs`
+        """Tests that the internal logic from
+        :meth:`ElasticSearch.get_deployment`
             is correct.
         """
         mock_query_hits.return_value = self.tests_hits
