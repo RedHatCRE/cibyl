@@ -17,6 +17,7 @@ from typing import Iterable
 
 import yaml
 
+from tripleo.insights.deployment import FeatureSetInterpreter
 from tripleo.insights.exceptions import InvalidURL
 from tripleo.insights.interfacing import GitDownloader, get_downloaders_for
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
@@ -38,13 +39,15 @@ class DeploymentLookUp:
         self._validate_outline(outline)
 
         for api in self._get_apis_for(outline.quickstart):
-            featureset = yaml.safe_load(
-                api.download_as_text(
-                    outline.featureset
+            featureset = FeatureSetInterpreter(
+                yaml.safe_load(
+                    api.download_as_text(
+                        outline.featureset
+                    )
                 )
             )
 
-            pass
+            result.ip_version = 'IPv6' if featureset.is_ipv6() else 'IPv4'
 
         return result
 

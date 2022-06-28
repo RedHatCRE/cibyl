@@ -13,22 +13,32 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Any, Dict
+from dataclasses import dataclass
 
-from tripleo.utils.strings import is_url
-
-YAML = Dict[str, Any]
-
-Path = str
+from tripleo.insights.types import YAML
 
 
-class URL(str):
-    def __new__(cls, value: str):
-        # Avoid false positives by removing leading and trailing whitespaces
-        value = value.strip()
+class FeatureSetInterpreter:
+    @dataclass
+    class Keys:
+        ipv6: str = 'overcloud_ipv6'
 
-        if not is_url(value):
-            msg = f"String does not represent a valid URL: '{value}'."
-            raise ValueError(msg)
+    def __init__(self, data: YAML, keys: Keys = Keys()):
+        self._data = data
+        self._keys = keys
 
-        return super().__new__(cls, value)
+    @property
+    def data(self):
+        return self._data
+
+    @property
+    def keys(self):
+        return self._keys
+
+    def is_ipv6(self) -> bool:
+        key = self.keys.ipv6
+
+        if key not in self.data:
+            return False
+
+        return self.data[key]
