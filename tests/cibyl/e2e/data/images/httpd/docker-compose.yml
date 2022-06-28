@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  httpd:
+    build: .
+    networks:
+      testnet:
+        ipv4_address: 172.19.1.1
+    ports:
+      - "8080:80"
+  cibyl:
+    build: ../../../../../../. # Dockerfile on project's root
+    networks:
+      testnet:
+        ipv4_address: 172.19.2.1
+networks:
+  testnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.19.0.0/16
+          gateway: 172.19.0.1
