@@ -18,7 +18,7 @@ from typing import Optional
 
 from overrides import overrides
 
-from tripleo.insights import URL, Path
+from tripleo.insights.types import URL, Path
 from tripleo.utils.git.utils import get_repository_fullname
 from tripleo.utils.github import GitHub, Repository
 from tripleo.utils.github.pygithub import PyGitHub
