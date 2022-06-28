@@ -20,6 +20,7 @@ from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
                                        DEFAULT_NODES_FILE, DEFAULT_QUICKSTART,
                                        DEFAULT_RELEASE_FILE)
 from tripleo.insights.types import URL, Path
+from tripleo.insights.validation import OutlineValidator
 
 
 @dataclass
@@ -38,5 +39,25 @@ class DeploymentSummary:
     ip_version: str
 
 
-def get_deployment_summary(outline: DeploymentOutline) -> DeploymentSummary:
-    pass
+class DeploymentLookUp:
+    def __init__(self, validator: OutlineValidator = OutlineValidator()):
+        self._validator = validator
+
+    @property
+    def validator(self):
+        return self._validator
+
+    def run(self, outline: DeploymentOutline) -> DeploymentSummary:
+        self._validate_outline(outline)
+
+    def _validate_outline(self, outline: DeploymentOutline) -> None:
+        is_valid, error = self.validator.validate(outline)
+
+        if not is_valid:
+            raise error
+
+
+def run_deployment_lookup(outline: DeploymentOutline) -> DeploymentSummary:
+    lookup = DeploymentLookUp()
+
+    return lookup.run(outline)
