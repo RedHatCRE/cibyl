@@ -15,7 +15,7 @@
 """
 import re
 import sre_constants
-from typing import Dict, Iterable, List, Optional, Pattern
+from typing import Callable, Dict, Iterable, List, Optional, Pattern
 
 from cibyl.cli.argument import Argument
 from cibyl.cli.ranged_argument import RANGE_OPERATORS
@@ -146,7 +146,7 @@ def matches_regex(pattern: str, string: str) -> bool:
         return False  # Do not crash against invalid patterns
 
 
-def apply_filters(iterable: Iterable, *filters: list) -> list:
+def apply_filters(iterable: Iterable, *filters: Callable) -> Iterable:
     """Applies a set of filters to a collection.
 
     :param iterable: The collection to filter.

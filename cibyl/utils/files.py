@@ -68,7 +68,7 @@ class FileSearch:
         self._excluded.extend(excluded)
         return self
 
-    def get(self) -> list[str]:
+    def get(self) -> List[str]:
         """Performs the query and gets the paths to the files that were
         found by the search.
 
