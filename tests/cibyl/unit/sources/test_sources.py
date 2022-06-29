@@ -148,20 +148,44 @@ class TestSourceSetup(TestCase):
         """Test that is_setup return False by default."""
         self.assertFalse(self.source.is_setup())
 
-    @patch.object(Source, 'setup')
-    def test_setup(self, setup_mock):
+    def test_setup(self):
         """Test that ensure_source_setup calls setup and sets the right value
         for _setup attribute."""
         self.source.ensure_source_setup()
         self.assertTrue(self.source.is_setup())
-        setup_mock.assert_called_once()
 
-    @patch.object(Source, 'setup')
-    def test_setup_multiple_calls(self, setup_mock):
+    def test_setup_multiple_calls(self):
         """Test that multiple calls to ensure_source_setup calls setup
         just once and sets the right value for _setup attribute."""
         self.source.ensure_source_setup()
         self.source.ensure_source_setup()
         self.source.ensure_source_setup()
         self.assertTrue(self.source.is_setup())
-        setup_mock.assert_called_once()
+
+
+class TestSourceTearDown(TestCase):
+    """Test that teardown functionality for Source class."""
+    def setUp(self):
+        self.source = Source()
+
+    def test_default_down_false(self):
+        """Test that is_down return False by default."""
+        self.assertFalse(self.source.is_down())
+
+    def test_teardown(self):
+        """Test that ensure_teardown call teardown and sets the right value
+        for _down attribute."""
+        self.source.ensure_source_setup()
+        self.assertTrue(self.source.is_setup())
+        self.source.ensure_teardown()
+        self.assertTrue(self.source.is_down())
+
+    def test_down_multiple_calls(self):
+        """Test that multiple calls to ensure_teardown calls setup
+        just once and sets the right value for _down attribute."""
+        self.source.ensure_source_setup()
+        self.assertTrue(self.source.is_setup())
+        self.source.ensure_teardown()
+        self.source.ensure_teardown()
+        self.source.ensure_teardown()
+        self.assertTrue(self.source.is_down())

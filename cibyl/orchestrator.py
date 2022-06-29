@@ -313,7 +313,8 @@ class Orchestrator:
                     self.run_features(system, features)
                 else:
                     self.run_query(system)
-
+                for source in system.sources:
+                    source.ensure_teardown()
             self.publisher.publish(
                 environment=env,
                 style=output_style,

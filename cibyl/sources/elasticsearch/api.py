@@ -79,21 +79,28 @@ class ElasticSearch(ServerSource):
                          enabled=enabled)
         self.url = url
         self.es_client = elastic_client
+        try:
+            url_parsed = urlsplit(self.url)
+            self.host = f"{url_parsed.scheme}://{url_parsed.hostname}"
+            self.port = url_parsed.port
+        except ValueError as exception:
+            raise ElasticSearchError(
+                'The URL given is not valid'
+            ) from exception
 
-    def setup(self):
+    def setup(self) -> None:
         """ Ensure that a connection to the elasticsearch server can be
         established.
         """
         if self.es_client is None:
-            try:
-                url_parsed = urlsplit(self.url)
-                host = f"{url_parsed.scheme}://{url_parsed.hostname}"
-                port = url_parsed.port
-            except Exception as exception:
-                raise ElasticSearchError(
-                    'The URL given is not valid'
-                ) from exception
-            self.es_client = ElasticSearchClient(host, port).connect()
+            self.es_client = ElasticSearchClient(
+                self.host,
+                self.port
+            ).connect()
+
+    def teardown(self) -> None:
+        if self.es_client:
+            self.es_client.disconnect()
 
     @speed_index({'base': 1})
     def get_jobs(self: object, **kwargs: Argument) -> AttributeDictValue:
@@ -127,7 +134,7 @@ class ElasticSearch(ServerSource):
             job_objects[job_name] = Job(name=job_name, url=url)
         return AttributeDictValue("jobs", attr_type=Job, value=job_objects)
 
-    def __query_get_hits(self: object,
+    def __query_get_hits(self,
                          query: dict,
                          index: str = '*') -> list:
         """Perform the search query to ElasticSearch
@@ -145,7 +152,7 @@ class ElasticSearch(ServerSource):
             # https://github.com/elastic/elasticsearch-py/issues/91
             # For aggregations we should use the search method of the client
             if 'aggs' in query:
-                results = self.es_client.search(
+                results = self.es_client.connection.search(
                     index=index,
                     body=query,
                     size=10000,
@@ -155,7 +162,7 @@ class ElasticSearch(ServerSource):
                 return buckets
             # For normal queries we can use the scan helper
             hits = [item for item in scan(
-                self.es_client,
+                self.es_client.connection,
                 index=index,
                 query=query,
                 size=10000
@@ -167,7 +174,7 @@ class ElasticSearch(ServerSource):
             ) from exception
 
     @speed_index({'base': 2})
-    def get_builds(self: object, **kwargs: Argument):
+    def get_builds(self, **kwargs: Argument):
         """
             Get builds from elasticsearch server.
 
@@ -253,7 +260,7 @@ class ElasticSearch(ServerSource):
 
         return jobs_found
 
-    def get_last_build(self: object, builds_jobs: AttributeDictValue):
+    def get_last_build(self, builds_jobs: AttributeDictValue):
         """
             Get last build from builds. It's determined
             by the build_id
@@ -280,7 +287,7 @@ class ElasticSearch(ServerSource):
         return AttributeDictValue("jobs", attr_type=Job, value=job_object)
 
     @speed_index({'base': 3})
-    def get_tests(self, **kwargs):
+    def get_tests(self, **kwargs: Argument):
         """
             Get tests for a elasticsearch job.
 
@@ -406,7 +413,7 @@ class ElasticSearch(ServerSource):
 
         return job_builds_found
 
-    def match_filter_test_by_duration(self: object,
+    def match_filter_test_by_duration(self,
                                       test_duration: float,
                                       test_duration_arguments: list) -> bool:
         """Match if the duration of a test pass all the
