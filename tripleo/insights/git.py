@@ -13,11 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import tempfile
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Iterable
 
 from overrides import overrides
 
+from tripleo.utils.git import Repository, Git
+from tripleo.utils.git.gitpython import GitPython
 from tripleo.utils.git.utils import get_repository_fullname
 from tripleo.utils.github import GitHub
 from tripleo.utils.github.pygithub import PyGitHub
@@ -42,18 +45,34 @@ class GitCLIDownloader(GitDownloader):
     def __init__(
         self,
         repository: URL,
-        working_dir: Path
+        working_dir: Path,
+        api: Git = GitPython()
     ):
         super().__init__(repository)
 
+        if not working_dir.is_dir():
+            msg = f"Directory does not exist or is not valid: '{working_dir}'."
+            raise ValueError(msg)
+
+        self._api = api
         self._working_dir = working_dir
+
+    @property
+    def api(self):
+        return self._api
 
     @property
     def working_dir(self):
         return self._working_dir
 
     def download_as_text(self, file: Path) -> str:
-        pass
+        return self._get_repo().get_as_text(file)
+
+    def _get_repo(self) -> Repository:
+        if self.working_dir.is_empty():
+            return self.api.clone(self.repository, self.working_dir)
+
+        return self.api.open(self.working_dir)
 
 
 class GitHubDownloader(GitDownloader):
@@ -88,13 +107,32 @@ class GitHubDownloader(GitDownloader):
         return get_repository_fullname(self.repository).split('/')[1]
 
 
-def get_downloaders_for(url: URL) -> List[GitHubDownloader]:
-    result = []
+class GitDownloaderFetcher:
+    DEFAULT_CLONE_PATH = Path('~/.cibyl')
 
-    if is_git(url):
-        if is_github(url):
-            result.append(GitHubDownloader(url))
+    def __init__(self, clone_path: Path = DEFAULT_CLONE_PATH):
+        self._clone_path = clone_path
 
-        # Add a generic git handler here
+    @property
+    def clone_path(self):
+        return self._clone_path
 
-    return result
+    def get_downloaders_for(self, url: URL) -> Iterable[GitHubDownloader]:
+        result = []
+
+        if is_git(url):
+            if is_github(url):
+                result.append(self._get_new_github_downloader(url))
+
+            result.append(self._get_new_cli_downloader(url))
+
+        return result
+
+    def _get_new_cli_downloader(self, url: URL) -> GitCLIDownloader:
+        return GitCLIDownloader(
+            repository=url,
+            working_dir=Path(tempfile.mkdtemp(dir=self.clone_path))
+        )
+
+    def _get_new_github_downloader(self, url: URL) -> GitHubDownloader:
+        return GitHubDownloader(repository=url)

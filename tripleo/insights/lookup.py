@@ -19,19 +19,28 @@ import yaml
 
 from tripleo.insights.deployment import FeatureSetInterpreter
 from tripleo.insights.exceptions import InvalidURL
-from tripleo.insights.git import GitDownloader, get_downloaders_for
+from tripleo.insights.git import GitDownloader, GitDownloaderFetcher
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
 from tripleo.insights.validation import OutlineValidator
 from tripleo.utils.types import URL
 
 
 class DeploymentLookUp:
-    def __init__(self, validator: OutlineValidator = OutlineValidator()):
+    def __init__(
+        self,
+        validator: OutlineValidator = OutlineValidator(),
+        downloader_fetcher: GitDownloaderFetcher = GitDownloaderFetcher()
+    ):
         self._validator = validator
+        self._download_fetcher = downloader_fetcher
 
     @property
     def validator(self):
         return self._validator
+
+    @property
+    def download_fetcher(self):
+        return self._download_fetcher
 
     def run(self, outline: DeploymentOutline) -> DeploymentSummary:
         result = DeploymentSummary()
@@ -58,7 +67,7 @@ class DeploymentLookUp:
             raise error
 
     def _get_apis_for(self, url: URL) -> Iterable[GitDownloader]:
-        result = get_downloaders_for(url)
+        result = self._download_fetcher.get_downloaders_for(url)
 
         if not result:
             raise InvalidURL(f"Found no handlers for URL: '{url}'.")

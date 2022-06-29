@@ -22,6 +22,9 @@ YAML = Dict[str, Any]
 
 
 class Path(pathlib.Path):
+    def is_empty(self) -> bool:
+        return not any(self.iterdir())
+
     def to_str(self) -> str:
         return str(self)
 
