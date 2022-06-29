@@ -125,7 +125,9 @@ def is_file_available(filename: str) -> bool:
     return os.path.isfile(filename)
 
 
-def get_first_available_file(filenames: Iterable[bytes | str | PathLike],
+def get_first_available_file(filenames: Iterable[
+                                Union[bytes, str, PathLike]
+                             ],
                              file_check: Callable[[str], bool]
                              = is_file_available
                              ) -> Union[bytes, str, None]:
