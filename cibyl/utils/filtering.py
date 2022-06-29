@@ -69,7 +69,8 @@ def satisfy_exact_match(model: Dict[str, str], user_input: Argument,
 
 def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
                                    field_to_check: str,
-                                   default_user_value: Optional[List[str]] = None
+                                   default_user_value: Optional[List[str]]
+                                   = None
                                    ) -> bool:
     """Check whether model should be included according to the user input. The
     model should be added if the information provided field_to_check

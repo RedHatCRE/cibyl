@@ -70,7 +70,9 @@ def download_file(url: str, dest: str) -> None:
                 file.write(chunk)
 
 
-def download_into_memory(url: str, session: Optional[requests.Session] = None) -> str:
+def download_into_memory(url: str,
+                         session: Optional[requests.Session] = None
+                         ) -> str:
     """Downloads the contents of a URL into memory, leaving the filesystem
     untouched.
 
