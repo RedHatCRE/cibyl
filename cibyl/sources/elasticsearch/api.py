@@ -33,8 +33,8 @@ from cibyl.sources.elasticsearch.client import ElasticSearchClient
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import chunk_dictionary_into_lists
-from cibyl.utils.filtering import (apply_filters, satisfy_exact_match,
-                                   satisfy_regex_match)
+from cibyl.utils.filtering import (apply_filters, matches_regex,
+                                   satisfy_exact_match, satisfy_regex_match)
 
 LOG = logging.getLogger(__name__)
 
@@ -326,6 +326,10 @@ class ElasticSearch(ServerSource):
             "sort": [{"timestamp.keyword": {"order": "desc"}}]
         }
 
+        tests_pattern = None
+        if 'tests' in kwargs and kwargs['tests'].value:
+            tests_pattern = re.compile("|".join(kwargs['tests'].value))
+
         test_result_argument = []
         if 'test_result' in kwargs:
             test_result_argument = [status.upper()
@@ -371,6 +375,9 @@ class ElasticSearch(ServerSource):
                 'test_class_name',
                 None
             )
+            # check if necessary to filter by test name:
+            if tests_pattern and not matches_regex(tests_pattern, test_name):
+                continue
             # Check if necessary filter by Test Status:
             if test_result_argument and \
                     test_status not in test_result_argument:
