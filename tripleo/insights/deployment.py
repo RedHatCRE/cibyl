@@ -29,7 +29,7 @@ class FeatureSetInterpreter:
     def __init__(
         self,
         data: YAML,
-        schema: Path = 'tripleo/_data/schemas/featureset.json',
+        schema: Path = Path('tripleo/_data/schemas/featureset.json'),
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
         validator = validator_factory.from_file(schema)

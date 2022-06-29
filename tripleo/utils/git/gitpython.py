@@ -47,7 +47,7 @@ class Repository(IRepository):
         self.handler.close()
 
     def _get_absolute_path(self, file: Path) -> Path:
-        return os.path.join(self.handler.working_dir, file)
+        return Path(os.path.join(self.handler.working_dir, file))
 
 
 class GitPython(IGit):

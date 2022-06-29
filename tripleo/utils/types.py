@@ -19,11 +19,16 @@ from tripleo.utils.strings import is_url
 
 YAML = Dict[str, Any]
 
-Path = str
+
+class Path(str):
+    def __new__(cls, value: str) -> 'Path':
+        # -- Add here any checks to perform on string --
+
+        return super().__new__(cls, value)
 
 
 class URL(str):
-    def __new__(cls, value: str):
+    def __new__(cls, value: str) -> 'URL':
         # Avoid false positives by removing leading and trailing whitespaces
         value = value.strip()
 
