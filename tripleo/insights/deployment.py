@@ -16,7 +16,7 @@
 from dataclasses import dataclass
 
 from tripleo.insights.types import YAML, Path
-from tripleo.utils.json import JSONValidatorFactory, Draft7ValidatorFactory
+from tripleo.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
 
 
 class FeatureSetInterpreter:
