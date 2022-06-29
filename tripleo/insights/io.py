@@ -19,7 +19,7 @@ from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
                                        DEFAULT_FEATURESET_FILE, DEFAULT_HEAT,
                                        DEFAULT_NODES_FILE, DEFAULT_QUICKSTART,
                                        DEFAULT_RELEASE_FILE)
-from tripleo.insights.types import URL, Path
+from tripleo.utils.types import URL, Path
 
 
 @dataclass

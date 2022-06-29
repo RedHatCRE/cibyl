@@ -21,8 +21,8 @@ from tripleo.insights.deployment import FeatureSetInterpreter
 from tripleo.insights.exceptions import InvalidURL
 from tripleo.insights.interfacing import GitDownloader, get_downloaders_for
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
-from tripleo.insights.types import URL
 from tripleo.insights.validation import OutlineValidator
+from tripleo.utils.types import URL
 
 
 class DeploymentLookUp:

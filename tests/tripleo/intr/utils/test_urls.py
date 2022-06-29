@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from tripleo.insights.types import URL
+from tripleo.utils.types import URL
 from tripleo.utils.urls import is_git, is_github
 
 

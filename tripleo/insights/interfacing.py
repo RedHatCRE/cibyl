@@ -18,10 +18,10 @@ from typing import List
 
 from overrides import overrides
 
-from tripleo.insights.types import URL, Path
 from tripleo.utils.git.utils import get_repository_fullname
 from tripleo.utils.github import GitHub
 from tripleo.utils.github.pygithub import PyGitHub
+from tripleo.utils.types import URL, Path
 from tripleo.utils.urls import is_git, is_github
 
 

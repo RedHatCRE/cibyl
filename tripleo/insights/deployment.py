@@ -15,8 +15,8 @@
 """
 from dataclasses import dataclass
 
-from tripleo.insights.types import YAML, Path
 from tripleo.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
+from tripleo.utils.types import YAML, Path
 
 
 class FeatureSetInterpreter:

@@ -15,7 +15,7 @@
 """
 from urllib.parse import urlparse
 
-from tripleo.insights.types import URL
+from tripleo.utils.types import URL
 
 
 def is_git(url: URL) -> bool:

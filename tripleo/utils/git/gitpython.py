@@ -18,9 +18,9 @@ import os
 from git import Repo
 from overrides import overrides
 
-from tripleo.insights.types import URL, Path
 from tripleo.utils.git import Git as IGit
 from tripleo.utils.git import Repository as IRepository
+from tripleo.utils.types import URL, Path
 
 
 class Repository(IRepository):

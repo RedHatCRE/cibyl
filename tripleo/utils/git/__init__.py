@@ -15,8 +15,8 @@
 """
 from abc import ABC, abstractmethod
 
-from tripleo.insights.types import URL, Path
 from tripleo.utils.io import Closeable
+from tripleo.utils.types import URL, Path
 
 
 class Repository(Closeable, ABC):

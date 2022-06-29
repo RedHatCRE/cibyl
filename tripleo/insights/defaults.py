@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from tripleo.insights.types import URL
+from tripleo.utils.types import URL
 
 DEFAULT_QUICKSTART = URL('https://github.com/openstack/tripleo-quickstart.git')
 DEFAULT_HEAT = URL('https://github.com/openstack/tripleo-heat-templates.git')

@@ -15,7 +15,7 @@
 """
 from urllib.parse import urlparse
 
-from tripleo.insights.types import URL
+from tripleo.utils.types import URL
 from tripleo.utils.urls import is_git
 
 
