@@ -38,6 +38,24 @@ class GitDownloader(ABC):
         raise NotImplementedError
 
 
+class GitCLIDownloader(GitDownloader):
+    def __init__(
+        self,
+        repository: URL,
+        working_dir: Path
+    ):
+        super().__init__(repository)
+
+        self._working_dir = working_dir
+
+    @property
+    def working_dir(self):
+        return self._working_dir
+
+    def download_as_text(self, file: Path) -> str:
+        pass
+
+
 class GitHubDownloader(GitDownloader):
     def __init__(
         self,
