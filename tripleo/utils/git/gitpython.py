@@ -52,6 +52,12 @@ class Repository(IRepository):
 
 class GitPython(IGit):
     @overrides
+    def open(self, working_dir: Path) -> Repository:
+        repo = Repo(working_dir)
+
+        return Repository(repo)
+
+    @overrides
     def clone(self, url: URL, working_dir: Path) -> Repository:
         repo = Repo.clone_from(url, working_dir)
 

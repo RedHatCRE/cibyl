@@ -27,5 +27,9 @@ class Repository(Closeable, ABC):
 
 class Git(ABC):
     @abstractmethod
+    def open(self, working_dir: Path) -> Repository:
+        raise NotImplementedError
+
+    @abstractmethod
     def clone(self, url: URL, working_dir: Path) -> Repository:
         raise NotImplementedError
