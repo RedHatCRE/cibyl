@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import pathlib
 from typing import Any, Dict
 
 from tripleo.utils.strings import is_url
@@ -20,11 +21,9 @@ from tripleo.utils.strings import is_url
 YAML = Dict[str, Any]
 
 
-class Path(str):
-    def __new__(cls, value: str) -> 'Path':
-        # -- Add here any checks to perform on string --
-
-        return super().__new__(cls, value)
+class Path(pathlib.Path):
+    def to_str(self) -> str:
+        return str(self)
 
 
 class URL(str):

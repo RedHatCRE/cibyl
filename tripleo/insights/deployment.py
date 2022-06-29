@@ -32,7 +32,7 @@ class FeatureSetInterpreter:
         schema: Path = Path('tripleo/_data/schemas/featureset.json'),
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
-        validator = validator_factory.from_file(schema)
+        validator = validator_factory.from_file(schema.to_str())
 
         if not validator.is_valid(data):
             msg = 'Featureset data does not conform to its schema.'
