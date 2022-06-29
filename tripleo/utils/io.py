@@ -15,17 +15,13 @@
 """
 from abc import ABC, abstractmethod
 
-from tripleo.insights.types import URL, Path
-from tripleo.utils.io import Closeable
 
+class Closeable(ABC):
+    """Interface meant to release the resources hold by the object.
+    """
 
-class Repository(Closeable, ABC):
     @abstractmethod
-    def get_as_text(self, file: Path) -> str:
-        raise NotImplementedError
-
-
-class Git(ABC):
-    @abstractmethod
-    def clone(self, url: URL, working_dir: Path) -> Repository:
+    def close(self):
+        """Releases any resources associated to this object.
+        """
         raise NotImplementedError
