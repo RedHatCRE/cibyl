@@ -15,7 +15,8 @@
 """
 from dataclasses import dataclass
 
-from tripleo.insights.types import YAML
+from tripleo.insights.types import YAML, Path
+from tripleo.utils.json import JSONValidatorFactory, Draft7ValidatorFactory
 
 
 class FeatureSetInterpreter:
@@ -23,20 +24,28 @@ class FeatureSetInterpreter:
     class Keys:
         ipv6: str = 'overcloud_ipv6'
 
-    def __init__(self, data: YAML, keys: Keys = Keys()):
+    KEYS = Keys()
+
+    def __init__(
+        self,
+        data: YAML,
+        schema: Path = 'tripleo/_data/schemas/featureset.json',
+        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
+    ):
+        validator = validator_factory.from_file(schema)
+
+        if not validator.is_valid(data):
+            msg = 'Featureset data does not conform to its schema.'
+            raise ValueError(msg)
+
         self._data = data
-        self._keys = keys
 
     @property
     def data(self):
         return self._data
 
-    @property
-    def keys(self):
-        return self._keys
-
     def is_ipv6(self) -> bool:
-        key = self.keys.ipv6
+        key = self.KEYS.ipv6
 
         if key not in self.data:
             return False
