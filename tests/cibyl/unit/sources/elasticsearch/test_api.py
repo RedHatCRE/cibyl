@@ -297,6 +297,18 @@ class TestElasticSearch(TestCase):
         mock_client.assert_called_with("https://example.com", 9200)
 
     @patch('cibyl.sources.elasticsearch.api.ElasticSearchClient')
+    def test_ensure_teardown(self, mock_client):
+        """Test setup method of ElasticSearch"""
+        es_api = ElasticSearch(elastic_client=None,
+                               url="https://example.com:9200")
+        client = mock_client.return_value
+        client.connect.side_effect = None
+        es_api.ensure_source_setup()
+        mock_client.assert_called_with("https://example.com", 9200)
+        es_api.ensure_teardown()
+        self.assertTrue(es_api.is_down())
+
+    @patch('cibyl.sources.elasticsearch.api.ElasticSearchClient')
     def test_ensure_setup(self, mock_client):
         """Test ensure_setup method of ElasticSearch"""
         es_api = ElasticSearch(elastic_client=None,
