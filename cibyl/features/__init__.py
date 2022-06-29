@@ -19,10 +19,12 @@ import re
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from inspect import isclass
+from typing import Optional, Type, Union
 
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.features import MissingFeature
 from cibyl.exceptions.source import NoSupportedSourcesFound, SourceException
+from cibyl.models.ci.base.system import System
 from cibyl.sources.source import (get_source_instance_from_method,
                                   select_source_method,
                                   source_information_from_method)
@@ -35,15 +37,13 @@ LOG = logging.getLogger(__name__)
 MODULE_PATTERN = re.compile(r"([a-zA-Z][a-zA-Z_]*)\.py")
 
 
-def is_feature_class(symbol):
+def is_feature_class(symbol: object) -> bool:
     """Check whether the symbols imported from a module correspond to
     classes defining a feature. We assume that the symbol in question
     defines a feature if it inherits from the FeatureDefinition class.
 
     :param symbol: An imported symbol to check
-    :type symbol: object
     :returns: Whether the symbol defines a feature
-    :rtype: bool
     """
     return isclass(symbol) and issubclass(symbol, FeatureDefinition) and \
         symbol is not FeatureDefinition
@@ -57,12 +57,12 @@ features_by_category = defaultdict(list)
 all_features = {}
 
 
-def add_feature_location(location: str):
+def add_feature_location(location: str) -> None:
     """Add an additional location where to find features."""
     features_locations.append(location)
 
 
-def load_features(feature_paths: list = None):
+def load_features(feature_paths: Optional[list] = None) -> None:
     global features_locations
     if feature_paths:
         features_locations = feature_paths
@@ -88,7 +88,7 @@ def load_features(feature_paths: list = None):
                 features_by_category[module_name].append(feature.name)
 
 
-def get_string_all_features():
+def get_string_all_features() -> str:
     """Get a string representation listing all available features to use in
     an exception message."""
     msg = ""
@@ -103,14 +103,12 @@ def get_string_all_features():
     return msg
 
 
-def get_feature(name_feature):
+def get_feature(name_feature: str) -> Type:
     """Get the function associated with the given feature name
 
-    :param feature_name: Name of the feature
-    :type feature_name: str
+    :param name_feature: Name of the feature
 
     :returns: class that implements the given feature
-    :rtype: class
     :raises: InvalidArgument
     """
     try:
@@ -158,7 +156,7 @@ class FeatureTemplate(ABC):
         the feature."""
         pass
 
-    def query(self, system, **kwargs):
+    def query(self, system: System, **kwargs) -> Union[dict, None]:
         """Execute the sources query that would provide the information that
         defines the feature."""
         debug = kwargs.get("debug", False)

@@ -22,7 +22,7 @@ class NoSupportedSourcesFound(CibylException):
        implementing the function of the argument the user is interested in
     """
 
-    def __init__(self, system, function):
+    def __init__(self, system: str, function: str):
         self.message = f"""Couldn't find any enabled source for the system
 {system} that implements the function {function}.""".replace("\n", " ")
         super().__init__(self.message)
@@ -31,7 +31,7 @@ class NoSupportedSourcesFound(CibylException):
 class NoValidSources(CibylException):
     """Exception for a case when no valid source is found."""
 
-    def __init__(self, system="", sources=""):
+    def __init__(self, system: str = "", sources: str = ""):
         if sources:
             sources = Colors.blue('\n  '.join(sources))
             sources = f"\nAvailable sources:\n  {sources}"
@@ -57,7 +57,7 @@ class SourceException(CibylException):
 class MissingArgument(SourceException):
     """Represents a missing required argument inside a source method call."""
 
-    def __init__(self, message='Missing required argument.'):
+    def __init__(self, message: str = 'Missing required argument.'):
         """Constructor.
         """
         super().__init__(message)
@@ -67,7 +67,7 @@ class InvalidArgument(SourceException):
     """Represents an invalid combination of arguments inside a source
     method call."""
 
-    def __init__(self, message='Invalid argument passed.'):
+    def __init__(self, message: str = 'Invalid argument passed.'):
         """Constructor.
         """
         super().__init__(message)

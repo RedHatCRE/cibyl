@@ -20,7 +20,7 @@ class AbortedByUserError(CibylException):
     """Represents an action that was interrupted by the user.
     """
 
-    def __init__(self, message='Operation aborted by user.'):
+    def __init__(self, message: str = 'Operation aborted by user.'):
         """Constructor.
         """
         super().__init__(message)
@@ -30,7 +30,7 @@ class InvalidArgument(CibylException):
     """Represents an argument with invalid format.
     """
 
-    def __init__(self, message='Invalid argument provided.'):
+    def __init__(self, message: str = 'Invalid argument provided.'):
         """Constructor.
         """
         super().__init__(message)
@@ -40,7 +40,7 @@ class MissingArgument(CibylException):
     """Represents a missing required argument
     """
 
-    def __init__(self, message='Missing required argument.'):
+    def __init__(self, message: str = 'Missing required argument.'):
         """Constructor.
         """
         super().__init__(message)

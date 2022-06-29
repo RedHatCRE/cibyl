@@ -17,6 +17,7 @@ import logging
 
 from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
+from cibyl.models.ci.base.environment import Environment
 from cibyl.outputs.cli.ci.env.factory import CIPrinterFactory
 
 LOG = logging.getLogger(__name__)
@@ -29,11 +30,11 @@ class Publisher:
     """
 
     def publish(self,
-                environment,
-                target="terminal",
-                style=OutputStyle.TEXT,
-                query=QueryType.NONE,
-                verbosity=0):
+                environment: Environment,
+                target: str = "terminal",
+                style: OutputStyle = OutputStyle.TEXT,
+                query: QueryType = QueryType.NONE,
+                verbosity: int = 0) -> None:
         """Publishes the data of the given environments to the
         chosen destination.
         """
