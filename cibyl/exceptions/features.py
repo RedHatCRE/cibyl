@@ -20,7 +20,7 @@ class MissingFeature(CibylException):
     """Represents an error loading a feature.
     """
 
-    def __init__(self, message='Feature not found.'):
+    def __init__(self, message: str = 'Feature not found.'):
         """Constructor.
         """
         super().__init__(message)
