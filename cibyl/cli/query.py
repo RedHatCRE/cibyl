@@ -35,7 +35,9 @@ class QueryType(IntEnum):
     """Retrieve data concerning jobs and above."""
     BUILDS = 6
     """Retrieve data concerning builds and above."""
-    FEATURES_JOBS = 7
+    TESTS = 7
+    """Retrieve data concerning tests and above."""
+    FEATURES_JOBS = 8
     """Retrieve data using features and jobs."""
 
 
@@ -77,6 +79,10 @@ class QuerySelector:
         build_args = subset(kwargs, ["builds", "last_build", "build_status"])
         if build_args:
             result = QueryType.BUILDS
+
+        test_args = subset(kwargs, ["tests", "test_result", "test_duration"])
+        if test_args:
+            result = QueryType.TESTS
 
         if 'features' in kwargs:
             if job_args:
