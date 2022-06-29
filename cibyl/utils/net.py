@@ -15,6 +15,7 @@
 """
 import logging
 import os
+from typing import Optional
 
 import requests
 
@@ -26,7 +27,7 @@ class DownloadError(Exception):
     """
 
 
-def download_file(url: str, dest: str):
+def download_file(url: str, dest: str) -> None:
     """Downloads a file from a remote host into the local filesystem.
 
     Supported protocols are:
@@ -69,7 +70,7 @@ def download_file(url: str, dest: str):
                 file.write(chunk)
 
 
-def download_into_memory(url: str, session: requests.Session = None) -> str:
+def download_into_memory(url: str, session: Optional[requests.Session] = None) -> str:
     """Downloads the contents of a URL into memory, leaving the filesystem
     untouched.
 

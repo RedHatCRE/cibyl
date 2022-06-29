@@ -17,7 +17,7 @@ import logging
 import os
 from os import PathLike
 from pathlib import Path
-from typing import List, Union
+from typing import Callable, Iterable, List, Union
 
 LOG = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class FileSearch:
         self._excluded.extend(excluded)
         return self
 
-    def get(self):
+    def get(self) -> list[str]:
         """Performs the query and gets the paths to the files that were
         found by the search.
 
@@ -125,8 +125,9 @@ def is_file_available(filename: str) -> bool:
     return os.path.isfile(filename)
 
 
-def get_first_available_file(filenames: list,
-                             file_check: bool = is_file_available
+def get_first_available_file(filenames: Iterable[bytes | str | PathLike],
+                             file_check: Callable[[str], bool]
+                             = is_file_available
                              ) -> Union[bytes, str, None]:
     """Searches for the first file out of the provided paths that exists
     on the host's drive.

@@ -16,7 +16,7 @@
 import importlib.util
 import inspect
 from types import ModuleType
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 from cibyl.utils.files import get_file_name_from_path
 
@@ -40,7 +40,7 @@ def load_module(path: str) -> ModuleType:
 
 def get_classes_in(
         __module: ModuleType,
-        predicate: Callable = None,
+        predicate: Optional[Callable] = None,
         return_name: bool = False) -> List[type]:
     """Gets all class symbols stored within a Python module.
 

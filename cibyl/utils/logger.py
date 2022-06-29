@@ -31,7 +31,7 @@ TERMINAL_LOGGER_FORMATTER = colorlog.ColoredFormatter(
                                     CRITICAL='bold_red,bg_white',))
 
 
-def configure_terminal_logging(level: int):
+def configure_terminal_logging(level: int) -> None:
     """Configure logger to print to terminal.
 
     :param level: Logging level, default DEBUG
@@ -43,7 +43,7 @@ def configure_terminal_logging(level: int):
     logger.addHandler(stream_handler)
 
 
-def configure_file_logging(log_file: str, level: int):
+def configure_file_logging(log_file: str, level: int) -> None:
     """Configure logger to print to file.
 
     :param log_file: Path to log file
@@ -56,7 +56,10 @@ def configure_file_logging(log_file: str, level: int):
     logger.addHandler(file_handler)
 
 
-def configure_logging(log_mode: str, log_file: str, level: int = logging.INFO):
+def configure_logging(
+        log_mode: str,
+        log_file: str,
+        level: int = logging.INFO) -> None:
     """Configure logging format and level.
 
     :param log_mode: Where to send the logs, file, terminal or both

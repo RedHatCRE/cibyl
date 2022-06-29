@@ -15,7 +15,7 @@
 """
 import re
 import sre_constants
-from typing import Dict, Iterable, List, Pattern
+from typing import Dict, Iterable, List, Optional, Pattern
 
 from cibyl.cli.argument import Argument
 from cibyl.cli.ranged_argument import RANGE_OPERATORS
@@ -48,7 +48,6 @@ def satisfy_regex_match(model: Dict[str, str], pattern: Pattern,
     :param model: model information obtained from jenkins
     :param pattern: regex patter that the model name should match
     :param field_to_check: model field to perform the check
-    :param field_to_check: str
     :returns: Whether the model satisfies user input
     """
     return re.search(pattern, model[field_to_check]) is not None
@@ -63,7 +62,6 @@ def satisfy_exact_match(model: Dict[str, str], user_input: Argument,
     :param model: model information obtained from jenkins
     :param user_input: input argument specified by the user
     :param field_to_check: Job field to perform the check
-    :param field_to_check: str
     :returns: Whether the model satisfies user input
     """
     return model[field_to_check] in user_input.value
@@ -71,7 +69,7 @@ def satisfy_exact_match(model: Dict[str, str], user_input: Argument,
 
 def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
                                    field_to_check: str,
-                                   default_user_value: List[str] = None
+                                   default_user_value: Optional[List[str]] = None
                                    ) -> bool:
     """Check whether model should be included according to the user input. The
     model should be added if the information provided field_to_check
@@ -83,7 +81,6 @@ def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
     :param field_to_check: Job field to perform the check
     :param default_user_value: Default value to use if the user input contains
     no value
-    :type default_user_value: list
     :returns: Whether the model satisfies user input
     """
     if model[field_to_check] is None:
@@ -105,7 +102,6 @@ def satisfy_range_match(model: Dict[str, str], user_input: Argument,
     :param model: model information obtained from jenkins
     :param user_input: input argument specified by the user
     :param field_to_check: Job field to perform the check
-    :param field_to_check: str
     :returns: Whether the model satisfies user input
     """
     model_value = float(model[field_to_check])

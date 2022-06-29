@@ -55,7 +55,7 @@ class IndentedTextBuilder:
             """
             return self._level
 
-        def append(self, text: str):
+        def append(self, text: str) -> None:
             """Adds additional text at the end of this line.
 
             :param text: The text to add.
@@ -100,7 +100,6 @@ class IndentedTextBuilder:
         """Generates the text stored in the builder.
 
         :return: The generated piece of text.
-        :rtype: str
         """
         result = ''
 

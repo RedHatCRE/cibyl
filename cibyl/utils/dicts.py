@@ -20,14 +20,13 @@ from cibyl.models.attribute import AttributeDictValue
 LOG = logging.getLogger(__name__)
 
 
-def subset(dictionary, keys: list) -> dict:
+def subset(dictionary: dict, keys: list) -> dict:
     """Creates a new dictionary from items from another one. A new
     dictionary is formed by extracting the keys explicitly indicated. If one of
     the given keys is not present on the dictionary, it is ignored. The
     original dictionary is left untouched.
 
     :param dictionary: The dictionary to extract items from.
-    :type dictionary: dict
     :param keys: The keys to get from the dictionary.
     :return: The new dictionary.
     """
