@@ -16,7 +16,7 @@
 import logging
 from abc import abstractmethod
 from operator import itemgetter
-from typing import Dict
+from typing import Dict, Optional
 
 import requests
 
@@ -75,8 +75,8 @@ class Source(AttrDict):
     """Represents a data provider within a system."""
 
     def __init__(self,
-                 name: str = None,
-                 driver: str = None,
+                 name: str = Optional[str],
+                 driver: str = Optional[str],
                  **kwargs: Argument):
         kwargs.setdefault('enabled', True)
         kwargs.setdefault('_setup', False)

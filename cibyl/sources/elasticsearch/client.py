@@ -46,6 +46,8 @@ class ElasticSearchClient:
         :raises: ElasticSearchError:
                  If exists an unhandled connection error
         """
+        if self.connection:
+            self.disconnect()
         self.connection = Elasticsearch(self.address)
         if not self.connection.ping():
             message = 'Error connecting to '
@@ -65,7 +67,7 @@ class ElasticSearchClient:
             self.connection.transport.close()
             LOG.debug(f"Connection successfully closed with elasticsearch"
                       f" instance: {self.address}")
-        except Exception as exception:
+        except Exception:
             message = 'Could not close the connextion with elasticsearch'
             message += f" instance: {self.address}"
-            raise ElasticSearchError(message) from exception
+            LOG.error(message)
