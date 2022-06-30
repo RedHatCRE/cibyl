@@ -35,6 +35,7 @@ from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import chunk_dictionary_into_lists
 from cibyl.utils.filtering import (apply_filters, matches_regex,
                                    satisfy_exact_match, satisfy_regex_match)
+from cibyl.utils.models import has_tests_job
 
 LOG = logging.getLogger(__name__)
 
@@ -326,18 +327,22 @@ class ElasticSearch(ServerSource):
             "sort": [{"timestamp.keyword": {"order": "desc"}}]
         }
 
+        tests_filtering = False
         tests_pattern = None
         if 'tests' in kwargs and kwargs['tests'].value:
+            tests_filtering = True
             tests_pattern = re.compile("|".join(kwargs['tests'].value))
 
         test_result_argument = []
         if 'test_result' in kwargs:
+            tests_filtering = True
             test_result_argument = [status.upper()
                                     for status in
                                     kwargs.get('test_result').value]
 
         test_duration_arguments = []
         if 'test_duration' in kwargs:
+            tests_filtering = True
             test_duration_arguments = kwargs.get('test_duration').value
 
         hits = []
@@ -418,7 +423,13 @@ class ElasticSearch(ServerSource):
                 )
             )
 
-        return job_builds_found
+        final_jobs = job_builds_found
+        if tests_filtering:
+            # if there was some argument that leads to filtering out tests,
+            # make sure that the output jobs have at least one test
+            final_jobs = {job_name: job for job_name, job in
+                          job_builds_found.items() if has_tests_job(job)}
+        return AttributeDictValue("jobs", attr_type=Job, value=final_jobs)
 
     def match_filter_test_by_duration(self,
                                       test_duration: float,
