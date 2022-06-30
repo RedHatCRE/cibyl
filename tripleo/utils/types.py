@@ -13,20 +13,55 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import pathlib
-from typing import Any, Dict
+from abc import ABC
+from os import PathLike
+from pathlib import Path
+from typing import Any, Dict, Union
 
 from tripleo.utils.strings import is_url
 
 YAML = Dict[str, Any]
 
 
-class Path(pathlib.Path):
-    def is_empty(self) -> bool:
-        return not any(self.iterdir())
+class FSPath(ABC):
+    def __init__(self, path: Union[bytes, str, PathLike, Path]):
+        if not isinstance(path, Path):
+            path = Path(path)
 
-    def to_str(self) -> str:
-        return str(self)
+        self._path = path
+
+    def __str__(self):
+        return self.as_str()
+
+    def absolute(self) -> str:
+        return str(self.as_path().absolute())
+
+    def as_str(self) -> str:
+        return str(self.as_path())
+
+    def as_path(self) -> Path:
+        return self._path
+
+
+class Dir(FSPath):
+    def __init__(self, path: Union[bytes, str, PathLike, Path]):
+        super().__init__(path)
+
+        if not self.as_path().is_dir():
+            msg = f"Path is not a directory or does not exist: '{str(self)}'."
+            raise ValueError(msg)
+
+    def is_empty(self) -> bool:
+        return not any(self.as_path().iterdir())
+
+
+class File(FSPath):
+    def __init__(self, path: Union[bytes, str, PathLike, Path]):
+        super().__init__(path)
+
+        if not self.as_path().is_file():
+            msg = f"Path is not a file or does not exist: '{str(self)}'."
+            raise ValueError(msg)
 
 
 class URL(str):

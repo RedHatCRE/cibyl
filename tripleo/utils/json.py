@@ -20,6 +20,8 @@ from typing import Union
 from jsonschema.validators import Draft7Validator
 from overrides import overrides
 
+from tripleo.utils.types import File
+
 JSONValidator = Union[Draft7Validator]
 
 
@@ -28,7 +30,7 @@ class JSONValidatorFactory(ABC):
     """
 
     @abstractmethod
-    def from_file(self, file: str) -> JSONValidator:
+    def from_file(self, file: File) -> JSONValidator:
         """Builds a new validator by reading the schema from a file.
 
         :param file: Path to the file to read.
@@ -45,8 +47,8 @@ class Draft7ValidatorFactory(JSONValidatorFactory):
     """
 
     @overrides
-    def from_file(self, file) -> Draft7Validator:
-        with open(file, 'r') as buffer:
+    def from_file(self, file: File) -> Draft7Validator:
+        with open(file.as_str(), 'r') as buffer:
             schema = json.loads(buffer.read())
 
             Draft7Validator.check_schema(schema)

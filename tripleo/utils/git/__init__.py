@@ -16,20 +16,20 @@
 from abc import ABC, abstractmethod
 
 from tripleo.utils.io import Closeable
-from tripleo.utils.types import URL, Path
+from tripleo.utils.types import URL, Dir
 
 
 class Repository(Closeable, ABC):
     @abstractmethod
-    def get_as_text(self, file: Path) -> str:
+    def get_as_text(self, file: str) -> str:
         raise NotImplementedError
 
 
 class Git(ABC):
     @abstractmethod
-    def open(self, working_dir: Path) -> Repository:
+    def open(self, working_dir: Dir) -> Repository:
         raise NotImplementedError
 
     @abstractmethod
-    def clone(self, url: URL, working_dir: Path) -> Repository:
+    def clone(self, url: URL, working_dir: Dir) -> Repository:
         raise NotImplementedError

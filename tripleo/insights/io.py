@@ -19,7 +19,7 @@ from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
                                        DEFAULT_FEATURESET_FILE, DEFAULT_HEAT,
                                        DEFAULT_NODES_FILE, DEFAULT_QUICKSTART,
                                        DEFAULT_RELEASE_FILE)
-from tripleo.utils.types import URL, Path
+from tripleo.utils.types import URL
 
 
 @dataclass
@@ -27,10 +27,10 @@ class DeploymentOutline:
     quickstart: URL = DEFAULT_QUICKSTART
     heat: URL = DEFAULT_HEAT
 
-    environment: Path = DEFAULT_ENVIRONMENT_FILE
-    featureset: Path = DEFAULT_FEATURESET_FILE
-    nodes: Path = DEFAULT_NODES_FILE
-    release: Path = DEFAULT_RELEASE_FILE
+    environment: str = DEFAULT_ENVIRONMENT_FILE
+    featureset: str = DEFAULT_FEATURESET_FILE
+    nodes: str = DEFAULT_NODES_FILE
+    release: str = DEFAULT_RELEASE_FILE
 
 
 @dataclass

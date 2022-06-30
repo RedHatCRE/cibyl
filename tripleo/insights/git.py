@@ -19,12 +19,12 @@ from typing import Iterable
 
 from overrides import overrides
 
-from tripleo.utils.git import Repository, Git
+from tripleo.utils.git import Git, Repository
 from tripleo.utils.git.gitpython import GitPython
 from tripleo.utils.git.utils import get_repository_fullname
 from tripleo.utils.github import GitHub
 from tripleo.utils.github.pygithub import PyGitHub
-from tripleo.utils.types import URL, Path
+from tripleo.utils.types import URL, Path, Dir
 from tripleo.utils.urls import is_git, is_github
 
 
@@ -37,7 +37,7 @@ class GitDownloader(ABC):
         return self._repository
 
     @abstractmethod
-    def download_as_text(self, file: Path) -> str:
+    def download_as_text(self, file: str) -> str:
         raise NotImplementedError
 
 
@@ -45,14 +45,10 @@ class GitCLIDownloader(GitDownloader):
     def __init__(
         self,
         repository: URL,
-        working_dir: Path,
+        working_dir: Dir,
         api: Git = GitPython()
     ):
         super().__init__(repository)
-
-        if not working_dir.is_dir():
-            msg = f"Directory does not exist or is not valid: '{working_dir}'."
-            raise ValueError(msg)
 
         self._api = api
         self._working_dir = working_dir
@@ -65,7 +61,8 @@ class GitCLIDownloader(GitDownloader):
     def working_dir(self):
         return self._working_dir
 
-    def download_as_text(self, file: Path) -> str:
+    @overrides
+    def download_as_text(self, file: str) -> str:
         return self._get_repo().get_as_text(file)
 
     def _get_repo(self) -> Repository:
@@ -90,15 +87,13 @@ class GitHubDownloader(GitDownloader):
         return self._api
 
     @overrides
-    def download_as_text(self, file: Path) -> str:
-        path = file.to_str()
-
+    def download_as_text(self, file: str) -> str:
         owner = self._get_repository_owner()
         name = self._get_repository_name()
 
         repo = self.api.get_repository(owner, name)
 
-        return repo.download_as_text(path)
+        return repo.download_as_text(file)
 
     def _get_repository_owner(self) -> str:
         return get_repository_fullname(self.repository).split('/')[0]
@@ -131,7 +126,7 @@ class GitDownloaderFetcher:
     def _get_new_cli_downloader(self, url: URL) -> GitCLIDownloader:
         return GitCLIDownloader(
             repository=url,
-            working_dir=Path(tempfile.mkdtemp(dir=self.clone_path))
+            working_dir=Dir(tempfile.mkdtemp(dir=self.clone_path))
         )
 
     def _get_new_github_downloader(self, url: URL) -> GitHubDownloader:

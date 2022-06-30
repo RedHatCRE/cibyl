@@ -49,7 +49,8 @@ class GitHub(ABC):
 
         Examples
         ========
-        >>> gh.get_repository('rhos-infra', 'cibyl')
+        >>> gh = GitHub()
+        ... gh.get_repository('rhos-infra', 'cibyl')
 
         :param owner: Owner of the repository.
         :type owner: str

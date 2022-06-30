@@ -20,7 +20,7 @@ from overrides import overrides
 
 from tripleo.utils.git import Git as IGit
 from tripleo.utils.git import Repository as IRepository
-from tripleo.utils.types import URL, Path
+from tripleo.utils.types import URL, Dir, File
 
 
 class Repository(IRepository):
@@ -38,7 +38,7 @@ class Repository(IRepository):
         return self._handler
 
     @overrides
-    def get_as_text(self, file: Path) -> str:
+    def get_as_text(self, file: str) -> str:
         with open(self._get_absolute_path(file), 'r') as buffer:
             return buffer.read()
 
@@ -46,19 +46,19 @@ class Repository(IRepository):
     def close(self):
         self.handler.close()
 
-    def _get_absolute_path(self, file: Path) -> Path:
-        return Path(os.path.join(self.handler.working_dir, file))
+    def _get_absolute_path(self, file: str) -> str:
+        return File(os.path.join(self.handler.working_dir, file)).absolute()
 
 
 class GitPython(IGit):
     @overrides
-    def open(self, working_dir: Path) -> Repository:
-        repo = Repo(working_dir)
+    def open(self, working_dir: Dir) -> Repository:
+        repo = Repo(working_dir.as_path())
 
         return Repository(repo)
 
     @overrides
-    def clone(self, url: URL, working_dir: Path) -> Repository:
-        repo = Repo.clone_from(url, working_dir)
+    def clone(self, url: URL, working_dir: Dir) -> Repository:
+        repo = Repo.clone_from(url, working_dir.as_path())
 
         return Repository(repo)

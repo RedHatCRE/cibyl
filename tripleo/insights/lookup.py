@@ -22,7 +22,7 @@ from tripleo.insights.exceptions import InvalidURL
 from tripleo.insights.git import GitDownloader, GitDownloaderFetcher
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
 from tripleo.insights.validation import OutlineValidator
-from tripleo.utils.types import URL
+from tripleo.utils.types import URL, YAML
 
 
 class DeploymentLookUp:
@@ -35,11 +35,11 @@ class DeploymentLookUp:
         self._download_fetcher = downloader_fetcher
 
     @property
-    def validator(self):
+    def validator(self) -> OutlineValidator:
         return self._validator
 
     @property
-    def download_fetcher(self):
+    def download_fetcher(self) -> GitDownloaderFetcher:
         return self._download_fetcher
 
     def run(self, outline: DeploymentOutline) -> DeploymentSummary:
@@ -49,11 +49,7 @@ class DeploymentLookUp:
 
         for api in self._get_apis_for(outline.quickstart):
             featureset = FeatureSetInterpreter(
-                yaml.safe_load(
-                    api.download_as_text(
-                        outline.featureset
-                    )
-                )
+                self._download_yaml(api, file=outline.featureset)
             )
 
             result.ip_version = 'IPv6' if featureset.is_ipv6() else 'IPv4'
@@ -73,3 +69,6 @@ class DeploymentLookUp:
             raise InvalidURL(f"Found no handlers for URL: '{url}'.")
 
         return result
+
+    def _download_yaml(self, api: GitDownloader, file: str) -> YAML:
+        return yaml.safe_load(api.download_as_text(file))
