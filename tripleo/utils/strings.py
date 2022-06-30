@@ -17,6 +17,10 @@ import validators
 
 
 def is_url(string: str) -> bool:
+    """
+    :param string: The string to test.
+    :return: True if the string follows a URL format, False if not.
+    """
     result = validators.url(string)
 
     if isinstance(result, bool):

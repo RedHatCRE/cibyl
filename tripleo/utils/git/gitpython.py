@@ -15,16 +15,24 @@
 """
 import os
 
-from git import Repo
+from git import Repo, InvalidGitRepositoryError, NoSuchPathError
 from overrides import overrides
 
-from tripleo.utils.git import Git as IGit
+from tripleo.utils.git import Git as IGit, GitError
 from tripleo.utils.git import Repository as IRepository
 from tripleo.utils.types import URL, Dir, File
 
 
 class Repository(IRepository):
+    """Implementation of a Git CLI interface with the use of the GitPython
+    library.
+    """
+
     def __init__(self, handler: Repo):
+        """Constructor.
+
+        :param handler: An open session to the repository.
+        """
         self._handler = handler
 
     def __enter__(self):
@@ -35,29 +43,53 @@ class Repository(IRepository):
 
     @property
     def handler(self) -> Repo:
+        """
+        :return: Session used to interact with the repository.
+        """
         return self._handler
 
     @overrides
     def get_as_text(self, file: str) -> str:
-        with open(self._get_absolute_path(file), 'r') as buffer:
-            return buffer.read()
+        abs_path = self._get_absolute_path(file)
+
+        try:
+            with open(abs_path, 'r') as buffer:
+                return buffer.read()
+        except IOError as ex:
+            msg = f"Failed to open file at: '{abs_path}'."
+            raise GitError(msg) from ex
 
     @overrides
     def close(self):
         self.handler.close()
 
     def _get_absolute_path(self, file: str) -> str:
+        """
+        :param file: Relative path to a file inside the repository.
+        :return: Absolute path to such file.
+        """
         path = os.path.join(self.handler.working_dir, file)
 
         return File(path).absolute()
 
 
 class GitPython(IGit):
+    """Implementation of a Git CLI interface with the use of the GitPython
+    library.
+    """
+
     @overrides
     def open(self, working_dir: Dir) -> Repository:
-        repo = Repo(working_dir.as_path())
+        try:
+            repo = Repo(working_dir.as_path())
 
-        return Repository(repo)
+            return Repository(repo)
+        except InvalidGitRepositoryError as ex:
+            msg = f"Failed to open repository at: '{working_dir}'."
+            raise GitError(msg) from ex
+        except NoSuchPathError as ex:
+            msg = f"Could not open directory: '{working_dir}'."
+            raise GitError(msg) from ex
 
     @overrides
     def clone(self, url: URL, working_dir: Dir) -> Repository:

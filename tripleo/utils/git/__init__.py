@@ -19,6 +19,11 @@ from tripleo.utils.io import Closeable
 from tripleo.utils.types import URL, Dir
 
 
+class GitError(Exception):
+    """Describes any errors occurring while interacting with Git's CLI.
+    """
+
+
 class Repository(Closeable, ABC):
     @abstractmethod
     def get_as_text(self, file: str) -> str:
@@ -26,10 +31,26 @@ class Repository(Closeable, ABC):
 
 
 class Git(ABC):
+    """Interface that defines interactions with the Git CLI.
+    """
+
     @abstractmethod
     def open(self, working_dir: Dir) -> Repository:
+        """Open a Git repository located on the filesystem.
+
+        :param working_dir: The directory where the repository is at.
+        :return: A handler to interact with the repository.
+        :raises GitError: If the repository could not be opened.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def clone(self, url: URL, working_dir: Dir) -> Repository:
+        """Clones a repository from a remote host into the local filesystem.
+
+        :param url: URL to the repository.
+        :param working_dir: Where the repository will be cloned into.
+        :return: A handler to interact with the repository.
+        :raises GitError: If the repository could not be cloned.
+        """
         raise NotImplementedError

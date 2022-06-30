@@ -23,6 +23,7 @@ from overrides import overrides
 from tripleo.utils.types import File
 
 JSONValidator = Union[Draft7Validator]
+"""Possible validators returned by the factory."""
 
 
 class JSONValidatorFactory(ABC):

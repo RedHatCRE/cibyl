@@ -25,14 +25,14 @@ class Repository(ABC):
     """
 
     @abstractmethod
-    def download_as_text(self, file):
+    def download_as_text(self, file: str, encoding: str = 'utf-8') -> str:
         """Downloads a file and decodes it as text.
 
         :param file: Relative path to the file starting from the
             repository's root.
-        :type file: str
+        :param encoding: Encoding of the file, indicating just like in
+            :func:`builtins.open`.
         :return: Text in the file.
-        :rtype: str
         :raises GitHubError: If the file could not be downloaded.
         """
         raise NotImplementedError
@@ -43,7 +43,7 @@ class GitHub(ABC):
     """
 
     @abstractmethod
-    def get_repository(self, owner, name):
+    def get_repository(self, owner: str, name: str) -> Repository:
         """Fetches the repository and creates a session to allow
         interactivity with it.
 
@@ -53,11 +53,8 @@ class GitHub(ABC):
         ... gh.get_repository('rhos-infra', 'cibyl')
 
         :param owner: Owner of the repository.
-        :type owner: str
         :param name: Name of the repository.
-        :type name: str
         :return: API to interact with the repository.
-        :rtype: :class:`Repository`
         :raises GitHubError: If the repository could not be accessed.
         """
         raise NotImplementedError

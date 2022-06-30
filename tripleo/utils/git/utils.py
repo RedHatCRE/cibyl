@@ -20,6 +20,22 @@ from tripleo.utils.urls import is_git
 
 
 def get_repository_fullname(url: URL) -> str:
+    """Gets the fullname of a repository from its URL.
+
+    URL formats supported are:
+        - HTTP/HTTPS
+        - SSH
+
+    Examples
+    --------
+    >>> cibyl = URL('https://github.com/rhos-infra/cibyl.git')
+    ... get_repository_fullname(cibyl)
+    'rhos-infra/cibyl'
+
+    :param url: The URL to get the data from.
+    :return: The fullname in the format: '{owner}/{name}'
+    :raises ValueError: If the URL does not point to a git repository.
+    """
     if not is_git(url):
         msg = f"URL must point to a git repository: '{url}'."
         raise ValueError(msg)
