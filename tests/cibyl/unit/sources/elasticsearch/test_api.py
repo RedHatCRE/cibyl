@@ -348,6 +348,31 @@ class TestElasticSearch(TestCase):
             1
         )
 
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
+    def test_get_tests_jobs_filtered_no_tests(self: object,
+                                              mock_query_hits: object) -> None:
+        """Tests internal logic :meth:`ElasticSearch.get_tests`
+            is correct and filters by test name supporting regex, if some jobs
+            turn out to have no tests as a result of the filtering, they should
+            not be returned.
+        """
+        mock_query_hits.return_value = self.tests_hits
+
+        builds_kwargs = MagicMock()
+        builds_value = PropertyMock(return_value=[])
+        type(builds_kwargs).value = builds_value
+
+        tests_kwargs = MagicMock()
+        tests_value = PropertyMock(return_value=["test3$"])
+        type(tests_kwargs).value = tests_value
+
+        tests = self.es_api.get_tests(
+            builds=builds_kwargs,
+            tests=tests_kwargs
+        )
+
+        self.assertEqual(len(tests), 0)
+
     @patch('cibyl.sources.elasticsearch.api.ElasticSearchClient')
     def test_setup(self, mock_client):
         """Test setup method of ElasticSearch"""
