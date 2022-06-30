@@ -98,6 +98,33 @@ class TestGetQueryType(TestCase):
 
         self.assertEqual(QueryType.BUILDS, get_query_type(**args))
 
+    def test_get_tests(self):
+        """Checks that "Tests" is returned for "--tests".
+        """
+        args = {
+            'tests': None
+        }
+
+        self.assertEqual(QueryType.TESTS, get_query_type(**args))
+
+    def test_get_test_duration(self):
+        """Checks that "Tests" is returned for "--test-duration".
+        """
+        args = {
+            'test_duration': None
+        }
+
+        self.assertEqual(QueryType.TESTS, get_query_type(**args))
+
+    def test_get_test_result(self):
+        """Checks that "Tests" is returned for "--test-result".
+        """
+        args = {
+            'test_result': None
+        }
+
+        self.assertEqual(QueryType.TESTS, get_query_type(**args))
+
     def test_get_variants(self):
         """Checks that "Jobs" is returned for "--variants"."""
         args = {
@@ -132,6 +159,16 @@ class TestGetQueryType(TestCase):
         }
 
         self.assertEqual(QueryType.FEATURES_JOBS, get_query_type(**args))
+
+    def test_get_tests_builds(self):
+        """Checks that "Tests" is returned for "--tests" and "--last-build".
+        """
+        args = {
+            'tests': None,
+            'last_build': None
+        }
+
+        self.assertEqual(QueryType.TESTS, get_query_type(**args))
 
 
 class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
