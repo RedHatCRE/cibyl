@@ -13,11 +13,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from tripleo.utils.types import URL, Path
+import validators
 
-DEFAULT_REPOSITORY: URL = 'https://github.com/openstack/tripleo-quickstart.git'
 
-DEFAULT_ENVIRONMENT_FILE: Path = 'config/environments/default_libvirt.yml'
-DEFAULT_FEATURESET_FILE: Path = 'config/general_config/minimal.yml'
-DEFAULT_NODES_FILE: Path = 'config/nodes/1ctlr_1comp.yml'
-DEFAULT_RELEASE_FILE: Path = 'config/release/master.yml'
+def is_url(string: str) -> bool:
+    """
+    :param string: The string to test.
+    :return: True if the string follows a URL format, False if not.
+    """
+    result = validators.url(string)
+
+    if isinstance(result, bool):
+        return result
+
+    return False
