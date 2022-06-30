@@ -29,16 +29,15 @@ class TestPyGitHub(TestCase):
         owner = 'me'
         name = 'repo'
 
+        repo = Mock()
+
         api = Mock()
         api.get_repo = Mock()
-        api.get_repo.return_value = Mock()
+        api.get_repo.return_value = repo
 
         github = PyGitHub(api)
 
-        self.assertEqual(
-            api.get_repo.return_value,
-            github.get_repository(owner, name).api
-        )
+        self.assertEqual(repo, github.get_repository(owner, name).api)
 
         api.get_repo.assert_called_once_with(f'{owner}/{name}')
 
