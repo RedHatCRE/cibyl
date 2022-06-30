@@ -23,6 +23,7 @@ from tripleo.utils.github import GitHubError
 from tripleo.utils.github import Repository as IRepository
 
 RepoAPIv3 = Repository
+"""PyGitHub's representation of a repository."""
 
 
 class Repository(IRepository):
@@ -30,32 +31,30 @@ class Repository(IRepository):
     base.
     """
 
-    def __init__(self, api):
+    def __init__(self, api: RepoAPIv3):
         """Constructor.
 
         :param api: PyGithub session used to interact with GitHub.
-        :type api: :class:`RepoAPIv3`
         """
         self._api = api
 
     @property
-    def api(self):
+    def api(self) -> RepoAPIv3:
         """
         :return: API being in used to interact with GitHub.
-        :rtype: :class:`RepoAPIv3`
         """
         return self._api
 
     @overrides
-    def download_file(self, path, encoding='utf-8'):
+    def download_as_text(self, file: str, encoding: str = 'utf-8') -> str:
         try:
-            file = self.api.get_contents(path)
+            file = self.api.get_contents(file)
 
             # Decoded content is still in binary,
             # it has to be passed to string yet
             return file.decoded_content.decode(encoding)
         except GithubException as ex:
-            msg = f"Failed to fetch file at: '{path}'"
+            msg = f"Failed to fetch file at: '{file}'"
             raise GitHubError(msg) from ex
 
 
@@ -64,16 +63,15 @@ class PyGitHub(IGitHub):
     base.
     """
 
-    def __init__(self, api):
+    def __init__(self, api: GitHubAPIv3):
         """Constructor.
 
         :param api: PyGithub session used to interact with GitHub.
-        :type api: :class:`GitHubAPIv3`
         """
         self._api = api
 
     @property
-    def api(self):
+    def api(self) -> GitHubAPIv3:
         """
         :return: API being in used to interact with GitHub.
         :rtype: :class:`GitHubAPIv3`
@@ -81,22 +79,20 @@ class PyGitHub(IGitHub):
         return self._api
 
     @staticmethod
-    def from_no_login():
+    def from_no_login() -> 'PyGitHub':
         """Creates a new session without any login credentials. This will be
         able to access as much as a guest client is able to.
 
         :return: The instance.
-        :rtype: :class:`PyGitHub`
         """
         return PyGitHub.from_login('', '')
 
     @staticmethod
-    def from_login(user, password):
+    def from_login(user, password) -> 'PyGitHub':
         """Creates a new session with login credentials. This will be able to
         access as much as the logged-in user has access to.
 
         :return: The instance.
-        :rtype: :class:`PyGitHub`
         """
         return PyGitHub(
             GitHubAPIv3(
@@ -106,7 +102,7 @@ class PyGitHub(IGitHub):
         )
 
     @overrides
-    def get_repository(self, owner, name):
+    def get_repository(self, owner: str, name: str) -> Repository:
         def full_name():
             return f'{owner}/{name}'
 
