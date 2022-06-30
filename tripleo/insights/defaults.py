@@ -17,7 +17,7 @@
 from tripleo.utils.types import URL
 
 DEFAULT_QUICKSTART = URL('https://github.com/openstack/tripleo-quickstart.git')
-DEFAULT_HEAT = URL('https://github.com/openstack/tripleo-heat-templates.git')
+DEFAULT_THT = URL('https://github.com/openstack/tripleo-heat-templates.git')
 
 # Modeled as 'str' as these are resources on a web host.
 DEFAULT_ENVIRONMENT_FILE = 'config/environments/default_libvirt.yml'

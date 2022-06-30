@@ -16,16 +16,16 @@
 from dataclasses import dataclass
 
 from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
-                                       DEFAULT_FEATURESET_FILE, DEFAULT_HEAT,
+                                       DEFAULT_FEATURESET_FILE,
                                        DEFAULT_NODES_FILE, DEFAULT_QUICKSTART,
-                                       DEFAULT_RELEASE_FILE)
+                                       DEFAULT_RELEASE_FILE, DEFAULT_THT)
 from tripleo.utils.types import URL
 
 
 @dataclass
 class DeploymentOutline:
     quickstart: URL = DEFAULT_QUICKSTART
-    heat: URL = DEFAULT_HEAT
+    heat: URL = DEFAULT_THT
 
     environment: str = DEFAULT_ENVIRONMENT_FILE
     featureset: str = DEFAULT_FEATURESET_FILE
