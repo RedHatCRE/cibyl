@@ -27,7 +27,7 @@ class ElasticSearchClient:
     """Elasticsearch client to connect to the instance
     and retrieve the data from this one"""
 
-    def __init__(self: object,
+    def __init__(self,
                  host: str = "http://localhost",
                  port: int = 9200) -> None:
         """Initialization of ElasticSearchClient
@@ -37,19 +37,37 @@ class ElasticSearchClient:
         :param port: Port for sending REST requests to the instance
         :type port: str, optional"""
         self.address = f"{host}:{port}"
+        self.connection = None
 
-    def connect(self: object) -> Elasticsearch:
+    def connect(self) -> 'ElasticSearchClient':
         """Connects to the elasticsearch instance
 
         :return: Elasticsearch module instance
-        :rtype: Elasticsearch
         :raises: ElasticSearchError:
                  If exists an unhandled connection error
         """
-        es_client = Elasticsearch(self.address)
-        if not es_client.ping():
-            raise ElasticSearchError(f"Error connecting to "
-                                     f"Elasticsearch: {self.address}")
+        if self.connection:
+            self.disconnect()
+        self.connection = Elasticsearch(self.address)
+        if not self.connection.ping():
+            message = 'Error connecting to '
+            message += f"Elasticsearch: {self.address}"
+            raise ElasticSearchError(message)
         LOG.debug(f"Connection established successfully with elasticsearch"
                   f" instance: {self.address}")
-        return es_client
+        return self
+
+    def disconnect(self) -> None:
+        """Explicitly closes connections with the
+        elasticsearch instance
+
+        :return: None
+        """
+        try:
+            self.connection.transport.close()
+            LOG.debug(f"Connection successfully closed with elasticsearch"
+                      f" instance: {self.address}")
+        except Exception:
+            message = 'Could not close the connextion with elasticsearch'
+            message += f" instance: {self.address}"
+            LOG.error(message)
