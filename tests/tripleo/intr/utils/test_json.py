@@ -22,19 +22,12 @@ from jsonschema.exceptions import SchemaError
 from jsonschema.validators import Draft7Validator
 
 from tripleo.utils.json import Draft7ValidatorFactory
+from tripleo.utils.types import File
 
 
 class TestDraft7ValidatorFactory(TestCase):
     """Tests for :class:`Draft7ValidatorFactory`.
     """
-
-    def test_io_error(self):
-        """Checks that an error is thrown if the file cannot be opened.
-        """
-        factory = Draft7ValidatorFactory()
-
-        with self.assertRaises(IOError):
-            factory.from_file('')
 
     def test_json_error(self):
         """Checks that an error is thrown if the file is not formatted as a
@@ -46,7 +39,7 @@ class TestDraft7ValidatorFactory(TestCase):
             factory = Draft7ValidatorFactory()
 
             with self.assertRaises(JSONDecodeError):
-                factory.from_file(file.name)
+                factory.from_file(File(file.name))
 
     def test_schema_error(self):
         """Checks that an error is thrown if the file is a JSON, but not a
@@ -63,7 +56,7 @@ class TestDraft7ValidatorFactory(TestCase):
             factory = Draft7ValidatorFactory()
 
             with self.assertRaises(SchemaError):
-                factory.from_file(file.name)
+                factory.from_file(File(file.name))
 
     def test_validator_is_build(self):
         """Checks that if all conditions meet, the validator is built.
@@ -79,7 +72,7 @@ class TestDraft7ValidatorFactory(TestCase):
 
             factory = Draft7ValidatorFactory()
 
-            result = factory.from_file(file.name)
+            result = factory.from_file(File(file.name))
 
             self.assertIsInstance(result, Draft7Validator)
             self.assertEqual(result.schema, data)

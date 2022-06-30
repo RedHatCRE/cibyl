@@ -24,7 +24,7 @@ from tripleo.utils.git.gitpython import GitPython
 from tripleo.utils.git.utils import get_repository_fullname
 from tripleo.utils.github import GitHub
 from tripleo.utils.github.pygithub import PyGitHub
-from tripleo.utils.types import URL, Path, Dir
+from tripleo.utils.types import URL, Dir, Path
 from tripleo.utils.urls import is_git, is_github
 
 
