@@ -13,10 +13,162 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from pathlib import Path
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from tripleo.utils.types import URL
+from tripleo.utils.types import URL, Dir, File
+
+
+class TestDir(TestCase):
+    """Tests for :class:`Dir`.
+    """
+
+    def test_error_if_dir_does_not_exist(self):
+        """Checks that an error is thrown if the path does not point to an
+        existing directory.
+        """
+        path = Mock(spec=Path)
+        path.is_dir = Mock()
+        path.is_dir.return_value = False
+
+        with self.assertRaises(ValueError):
+            Dir(path)
+
+        path.is_dir.assert_called_once()
+
+    def test_checks_if_dir_is_empty(self):
+        """Checks that the class is capable of knowing if a directory is
+        empty or not.
+        """
+        path = Mock(spec=Path)
+        path.is_dir = Mock()
+        path.is_dir.return_value = True
+
+        path.iterdir = Mock()
+        path.iterdir.return_value = []
+
+        directory = Dir(path)
+
+        self.assertTrue(directory.is_empty())
+
+        path.iterdir.assert_called_once()
+
+    def test_as_path(self):
+        """Checks that the type can be converted into a path.
+        """
+        path = Mock(spec=Path)
+        path.is_dir = Mock()
+        path.is_dir.return_value = True
+
+        directory = Dir(path)
+
+        self.assertEqual(path, directory.as_path())
+
+    def test_as_str(self):
+        """Checks that the type can be converted into a string.
+        """
+        path = Mock(spec=Path)
+        path.is_dir = Mock()
+        path.is_dir.return_value = True
+
+        directory = Dir(path)
+
+        self.assertEqual(str(path), directory.as_str())
+
+    def test_str(self):
+        """Checks that the type can be converted into a string through __str__.
+        """
+        path = Mock(spec=Path)
+        path.is_dir = Mock()
+        path.is_dir.return_value = True
+
+        directory = Dir(path)
+
+        self.assertEqual(str(path), str(directory))
+
+    def test_as_absolute(self):
+        """Checks that the type can be transformed into an absolute path.
+        """
+        absolute = Mock()
+
+        path = Mock(spec=Path)
+        path.is_dir = Mock()
+        path.is_dir.return_value = True
+
+        path.absolute = Mock()
+        path.absolute.return_value = absolute
+
+        directory = Dir(path)
+
+        self.assertEqual(str(absolute), directory.absolute())
+
+
+class TestFile(TestCase):
+    """Tests for :class:`File`.
+    """
+
+    def test_error_if_file_does_not_exist(self):
+        """Checks that an error is thrown if the path does not point to an
+        existing file.
+        """
+        path = Mock(spec=Path)
+        path.is_file = Mock()
+        path.is_file.return_value = False
+
+        with self.assertRaises(ValueError):
+            File(path)
+
+        path.is_file.assert_called_once()
+
+    def test_as_path(self):
+        """Checks that the type can be converted into a path.
+        """
+        path = Mock(spec=Path)
+        path.is_file = Mock()
+        path.is_file.return_value = True
+
+        file = File(path)
+
+        self.assertEqual(path, file.as_path())
+
+    def test_as_str(self):
+        """Checks that the type can be converted into a string.
+        """
+        path = Mock(spec=Path)
+        path.is_file = Mock()
+        path.is_file.return_value = True
+
+        file = File(path)
+
+        self.assertEqual(str(path), file.as_str())
+
+    def test_str(self):
+        """Checks that the type can be converted into a string through __str__.
+        """
+        path = Mock(spec=Path)
+        path.is_file = Mock()
+        path.is_file.return_value = True
+
+        file = File(path)
+
+        self.assertEqual(str(path), str(file))
+
+    def test_as_absolute(self):
+        """Checks that the type can be transformed into an absolute path.
+        """
+        absolute = Mock()
+
+        path = Mock(spec=Path)
+        path.is_file = Mock()
+        path.is_file.return_value = True
+
+        path.absolute = Mock()
+        path.absolute.return_value = absolute
+
+        file = File(path)
+
+        self.assertEqual(str(absolute), file.absolute())
 
 
 class TestURL(TestCase):
