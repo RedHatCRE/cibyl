@@ -107,9 +107,13 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
             if build.duration.value:
                 printer.add(get_duration_section(self.palette, build), 1)
 
-        if build.tests.value:
-            for test in build.tests.values():
-                printer.add(self.print_test(test), 1)
+        if self.query >= QueryType.TESTS:
+            if build.tests.value:
+                for test in build.tests.values():
+                    printer.add(self.print_test(test), 1)
+            else:
+                msg = 'No tests in query.'
+                printer.add(self.palette.red(msg), 1)
 
         if build.stages.value:
             printer.add(self.palette.blue('Stages: '), 1)
