@@ -15,7 +15,7 @@
 """
 import tempfile
 from abc import ABC, abstractmethod
-from typing import Iterable
+from typing import Sequence
 
 from overrides import overrides
 
@@ -112,7 +112,7 @@ class GitDownloaderFetcher:
     def clone_path(self):
         return self._clone_path
 
-    def get_downloaders_for(self, url: URL) -> Iterable[GitHubDownloader]:
+    def get_downloaders_for(self, url: URL) -> Sequence[GitHubDownloader]:
         result = []
 
         if is_git(url):
