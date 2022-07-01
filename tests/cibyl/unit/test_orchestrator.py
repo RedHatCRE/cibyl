@@ -364,7 +364,6 @@ class TestOrchestratorArgsFilter(TestCase):
         args = self.orchestrator.sort_and_filter_args()
         self.assertEqual(1, len(args))
         self.assertEqual("get_builds", args[0].func)
-        self.assertEqual("get_jobs", args[0].parent_func)
 
     def test_sort_and_filter_args_jobs_system_jobs(self):
         """Test that the sort_and_filter_args returns the only argument with a
@@ -374,7 +373,6 @@ class TestOrchestratorArgsFilter(TestCase):
         args = self.orchestrator.sort_and_filter_args()
         self.assertEqual(1, len(args))
         self.assertEqual("get_jobs", args[0].func)
-        self.assertIsNone(args[0].parent_func)
 
     def test_sort_and_filter_args_jobs_system_tests(self):
         """Test that the sort_and_filter_args filters multiple arguments with
@@ -385,7 +383,6 @@ class TestOrchestratorArgsFilter(TestCase):
         args = self.orchestrator.sort_and_filter_args()
         self.assertEqual(1, len(args))
         self.assertEqual("get_tests", args[0].func)
-        self.assertEqual("get_builds", args[0].parent_func)
 
     def test_sort_and_filter_args_zuul_system(self):
         """Test that the sort_and_filter_args filters multiple arguments with
@@ -396,7 +393,6 @@ class TestOrchestratorArgsFilter(TestCase):
         args = self.orchestrator.sort_and_filter_args()
         self.assertEqual(1, len(args))
         self.assertEqual("get_builds", args[0].func)
-        self.assertEqual("get_jobs", args[0].parent_func)
 
     def test_sort_and_filter_args_zuul_system_tests(self):
         """Test that the sort_and_filter_args filters multiple arguments with
@@ -407,7 +403,6 @@ class TestOrchestratorArgsFilter(TestCase):
         args = self.orchestrator.sort_and_filter_args()
         self.assertEqual(1, len(args))
         self.assertEqual("get_tests", args[0].func)
-        self.assertEqual("get_builds", args[0].parent_func)
 
     def test_sort_and_filter_args_zuul_system_multiple_paths(self):
         """Test that the sort_and_filter_args filters handles correctly
@@ -433,9 +428,7 @@ class TestOrchestratorArgsFilterOpenstackPlugin(TestOrchestratorArgsFilter,
         args = self.orchestrator.sort_and_filter_args()
         self.assertEqual(2, len(args))
         self.assertEqual("get_deployment", args[0].func)
-        self.assertEqual("get_jobs", args[0].parent_func)
         self.assertEqual("get_builds", args[1].func)
-        self.assertEqual("get_jobs", args[1].parent_func)
 
     def test_sort_and_filter_args_jobs_system_deployment_tests(self):
         """Test that the sort_and_filter_args filters multiple arguments with
@@ -446,6 +439,4 @@ class TestOrchestratorArgsFilterOpenstackPlugin(TestOrchestratorArgsFilter,
         args = self.orchestrator.sort_and_filter_args()
         self.assertEqual(2, len(args))
         self.assertEqual("get_deployment", args[0].func)
-        self.assertEqual("get_jobs", args[0].parent_func)
         self.assertEqual("get_tests", args[1].func)
-        self.assertEqual("get_builds", args[1].parent_func)

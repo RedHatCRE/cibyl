@@ -18,7 +18,7 @@ import operator
 import re
 import time
 from copy import deepcopy
-from typing import List
+from typing import List, Optional
 
 import networkx as nx
 
@@ -304,7 +304,8 @@ class Orchestrator:
             system.populate(query_result)
 
     def extend_parser(self, attributes: dict, group_name: str = 'Environment',
-                      level: int = 0) -> None:
+                      level: int = 0,
+                      parent_func: Optional[str] = None) -> None:
         """Extend parser with arguments from CI models."""
         for attr_dict in attributes.values():
             arguments = attr_dict.get('arguments')
@@ -312,11 +313,24 @@ class Orchestrator:
                 class_type = attr_dict.get('attr_type')
                 if class_type not in [str, list, dict, int] and \
                    hasattr(class_type, 'API'):
-                    self.parser.extend(arguments, group_name, level=level+1)
+                    # generate a set of all query method associated with the
+                    # arguments
+                    query_methods = set([arg.func for arg in arguments
+                                         if arg.func is not None])
+                    next_parent_func = parent_func
+                    if query_methods:
+                        # if we found some query method in the arguments, set
+                        # it up as the parent_func to use when recursing to
+                        # explore the next Model's API
+                        next_parent_func = query_methods.pop()
+                    self.parser.extend(arguments, group_name, level=level+1,
+                                       parent_func=parent_func)
                     self.extend_parser(class_type.API, class_type.__name__,
-                                       level=level+1)
+                                       level=level+1,
+                                       parent_func=next_parent_func)
                 else:
-                    self.parser.extend(arguments, group_name, level=level)
+                    self.parser.extend(arguments, group_name, level=level,
+                                       parent_func=parent_func)
 
     def query_and_publish(self, output_style: str = "colorized",
                           features: list = None) -> None:

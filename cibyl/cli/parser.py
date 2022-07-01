@@ -104,13 +104,14 @@ class Parser:
         arguments that are currently added."""
         self.argument_parser.print_help()
 
-    def add_argument_to_tree(self, arg: Argument) -> None:
+    def add_argument_to_tree(self, arg: Argument, parent_func: str) -> None:
         """Add argument to tree"""
-        if arg.func:
-            self.graph_queries.add_node(arg.func)
-        if arg.parent_func:
-            self.graph_queries.add_node(arg.parent_func)
-            self.graph_queries.add_edge(arg.parent_func, arg.func)
+        if arg.func == parent_func:
+            # avoid creating self-links
+            return
+        self.graph_queries.add_node(arg.func)
+        self.graph_queries.add_node(parent_func)
+        self.graph_queries.add_edge(parent_func, arg.func)
 
     def parse(self, arguments: List[Argument] = None) -> None:
         """Parse application and CI models arguments.
@@ -145,12 +146,14 @@ class Parser:
         return None
 
     def extend(self, arguments: List[Argument], group_name: str,
-               level: int = 0) -> None:
+               level: int = 0, parent_func: Optional[str] = None) -> None:
         """Adds arguments to a specific argument parser group.
 
         :param arguments: A list of argument objects
         :param group_name: The name of the argument parser group
         :param level: The level of the arguments in models
+        :param parent_func: The query method of the source that comes before
+        the ones in the arguments to add
         """
         group = self.get_group(group_name)
         # If the group doesn't exists, we would like to add it
@@ -160,8 +163,8 @@ class Parser:
 
         try:
             for arg in arguments:
-                if arg.parent_func:
-                    self.add_argument_to_tree(arg)
+                if parent_func and arg.func:
+                    self.add_argument_to_tree(arg, parent_func)
                 group.add_argument(
                     arg.name, type=arg.arg_type,
                     help=arg.description, nargs=arg.nargs,
@@ -169,7 +172,6 @@ class Parser:
                     ranged=arg.ranged,
                     populated=arg.populated,
                     default=arg.default,
-                    parent_func=arg.parent_func,
                     level=level)
         except argparse.ArgumentError:
             pass
