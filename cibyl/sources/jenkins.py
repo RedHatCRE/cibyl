@@ -24,6 +24,7 @@ from urllib.parse import urlparse
 import requests
 import urllib3
 
+from cibyl.cli.argument import Argument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.base.build import Build
@@ -37,6 +38,7 @@ from cibyl.utils.filtering import (apply_filters,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_range_match,
                                    satisfy_regex_match)
+from cibyl.utils.models import has_builds_job, has_tests_job
 
 LOG = logging.getLogger(__name__)
 
@@ -112,7 +114,6 @@ def has_filter_builds(**kwargs):
 
 def has_filter_tests(**kwargs):
     """Check if the kwargs contain any argument with value to filter tests.
-
     :returns: Whether there is any tests-related argument that has a value to
     filter the found tests.
     :rtype: bool
@@ -158,8 +159,8 @@ def is_test(test):
     return bool(test['className'])
 
 
-def filter_tests(tests_found: List[Dict], **kwargs):
-    """Filter the tests obtainedfrom the Jenkins API according to
+def filter_tests(tests_found: List[Dict], **kwargs: Argument) -> List[Dict]:
+    """Filter the tests obtained from the Jenkins API according to
     user input."""
     checks_to_apply = [is_test]
 
@@ -182,19 +183,6 @@ def filter_tests(tests_found: List[Dict], **kwargs):
                                        field_to_check="duration"))
 
     return apply_filters(tests_found, *checks_to_apply)
-
-
-def has_tests_job(job: Job):
-    """Check if a job has any tests added.
-    :param job: Job to check
-    :type job: :class:`Job`
-    :returns: whether the job has any tests
-    :rtype: bool
-    """
-    for build in job.builds.values():
-        if build.tests.value:
-            return True
-    return False
 
 
 # pylint: disable=no-member
@@ -382,7 +370,7 @@ try reducing verbosity for quicker query")
                                          stages=build_stages)
                     job.add_build(build_object)
 
-            has_builds = bool(job.builds.value)
+            has_builds = has_builds_job(job)
             if (filtering_builds and has_builds) or not filtering_builds:
                 jobs_with_builds[job_name] = job
 

@@ -35,6 +35,7 @@ from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import chunk_dictionary_into_lists
 from cibyl.utils.filtering import (apply_filters, matches_regex,
                                    satisfy_exact_match, satisfy_regex_match)
+from cibyl.utils.models import has_builds_job, has_tests_job
 
 LOG = logging.getLogger(__name__)
 
@@ -174,13 +175,12 @@ class ElasticSearch(ServerSource):
             ) from exception
 
     @speed_index({'base': 2})
-    def get_builds(self, **kwargs: Argument):
+    def get_builds(self, **kwargs: Argument) -> AttributeDictValue:
         """
             Get builds from elasticsearch server.
 
             :returns: container of jobs with build information from
             elasticsearch server
-            :rtype: :class:`AttributeDictValue`
         """
         jobs_found = self.get_jobs(**kwargs)
 
@@ -224,15 +224,21 @@ class ElasticSearch(ServerSource):
 
             query_body['query']['bool']['should'].clear()
 
+        # keep track if there is any flag that would
+        # cause builds to be filtered, to remove later jobs that are empty due
+        # to this filtering
+        filtering_builds = False
         build_statuses = []
         if 'build_status' in kwargs:
             build_statuses = [status.upper()
                               for status in
                               kwargs.get('build_status').value]
+            filtering_builds |= bool(build_statuses)
 
         build_id_argument = None
         if 'builds' in kwargs:
             build_id_argument = kwargs.get('builds').value
+            filtering_builds |= bool(build_id_argument)
 
         for build in builds:
             build_result = None
@@ -255,18 +261,27 @@ class ElasticSearch(ServerSource):
                                            build_result,
                                            build['_source']['time_duration']))
 
+        final_jobs = jobs_found.value
+        if filtering_builds:
+            # if there was some argument that leads to filtering out tests,
+            # make sure that the output jobs have at least one test
+            final_jobs = {job_name: job for job_name, job in
+                          jobs_found.items() if has_builds_job(job)}
+        jobs_found = AttributeDictValue("jobs", attr_type=Job,
+                                        value=final_jobs)
+
         if 'last_build' in kwargs:
             return self.get_last_build(jobs_found)
 
         return jobs_found
 
-    def get_last_build(self, builds_jobs: AttributeDictValue):
+    def get_last_build(self,
+                       builds_jobs: AttributeDictValue) -> AttributeDictValue:
         """
             Get last build from builds. It's determined
             by the build_id
 
             :returns: container of jobs with last build information
-            :rtype: :class:`AttributeDictValue`
         """
         job_object = {}
         for job_name, build_info in builds_jobs.items():
@@ -287,13 +302,12 @@ class ElasticSearch(ServerSource):
         return AttributeDictValue("jobs", attr_type=Job, value=job_object)
 
     @speed_index({'base': 3})
-    def get_tests(self, **kwargs: Argument):
+    def get_tests(self, **kwargs: Argument) -> AttributeDictValue:
         """
             Get tests for a elasticsearch job.
 
             :returns: container of jobs with the last completed build
             (if any) and the tests
-            :rtype: :class:`AttributeDictValue`
         """
         self.check_builds_for_test(**kwargs)
 
@@ -326,8 +340,13 @@ class ElasticSearch(ServerSource):
             "sort": [{"timestamp.keyword": {"order": "desc"}}]
         }
 
+        # keep track if there is any flag that would
+        # cause tests to be filtered, to remove later jobs that are empty due
+        # to this filtering
+        tests_filtering = False
         tests_pattern = None
         if 'tests' in kwargs and kwargs['tests'].value:
+            tests_filtering = True
             tests_pattern = re.compile("|".join(kwargs['tests'].value))
 
         test_result_argument = []
@@ -335,10 +354,12 @@ class ElasticSearch(ServerSource):
             test_result_argument = [status.upper()
                                     for status in
                                     kwargs.get('test_result').value]
+            tests_filtering |= bool(test_result_argument)
 
         test_duration_arguments = []
         if 'test_duration' in kwargs:
             test_duration_arguments = kwargs.get('test_duration').value
+            tests_filtering |= bool(test_duration_arguments)
 
         hits = []
         for job in job_builds_found:
@@ -418,7 +439,13 @@ class ElasticSearch(ServerSource):
                 )
             )
 
-        return job_builds_found
+        final_jobs = job_builds_found
+        if tests_filtering:
+            # if there was some argument that leads to filtering out tests,
+            # make sure that the output jobs have at least one test
+            final_jobs = {job_name: job for job_name, job in
+                          job_builds_found.items() if has_tests_job(job)}
+        return AttributeDictValue("jobs", attr_type=Job, value=final_jobs)
 
     def match_filter_test_by_duration(self,
                                       test_duration: float,
