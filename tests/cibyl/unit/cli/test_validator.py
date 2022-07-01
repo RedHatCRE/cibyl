@@ -96,8 +96,8 @@ class TestValidator(TestCase):
         """Testing Validator validate_environment method."""
         self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
-        self.ci_args["env_name"] = Mock()
-        self.ci_args["env_name"].value = ["env"]
+        self.ci_args["envs"] = Mock()
+        self.ci_args["envs"].value = ["env"]
         validator = Validator(self.ci_args)
         original_envs = self.orchestrator.environments
 
@@ -114,8 +114,8 @@ class TestValidator(TestCase):
         """Testing Validator validate_environment method."""
         self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
-        self.ci_args["env_name"] = Mock()
-        self.ci_args["env_name"].value = ["env"]
+        self.ci_args["envs"] = Mock()
+        self.ci_args["envs"].value = ["env"]
         self.ci_args["systems"] = Mock()
         self.ci_args["systems"].value = ["system3"]
 
@@ -133,8 +133,8 @@ class TestValidator(TestCase):
         """Testing Validator validate_environment method."""
         self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
-        self.ci_args["env_name"] = Mock()
-        self.ci_args["env_name"].value = ["env"]
+        self.ci_args["envs"] = Mock()
+        self.ci_args["envs"].value = ["env"]
         self.ci_args["system_type"] = Mock()
         self.ci_args["system_type"].value = ["jenkins"]
 
@@ -152,8 +152,8 @@ class TestValidator(TestCase):
         """Testing Validator validate_environment method."""
         self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
-        self.ci_args["env_name"] = Mock()
-        self.ci_args["env_name"].value = ["env"]
+        self.ci_args["envs"] = Mock()
+        self.ci_args["envs"].value = ["env"]
         self.ci_args["system_type"] = Mock()
         self.ci_args["system_type"].value = ["unk"]
 
@@ -220,8 +220,8 @@ class TestValidator(TestCase):
         """Test Validator validate_environments with no sources."""
         self.orchestrator.config = AppConfig(data=self.config)
         self.orchestrator.create_ci_environments()
-        self.ci_args["env_name"] = Mock()
-        self.ci_args["env_name"].value = ["env"]
+        self.ci_args["envs"] = Mock()
+        self.ci_args["envs"].value = ["env"]
         self.ci_args["sources"] = Mock()
         self.ci_args["sources"].value = ["zuul"]
 
