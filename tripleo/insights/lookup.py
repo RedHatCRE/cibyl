@@ -26,23 +26,48 @@ from tripleo.utils.types import URL, YAML
 
 
 class DeploymentLookUp:
+    """Main class of the 'insights' library.
+
+    Takes care of fetching all the required data in order to generate a
+    deployment summary out of its outline.
+    """
+
     def __init__(
         self,
         validator: OutlineValidator = OutlineValidator(),
         downloader_fetcher: GitDownloaderFetcher = GitDownloaderFetcher()
     ):
+        """Constructor.
+
+        :param validator: Tool used to validate the input data.
+        :param downloader_fetcher: Tool used to get APIs to interact with Git.
+        """
         self._validator = validator
         self._download_fetcher = downloader_fetcher
 
     @property
     def validator(self) -> OutlineValidator:
+        """
+        :return: Tool used to validate the input data.
+        """
         return self._validator
 
     @property
     def download_fetcher(self) -> GitDownloaderFetcher:
+        """
+        :return: Tool used to get APIs to interact with Git.
+        """
         return self._download_fetcher
 
     def run(self, outline: DeploymentOutline) -> DeploymentSummary:
+        """Runs a lookup task, fetching all the necessary data out of the
+        TripleO repositories in order to understand what deployment would be
+        performed from it.
+
+        :param outline: Points to the files that describe the deployment
+            TripleO will perform.
+        :return: A summary of such deployment where TripleO to do it.
+        """
         result = DeploymentSummary()
 
         self._validate_outline(outline)

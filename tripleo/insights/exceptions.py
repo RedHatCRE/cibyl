@@ -16,10 +16,16 @@
 
 
 class InsightsError(Exception):
-    """
+    """Base exception for any error happening in the 'insights' library.
     """
 
 
 class InvalidURL(InsightsError):
+    """Complains about a URL that did not follow an expected format.
     """
+
+
+class DownloadError(InsightsError):
+    """Indicates that a problem happened while a file was getting
+    downloaded.
     """

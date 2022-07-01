@@ -20,11 +20,18 @@ from tripleo.utils.types import YAML, File
 
 
 class FeatureSetInterpreter:
+    """Takes care of making sense out of the contents of a featureset file.
+    """
+
     @dataclass
     class Keys:
+        """Defines the fields of interest contained by a featureset file.
+        """
         ipv6: str = 'overcloud_ipv6'
+        """Indicates IP version of deployment."""
 
     KEYS = Keys()
+    """Knowledge that this has about the featureset file's contents."""
 
     def __init__(
         self,
@@ -32,6 +39,13 @@ class FeatureSetInterpreter:
         schema: File = File('tripleo/_data/schemas/featureset.json'),
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
+        """Constructor.
+
+        :param data: Contents of the featureset file, parsed from YAML format.
+        :param schema: The structure that the file must follow.
+        :param validator_factory: Creates the validator used to check the
+            data against the schema.
+        """
         validator = validator_factory.from_file(schema)
 
         if not validator.is_valid(data):
@@ -42,9 +56,16 @@ class FeatureSetInterpreter:
 
     @property
     def data(self) -> YAML:
+        """
+        :return: Raw data of the featureset.
+        """
         return self._data
 
     def is_ipv6(self) -> bool:
+        """
+        :return: True if the deployment works under IPv6, False if it does
+            under IPv4.
+        """
         key = self.KEYS.ipv6
 
         if key not in self.data:

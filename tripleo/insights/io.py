@@ -24,15 +24,27 @@ from tripleo.utils.types import URL
 
 @dataclass
 class DeploymentOutline:
+    """Defines the input data required to form the deployment summary.
+    """
     quickstart: URL = DEFAULT_QUICKSTART
+    """URL of TripleO QuickStart repository."""
     heat: URL = DEFAULT_THT
+    """URL of Triple Heat Templates repository."""
 
     environment: str = DEFAULT_ENVIRONMENT_FILE
+    """Path to environment file relative to the repository's root."""
     featureset: str = DEFAULT_FEATURESET_FILE
+    """Path to featureset file relative to the repository's root."""
     nodes: str = DEFAULT_NODES_FILE
+    """Path to nodes file relative to the repository's root."""
     release: str = DEFAULT_RELEASE_FILE
+    """Path to release file relative to the repository's root."""
 
 
 @dataclass
 class DeploymentSummary:
+    """Defines the deployment that TripleO will perform based on the
+    outline provided as input.
+    """
     ip_version: str = 'N/A'
+    """Name of the IP protocol used on the deployment."""

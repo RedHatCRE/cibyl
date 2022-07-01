@@ -17,10 +17,16 @@
 from tripleo.utils.types import URL
 
 DEFAULT_QUICKSTART = URL('https://github.com/openstack/tripleo-quickstart.git')
+"""Default URL for TripleO QuickStart repository."""
 DEFAULT_THT = URL('https://github.com/openstack/tripleo-heat-templates.git')
+"""Default URL for TripleO Heat Templates repository."""
 
 # Modeled as 'str' as these are resources on a web host.
 DEFAULT_ENVIRONMENT_FILE = 'config/environments/default_libvirt.yml'
+"""Path to default environment file."""
 DEFAULT_FEATURESET_FILE = 'config/general_config/minimal.yml'
+"""Path to default featureset file."""
 DEFAULT_NODES_FILE = 'config/nodes/1ctlr_1comp.yml'
+"""Path to default nodes file."""
 DEFAULT_RELEASE_FILE = 'config/release/master.yml'
+"""Path to default release file."""
