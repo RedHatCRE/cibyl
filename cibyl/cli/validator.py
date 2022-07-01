@@ -62,7 +62,7 @@ class Validator:
         :param env: Model to validate
         :returns: Whether the environment is consistent with user input
         """
-        user_env = self.ci_args.get("env_name")
+        user_env = self.ci_args.get("envs")
         if user_env:
             return env.name.value in user_env.value
         return True
