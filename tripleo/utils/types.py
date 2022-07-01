@@ -13,92 +13,126 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from abc import ABC
+from abc import ABC, abstractmethod
 from os import PathLike
 from pathlib import Path
 from typing import Any, Dict, Union
 
+from overrides import overrides
+
+from tripleo.utils.paths import Preprocessor
 from tripleo.utils.strings import is_url
 
+# -- Serialization --
 YAML = Dict[str, Any]
 """Represents data originated from reading a YAML file."""
 
+# -- FileSystem --
+RawPath = Union[bytes, str, PathLike, Path]
 
-class FSPath(ABC):
+
+class FSPath(str, ABC):
     """Base class for representations of a filesystem path. These are able
     to make system calls and are meant to model elements existing on the
     filesystem.
     """
 
-    def __init__(self, path: Union[bytes, str, PathLike, Path]):
+    def __new__(cls, value: RawPath, *makeup: Preprocessor):
         """Constructor.
 
-        :param path: Representation of the path to handle.
+        :param value: The path to build this from.
+        :param makeup: Modifications applied to the path before it is
+            converted into this type. 'value' is left untouched during this
+            process.
         """
-        if not isinstance(path, Path):
-            path = Path(path)
+        result = Path(value)
 
-        self._path = path
+        for cosmetic in makeup:
+            result = cosmetic(result)
 
-    def __str__(self):
-        return self.as_str()
+        return super().__new__(cls, str(result))
 
-    def absolute(self) -> str:
+    @abstractmethod
+    def check_exists(self) -> None:
         """
-        :return: An absolute version of this path.
+        :raises IOError: If the path does not exist or is not in the
+            correct format.
         """
-        return str(self.as_path().absolute())
+        raise NotImplementedError
 
-    def as_str(self) -> str:
+    @abstractmethod
+    def exists(self) -> bool:
         """
-        :return: The raw filesystem path itself.
+        :return: True is the path exists on the filesystem, False otherwise.
         """
-        return str(self.as_path())
+        raise NotImplementedError
 
     def as_path(self) -> Path:
         """
         :return: The path in pathlib format.
         """
-        return self._path
+        return Path(self)
 
 
 class Dir(FSPath):
     """Represents a directory on the filesystem.
     """
 
-    def __init__(self, path: Union[bytes, str, PathLike, Path]):
-        """Constructor. See parent for more information.
+    @overrides
+    def check_exists(self) -> None:
+        if not self.exists():
+            msg = f"Path is not a directory or does not exist: '{self}'."
+            raise IOError(msg)
 
-        :raises ValueError: If the path does not exist or is not a directory.
-        """
-        super().__init__(path)
-
-        if not self.as_path().is_dir():
-            msg = f"Path is not a directory or does not exist: '{str(self)}'."
-            raise ValueError(msg)
+    @overrides
+    def exists(self) -> bool:
+        return self.as_path().is_dir()
 
     def is_empty(self) -> bool:
-        """
+        """Checks if the directory has any files within.
+
+        If the directory does not exist, this will return False.
+
         :return: True if the directory has no files within, False otherwise.
         """
+        if not self.exists():
+            return False
+
         return not any(self.as_path().iterdir())
+
+    def mkdir(self, recursive: bool = False) -> None:
+        """Creates the directory on the filesystem.
+
+        :param recursive: Whether to also create missing directories
+            leading to this one or not.
+        :raises FileNotFoundError: If the parents on the directory do not
+            exist. Can only happen if 'recursive" is False.
+        """
+        self.as_path().mkdir(parents=recursive, exist_ok=True)
 
 
 class File(FSPath):
     """Represents a file on the filesystem.
     """
 
-    def __init__(self, path: Union[bytes, str, PathLike, Path]):
-        """Constructor. See parent for more information.
+    @overrides
+    def check_exists(self) -> None:
+        if not self.exists():
+            msg = f"Path is not a file or does not exist: '{self}'."
+            raise IOError(msg)
 
-        :raises ValueError: If the path does not exist or is not a file.
-        """
-        super().__init__(path)
+    @staticmethod
+    def from_existing(path: RawPath) -> 'File':
+        result = File(path)
 
-        if not self.as_path().is_file():
-            msg = f"Path is not a file or does not exist: '{str(self)}'."
-            raise ValueError(msg)
+        return result
 
+    @overrides
+    def exists(self) -> bool:
+        return self.as_path().is_file()
+
+
+# -- Network --
 
 class URL(str):
     """Extension of a string to exclusively model URLs.
