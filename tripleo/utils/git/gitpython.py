@@ -70,8 +70,9 @@ class Repository(IRepository):
         :return: Absolute path to such file.
         """
         path = os.path.join(self.handler.working_dir, file)
+        path = os.path.abspath(path)
 
-        return File(path).absolute()
+        return File(path)
 
 
 class GitPython(IGit):

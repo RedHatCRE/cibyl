@@ -45,7 +45,10 @@ class FeatureSetInterpreter:
         :param schema: The structure that the file must follow.
         :param validator_factory: Creates the validator used to check the
             data against the schema.
+        :raises ValueError: If the schema file does not exist.
         """
+        schema.check_exists()
+
         validator = validator_factory.from_file(schema)
 
         if not validator.is_valid(data):

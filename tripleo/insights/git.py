@@ -23,6 +23,7 @@ from tripleo.utils.git.gitpython import GitPython
 from tripleo.utils.git.utils import get_repository_fullname
 from tripleo.utils.github import GitHub
 from tripleo.utils.github.pygithub import PyGitHub
+from tripleo.utils.paths import resolve_home
 from tripleo.utils.types import URL, Dir
 from tripleo.utils.urls import is_git, is_github
 
@@ -104,6 +105,10 @@ class GitCLIDownloader(GitDownloader):
         return self._get_repo().get_as_text(file)
 
     def _get_repo(self) -> Repository:
+        # Check if working directory is ready
+        if not self.working_dir.exists():
+            self.working_dir.mkdir(recursive=True)
+
         # Check if the repository is present on the filesystem
         if self.working_dir.is_empty():
             # Download it then
@@ -159,7 +164,7 @@ class GitDownloaderFetcher:
     """Tool used to find the downloaders that are compatible with a certain
     URL.
     """
-    DEFAULT_CLONE_PATH = Dir('~/.cibyl')
+    DEFAULT_CLONE_PATH = Dir('~/.cibyl', resolve_home)
     """Default directory where Git repositories are cloned to if needed."""
 
     def __init__(self, clone_path: Dir = DEFAULT_CLONE_PATH):
