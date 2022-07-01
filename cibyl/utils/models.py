@@ -26,3 +26,11 @@ def has_tests_job(job: Job) -> bool:
         if build.tests.value:
             return True
     return False
+
+
+def has_builds_job(job: Job) -> bool:
+    """Check if a job has any builds added.
+    :param job: Job to check
+    :returns: whether the job has any builds
+    """
+    return bool(job.builds.value)

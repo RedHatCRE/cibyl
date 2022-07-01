@@ -174,22 +174,18 @@ class TestElasticSearch(TestCase):
         self.assertEqual(jobs['test4'].url.value, "http://domain.tld/test4")
 
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
-    def test_get_builds(self: object, mock_query_hits: object) -> None:
+    def test_get_builds(self, mock_query_hits) -> None:
         """Tests that the internal logic from
            :meth:`ElasticSearch.get_builds` is correct.
         """
-        mock_query_hits.return_value = self.build_hits
 
         jobs_argument = Mock()
         jobs_argument.value = ['test']
-        jobs = self.es_api.get_jobs(jobs=jobs_argument)
-        self.assertEqual(len(jobs), 2)
-
-        self.es_api.get_jobs = Mock()
-        self.es_api.get_jobs.return_value = jobs
         mock_query_hits.return_value = self.build_hits
 
-        builds = self.es_api.get_builds()['test'].builds
+        jobs = self.es_api.get_builds(jobs=jobs_argument)
+        builds = jobs['test'].builds
+        self.assertEqual(len(jobs), 2)
         self.assertEqual(len(builds), 1)
 
         build = builds['1']
@@ -197,52 +193,51 @@ class TestElasticSearch(TestCase):
         self.assertEqual(build.status.value, "SUCCESS")
 
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
-    def test_get_builds_by_status(self: object,
-                                  mock_query_hits: object) -> None:
+    def test_get_builds_by_status(self, mock_query_hits) -> None:
         """Tests filtering by status in :meth:`ElasticSearch.get_builds`
             is correct.
         """
-        mock_query_hits.return_value = self.job_hits
 
-        jobs_argument = Mock()
-        jobs_argument.value = ['test']
-        jobs = self.es_api.get_jobs(jobs=jobs_argument)
-        self.es_api.get_jobs = Mock()
-        self.es_api.get_jobs.return_value = jobs
-        mock_query_hits.return_value = self.build_hits
+        mock_query_hits.side_effect = [self.job_hits, self.build_hits]
 
         # We need to mock the Argument kwargs passed. In this case
         # build_status
-        status_argument = MagicMock()
-        build_status = PropertyMock(return_value=['fAiL'])
-        type(status_argument).value = build_status
+        jobs_argument = Mock()
+        jobs_argument.value = ['test']
+        status_argument = Mock(spec=Argument)
+        status_argument.value = ['fAiL']
 
-        builds = self.es_api.get_builds(build_status=status_argument)
+        builds = self.es_api.get_builds(build_status=status_argument,
+                                        jobs=jobs_argument)
         builds_values = builds['test2'].builds
         build = builds_values['2']
         self.assertEqual(build.build_id.value, '2')
         self.assertEqual(build.status.value, "FAIL")
 
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
-    def test_get_builds_with_last_build(self: object,
-                                        mock_query_hits: object) -> None:
+    def test_get_builds_filter_jobs_no_match(self,
+                                             mock_query_hits) -> None:
+        """Tests filtering by status in :meth:`ElasticSearch.get_builds`
+            is correct and that if no jobs satisfy the criteria, no jobs are
+            returned.
+        """
+        mock_query_hits.side_effect = [self.job_hits, self.build_hits]
+
+        status_argument = Mock(spec=Argument)
+        status_argument.value = ['non-existing']
+
+        builds = self.es_api.get_builds(build_status=status_argument)
+        self.assertEqual(len(builds), 0)
+
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
+    def test_get_builds_with_last_build(self, mock_query_hits) -> None:
         """Tests that the internal logic from
            :meth:`ElasticSearch.get_builds` is correct.
         """
-        mock_query_hits.return_value = self.build_hits
+        mock_query_hits.side_effect = [self.job_hits, self.build_hits]
 
-        jobs_argument = Mock()
-        jobs_argument.value = ['test']
-        jobs = self.es_api.get_jobs(jobs=jobs_argument)
-        self.assertEqual(len(jobs), 2)
-
-        self.es_api.get_jobs = Mock()
-        self.es_api.get_jobs.return_value = jobs
-        mock_query_hits.return_value = self.build_hits
-
-        builds_kwargs = MagicMock()
-        builds_value = PropertyMock(return_value=[])
-        type(builds_kwargs).value = builds_value
+        builds_kwargs = Mock(spec=Argument)
+        builds_kwargs.value = []
         builds = self.es_api.get_builds(last_build=builds_kwargs)
 
         test_builds = builds['test'].builds
@@ -260,8 +255,25 @@ class TestElasticSearch(TestCase):
         self.assertEqual(build.status.value, "FAIL")
 
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
-    def test_get_tests(self: object,
-                       mock_query_hits: object) -> None:
+    def test_last_build_filter_no_builds(self,
+                                         mock_query_hits: object) -> None:
+        """Tests that the internal logic from
+           :meth:`ElasticSearch.get_builds` is correct and that if filtering by
+           builds, no job is found to match the criteria, return no jobs.
+        """
+        mock_query_hits.side_effect = [self.job_hits, self.build_hits]
+
+        builds_kwargs = Mock(spec=Argument)
+        builds_kwargs.value = []
+        build_status_kwargs = Mock(spec=Argument)
+        build_status_kwargs.value = []
+
+        builds = self.es_api.get_builds(last_build=builds_kwargs,
+                                        build_status=build_status_kwargs)
+        self.assertEqual(0, len(builds))
+
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
+    def test_get_tests(self, mock_query_hits) -> None:
         """Tests internal logic :meth:`ElasticSearch.get_tests`
             is correct.
         """
@@ -272,9 +284,8 @@ class TestElasticSearch(TestCase):
         with self.assertRaises(MissingArgument):
             self.es_api.get_tests()
 
-        builds_kwargs = MagicMock()
-        builds_value = PropertyMock(return_value=[])
-        type(builds_kwargs).value = builds_value
+        builds_kwargs = Mock(spec=Argument)
+        builds_kwargs.value = []
 
         tests = self.es_api.get_tests(
             builds=builds_kwargs
@@ -288,13 +299,11 @@ class TestElasticSearch(TestCase):
         )
 
         # Test Filtering by test_result
-        builds_kwargs = MagicMock()
-        builds_value = PropertyMock(return_value=['1', '2'])
-        type(builds_kwargs).value = builds_value
+        builds_kwargs = Mock(spec=Argument)
+        builds_kwargs.value = ['1', '2']
 
-        test_result_kwargs = MagicMock()
-        test_result_value = PropertyMock(return_value=['sucCess'])
-        type(test_result_kwargs).value = test_result_value
+        test_result_kwargs = Mock(spec=Argument)
+        test_result_kwargs.value = ['sucCess']
 
         tests = self.es_api.get_tests(
             builds=builds_kwargs,
@@ -323,20 +332,17 @@ class TestElasticSearch(TestCase):
         )
 
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
-    def test_get_tests_filter_by_tests_name(self: object,
-                                            mock_query_hits: object) -> None:
+    def test_get_tests_filter_by_tests_name(self, mock_query_hits) -> None:
         """Tests internal logic :meth:`ElasticSearch.get_tests`
             is correct and filters by test name supporting regex.
         """
         mock_query_hits.return_value = self.tests_hits
 
-        builds_kwargs = MagicMock()
-        builds_value = PropertyMock(return_value=[])
-        type(builds_kwargs).value = builds_value
+        builds_kwargs = Mock(spec=Argument)
+        builds_kwargs.value = []
 
-        tests_kwargs = MagicMock()
-        tests_value = PropertyMock(return_value=["test$"])
-        type(tests_kwargs).value = tests_value
+        tests_kwargs = Mock(spec=Argument)
+        tests_kwargs.value = ['test$']
 
         tests = self.es_api.get_tests(
             builds=builds_kwargs,
@@ -349,8 +355,7 @@ class TestElasticSearch(TestCase):
         )
 
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
-    def test_get_tests_jobs_filtered_no_tests(self: object,
-                                              mock_query_hits: object) -> None:
+    def test_get_tests_jobs_filtered_no_tests(self, mock_query_hits) -> None:
         """Tests internal logic :meth:`ElasticSearch.get_tests`
             is correct and filters by test name supporting regex, if some jobs
             turn out to have no tests as a result of the filtering, they should
@@ -358,13 +363,11 @@ class TestElasticSearch(TestCase):
         """
         mock_query_hits.return_value = self.tests_hits
 
-        builds_kwargs = MagicMock()
-        builds_value = PropertyMock(return_value=[])
-        type(builds_kwargs).value = builds_value
+        builds_kwargs = Mock(spec=Argument)
+        builds_kwargs.value = ['']
 
-        tests_kwargs = MagicMock()
-        tests_value = PropertyMock(return_value=["test3$"])
-        type(tests_kwargs).value = tests_value
+        tests_kwargs = Mock(spec=Argument)
+        tests_kwargs.value = ['test3$']
 
         tests = self.es_api.get_tests(
             builds=builds_kwargs,

@@ -38,7 +38,7 @@ from cibyl.utils.filtering import (apply_filters,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_range_match,
                                    satisfy_regex_match)
-from cibyl.utils.models import has_tests_job
+from cibyl.utils.models import has_builds_job, has_tests_job
 
 LOG = logging.getLogger(__name__)
 
@@ -370,7 +370,7 @@ try reducing verbosity for quicker query")
                                          stages=build_stages)
                     job.add_build(build_object)
 
-            has_builds = bool(job.builds.value)
+            has_builds = has_builds_job(job)
             if (filtering_builds and has_builds) or not filtering_builds:
                 jobs_with_builds[job_name] = job
 
