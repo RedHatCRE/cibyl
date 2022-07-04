@@ -18,7 +18,7 @@ import json
 import logging
 import re
 from functools import partial
-from typing import Dict, List
+from typing import Callable, Dict, List
 from urllib.parse import urlparse
 
 import requests
@@ -33,7 +33,6 @@ from cibyl.models.ci.base.stage import Stage
 from cibyl.models.ci.base.test import Test
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import safe_request_generic, speed_index
-from cibyl.utils.dicts import subset
 from cibyl.utils.filtering import (apply_filters,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_range_match,
@@ -101,31 +100,10 @@ def filter_jobs(jobs_found: List[Dict], **kwargs):
     return apply_filters(jobs_found, *checks_to_apply)
 
 
-def has_filter_builds(**kwargs):
-    """Check if the kwargs contain any argument with value to filter builds.
-
-    :returns: Whether there is any builds-related argument that has a value to
-    filter the found builds.
-    :rtype: bool
-    """
-    build_args = subset(kwargs, ["builds", "last_build", "build_status"])
-    return any(arg.value for arg in build_args.values())
-
-
-def has_filter_tests(**kwargs):
-    """Check if the kwargs contain any argument with value to filter tests.
-    :returns: Whether there is any tests-related argument that has a value to
-    filter the found tests.
-    :rtype: bool
-    """
-    test_args = subset(kwargs, ["tests", "test_result", "test_duration"])
-    return any(arg.value for arg in test_args.values())
-
-
-def filter_builds(builds_found: List[Dict], **kwargs):
-    """Filter the result from the Jenkins API according to user input"""
+def get_build_filters(**kwargs: Argument) -> List[Callable]:
+    """Get a list of functions that should be used to filter the builds,
+    according to user input."""
     checks_to_apply = []
-
     builds_arg = kwargs.get('builds')
     if builds_arg and builds_arg.value:
         checks_to_apply.append(partial(satisfy_exact_match,
@@ -137,37 +115,18 @@ def filter_builds(builds_found: List[Dict], **kwargs):
         checks_to_apply.append(partial(satisfy_case_insensitive_match,
                                        user_input=build_status,
                                        field_to_check="result"))
-
-    for build in builds_found:
-        # ensure that the build number is passed as a string, Jenkins usually
-        # sends it as an int
-        build["number"] = str(build["number"])
-
-    return apply_filters(builds_found, *checks_to_apply)
+    return checks_to_apply
 
 
-def is_test(test):
-    """Check if a given test representation corresponds to a test and not
-    to some container returned by Jenkins.
-
-    :param test: Jenkins Job representation as a dictionary
-    :type test: dict
-    :returns: Whether the test representation actually corresponds to a test
-    :rtype: bool
-    """
-    # If the test does not have a className, then it is a container
-    return bool(test['className'])
-
-
-def filter_tests(tests_found: List[Dict], **kwargs: Argument) -> List[Dict]:
-    """Filter the tests obtained from the Jenkins API according to
-    user input."""
-    checks_to_apply = [is_test]
-
+def get_test_filters(**kwargs: Argument) -> List[Callable]:
+    """Get a list of functions that should be used to filter the tests,
+    according to user input."""
+    checks_to_apply = []
     tests_arg = kwargs.get('tests')
-    if tests_arg:
+    if tests_arg and tests_arg.value:
         pattern = re.compile("|".join(tests_arg.value))
-        checks_to_apply.append(partial(satisfy_regex_match, pattern=pattern,
+        checks_to_apply.append(partial(satisfy_regex_match,
+                                       pattern=pattern,
                                        field_to_check="name"))
 
     tests_results = kwargs.get('test_result')
@@ -181,8 +140,48 @@ def filter_tests(tests_found: List[Dict], **kwargs: Argument) -> List[Dict]:
         checks_to_apply.append(partial(satisfy_range_match,
                                        user_input=test_durations,
                                        field_to_check="duration"))
+    return checks_to_apply
 
-    return apply_filters(tests_found, *checks_to_apply)
+
+def filter_builds(builds_found: List[Dict],
+                  checks_to_apply: List[Callable]) -> List[Dict]:
+
+    """Filter the result from the Jenkins API according to user input
+    :param builds_found: Collection of builds to filter
+    :param: checks_to_apply: List of function that the builds should satisfy
+    :returns: The builds that satisfy all the conditions included in the checks
+    functions
+    """
+
+    for build in builds_found:
+        # ensure that the build number is passed as a string, Jenkins usually
+        # sends it as an int
+        build["number"] = str(build["number"])
+
+    return apply_filters(builds_found, *checks_to_apply)
+
+
+def is_test(test: dict) -> bool:
+    """Check if a given test representation corresponds to a test and not
+    to some container returned by Jenkins.
+
+    :param test: Jenkins Job representation as a dictionary
+    :returns: Whether the test representation actually corresponds to a test
+    """
+    # If the test does not have a className, then it is a container
+    return bool(test['className'])
+
+
+def filter_tests(tests_found: List[Dict],
+                 checks_to_apply: List[Callable]) -> List[Dict]:
+    """Filter the tests obtained from the Jenkins API according to
+    user input.
+    :param tests_found: Collection of tests to filter
+    :param: checks_to_apply: List of function that the tests should satisfy
+    :returns: The tests that satisfy all the conditions included in the checks
+    functions
+    """
+    return apply_filters(tests_found, is_test, *checks_to_apply)
 
 
 # pylint: disable=no-member
@@ -345,8 +344,9 @@ class Jenkins(ServerSource):
         if 'last_build' in kwargs:
             return self.get_last_build(**kwargs)
         jobs_found = self.get_jobs(**kwargs)
+        build_filters = get_build_filters(**kwargs)
+        filtering_builds = bool(build_filters)
         jobs_with_builds = {}
-        filtering_builds = has_filter_builds(**kwargs)
         if kwargs.get('verbosity', 0) > 0 and len(jobs_found) > 80:
             LOG.warning("This might take a couple of minutes...\
 try reducing verbosity for quicker query")
@@ -359,7 +359,7 @@ try reducing verbosity for quicker query")
                 LOG.debug("Got %d builds for job %s",
                           len(builds_info["allBuilds"]), job_name)
                 builds_to_add = filter_builds(builds_info["allBuilds"],
-                                              **kwargs)
+                                              build_filters)
                 for build in builds_to_add:
                     build_stages = None
                     if "stages" in kwargs:
@@ -388,7 +388,8 @@ try reducing verbosity for quicker query")
 
         jobs_found = self.send_request(self.jobs_last_build_query)["jobs"]
         jobs_filtered = filter_jobs(jobs_found, **kwargs)
-        filtering_builds = has_filter_builds(**kwargs)
+        build_filters = get_build_filters(**kwargs)
+        filtering_builds = bool(build_filters)
 
         job_objects = {}
         for job in jobs_filtered:
@@ -397,7 +398,7 @@ try reducing verbosity for quicker query")
             job_object = Job(name=name, url=job.get('url'))
             if job["lastBuild"]:
                 builds_to_add = filter_builds([job["lastBuild"]],
-                                              **kwargs)
+                                              build_filters)
                 for build in builds_to_add:
                     build_stages = None
                     if "stages" in kwargs:
@@ -407,7 +408,7 @@ try reducing verbosity for quicker query")
                                       duration=build.get('duration'),
                                       stages=build_stages)
                     job_object.add_build(build_obj)
-            has_builds = bool(job_object.builds.value)
+            has_builds = has_builds_job(job_object)
             if (filtering_builds and has_builds) or not filtering_builds:
                 job_objects[name] = job_object
 
@@ -424,7 +425,8 @@ try reducing verbosity for quicker query")
         """
 
         self.check_builds_for_test(**kwargs)
-        filtering_tests = has_filter_tests(**kwargs)
+        checks_user_input = get_test_filters(**kwargs)
+        filtering_tests = bool(checks_user_input)
 
         jobs_found = self.get_builds(**kwargs)
         final_jobs = {}
@@ -469,7 +471,8 @@ try reducing verbosity for quicker query")
                                     " %s", suit_id, job_name)
                         continue
 
-                    tests_filtered = filter_tests(suit['cases'], **kwargs)
+                    tests_filtered = filter_tests(suit['cases'],
+                                                  checks_user_input)
                     for test in tests_filtered:
 
                         # Duration comes in seconds (float)

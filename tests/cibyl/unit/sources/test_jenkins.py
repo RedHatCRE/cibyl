@@ -22,7 +22,7 @@ from cibyl.cli.argument import Argument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.exceptions.source import MissingArgument, SourceException
 from cibyl.sources.jenkins import (Jenkins, filter_builds, filter_jobs,
-                                   safe_request)
+                                   get_build_filters, safe_request)
 
 
 class TestSafeRequestJenkinsError(TestCase):
@@ -939,10 +939,10 @@ class TestJenkinsSource(TestCase):
         tests = {'_class': '_empty'}
 
         # Mock the --builds command line argument
-        build_kwargs = MagicMock()
-        type(build_kwargs).value = PropertyMock(return_value=['1'])
-        tests_kwargs = MagicMock()
-        type(tests_kwargs).value = PropertyMock(return_value=[])
+        build_kwargs = Mock(spec=Argument)
+        build_kwargs.value = ['1']
+        tests_kwargs = Mock(spec=Argument)
+        tests_kwargs.value = []
 
         self.jenkins.send_request = Mock(side_effect=[response, builds, tests])
 
@@ -1147,8 +1147,8 @@ class TestFilters(TestCase):
         builds.value = ["3"]
         build_status = Mock()
         build_status.value = ["success"]
-        builds_filtered = filter_builds(response, builds=builds,
-                                        build_status=build_status)
+        checks = get_build_filters(builds=builds, build_status=build_status)
+        builds_filtered = filter_builds(response, checks)
         expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
                      'result': 'SUCCESS'}]
         self.assertEqual(builds_filtered, expected)
@@ -1165,8 +1165,8 @@ class TestFilters(TestCase):
         builds.value = []
         build_status = Mock()
         build_status.value = ["success"]
-        builds_filtered = filter_builds(response, builds=builds,
-                                        build_status=build_status)
+        checks = get_build_filters(builds=builds, build_status=build_status)
+        builds_filtered = filter_builds(response, checks)
         expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
                      'result': 'SUCCESS'},
                     {'_class': 'org..job.WorkflowRun', 'number': "5",
@@ -1183,7 +1183,8 @@ class TestFilters(TestCase):
                      'result': 'success'}]
         builds = Mock()
         builds.value = ["3", "5"]
-        builds_filtered = filter_builds(response, builds=builds)
+        checks = get_build_filters(builds=builds)
+        builds_filtered = filter_builds(response, checks)
         expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
                      'result': 'SUCCESS'},
                     {'_class': 'org..job.WorkflowRun', 'number': "5",
@@ -1200,8 +1201,8 @@ class TestFilters(TestCase):
                      'result': 'success'}]
         build_status = Mock()
         build_status.value = ["success"]
-        builds_filtered = filter_builds(response,
-                                        build_status=build_status)
+        checks = get_build_filters(build_status=build_status)
+        builds_filtered = filter_builds(response, checks)
         expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
                      'result': 'SUCCESS'},
                     {'_class': 'org..job.WorkflowRun', 'number': "5",
@@ -1220,8 +1221,8 @@ class TestFilters(TestCase):
                      'result': 'success'}]
         build_status = Mock()
         build_status.value = ["success"]
-        builds_filtered = filter_builds(response,
-                                        build_status=build_status)
+        checks = get_build_filters(build_status=build_status)
+        builds_filtered = filter_builds(response, checks)
         expected = [{'_class': 'org..job.WorkflowRun', 'number': "3",
                      'result': 'SUCCESS'},
                     {'_class': 'org..job.WorkflowRun', 'number': "5",
