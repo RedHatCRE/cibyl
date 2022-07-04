@@ -20,18 +20,15 @@ from cibyl.models.attribute import AttributeDictValue
 LOG = logging.getLogger(__name__)
 
 
-def subset(dictionary, keys):
+def subset(dictionary: dict, keys: list) -> dict:
     """Creates a new dictionary from items from another one. A new
     dictionary is formed by extracting the keys explicitly indicated. If one of
     the given keys is not present on the dictionary, it is ignored. The
     original dictionary is left untouched.
 
     :param dictionary: The dictionary to extract items from.
-    :type dictionary: dict
     :param keys: The keys to get from the dictionary.
-    :type keys: list
     :return: The new dictionary.
-    :rtype: dict
     """
     result = {}
 
@@ -47,18 +44,15 @@ def subset(dictionary, keys):
     return result
 
 
-def nsubset(dictionary, keys):
+def nsubset(dictionary: dict, keys: list) -> dict:
     """Creates a new dictionary from items from another one. The 'n' stands
     for 'negative', meaning that the keys form an excluded list. All keys
     from the other dictionary will be extracted except for the ones explicitly
     indicated. The original dictionary is left untouched.
 
     :param dictionary: The dictionary to extract items from.
-    :type dictionary: dict
     :param keys: The keys to not get from the dictionary.
-    :type keys: list
     :return: The new dictionary.
-    :rtype: dict
     """
     result = {}
 
@@ -92,19 +86,16 @@ def chunk_dictionary_into_lists(dictionary: dict, size: int = 300) -> list:
     return chunked_list
 
 
-def intersect_models(dict1, dict2):
+def intersect_models(dict1: dict, dict2: dict) -> dict:
     """Combine two dictionaries that are returned from a source method call to
     keep only those models that are present in both. It assumes that the models
     present in both dictionaries are identical and takes them for the first
     input dictionary.
 
     :param dict1: The first dictionary with models.
-    :type dict1: dict
     :param dict2: The second dictionary with models.
-    :type dict2: dict
     :return: A new dictionary that contains only the models present in both
     input dictionaries.
-    :rtype: dict
     """
     intersection = dict1.keys() & dict2.keys()
     models = {key: dict1[key] for key in intersection}

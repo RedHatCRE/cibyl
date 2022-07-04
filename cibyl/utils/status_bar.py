@@ -43,7 +43,7 @@ class StatusBar(threading.Thread):
         self.status_text = status_text
         self.update_frequency = update_frequency
 
-    def run(self):
+    def run(self) -> None:
         """Prints the animation to stdout"""
         characters = ['.   ', ' .  ', '  . ', '   .']
         for character in itertools.cycle(characters):

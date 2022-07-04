@@ -25,11 +25,10 @@ class JSONValidatorFactory(ABC):
     """
 
     @abstractmethod
-    def from_file(self, file):
+    def from_file(self, file: str):
         """Builds a new validator by reading the schema from a file.
 
         :param file: Path to the file to read.
-        :type file: str
         :return: New validator instance.
         :rtype: :class:`jsonschema.IValidator`
         :raise IOError: If the file could not be opened or read.
@@ -45,7 +44,7 @@ class Draft7ValidatorFactory(JSONValidatorFactory):
     """
 
     @overrides
-    def from_file(self, file):
+    def from_file(self, file: str) -> Draft7Validator:
         with open(file, 'r') as buffer:
             schema = json.loads(buffer.read())
 
