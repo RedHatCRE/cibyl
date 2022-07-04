@@ -16,7 +16,88 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from tripleo.insights.deployment import FeatureSetInterpreter
+from tripleo.insights.deployment import FeatureSetInterpreter, \
+    EnvironmentInterpreter
+
+
+class TestEnvironmentInterpreter(TestCase):
+    """Tests for :class:`EnvironmentInterpreter`.
+    """
+
+    def test_checks_data_validity(self):
+        """Verifies that the class checks that the data follows the schema.
+        """
+        data = {}
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        EnvironmentInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        factory.from_file.assert_called_once_with(schema)
+
+        validator.is_valid.assert_called_once_with(data)
+
+    def test_error_if_invalid_data(self):
+        """Checks that an error is thrown if the data is not valid.
+        """
+        data = {}
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = False
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        with self.assertRaises(ValueError):
+            EnvironmentInterpreter(
+                data,
+                schema=schema,
+                validator_factory=factory
+            )
+
+    def test_get_infra_type(self):
+        """Checks that it is able to extract the infrastructure type.
+        """
+        keys = EnvironmentInterpreter.KEYS
+
+        infra_type = 'libvirt'
+
+        data = {}
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        environment = EnvironmentInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        self.assertEqual(None, environment.get_intra_type())
+
+        data[keys.infra_type] = infra_type
+
+        self.assertEqual(infra_type, environment.get_intra_type())
 
 
 class TestFeatureSetInterpreter(TestCase):

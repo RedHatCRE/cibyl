@@ -13,10 +13,48 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Optional
+
 from dataclasses import dataclass
 
 from tripleo.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
 from tripleo.utils.types import YAML, File
+
+
+class EnvironmentInterpreter:
+    @dataclass
+    class Keys:
+        infra_type: str = 'environment_type'
+
+    KEYS = Keys()
+
+    def __init__(
+        self,
+        data: YAML,
+        schema: File = File('tripleo/_data/schemas/environment.json'),
+        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
+    ):
+        schema.check_exists()
+
+        validator = validator_factory.from_file(schema)
+
+        if not validator.is_valid(data):
+            msg = 'Featureset data does not conform to its schema.'
+            raise ValueError(msg)
+
+        self._data = data
+
+    @property
+    def data(self) -> YAML:
+        return self._data
+
+    def get_intra_type(self) -> Optional[str]:
+        key = self.KEYS.infra_type
+
+        if key not in self.data:
+            return None
+
+        return self.data[key]
 
 
 class FeatureSetInterpreter:
