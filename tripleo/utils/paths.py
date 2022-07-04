@@ -20,6 +20,20 @@ Preprocessor = Callable[[Path], Path]
 
 
 def resolve_home(path: Path) -> Path:
+    """Resolves the '~' shortcut used to indicate that a path starts from
+    the home directory.
+
+    The symbol will only be treated if it is the first character of the path,
+    anywhere else will be ignored.
+
+    If the symbol does not appear, then everything is returned as is.
+
+    The original path is not modified. A copy of it is returned instead.
+
+    :param path: The path to resolve.
+    :return: The same path, with the '~' replaced to the absolute path of the
+        home directory.
+    """
     raw = str(path)
 
     if raw.startswith('~'):
