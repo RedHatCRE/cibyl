@@ -28,7 +28,6 @@ from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.sources.jenkins import Jenkins as OSPJenkins
 from cibyl.sources.jenkins import Jenkins
-from cibyl.utils.source_methods_store import SourceMethodsStore
 
 
 class TestOrchestrator(TestCase):
@@ -60,19 +59,13 @@ class TestOrchestrator(TestCase):
     @patch('cibyl.orchestrator.get_source_instance_from_method')
     @patch('cibyl.orchestrator.source_information_from_method',
            return_value="")
-    @patch.object(SourceMethodsStore, '_method_information_tuple')
     @patch.object(Jenkins, 'get_jobs', side_effect=JenkinsError)
     @patch.object(OSPJenkins, 'get_deployment', side_effect=JenkinsError)
     @patch('cibyl.plugins.get_classes_in', return_value=[OSPJenkins])
     def test_args_level(self, _get_classes_mock, jenkins_deployment,
-                        jenkins_jobs, store_mock, _, source_instance_mock,
+                        jenkins_jobs, _, source_instance_mock,
                         jenkins_setup_mock):
         """Test that the args level is updated properly in run_query."""
-        store_mock.side_effect = [("jenkins", "get_deployment"),
-                                  ("jenkins", "get_deployment"),
-                                  ("jenkins", "get_jobs"),
-                                  ("jenkins", "get_jobs"),
-                                  ("jenkins", "get_jobs")]
         source_instance_mock.return_value = Jenkins(url="url")
         with NamedTemporaryFile() as config_file:
             config_file.write(b"environments:\n")
@@ -96,20 +89,15 @@ class TestOrchestrator(TestCase):
     @patch('cibyl.orchestrator.get_source_instance_from_method')
     @patch('cibyl.orchestrator.source_information_from_method',
            return_value="")
-    @patch.object(SourceMethodsStore, '_method_information_tuple')
     @patch.object(Jenkins, 'get_builds')
     @patch.object(OSPJenkins, 'get_deployment')
     @patch('cibyl.plugins.get_classes_in', return_value=[OSPJenkins])
     def test_intersection_run_query(self, _get_classes_mock,
                                     jenkins_deployment, jenkins_builds,
-                                    store_mock, _, source_instance_mock,
+                                    _, source_instance_mock,
                                     jenkins_setup_mock):
         """Test that the output of two source queries is combined properly
         in run_query."""
-        store_mock.side_effect = [("jenkins", "get_deployment"),
-                                  ("jenkins", "get_deployment"),
-                                  ("jenkins", "get_builds"),
-                                  ("jenkins", "get_builds")]
         source_instance_mock.return_value = Jenkins(url="url")
         builds = {"1": Build("1")}
         builds_out = {"job1": Job("job1", builds=builds), "job2": Job("job2")}
