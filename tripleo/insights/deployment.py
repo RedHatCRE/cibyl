@@ -15,7 +15,7 @@
 """
 from abc import ABC
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, Optional
 
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
@@ -27,6 +27,7 @@ class FileInterpreter(ABC):
         self,
         data: YAML,
         schema: File,
+        overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
         """Constructor.
@@ -36,17 +37,25 @@ class FileInterpreter(ABC):
         :param validator_factory: Creates the validator used to check the
             data against the schema.
         :raises IOError: If the schema file does not exist or cannot be opened.
-        :raises IllegibleData: If the data does not match the schema.
+        :raises IllegibleData:
+            If the data does not match the schema.
+            If the 'overrides' dictionary does not match the schema.
         """
-        schema.check_exists()
+
+        def validate_data(__data):
+            if not validator.is_valid(__data):
+                raise IllegibleData('Data does not conform to its schema.')
+
+        if overrides is None:
+            overrides = {}
 
         validator = validator_factory.from_file(schema)
 
-        if not validator.is_valid(data):
-            msg = 'Data does not conform to its schema.'
-            raise IllegibleData(msg)
+        validate_data(data)
+        validate_data(overrides)
 
         self._data = data
+        self._overrides = overrides
 
     @property
     def data(self) -> YAML:
@@ -54,6 +63,10 @@ class FileInterpreter(ABC):
         :return: Raw data contained by the file.
         """
         return self._data
+
+    @property
+    def overrides(self):
+        return self._overrides
 
 
 class EnvironmentInterpreter(FileInterpreter):
@@ -67,17 +80,21 @@ class EnvironmentInterpreter(FileInterpreter):
         self,
         data: YAML,
         schema: File = File('tripleo/_data/schemas/environment.json'),
+        overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
-        super().__init__(data, schema, validator_factory)
+        super().__init__(data, schema, overrides, validator_factory)
 
     def get_intra_type(self) -> Optional[str]:
         key = self.KEYS.infra_type
 
-        if key not in self.data:
-            return None
+        if key in self.overrides:
+            return self.overrides[key]
 
-        return self.data[key]
+        if key in self.data:
+            return self.data[key]
+
+        return None
 
 
 class FeatureSetInterpreter(FileInterpreter):
@@ -98,9 +115,10 @@ class FeatureSetInterpreter(FileInterpreter):
         self,
         data: YAML,
         schema: File = File('tripleo/_data/schemas/featureset.json'),
+        overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
-        super().__init__(data, schema, validator_factory)
+        super().__init__(data, schema, overrides, validator_factory)
 
     def is_ipv6(self) -> bool:
         """
@@ -109,7 +127,10 @@ class FeatureSetInterpreter(FileInterpreter):
         """
         key = self.KEYS.ipv6
 
-        if key not in self.data:
-            return False
+        if key in self.overrides:
+            return self.overrides[key]
 
-        return self.data[key]
+        if key in self.data:
+            return self.data[key]
+
+        return False
