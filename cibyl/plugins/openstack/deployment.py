@@ -111,7 +111,10 @@ class Deployment(Model):
         },
         'test_collection': {
             'attr_type': TestCollection,
-            'arguments': []
+            'arguments': [Argument(name="--test-setup", arg_type=str,
+                                   func='get_deployment', nargs=1,
+                                   choices=('rpm', 'git'),
+                                   description="Source for the test setup")]
         },
         'network_backend': {
             'attr_type': str,

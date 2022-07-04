@@ -14,7 +14,7 @@
 #    under the License.
 """
 import argparse
-from typing import List, Type, Union
+from typing import Iterable, List, Optional, Type, Union
 
 from cibyl.cli.ranged_argument import (EXPRESSION_PATTERN, RANGE_OPERATORS,
                                        VALID_OPS, Range)
@@ -29,7 +29,7 @@ class Argument():
                  description: str, nargs: Union[str, int] = 1,
                  func: str = None, populated: bool = False, level: int = 0,
                  ranged: bool = False, value: List[str] = None,
-                 default: object = None):
+                 default: object = None, choices: Optional[Iterable] = None):
         self.name = name
 
         self.arg_type = arg_type
@@ -44,6 +44,7 @@ class Argument():
         else:
             self.value = value
         self.default = default
+        self.choices = choices
 
     def parse_ranges(self, expressions: List[str]) -> List[Range]:
         parsed_expressions = []
