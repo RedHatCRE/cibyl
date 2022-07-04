@@ -49,7 +49,7 @@ class Draft7ValidatorFactory(JSONValidatorFactory):
 
     @overrides
     def from_file(self, file: File) -> Draft7Validator:
-        with open(file.as_str(), 'r') as buffer:
+        with open(file, 'r') as buffer:
             schema = json.loads(buffer.read())
 
             Draft7Validator.check_schema(schema)
