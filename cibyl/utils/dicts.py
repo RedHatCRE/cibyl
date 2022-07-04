@@ -44,14 +44,13 @@ def subset(dictionary: dict, keys: list) -> dict:
     return result
 
 
-def nsubset(dictionary, keys: list) -> dict:
+def nsubset(dictionary: dict, keys: list) -> dict:
     """Creates a new dictionary from items from another one. The 'n' stands
     for 'negative', meaning that the keys form an excluded list. All keys
     from the other dictionary will be extracted except for the ones explicitly
     indicated. The original dictionary is left untouched.
 
     :param dictionary: The dictionary to extract items from.
-    :type dictionary: dict
     :param keys: The keys to not get from the dictionary.
     :return: The new dictionary.
     """

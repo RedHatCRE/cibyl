@@ -82,7 +82,7 @@ class BubbleSortAlgorithm(SortingAlgorithm):
 
     @overrides
     def sort(self, iterable: Iterable) -> list:
-        def compare(lft: Any, rght: Any):
+        def compare(lft, rght):
             return self._comparator.compare(lft, rght)
 
         result = list(iterable)  # Do not affect the original list

@@ -120,9 +120,7 @@ def filter_topology(model: Dict[str, str], operator: str, value: str,
     :param model: model information obtained from jenkins
     :param operator: operator to filter the topology with
     :param value: Value to use in the comparison
-    :param value: str
     :param component: Component of the topology to filter
-    :param component: str
     :returns: Whether the model satisfies user input
     """
     topology = model["topology"]
