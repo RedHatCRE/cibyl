@@ -22,13 +22,11 @@ class YAMLError(Exception):
     """
 
 
-def parse(file):
+def parse(file: str) -> dict:
     """Reads a YAML file.
 
     :param file: Path to the YAML file to be read.
-    :type file: str
     :return: The contents of the YAML file.
-    :rtype: dict
     :raises YAMLError: If the file failed to be loaded.
     """
     try:

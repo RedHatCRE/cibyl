@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
+from typing import Any, Iterable
 
 from overrides import overrides
 
@@ -25,16 +26,13 @@ class Comparator(ABC):
     """
 
     @abstractmethod
-    def compare(self, left, right):
+    def compare(self, left: Any, right: Any) -> int:
         """Compares the two arguments for order.
 
         :param left: First object to be compared.
-        :type left: Any
         :param right: Second object to be compared.
-        :type right: Any
         :return: A negative integer, zero or a positive integer as the left
             argument is less than, equal to or greater than the right one.
-        :rtype: int
         """
         raise NotImplementedError
 
@@ -45,7 +43,7 @@ class NativeComparator(Comparator):
     '__eq__' and '__lt__' methods."""
 
     @overrides
-    def compare(self, left, right):
+    def compare(self, left: Any, right: Any) -> int:
         if left == right:
             return 0
 
@@ -58,24 +56,21 @@ class SortingAlgorithm(ABC):
     These rules are defines by the comparator in use.
     """
 
-    def __init__(self, comparator=NativeComparator()):
+    def __init__(self, comparator: Comparator = NativeComparator()):
         """Constructor.
 
         :param comparator: Comparison function this uses to determine order.
-        :type comparator: :class:`Comparator`
         """
         self._comparator = comparator
 
     @abstractmethod
-    def sort(self, iterable):
+    def sort(self, iterable: Iterable) -> list:
         """Sorts the given collection in ascending order. The original
         collection remains untouched, instead, a sorted copy of it is returned.
 
         :param iterable: The collection to be sorted.
-        :type iterable: :class:`typing.Iterable`
         :return: The same collection, sorted following this algorithm's
             comparator.
-        :rtype: list
         """
         raise NotImplementedError
 
@@ -86,7 +81,7 @@ class BubbleSortAlgorithm(SortingAlgorithm):
     """
 
     @overrides
-    def sort(self, iterable):
+    def sort(self, iterable: Iterable) -> list:
         def compare(lft, rght):
             return self._comparator.compare(lft, rght)
 
@@ -104,21 +99,20 @@ class BubbleSortAlgorithm(SortingAlgorithm):
         return result
 
 
-def sort(iterable, algorithm=BubbleSortAlgorithm()):
+def sort(iterable: Iterable,
+         algorithm: SortingAlgorithm = BubbleSortAlgorithm()) -> list:
     """Shortcut for sorting the elements of a collection.
 
     :param iterable: The collection to sort.
-    :type iterable: :class:`typing.Iterable`
     :param algorithm: The algorithm that will be used to sort the collection.
         Contains the comparator used to determine order.
-    :type algorithm: :class:`SortingAlgorithm`
     :return: A copy of the input collection, sorted by the algorithm.
-    :rtype: list
     """
     return algorithm.sort(iterable)
 
 
-def nsort(iterable, algorithm=BubbleSortAlgorithm()):
+def nsort(iterable: Iterable,
+          algorithm: SortingAlgorithm = BubbleSortAlgorithm()) -> list:
     """Same as :func:`sort`, but this one reverses the collection before
     returning it. Use this function to get sorting in descending order.
     """

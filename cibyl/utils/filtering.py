@@ -15,7 +15,7 @@
 """
 import re
 import sre_constants
-from typing import Dict, List, Pattern
+from typing import Callable, Dict, Iterable, List, Optional, Pattern
 
 from cibyl.cli.argument import Argument
 from cibyl.cli.ranged_argument import RANGE_OPERATORS
@@ -39,61 +39,50 @@ SERVICES_PATTERN = re.compile(services_pattern_str)
 
 
 def satisfy_regex_match(model: Dict[str, str], pattern: Pattern,
-                        field_to_check: str):
+                        field_to_check: str) -> bool:
     """Check whether model (job or build) should be included according to
     the user input.
     The model should be added if the information provided field_to_check
     (the model name or url for example) is matches the regex pattern.
 
     :param model: model information obtained from jenkins
-    :type model: str
     :param pattern: regex patter that the model name should match
-    :type pattern: :class:`re.Pattern`
     :param field_to_check: model field to perform the check
-    :param field_to_check: str
     :returns: Whether the model satisfies user input
-    :rtype: bool
     """
     return re.search(pattern, model[field_to_check]) is not None
 
 
 def satisfy_exact_match(model: Dict[str, str], user_input: Argument,
-                        field_to_check: str):
+                        field_to_check: str) -> bool:
     """Check whether model should be included according to the user input. The
     model should be added if the information provided field_to_check
     (the model name or url for example) is present in the user_input values.
 
     :param model: model information obtained from jenkins
-    :type model: str
     :param user_input: input argument specified by the user
-    :type model_urls: :class:`.Argument`
     :param field_to_check: Job field to perform the check
-    :param field_to_check: str
     :returns: Whether the model satisfies user input
-    :rtype: bool
     """
     return model[field_to_check] in user_input.value
 
 
 def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
                                    field_to_check: str,
-                                   default_user_value: List[str] = None):
+                                   default_user_value: Optional[List[str]]
+                                   = None
+                                   ) -> bool:
     """Check whether model should be included according to the user input. The
     model should be added if the information provided field_to_check
     (the model name or url for example) is an exact case-insensitive match to
     the information in the user_input values.
 
     :param model: model information obtained from jenkins
-    :type model: str
     :param user_input: input argument specified by the user
-    :type model_urls: :class:`.Argument`
     :param field_to_check: Job field to perform the check
-    :type field_to_check: str
     :param default_user_value: Default value to use if the user input contains
     no value
-    :type default_user_value: list
     :returns: Whether the model satisfies user input
-    :rtype: bool
     """
     if model[field_to_check] is None:
         return False
@@ -105,20 +94,16 @@ def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
 
 
 def satisfy_range_match(model: Dict[str, str], user_input: Argument,
-                        field_to_check: str):
+                        field_to_check: str) -> bool:
     """Check whether model should be included according to the user input. The
     model should be added if the information provided in field_to_check
     (the model name or url for example) is consistent with the range defined
     in the user_input values.
 
     :param model: model information obtained from jenkins
-    :type model: str
     :param user_input: input argument specified by the user
-    :type model_urls: :class:`.Argument`
     :param field_to_check: Job field to perform the check
-    :param field_to_check: str
     :returns: Whether the model satisfies user input
-    :rtype: bool
     """
     model_value = float(model[field_to_check])
     results = [RANGE_OPERATORS[operator](float(model_value), float(user_value))
@@ -127,21 +112,16 @@ def satisfy_range_match(model: Dict[str, str], user_input: Argument,
 
 
 def filter_topology(model: Dict[str, str], operator: str, value: str,
-                    component: str):
+                    component: str) -> bool:
     """Check whether model should be included according to the user input. The
     model should be added if the its topology is consistent with the components
     requested by the user (number of controller or compute nodes).
 
     :param model: model information obtained from jenkins
-    :type model: str
     :param operator: operator to filter the topology with
-    :type operator: str
     :param value: Value to use in the comparison
-    :param value: str
     :param component: Component of the topology to filter
-    :param component: str
     :returns: Whether the model satisfies user input
-    :rtype: bool
     """
     topology = model["topology"]
     for part in topology.split(","):
@@ -151,15 +131,12 @@ def filter_topology(model: Dict[str, str], operator: str, value: str,
     return False
 
 
-def matches_regex(pattern, string):
+def matches_regex(pattern: str, string: str) -> bool:
     """Checks if a certain text is matched by a regex pattern.
 
     :param pattern: The pattern to test.
-    :type pattern: str
     :param string: The text to test the pattern against.
-    :type string: str
     :return: True if the string matched the pattern, false if not.
-    :rtype: bool
     """
     try:
         return bool(re.search(pattern, string))
@@ -167,13 +144,12 @@ def matches_regex(pattern, string):
         return False  # Do not crash against invalid patterns
 
 
-def apply_filters(iterable, *filters):
+def apply_filters(iterable: Iterable, *filters: Callable) -> Iterable:
     """Applies a set of filters to a collection.
 
     :param iterable: The collection to filter.
     :param filters: List of filters to apply.
     :return: The collection post-filtering.
-    :rtype: list
     """
     result = list(iterable)
 
