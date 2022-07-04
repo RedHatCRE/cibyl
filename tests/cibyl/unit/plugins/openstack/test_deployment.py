@@ -17,9 +17,12 @@ from unittest import TestCase
 
 from cibyl.models.ci.base.stage import Stage
 from cibyl.plugins.openstack.deployment import Deployment
+from cibyl.plugins.openstack.ironic import Ironic
+from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.service import Service
+from cibyl.plugins.openstack.storage import Storage
 from cibyl.plugins.openstack.test_collection import TestCollection
 
 
@@ -41,47 +44,50 @@ class TestOpenstackDeployment(TestCase):
         self.ironic = "True"
         self.cleaning_net = "False"
         self.security_group = "native ovn"
+        self.network_obj = Network(ip_version=self.ip_version,
+                                   network_backend=self.network,
+                                   dvr=self.dvr, ml2_driver=self.ml2_driver,
+                                   tls_everywhere=self.tls_everywhere,
+                                   security_group=self.security_group)
+        self.storage_obj = Storage(cinder_backend=self.storage)
+        self.ironic_obj = Ironic(ironic_inspector=self.ironic,
+                                 cleaning_network=self.cleaning_net)
 
         self.deployment = Deployment(self.release, self.infra, {}, {})
         self.second_deployment = Deployment(self.release, self.infra,
                                             self.nodes,
                                             self.services,
-                                            ip_version=self.ip_version,
                                             topology=self.topology,
-                                            network_backend=self.network,
-                                            cinder_backend=self.storage,
-                                            dvr=self.dvr,
-                                            tls_everywhere=self.tls_everywhere,
-                                            ml2_driver=self.ml2_driver,
-                                            ironic_inspector=self.ironic,
-                                            cleaning_network=self.cleaning_net,
-                                            security_group=self.security_group,
+                                            network=self.network_obj,
+                                            storage=self.storage_obj,
+                                            ironic=self.ironic_obj,
                                             overcloud_templates=self.templates)
 
     def test_merge_method(self):
         """Test merge method of Deployment class."""
-        self.assertIsNone(self.deployment.ip_version.value)
+        self.assertIsNone(self.deployment.network.value)
         self.assertEqual({}, self.deployment.services.value)
         self.assertEqual({}, self.deployment.nodes.value)
         self.second_deployment.add_stage(Stage("Run", "SUCCESS"))
         self.deployment.merge(self.second_deployment)
+
+        network = self.deployment.network.value
+        storage = self.deployment.storage.value
+        ironic = self.deployment.ironic.value
         self.assertEqual(self.nodes, self.deployment.nodes.value)
         self.assertEqual(self.services, self.deployment.services.value)
-        self.assertEqual(self.ip_version, self.deployment.ip_version.value)
         self.assertEqual(self.topology, self.deployment.topology.value)
-        self.assertEqual(self.network, self.deployment.network_backend.value)
-        self.assertEqual(self.storage, self.deployment.cinder_backend.value)
-        self.assertEqual(self.dvr, self.deployment.dvr.value)
-        self.assertEqual(self.tls_everywhere,
-                         self.deployment.tls_everywhere.value)
         self.assertEqual(self.templates,
                          self.deployment.overcloud_templates.value)
-        self.assertEqual(self.ml2_driver, self.deployment.ml2_driver.value)
-        self.assertEqual(self.ironic, self.deployment.ironic_inspector.value)
-        self.assertEqual(self.cleaning_net,
-                         self.deployment.cleaning_network.value)
-        self.assertEqual(self.security_group,
-                         self.deployment.security_group.value)
+        self.assertEqual(self.ip_version, network.ip_version.value)
+        self.assertEqual(self.network, network.network_backend.value)
+        self.assertEqual(self.dvr, network.dvr.value)
+        self.assertEqual(self.tls_everywhere, network.tls_everywhere.value)
+        self.assertEqual(self.ml2_driver, network.ml2_driver.value)
+        self.assertEqual(self.storage, storage.cinder_backend.value)
+        self.assertEqual(self.ironic, ironic.ironic_inspector.value)
+        self.assertEqual(self.cleaning_net, ironic.cleaning_network.value)
+        self.assertEqual(self.security_group, network.security_group.value)
         self.assertEqual(len(self.deployment.stages), 1)
         stage_obj = self.deployment.stages[0]
         self.assertEqual(stage_obj.name.value, "Run")

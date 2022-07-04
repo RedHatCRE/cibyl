@@ -547,7 +547,8 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
         jobs = self.es_api.get_deployment(jobs=jobs_argument,
                                           ip_version=ip_address_kwargs)
         deployment = jobs['test'].deployment.value
-        self.assertEqual(deployment.ip_version.value, '4')
+        network = deployment.network.value
+        self.assertEqual(network.ip_version.value, '4')
         self.assertEqual(deployment.topology.value, '')
 
     def test_spec_deployment(self: object):
@@ -580,5 +581,6 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
                                             ip_version=ip_address_kwargs)
 
         deployment = builds['test'].deployment.value
-        self.assertEqual(deployment.ip_version.value, '4')
+        network = deployment.network.value
+        self.assertEqual(network.ip_version.value, '4')
         self.assertEqual(deployment.topology.value, '')
