@@ -15,8 +15,9 @@
 """
 from unittest import TestCase
 
-from tripleo.insights.deployment import FeatureSetInterpreter, \
-    EnvironmentInterpreter
+from tripleo.insights.deployment import (EnvironmentInterpreter,
+                                         FeatureSetInterpreter)
+from tripleo.insights.exceptions import IllegibleData
 
 
 class TestEnvironmentInterpreter(TestCase):
@@ -31,7 +32,7 @@ class TestEnvironmentInterpreter(TestCase):
             EnvironmentInterpreter.KEYS.infra_type: False
         }
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(IllegibleData):
             EnvironmentInterpreter(data)
 
 
@@ -47,5 +48,5 @@ class TestFeatureSetInterpreter(TestCase):
             FeatureSetInterpreter.KEYS.ipv6: 'hello_world'  # Must be bool
         }
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(IllegibleData):
             FeatureSetInterpreter(data)

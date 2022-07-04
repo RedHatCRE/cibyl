@@ -16,8 +16,9 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from tripleo.insights.deployment import FeatureSetInterpreter, \
-    EnvironmentInterpreter
+from tripleo.insights.deployment import (EnvironmentInterpreter,
+                                         FeatureSetInterpreter)
+from tripleo.insights.exceptions import IllegibleData
 
 
 class TestEnvironmentInterpreter(TestCase):
@@ -62,7 +63,7 @@ class TestEnvironmentInterpreter(TestCase):
         factory.from_file = Mock()
         factory.from_file.return_value = validator
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(IllegibleData):
             EnvironmentInterpreter(
                 data,
                 schema=schema,
@@ -142,7 +143,7 @@ class TestFeatureSetInterpreter(TestCase):
         factory.from_file = Mock()
         factory.from_file.return_value = validator
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(IllegibleData):
             FeatureSetInterpreter(
                 data,
                 schema=schema,

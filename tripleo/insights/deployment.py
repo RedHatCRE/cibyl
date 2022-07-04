@@ -13,15 +13,50 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from abc import ABC
+from dataclasses import dataclass
 from typing import Optional
 
-from dataclasses import dataclass
-
+from tripleo.insights.exceptions import IllegibleData
 from tripleo.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
 from tripleo.utils.types import YAML, File
 
 
-class EnvironmentInterpreter:
+class FileInterpreter(ABC):
+    def __init__(
+        self,
+        data: YAML,
+        schema: File,
+        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
+    ):
+        """Constructor.
+
+        :param data: Contents of the file, parsed from YAML format.
+        :param schema: The structure that the file must follow.
+        :param validator_factory: Creates the validator used to check the
+            data against the schema.
+        :raises IOError: If the schema file does not exist or cannot be opened.
+        :raises IllegibleData: If the data does not match the schema.
+        """
+        schema.check_exists()
+
+        validator = validator_factory.from_file(schema)
+
+        if not validator.is_valid(data):
+            msg = 'Data does not conform to its schema.'
+            raise IllegibleData(msg)
+
+        self._data = data
+
+    @property
+    def data(self) -> YAML:
+        """
+        :return: Raw data contained by the file.
+        """
+        return self._data
+
+
+class EnvironmentInterpreter(FileInterpreter):
     @dataclass
     class Keys:
         infra_type: str = 'environment_type'
@@ -34,19 +69,7 @@ class EnvironmentInterpreter:
         schema: File = File('tripleo/_data/schemas/environment.json'),
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
-        schema.check_exists()
-
-        validator = validator_factory.from_file(schema)
-
-        if not validator.is_valid(data):
-            msg = 'Featureset data does not conform to its schema.'
-            raise ValueError(msg)
-
-        self._data = data
-
-    @property
-    def data(self) -> YAML:
-        return self._data
+        super().__init__(data, schema, validator_factory)
 
     def get_intra_type(self) -> Optional[str]:
         key = self.KEYS.infra_type
@@ -57,7 +80,7 @@ class EnvironmentInterpreter:
         return self.data[key]
 
 
-class FeatureSetInterpreter:
+class FeatureSetInterpreter(FileInterpreter):
     """Takes care of making sense out of the contents of a featureset file.
     """
 
@@ -77,30 +100,7 @@ class FeatureSetInterpreter:
         schema: File = File('tripleo/_data/schemas/featureset.json'),
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
-        """Constructor.
-
-        :param data: Contents of the featureset file, parsed from YAML format.
-        :param schema: The structure that the file must follow.
-        :param validator_factory: Creates the validator used to check the
-            data against the schema.
-        :raises ValueError: If the schema file does not exist.
-        """
-        schema.check_exists()
-
-        validator = validator_factory.from_file(schema)
-
-        if not validator.is_valid(data):
-            msg = 'Featureset data does not conform to its schema.'
-            raise ValueError(msg)
-
-        self._data = data
-
-    @property
-    def data(self) -> YAML:
-        """
-        :return: Raw data of the featureset.
-        """
-        return self._data
+        super().__init__(data, schema, validator_factory)
 
     def is_ipv6(self) -> bool:
         """
