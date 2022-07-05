@@ -17,6 +17,9 @@
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
+from cibyl.plugins.openstack.ironic import Ironic
+from cibyl.plugins.openstack.network import Network
+from cibyl.plugins.openstack.storage import Storage
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import chunk_dictionary_into_lists
@@ -237,17 +240,20 @@ class ElasticSearch(SourceExtension):
                 continue
 
             job_objects[job_name] = Job(name=job_name, url=job_url)
+            network = Network(ip_version=ip_version, dvr=dvr,
+                              network_backend=network_backend,
+                              tls_everywhere='')
+            storage = Storage(cinder_backend=cinder_backend)
+            ironic = Ironic()
             deployment = Deployment(
                 release=osp_release,
                 infra_type='',
                 nodes={},
                 services={},
-                ip_version=ip_version,
                 topology=topology,
-                network_backend=network_backend,
-                dvr=dvr,
-                cinder_backend=cinder_backend,
-                tls_everywhere=''
+                network=network,
+                storage=storage,
+                ironic=ironic
             )
 
             job_objects[job_name].add_deployment(deployment)

@@ -18,8 +18,9 @@ from dataclasses import dataclass
 from typing import Dict, Optional
 
 from tripleo.insights.exceptions import IllegibleData
+from tripleo.utils.fs import File
 from tripleo.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
-from tripleo.utils.types import YAML, File
+from tripleo.utils.yaml import YAML
 
 
 class FileInterpreter(ABC):

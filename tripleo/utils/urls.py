@@ -15,7 +15,31 @@
 """
 from urllib.parse import urlparse
 
-from tripleo.utils.types import URL
+from tripleo.utils.strings import is_url
+
+
+class URL(str):
+    """Extension of a string to exclusively model URLs.
+    """
+
+    def __new__(cls, value: str) -> 'URL':
+        """Constructor.
+
+        The string is preprocessed a bit for convenience’ sake. Some actions
+        taken are:
+            - Trimming the string.
+
+        :param value: The string's text.
+        :raises ValueError: If the string does not follow a URL format.
+        """
+        # Avoid false positives by removing leading and trailing whitespaces
+        value = value.strip()
+
+        if not is_url(value):
+            msg = f"String does not represent a valid URL: '{value}'."
+            raise ValueError(msg)
+
+        return super().__new__(cls, value)
 
 
 def is_git(url: URL) -> bool:

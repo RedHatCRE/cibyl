@@ -17,6 +17,7 @@ import logging
 import os
 from os import PathLike
 from pathlib import Path
+from typing import Callable, Iterable, List, Union
 
 LOG = logging.getLogger(__name__)
 
@@ -25,41 +26,37 @@ class FileSearch:
     """Allows for complex search queries targeting files on the filesystem.
     """
 
-    def __init__(self, directory):
+    def __init__(self, directory: str):
         """Constructor.
 
         :param directory: Path to directory to look for files in.
-        :type directory: str
         """
         self._directory = directory
         self._recursive = False
         self._extensions = []
         self._excluded = []
 
-    def with_recursion(self):
+    def with_recursion(self) -> 'FileSearch':
         """Extends the search to the folders inside the directory and beyond.
 
         :return: The instance.
-        :rtype: :class:`FileSearch`
         """
         self._recursive = True
         return self
 
-    def with_extension(self, extension):
+    def with_extension(self, extension: str) -> 'FileSearch':
         """Limits the search to files of a certain extensions. If this is
         called more than once, then the filters are joined together following
         and 'OR' approach.
 
         :param extension: The extension to filter by. Must be passed
             dot-prefixed, like: '.py'.
-        :type extension: str
         :return: The instance.
-        :rtype: :class:`FileSearch`
         """
         self._extensions.append(extension)
         return self
 
-    def with_excluded(self, excluded):
+    def with_excluded(self, excluded: list) -> 'FileSearch':
         """Limits the search to files that are not in the excluded list. If this
         is called more than once, then the filters are joined together
         following an 'OR' approach.
@@ -67,20 +64,18 @@ class FileSearch:
         :param excluded: The file names to filter by.
         :type excluded: list
         :return: The instance.
-        :rtype: :class:`FileSearch`
         """
         self._excluded.extend(excluded)
         return self
 
-    def get(self):
+    def get(self) -> List[str]:
         """Performs the query and gets the paths to the files that were
         found by the search.
 
         :return: Paths to the files.
-        :rtype: list[str]
         """
 
-        def list_directory():
+        def list_directory() -> List[str]:
             return [
                 f'{self._directory}/{entry}'
                 for entry in os.listdir(self._directory)
@@ -104,15 +99,13 @@ class FileSearch:
 
         return result
 
-    def _copy_for(self, directory):
+    def _copy_for(self, directory: str) -> 'FileSearch':
         """Makes a copy of this search intended for another directory. The
         resulting search will follow the same filters as this one, making
         the resulting files follow the same rules.
 
         :param directory: The directory to search this time around.
-        :type directory: str
         :return: The search's instance.
-        :rtype: :class:`FileSearch`
         """
         other = FileSearch(directory)
 
@@ -123,27 +116,28 @@ class FileSearch:
         return other
 
 
-def is_file_available(filename):
+def is_file_available(filename: str) -> bool:
     """Checks if a file is present on the filesystem.
 
     :param filename: A path pointing to the file to be checked.
-    :type filename: str
     :return: Whether the file is there or not.
-    :rtype: bool
     """
     return os.path.isfile(filename)
 
 
-def get_first_available_file(filenames, file_check=is_file_available):
+def get_first_available_file(filenames: Iterable[
+                                Union[bytes, str, PathLike]
+                             ],
+                             file_check: Callable[[str], bool]
+                             = is_file_available
+                             ) -> Union[bytes, str, None]:
     """Searches for the first file out of the provided paths that exists
     on the host's drive.
 
     :param filenames: A list of paths pointing to different files.
-    :type filenames: :class:`typing.Iterable[bytes | str | PathLike]`
     :param file_check: A function that determines if a file is present.
     :return: A string containing the path to the found file. 'None' if no
         file is available
-    :rtype: bytes or str or None
     """
     for filename in filenames:
         # Resolve path into a string
@@ -160,26 +154,22 @@ def get_first_available_file(filenames, file_check=is_file_available):
     return None
 
 
-def get_file_name_from_path(path):
+def get_file_name_from_path(path: str) -> str:
     """Get the file name from a path. Strip all leading path
     information as well as the extension.
     :param path: Path of the file
-    :type path: str
     :returns: The name of the file that path points to, without extension
-    :rtype: str
     """
     path = path.replace("\\", os.sep)
     _, file_name = os.path.split(path)
     return os.path.splitext(file_name)[0]
 
 
-def get_file_extension(path):
+def get_file_extension(path: str) -> str:
     """Gets the dot-prefixed extension from the path to a file.
 
     :param path: Path to the file to get the extension from.
-    :type path: str
     :return: The file's extension.
-    :rtype: str
 
     Examples
     --------

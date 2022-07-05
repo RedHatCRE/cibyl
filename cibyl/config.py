@@ -39,7 +39,6 @@ def _ask_user_for_overwrite() -> bool:
             Blocking call, requires interaction.
 
     :return: True if the user answered yes, false if not.
-    :rtype: bool
     """
     return ask_yes_no_question('Overwrite file?')
 

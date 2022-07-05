@@ -16,8 +16,10 @@
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
-from tripleo.insights.git import (GitCLIDownloader, GitDownloaderFetcher,
-                                  GitHubDownloader)
+from tripleo.insights.exceptions import DownloadError
+from tripleo.insights.git import (GitCLIDownloader, GitDownload,
+                                  GitDownloaderFetcher, GitHubDownloader)
+from tripleo.utils.yaml import YAMLError
 
 
 class TestGitCLIDownloader(TestCase):
@@ -209,3 +211,120 @@ class TestGitDownloaderFetcher(TestCase):
 
         git_check.assert_called_once_with(url)
         github_check.assert_called_once_with(url)
+
+
+class TestGitDownload(TestCase):
+    """Tests for :class:`GitDownload`.
+    """
+
+    def test_error_if_no_downloaders_on_downloads_as_yaml(self):
+        """Checks that an error is raised if there are no downloaders
+        for the given URL when downloading file as YAML."""
+
+        repo = Mock()
+        file = Mock()
+
+        fetcher = Mock()
+        fetcher.get_downloaders_for = Mock()
+        fetcher.get_downloaders_for.return_value = []
+
+        download = GitDownload(
+            downloader_fetcher=fetcher
+        )
+
+        with self.assertRaises(DownloadError):
+            download.download_as_yaml(repo, file)
+
+        fetcher.get_downloaders_for.assert_called_once_with(repo)
+
+    def test_error_if_all_fail_on_downloads_as_yaml(self):
+        """Checks that an error is thrown is all downloaders fail to
+        download the file from the repo.
+        """
+
+        def raise_error(*_):
+            raise DownloadError
+
+        repo = Mock()
+        file = Mock()
+
+        downloader = Mock()
+        downloader.download_as_text = Mock()
+        downloader.download_as_text.side_effect = raise_error
+
+        fetcher = Mock()
+        fetcher.get_downloaders_for = Mock()
+        fetcher.get_downloaders_for.return_value = [downloader]
+
+        download = GitDownload(
+            downloader_fetcher=fetcher
+        )
+
+        with self.assertRaises(DownloadError):
+            download.download_as_yaml(repo, file)
+
+    def test_error_if_not_yaml_on_downloads_as_yaml(self):
+        """Checks that an error is raised if the contents of the downloaded
+        file are not in YAML format.
+        """
+
+        def raise_error(*_):
+            raise YAMLError
+
+        repo = Mock()
+        file = Mock()
+
+        contents = Mock()
+
+        downloader = Mock()
+        downloader.download_as_text = Mock()
+        downloader.download_as_text.return_value = contents
+
+        parser = Mock()
+        parser.as_yaml = Mock()
+        parser.as_yaml.side_effect = raise_error
+
+        fetcher = Mock()
+        fetcher.get_downloaders_for = Mock()
+        fetcher.get_downloaders_for.return_value = [downloader]
+
+        download = GitDownload(
+            downloader_fetcher=fetcher
+        )
+
+        with self.assertRaises(DownloadError):
+            download.download_as_yaml(repo, file, yaml_parser=parser)
+
+    def test_downloads_as_yaml(self):
+        """Checks that it is possible to download a YAML file and parse.
+        """
+        repo = Mock()
+        file = Mock()
+
+        contents = Mock()
+        yaml = Mock()
+
+        downloader = Mock()
+        downloader.download_as_text = Mock()
+        downloader.download_as_text.return_value = contents
+
+        parser = Mock()
+        parser.as_yaml = Mock()
+        parser.as_yaml.return_value = yaml
+
+        fetcher = Mock()
+        fetcher.get_downloaders_for = Mock()
+        fetcher.get_downloaders_for.return_value = [downloader]
+
+        download = GitDownload(
+            downloader_fetcher=fetcher
+        )
+
+        self.assertEqual(
+            yaml,
+            download.download_as_yaml(repo, file, yaml_parser=parser)
+        )
+
+        downloader.download_as_text.assert_called_once_with(file)
+
+        parser.as_yaml.assert_called_once_with(contents)

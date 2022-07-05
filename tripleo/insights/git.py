@@ -13,19 +13,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 from abc import ABC, abstractmethod
-from typing import Sequence
+from typing import Iterable, Sequence
 
 from overrides import overrides
 
+from tripleo.insights.exceptions import DownloadError, InvalidURL
+from tripleo.utils.fs import Dir
 from tripleo.utils.git import Git, Repository
 from tripleo.utils.git.gitpython import GitPython
 from tripleo.utils.git.utils import get_repository_fullname
 from tripleo.utils.github import GitHub
 from tripleo.utils.github.pygithub import PyGitHub
 from tripleo.utils.paths import resolve_home
-from tripleo.utils.types import URL, Dir
-from tripleo.utils.urls import is_git, is_github
+from tripleo.utils.urls import URL, is_git, is_github
+from tripleo.utils.yaml import YAML, StandardYAMLParser, YAMLError, YAMLParser
+
+LOG = logging.getLogger(__name__)
 
 
 class GitDownloader(ABC):
@@ -203,3 +208,81 @@ class GitDownloaderFetcher:
 
     def _get_new_github_downloader(self, url: URL) -> GitHubDownloader:
         return GitHubDownloader(repository=url)
+
+
+class GitDownload:
+    """Takes care of joining all the tools in this module together and
+    allow to safely download files from a Git repository.
+    """
+
+    def __init__(
+        self,
+        downloader_fetcher: GitDownloaderFetcher = GitDownloaderFetcher()
+    ):
+        """Constructor.
+
+        :param downloader_fetcher: Tool that provides the APIs that this
+            will use to interact with Git.
+        """
+        self._download_fetcher = downloader_fetcher
+
+    @property
+    def download_fetcher(self) -> GitDownloaderFetcher:
+        """
+        :return: Tool that provides the APIs that this
+            will use to interact with Git.
+        """
+        return self._download_fetcher
+
+    def download_as_yaml(
+        self,
+        repo: URL,
+        file: str,
+        yaml_parser: YAMLParser = StandardYAMLParser()
+    ) -> YAML:
+        """Downloads a YAML file from a Git repository and parses it into
+        a Python object.
+
+        :param repo: The Git repository.
+        :param file: Relative path to the repo's root to the file to download.
+        :param yaml_parser: Tool used to parse the YAML file.
+        :return: The file as a Python object.
+        :raises DownloadError:
+            If no API is available to download the file.
+            If all APIs failed to download the file.
+            If the file is not in YAML format.
+        """
+        try:
+            for api in self._get_apis_for(repo):
+                LOG.info(
+                    "Trying to download file: '%s' with API: '%s'...",
+                    file, type(api).__name__
+                )
+
+                try:
+                    return yaml_parser.as_yaml(api.download_as_text(file))
+                except YAMLError as ex:
+                    msg = f"Failed to parse YAML file: '{file}'."
+                    raise DownloadError(msg) from ex
+                except DownloadError as ex:
+                    LOG.warning(
+                        "Failed to download file through API: '%s'. "
+                        "Reason: '%s'.",
+                        type(api).__name__, ex
+                    )
+
+            raise DownloadError(
+                f"All APIs failed to download file: '{file}' "
+                f"at URL: '{repo}'."
+            )
+        except InvalidURL as ex:
+            msg = f"No API available to handle URL: '{repo}'."
+            raise DownloadError(msg) from ex
+
+    def _get_apis_for(self, url: URL) -> Iterable[GitDownloader]:
+        result = self._download_fetcher.get_downloaders_for(url)
+
+        if not result:
+            raise InvalidURL(f"Found no handlers for URL: '{url}'.")
+
+        return result

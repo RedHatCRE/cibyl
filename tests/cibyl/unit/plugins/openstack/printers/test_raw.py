@@ -18,10 +18,13 @@ from unittest import TestCase
 from cibyl.models.ci.base.stage import Stage
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.container import Container
+from cibyl.plugins.openstack.ironic import Ironic
+from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.printers.raw import OSRawPrinter
 from cibyl.plugins.openstack.service import Service
+from cibyl.plugins.openstack.storage import Storage
 from cibyl.plugins.openstack.test_collection import TestCollection
 
 
@@ -48,20 +51,21 @@ class TestOSRawPrinter(TestCase):
         cleaning_net = "False"
         security_group = "N/A"
         test_collection = TestCollection(set(["test1", "test2"]), setup="rpm")
+        network_obj = Network(ip_version=ip_version, network_backend=network,
+                              dvr=dvr, tls_everywhere=tls_everywhere,
+                              ml2_driver=ml2_driver,
+                              security_group=security_group)
+        storage_obj = Storage(cinder_backend=storage)
+        ironic_obj = Ironic(ironic_inspector=ironic,
+                            cleaning_network=cleaning_net)
 
         deployment = Deployment(release, infra,
                                 nodes, services,
-                                ip_version=ip_version,
+                                network=network_obj,
                                 topology=topology,
-                                network_backend=network,
-                                cinder_backend=storage,
-                                dvr=dvr,
-                                tls_everywhere=tls_everywhere,
+                                storage=storage_obj,
                                 overcloud_templates=templates,
-                                ml2_driver=ml2_driver,
-                                ironic_inspector=ironic,
-                                cleaning_network=cleaning_net,
-                                security_group=security_group,
+                                ironic=ironic_obj,
                                 test_collection=test_collection)
 
         printer = OSRawPrinter(verbosity=1)
@@ -164,20 +168,21 @@ class TestOSRawPrinter(TestCase):
         cleaning_net = "N/A"
         security_group = "N/A"
         test_collection = "N/A"
+        network_obj = Network(ip_version=ip_version, network_backend=network,
+                              dvr=dvr, tls_everywhere=tls_everywhere,
+                              ml2_driver=ml2_driver,
+                              security_group=security_group)
+        storage_obj = Storage(cinder_backend=storage)
+        ironic_obj = Ironic(ironic_inspector=ironic,
+                            cleaning_network=cleaning_net)
 
         deployment = Deployment(release, infra,
                                 nodes, {},
-                                ip_version=ip_version,
                                 topology=topology,
-                                network_backend=network,
-                                cinder_backend=storage,
-                                dvr=dvr,
-                                tls_everywhere=tls_everywhere,
+                                network=network_obj,
                                 overcloud_templates=templates,
-                                ml2_driver=ml2_driver,
-                                ironic_inspector=ironic,
-                                cleaning_network=cleaning_net,
-                                security_group=security_group,
+                                storage=storage_obj,
+                                ironic=ironic_obj,
                                 test_collection=test_collection)
 
         printer = OSRawPrinter(verbosity=0)

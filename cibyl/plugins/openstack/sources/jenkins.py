@@ -27,9 +27,12 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.deployment import Deployment
+from cibyl.plugins.openstack.ironic import Ironic
+from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.service import Service
+from cibyl.plugins.openstack.storage import Storage
 from cibyl.plugins.openstack.test_collection import TestCollection
 from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.jenkins import LOG, detect_job_info_regex, filter_jobs
@@ -362,22 +365,26 @@ accurate results", len(jobs_found))
             security_group = job.get("security_group", "")
             overcloud_templates = job.get("overcloud_templates")
             test_collection = job.get("test_collection")
+            network = Network(ip_version=job.get("ip_version", ""),
+                              ml2_driver=job.get("ml2_driver", ""),
+                              network_backend=network_backend,
+                              dvr=job.get("dvr", ""),
+                              tls_everywhere=tls_everywhere,
+                              security_group=security_group)
+            storage = Storage(cinder_backend=cinder_backend)
+            ironic = Ironic(ironic_inspector=ironic_inspector,
+                            cleaning_network=cleaning_network)
+
             deployment = Deployment(job.get("release", ""),
                                     job.get("infra_type", ""),
                                     nodes=job.get("nodes", {}),
                                     services=job.get("services", {}),
-                                    ip_version=job.get("ip_version", ""),
-                                    ml2_driver=job.get("ml2_driver", ""),
                                     topology=topology,
-                                    network_backend=network_backend,
-                                    cinder_backend=cinder_backend,
-                                    dvr=job.get("dvr", ""),
-                                    ironic_inspector=ironic_inspector,
-                                    cleaning_network=cleaning_network,
+                                    network=network,
+                                    storage=storage,
+                                    ironic=ironic,
                                     test_collection=test_collection,
-                                    tls_everywhere=tls_everywhere,
                                     overcloud_templates=overcloud_templates,
-                                    security_group=security_group,
                                     stages=job.get("stages"))
             job_objects[name].add_deployment(deployment)
 
