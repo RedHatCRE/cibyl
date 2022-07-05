@@ -154,6 +154,6 @@ class Parser:
                     ranged=arg.ranged,
                     populated=arg.populated,
                     default=arg.default,
-                    level=level)
+                    level=level, choices=arg.choices)
         except argparse.ArgumentError:
             pass

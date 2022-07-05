@@ -35,7 +35,8 @@ class TestCollection(Model):
         }
     }
 
-    def __init__(self, tests: Optional[Set[str]] = None, setup: str = None):
+    def __init__(self, tests: Optional[Set[str]] = None,
+                 setup: Optional[str] = None):
         if tests is None:
             tests = set()
         super().__init__({'tests': tests, 'setup': setup})
