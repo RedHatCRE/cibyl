@@ -13,16 +13,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 from typing import Iterable
 
 import yaml
 
 from tripleo.insights.deployment import FeatureSetInterpreter
-from tripleo.insights.exceptions import InvalidURL
+from tripleo.insights.exceptions import InvalidURL, DownloadError
 from tripleo.insights.git import GitDownloader, GitDownloaderFetcher
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
 from tripleo.insights.validation import OutlineValidator
 from tripleo.utils.types import URL, YAML
+
+LOG = logging.getLogger(__name__)
 
 
 class DeploymentLookUp:
@@ -72,12 +75,14 @@ class DeploymentLookUp:
 
         self._validate_outline(outline)
 
-        for api in self._get_apis_for(outline.quickstart):
-            featureset = FeatureSetInterpreter(
-                self._download_yaml(api, file=outline.featureset)
+        featureset = FeatureSetInterpreter(
+            self._download_yaml(
+                repo=outline.quickstart,
+                file=outline.featureset
             )
+        )
 
-            result.ip_version = 'IPv6' if featureset.is_ipv6() else 'IPv4'
+        result.ip_version = 'IPv6' if featureset.is_ipv6() else 'IPv4'
 
         return result
 
@@ -87,6 +92,23 @@ class DeploymentLookUp:
         if not is_valid:
             raise error
 
+    def _download_yaml(self, repo: URL, file: str) -> YAML:
+        for api in self._get_apis_for(repo):
+            try:
+                LOG.info(
+                    "Trying to download file: '%s' with API: '%s'...",
+                    file, type(api).__name__
+                )
+
+                return yaml.safe_load(api.download_as_text(file))
+            except DownloadError:
+                LOG.warning(
+                    "Failed to download file through API: '%s'.",
+                    type(api).__name__
+                )
+
+        raise DownloadError('No API could handle the download request.')
+
     def _get_apis_for(self, url: URL) -> Iterable[GitDownloader]:
         result = self._download_fetcher.get_downloaders_for(url)
 
@@ -94,6 +116,3 @@ class DeploymentLookUp:
             raise InvalidURL(f"Found no handlers for URL: '{url}'.")
 
         return result
-
-    def _download_yaml(self, api: GitDownloader, file: str) -> YAML:
-        return yaml.safe_load(api.download_as_text(file))
