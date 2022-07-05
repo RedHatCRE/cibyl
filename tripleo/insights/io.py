@@ -50,3 +50,5 @@ class DeploymentSummary:
     """
     ip_version: str = 'N/A'
     """Name of the IP protocol used on the deployment."""
+    infra_type: str = 'N/A'
+    """Infrastructure type of the cloud."""

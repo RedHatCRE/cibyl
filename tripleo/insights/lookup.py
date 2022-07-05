@@ -15,7 +15,8 @@
 """
 import logging
 
-from tripleo.insights.deployment import FeatureSetInterpreter
+from tripleo.insights.deployment import (EnvironmentInterpreter,
+                                         FeatureSetInterpreter)
 from tripleo.insights.git import GitDownload
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
 from tripleo.insights.validation import OutlineValidator
@@ -66,23 +67,49 @@ class DeploymentLookUp:
             TripleO will perform.
         :return: A summary of such deployment where TripleO to do it.
         """
-        result = DeploymentSummary()
-
         self._validate_outline(outline)
 
-        featureset = FeatureSetInterpreter(
-            self.downloader.download_as_yaml(
-                repo=outline.quickstart,
-                file=outline.featureset
-            )
-        )
-
-        result.ip_version = 'IPv6' if featureset.is_ipv6() else 'IPv4'
-
-        return result
+        return self._generate_deployment(outline)
 
     def _validate_outline(self, outline: DeploymentOutline) -> None:
         is_valid, error = self.validator.validate(outline)
 
         if not is_valid:
             raise error
+
+    def _generate_deployment(
+        self,
+        outline: DeploymentOutline
+    ) -> DeploymentSummary:
+        def handle_environment():
+            environment = EnvironmentInterpreter(
+                self.downloader.download_as_yaml(
+                    repo=outline.quickstart,
+                    file=outline.environment
+                ),
+                overrides=outline.overrides
+            )
+
+            result.infra_type = environment.get_intra_type()
+
+            # Handle missing fields
+            if not result.infra_type:
+                result.infra_type = 'N/A'
+
+        def handle_featureset():
+            featureset = FeatureSetInterpreter(
+                self.downloader.download_as_yaml(
+                    repo=outline.quickstart,
+                    file=outline.featureset
+                ),
+                overrides=outline.overrides
+            )
+
+            result.ip_version = 'IPv6' if featureset.is_ipv6() else 'IPv4'
+
+        result = DeploymentSummary()
+
+        handle_environment()
+        handle_featureset()
+
+        return result
