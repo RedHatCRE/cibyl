@@ -15,7 +15,25 @@
 """
 from unittest import TestCase
 
-from tripleo.insights.deployment import FeatureSetInterpreter
+from tripleo.insights.deployment import (EnvironmentInterpreter,
+                                         FeatureSetInterpreter)
+from tripleo.insights.exceptions import IllegibleData
+
+
+class TestEnvironmentInterpreter(TestCase):
+    """Tests for :class:`EnvironmentInterpreter`.
+    """
+
+    def test_error_on_invalid_infra_type(self):
+        """Tests that an error is thrown if the infra_type field does not
+        follow the schema.
+        """
+        data = {
+            EnvironmentInterpreter.KEYS.infra_type: False
+        }
+
+        with self.assertRaises(IllegibleData):
+            EnvironmentInterpreter(data)
 
 
 class TestFeatureSetInterpreter(TestCase):
@@ -30,5 +48,5 @@ class TestFeatureSetInterpreter(TestCase):
             FeatureSetInterpreter.KEYS.ipv6: 'hello_world'  # Must be bool
         }
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(IllegibleData):
             FeatureSetInterpreter(data)
