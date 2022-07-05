@@ -91,6 +91,17 @@ def should_query_for_nodes_topology(**kwargs) -> Tuple[bool, bool]:
     return query_nodes, query_topology
 
 
+def filter_test_collection(job: JenkinsJob, user_input: Argument) -> bool:
+    """Check whether job should be included according to user input. The model
+    should be added if the test_setup attribute of the TestCollection matches
+    the value passed by the user. If the job does not have any test information
+    it should be excluded as well."""
+    tests = job.get("test_collection")
+    if tests is None:
+        return False
+    return tests.setup.value in user_input.value
+
+
 def filter_nodes(job: JenkinsJob, user_input: Argument,
                  field_to_check: str) -> bool:
     """Check whether job should be included according to the user input. The
@@ -146,7 +157,7 @@ class Jenkins(SourceExtension):
                        "network_backend", "cinder_backend",
                        "infra_type", "dvr", "ip_version",
                        "tls_everywhere", "ml2_driver",
-                       "ironic_inspector"]
+                       "ironic_inspector", "test_setup"]
 
     # deployment properties that have no cli argument and will not be used to
     # filter jobs, just for the spec
@@ -299,6 +310,10 @@ accurate results", len(jobs_found))
                                        user_input=input_attr,
                                        field_to_check=attribute,
                                        default_user_value=['True']))
+                continue
+            if attribute == 'test_setup' and input_attr:
+                checks_to_apply.append(partial(filter_test_collection,
+                                               user_input=input_attr))
                 continue
             if input_attr and input_attr.value:
                 checks_to_apply.append(partial(satisfy_exact_match,
@@ -497,7 +512,8 @@ accurate results", len(jobs_found))
             LOG.debug("Found no artifact %s for job %s", artifact_path,
                       job_name)
 
-        if spec:
+        test_setup = "test_setup" in kwargs
+        if spec or test_setup:
             artifact_path = "infrared/test.yml"
             artifact_url = f"{logs_url.rstrip('/')}/{artifact_path}"
             try:
@@ -506,8 +522,10 @@ accurate results", len(jobs_found))
                                              raw_response=True)
                 artifact = yaml.safe_load(artifact)
                 test = artifact.get("test", {})
+                tests = []
                 setup = test.get("setup")
-                tests = test.get("tests", [])
+                if spec:
+                    tests = test.get("tests", [])
                 test_names = {get_file_name_from_path(test) for test in tests}
                 job["test_collection"] = TestCollection(test_names, setup)
 
