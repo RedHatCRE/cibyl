@@ -312,8 +312,18 @@ class TestArgumentsFilteringOpenstack(OpenstackPluginWithJobSystem,
         """Test that sort_and_filter_args handles properly the case with many
         arguments that should query get_deployment with different levels."""
         self.orchestrator.parser.parse(["--jobs", "--ip-version",
-                                        "--packages", '--release'])
+                                        "--packages", "--release"])
         args = self.orchestrator.sort_and_filter_args()
         self.assertEqual(len(args), 2)
         self.assertEqual(args[0].name, "packages")
         self.assertEqual(args[1].name, "jobs")
+
+
+class TestArgumentsParsingOpenstack(OpenstackPluginWithJobSystem,
+                                    TestOrchestratorArgumentsFiltering):
+    """Test argument parsing behavior for some openstack arguments"""
+    def test_test_setup_choices(self):
+        """Test that an exception is raised when calling --test-setup with
+        a non-existing option."""
+        with self.assertRaises(SystemExit):
+            self.orchestrator.parser.parse(["--test-setup", "non-existing"])

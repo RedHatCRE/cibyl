@@ -138,3 +138,10 @@ Arguments Matrix
      - |:black_square_button:|
      - |:x:|
      - |:x:|
+   * - --test-setup
+     - | Source of test setup (rpm, git)
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
