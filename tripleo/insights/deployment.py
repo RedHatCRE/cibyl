@@ -35,6 +35,10 @@ class FileInterpreter(ABC):
 
         :param data: Contents of the file, parsed from YAML format.
         :param schema: The structure that the file must follow.
+        :param overrides: Dictionary of fields that override those from the
+            file. If the interpreter finds a field both on the file and in
+            here, it will choose this one over the other. Leave as None is you
+            want to stick to data from the file.
         :param validator_factory: Creates the validator used to check the
             data against the schema.
         :raises IOError: If the schema file does not exist or cannot be opened.
@@ -66,16 +70,27 @@ class FileInterpreter(ABC):
         return self._data
 
     @property
-    def overrides(self):
+    def overrides(self) -> Dict:
+        """
+        :return: Collection of fields that will override the data from the
+            file.
+        """
         return self._overrides
 
 
 class EnvironmentInterpreter(FileInterpreter):
+    """Takes care of making sense out of the contents of an environment file.
+    """
+
     @dataclass
     class Keys:
+        """Defines the fields of interest contained by an environment file.
+        """
         infra_type: str = 'environment_type'
+        """Field that holds the cloud's infrastructure type."""
 
     KEYS = Keys()
+    """Knowledge that this has about the environment file's contents."""
 
     def __init__(
         self,
@@ -87,6 +102,10 @@ class EnvironmentInterpreter(FileInterpreter):
         super().__init__(data, schema, overrides, validator_factory)
 
     def get_intra_type(self) -> Optional[str]:
+        """
+        :return: Value of the infrastructure type field, None if the field
+            in not present.
+        """
         key = self.KEYS.infra_type
 
         if key in self.overrides:
