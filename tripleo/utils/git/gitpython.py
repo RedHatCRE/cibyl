@@ -18,10 +18,11 @@ import os
 from git import InvalidGitRepositoryError, NoSuchPathError, Repo
 from overrides import overrides
 
+from tripleo.utils.fs import Dir, File
 from tripleo.utils.git import Git as IGit
 from tripleo.utils.git import GitError
 from tripleo.utils.git import Repository as IRepository
-from tripleo.utils.types import URL, Dir, File
+from tripleo.utils.urls import URL
 
 
 class Repository(IRepository):
