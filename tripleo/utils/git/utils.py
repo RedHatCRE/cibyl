@@ -15,8 +15,7 @@
 """
 from urllib.parse import urlparse
 
-from tripleo.utils.types import URL
-from tripleo.utils.urls import is_git
+from tripleo.utils.urls import URL, is_git
 
 
 def get_repository_fullname(url: URL) -> str:

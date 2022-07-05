@@ -15,8 +15,9 @@
 """
 from abc import ABC, abstractmethod
 
+from tripleo.utils.fs import Dir
 from tripleo.utils.io import Closeable
-from tripleo.utils.types import URL, Dir
+from tripleo.utils.urls import URL
 
 
 class GitError(Exception):

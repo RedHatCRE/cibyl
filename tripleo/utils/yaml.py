@@ -14,12 +14,14 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
+from typing import Any, Dict
 
 import yaml
 from overrides import overrides
 from yaml import YAMLError as StandardYAMLError
 
-from tripleo.utils.types import YAML
+YAML = Dict[str, Any]
+"""Represents data originated from reading a YAML file."""
 
 
 class YAMLError(Exception):
