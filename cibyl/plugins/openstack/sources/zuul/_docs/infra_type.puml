@@ -1,0 +1,59 @@
+@startuml
+skinparam defaultTextAlignment center
+
+|#lightyellow|Cibyl|
+
+start
+:Gather variant's variables;
+
+if ('environment_type' is present?) is (yes) then
+else (no)
+    :'environment_type' = 'standalone';
+    note left #lightblue
+        Default value defined by TripleO-CI.
+        Risk of unnoticed change.
+    end note
+endif
+
+partition "Generate deployment outline" {
+    :Instance default outline;
+    note left #lightblue
+        TripleO-CI does not seem to use
+        the environment file. It can be
+        left to the default value.
+    end note
+    :Add 'environment_type' as an override;
+    note left #lightblue
+        **Important:** As we want to
+        ignore the field from the env file.
+    end note
+}
+
+:Pass outline to TripleO-Insights library;
+
+|#lightgrey|TripleO|
+
+:Read overrides;
+
+if ('environment_type' is present?)) is (yes) then
+    :'infra_type' = {{ 'environment_type' }};
+else (no)
+    :Read environment file;
+
+    if ('environment_type' is present?)) is (yes) then
+        :'infra_type' = {{ 'environment_type' }};
+        note left #lightblue
+            From the env file.
+        end note
+    else (no)
+        :'infra_type' = 'N/A';
+    endif
+endif
+
+:Return summary;
+
+|#lightyellow|Cibyl|
+:Generate an print output...;
+
+stop
+@enduml

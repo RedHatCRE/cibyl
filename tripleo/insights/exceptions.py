@@ -29,3 +29,8 @@ class DownloadError(InsightsError):
     """Indicates that a problem happened while a file was getting
     downloaded.
     """
+
+
+class IllegibleData(InsightsError):
+    """Some data is formatted on a way that the library cannot understand.
+    """
