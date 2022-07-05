@@ -20,15 +20,15 @@ from typing import Iterable, Sequence
 from overrides import overrides
 
 from tripleo.insights.exceptions import DownloadError, InvalidURL
+from tripleo.utils.fs import Dir
 from tripleo.utils.git import Git, Repository
 from tripleo.utils.git.gitpython import GitPython
 from tripleo.utils.git.utils import get_repository_fullname
 from tripleo.utils.github import GitHub
 from tripleo.utils.github.pygithub import PyGitHub
 from tripleo.utils.paths import resolve_home
-from tripleo.utils.types import URL, YAML, Dir
-from tripleo.utils.urls import is_git, is_github
-from tripleo.utils.yaml import StandardYAMLParser, YAMLError, YAMLParser
+from tripleo.utils.urls import URL, is_git, is_github
+from tripleo.utils.yaml import YAML, StandardYAMLParser, YAMLError, YAMLParser
 
 LOG = logging.getLogger(__name__)
 

@@ -21,8 +21,8 @@ from unittest import TestCase
 from jsonschema.exceptions import SchemaError
 from jsonschema.validators import Draft7Validator
 
+from tripleo.utils.fs import File
 from tripleo.utils.json import Draft7ValidatorFactory
-from tripleo.utils.types import File
 
 
 class TestDraft7ValidatorFactory(TestCase):
