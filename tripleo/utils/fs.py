@@ -16,18 +16,12 @@
 from abc import ABC, abstractmethod
 from os import PathLike
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Union
 
 from overrides import overrides
 
 from tripleo.utils.paths import Preprocessor
-from tripleo.utils.strings import is_url
 
-# -- Serialization --
-YAML = Dict[str, Any]
-"""Represents data originated from reading a YAML file."""
-
-# -- FileSystem --
 RawPath = Union[bytes, str, PathLike, Path]
 
 
@@ -130,29 +124,3 @@ class File(FSPath):
     @overrides
     def exists(self) -> bool:
         return self.as_path().is_file()
-
-
-# -- Network --
-
-class URL(str):
-    """Extension of a string to exclusively model URLs.
-    """
-
-    def __new__(cls, value: str) -> 'URL':
-        """Constructor.
-
-        The string is preprocessed a bit for convenience’ sake. Some actions
-        taken are:
-            - Trimming the string.
-
-        :param value: The string's text.
-        :raises ValueError: If the string does not follow a URL format.
-        """
-        # Avoid false positives by removing leading and trailing whitespaces
-        value = value.strip()
-
-        if not is_url(value):
-            msg = f"String does not represent a valid URL: '{value}'."
-            raise ValueError(msg)
-
-        return super().__new__(cls, value)

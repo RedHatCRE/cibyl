@@ -13,8 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-
-from tripleo.utils.types import URL
+from tripleo.utils.urls import URL
 
 DEFAULT_QUICKSTART = URL('https://github.com/openstack/tripleo-quickstart.git')
 """Default URL for TripleO QuickStart repository."""
