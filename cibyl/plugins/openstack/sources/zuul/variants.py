@@ -14,7 +14,7 @@
 #    under the License.
 """
 import logging
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable, Optional, Tuple
 
 from overrides import overrides
 
@@ -47,18 +47,19 @@ class VariableSearch:
         """
         return self._search_terms
 
-    def search(self, variant: VariantResponse) -> Optional[Any]:
-        """Search this target's variable among the ones defined in the
+    def search(self, variant: VariantResponse) -> Optional[Tuple[str, Any]]:
+        """Search the target variable among the ones defined on the
         provided variant.
 
         :param variant: The variant to search.
-        :return: Value of the variable if it is found, None if not.
+        :return: The name of the found variable next to its value. None if
+            the variable was not found.
         """
         variables = variant.variables(recursive=True)
 
         for search_term in self.search_terms:
             if search_term in variables:
-                return variables[search_term]
+                return search_term, variables[search_term]
 
         return None
 
@@ -79,7 +80,7 @@ class ReleaseSearch(VariableSearch):
         super().__init__(search_terms)
 
     @overrides
-    def search(self, variant: VariantResponse) -> Optional[str]:
+    def search(self, variant: VariantResponse) -> Optional[Tuple[str, str]]:
         LOG.debug("Searching for release on variant: '%s'.", variant.name)
 
         result = super().search(variant)
@@ -88,7 +89,7 @@ class ReleaseSearch(VariableSearch):
         if not result:
             return None
 
-        return str(result)
+        return result[0], str(result[1])
 
 
 class FeatureSetSearch(VariableSearch):
@@ -105,7 +106,7 @@ class FeatureSetSearch(VariableSearch):
         super().__init__(search_terms)
 
     @overrides
-    def search(self, variant: VariantResponse) -> Optional[str]:
+    def search(self, variant: VariantResponse) -> Optional[Tuple[str, str]]:
         LOG.debug("Searching for featureset on variant: '%s'.", variant.name)
 
         return super().search(variant)
@@ -124,7 +125,7 @@ class FeatureSetOverridesSearch(VariableSearch):
         super().__init__(search_terms)
 
     @overrides
-    def search(self, variant: VariantResponse) -> Optional[dict]:
+    def search(self, variant: VariantResponse) -> Optional[Tuple[str, dict]]:
         LOG.debug("Searching for overrides on variant: '%s'.", variant.name)
 
         return super().search(variant)

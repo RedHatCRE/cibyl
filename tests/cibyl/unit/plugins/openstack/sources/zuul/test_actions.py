@@ -55,11 +55,12 @@ class TestDeploymentGenerator(TestCase):
             'spec': None
         }
 
+        variable = 'var'
         release = 'v1.0'
 
         release_search = Mock()
         release_search.search = Mock()
-        release_search.search.return_value = release
+        release_search.search.return_value = (variable, release)
 
         variant = Mock()
 
@@ -81,11 +82,12 @@ class TestDeploymentGenerator(TestCase):
             'release': None
         }
 
+        variable = 'var'
         release = 'v1.0'
 
         release_search = Mock()
         release_search.search = Mock()
-        release_search.search.return_value = release
+        release_search.search.return_value = (variable, release)
 
         variant = Mock()
 
