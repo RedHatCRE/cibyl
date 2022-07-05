@@ -13,14 +13,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Dict, List
+from typing import Dict, List, Optional, Set
 
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.base.stage import Stage
 from cibyl.models.model import Model
+from cibyl.plugins.openstack.ironic import Ironic
+from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.service import Service
+from cibyl.plugins.openstack.storage import Storage
 from cibyl.plugins.openstack.test_collection import TestCollection
 
 # pylint: disable=no-member
@@ -70,13 +73,6 @@ class Deployment(Model):
                                    func='get_deployment', nargs='*',
                                    description="Services in the deployment")]
         },
-        'ip_version': {
-            'attr_type': str,
-            'arguments': [Argument(name='--ip-version', arg_type=str,
-                                   func='get_deployment', nargs='*',
-                                   description="Ip version used in the "
-                                               "deployment")]
-        },
         'topology': {
             'attr_type': str,
             'arguments': [Argument(name='--topology', arg_type=str,
@@ -84,26 +80,24 @@ class Deployment(Model):
                                    description="Topology used in the "
                                                "deployment")]
         },
-        'ml2_driver': {
-            'attr_type': str,
-            'arguments': [Argument(name='--ml2-driver', arg_type=str,
+        'network': {
+            'attr_type': Network,
+            'arguments': [Argument(name='--ip-version', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Ip version used in the "
+                                               "deployment"),
+                          Argument(name='--ml2-driver', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    description="ML2 driver used in the "
+                                               "deployment"),
+                          Argument(name='--network-backend', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Network backend used in the "
                                                "deployment")]
         },
-        'cleaning_network': {
-            'arguments': []
-        },
-        'dvr': {
-            'arguments': []
-        },
-        'tls_everywhere': {
-            'arguments': []
-        },
-        'ironic_inspector': {
-            'arguments': []
-        },
-        'security_group': {
+
+        'ironic': {
+            'attr_type': Ironic,
             'arguments': []
         },
         'overcloud_templates': {
@@ -113,15 +107,8 @@ class Deployment(Model):
             'attr_type': TestCollection,
             'arguments': []
         },
-        'network_backend': {
-            'attr_type': str,
-            'arguments': [Argument(name='--network-backend', arg_type=str,
-                                   func='get_deployment', nargs='*',
-                                   description="Network backend used in the "
-                                               "deployment")]
-        },
-        'cinder_backend': {
-            'attr_type': str,
+        'storage': {
+            'attr_type': Storage,
             'arguments': [Argument(name='--cinder-backend', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    description="Cinder backend used in the "
@@ -136,23 +123,17 @@ class Deployment(Model):
 
     def __init__(self, release: str, infra_type: str,
                  nodes: Dict[str, Node], services: Dict[str, Service],
-                 ip_version: str = None, topology: str = None,
-                 network_backend: str = None, cinder_backend: str = None,
-                 dvr: str = None, tls_everywhere: str = None,
-                 ml2_driver: str = None, ironic_inspector: str = None,
-                 cleaning_network: str = None, security_group: str = None,
-                 overcloud_templates: set = None, stages: List[Stage] = None,
-                 test_collection: TestCollection = None):
+                 topology: Optional[str] = None,
+                 network: Optional[Network] = None,
+                 storage: Optional[Storage] = None,
+                 ironic: Optional[Ironic] = None,
+                 overcloud_templates: Optional[Set[str]] = None, stages:
+                 Optional[List[Stage]] = None,
+                 test_collection: Optional[TestCollection] = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
-                          'ip_version': ip_version, 'topology': topology,
-                          'network_backend': network_backend,
-                          'cinder_backend': cinder_backend,
-                          'dvr': dvr, 'tls_everywhere': tls_everywhere,
-                          'ml2_driver': ml2_driver,
-                          'ironic_inspector': ironic_inspector,
-                          'security_group': security_group,
-                          'cleaning_network': cleaning_network,
+                          'topology': topology, 'network': network,
+                          'storage': storage, 'ironic': ironic,
                           'overcloud_templates': overcloud_templates,
                           'test_collection': test_collection,
                           'stages': stages})
@@ -196,26 +177,26 @@ class Deployment(Model):
         :param other: The Deployment object to merge
         :type other: :class:`.Deployment`
         """
-        if not self.ip_version.value:
-            self.ip_version.value = other.ip_version.value
         if not self.topology.value:
             self.topology.value = other.topology.value
-        if not self.network_backend.value:
-            self.network_backend.value = other.network_backend.value
-        if not self.cinder_backend.value:
-            self.cinder_backend.value = other.cinder_backend.value
-        if not self.dvr.value:
-            self.dvr.value = other.dvr.value
-        if not self.tls_everywhere.value:
-            self.tls_everywhere.value = other.tls_everywhere.value
-        if not self.ml2_driver.value:
-            self.ml2_driver.value = other.ml2_driver.value
-        if not self.ironic_inspector.value:
-            self.ironic_inspector.value = other.ironic_inspector.value
-        if not self.cleaning_network.value:
-            self.cleaning_network.value = other.cleaning_network.value
-        if not self.security_group.value:
-            self.security_group.value = other.security_group.value
+
+        if other.network.value:
+            if self.network.value:
+                self.network.value.merge(other.network.value)
+            else:
+                self.network = other.network
+
+        if other.storage.value:
+            if self.storage.value:
+                self.storage.value.merge(other.storage.value)
+            else:
+                self.storage = other.storage
+
+        if other.ironic.value:
+            if self.ironic.value:
+                self.ironic.value.merge(other.ironic.value)
+            else:
+                self.ironic = other.ironic
 
         if other.overcloud_templates.value:
             other_templates = other.overcloud_templates.value
