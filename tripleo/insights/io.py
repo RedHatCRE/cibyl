@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
                                        DEFAULT_FEATURESET_FILE,
@@ -39,6 +39,8 @@ class DeploymentOutline:
     """Path to nodes file relative to the repository's root."""
     release: str = DEFAULT_RELEASE_FILE
     """Path to release file relative to the repository's root."""
+
+    overrides: dict = field(default_factory=lambda: {})
 
 
 @dataclass

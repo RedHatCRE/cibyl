@@ -74,7 +74,8 @@ class DeploymentLookUp:
 
         for api in self._get_apis_for(outline.quickstart):
             featureset = FeatureSetInterpreter(
-                self._download_yaml(api, file=outline.featureset)
+                data=self._download_yaml(api, file=outline.featureset),
+                overrides=outline.overrides
             )
 
             result.ip_version = 'IPv6' if featureset.is_ipv6() else 'IPv4'
