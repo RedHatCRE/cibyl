@@ -15,7 +15,10 @@
 """
 from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.system.common.stages import print_stage
+from cibyl.plugins.openstack.ironic import Ironic
+from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.printers import OSPrinter
+from cibyl.plugins.openstack.storage import Storage
 from cibyl.utils.colors import DefaultPalette
 from cibyl.utils.strings import IndentedTextBuilder
 
@@ -47,104 +50,100 @@ class OSColoredPrinter(OSPrinter):
         """
         return self._palette
 
-    def _print_deployment_network_section(self, deployment, printer):
+    def _print_deployment_network_section(self, network: Network,
+                                          printer: IndentedTextBuilder):
         """Print the network related properties of the deployment.
-        :param deployment: Deployment model representing an Openstack
-        deployment
-        :type deployment: :class:`cibyl.plugins.openstack.deployment`
+        :param network: Network properties of an Openstack deployment
         :param printer: Printer that provides the output representation
-        :type printer: :class:`cibyl.utils.strings.IndentedTextBuilder`
         :returns: Whether the network section of the deployment is empty
         """
         is_empty_network = True
         printer.add(self.palette.blue("Network: "), 1)
-        ip_version = deployment.ip_version.value
+        ip_version = network.ip_version.value
         if ip_version and ip_version != "unknown":
             is_empty_network = False
             printer.add(self.palette.blue('IP version: '), 2)
-            printer[-1].append(deployment.ip_version)
+            printer[-1].append(network.ip_version)
 
-        if deployment.network_backend.value:
+        if network.network_backend.value:
             is_empty_network = False
             printer.add(self.palette.blue('Network backend: '), 2)
-            printer[-1].append(deployment.network_backend)
+            printer[-1].append(network.network_backend)
 
-        if deployment.ml2_driver.value:
-            if deployment.ml2_driver.value != "N/A" or self.verbosity > 0:
+        if network.ml2_driver.value:
+            if network.ml2_driver.value != "N/A" or self.verbosity > 0:
                 is_empty_network = False
                 printer.add(self.palette.blue('ML2 driver: '), 2)
-                printer[-1].append(deployment.ml2_driver)
+                printer[-1].append(network.ml2_driver)
 
-        if deployment.security_group.value:
-            if deployment.security_group.value != "N/A" or self.verbosity > 0:
+        if network.security_group.value:
+            if network.security_group.value != "N/A" or self.verbosity > 0:
                 is_empty_network = False
                 printer.add(self.palette.blue('Security group mechanism: '),
                             2)
-                printer[-1].append(deployment.security_group)
+                printer[-1].append(network.security_group)
 
-        if deployment.dvr.value:
-            if deployment.dvr.value != "N/A" or self.verbosity > 0:
+        if network.dvr.value:
+            if network.dvr.value != "N/A" or self.verbosity > 0:
                 is_empty_network = False
                 printer.add(self.palette.blue('DVR: '), 2)
-                printer[-1].append(deployment.dvr)
+                printer[-1].append(network.dvr)
 
-        if deployment.tls_everywhere.value:
-            if deployment.tls_everywhere.value != "N/A" or self.verbosity > 0:
+        if network.tls_everywhere.value:
+            if network.tls_everywhere.value != "N/A" or self.verbosity > 0:
                 is_empty_network = False
                 printer.add(self.palette.blue('TLS everywhere: '), 2)
-                printer[-1].append(deployment.tls_everywhere)
+                printer[-1].append(network.tls_everywhere)
 
         if is_empty_network:
             printer.pop()
         return is_empty_network
 
-    def _print_deployment_storage_section(self, deployment, printer):
-        """Print the storage related properties of the deployment.
-        :param deployment: Deployment model representing an Openstack
-        deployment
-        :type deployment: :class:`cibyl.plugins.openstack.deployment`
+    def _print_deployment_storage_section(self, storage: Storage,
+                                          printer: IndentedTextBuilder
+                                          ) -> bool:
+        """Print the storage related properties of the storage.
+        :param storage: Storage properties of an Openstack deployment
         :param printer: Printer that provides the output representation
-        :type printer: :class:`cibyl.utils.strings.IndentedTextBuilder`
-        :returns: Whether the network section of the deployment is empty
+        :returns: Whether the network section of the storage is empty
         """
         is_empty_storage = True
         printer.add(self.palette.blue("Storage: "), 1)
 
-        if deployment.cinder_backend.value:
-            if deployment.cinder_backend.value != "N/A" or self.verbosity > 0:
+        if storage.cinder_backend.value:
+            if storage.cinder_backend.value != "N/A" or self.verbosity > 0:
                 is_empty_storage = False
                 printer.add(self.palette.blue('Cinder backend: '), 2)
-                printer[-1].append(deployment.cinder_backend)
+                printer[-1].append(storage.cinder_backend)
 
         if is_empty_storage:
             printer.pop()
         return is_empty_storage
 
-    def _print_deployment_ironic_section(self, deployment, printer):
+    def _print_deployment_ironic_section(self, ironic: Ironic,
+                                         printer: IndentedTextBuilder) -> bool:
         """Print the ironic related properties of the deployment.
-        :param deployment: Deployment model representing an Openstack
+        :param ironic: Ironic-related properties of an Openstack
         deployment
-        :type deployment: :class:`cibyl.plugins.openstack.deployment`
         :param printer: Printer that provides the output representation
-        :type printer: :class:`cibyl.utils.strings.IndentedTextBuilder`
         :returns: Whether the network section of the deployment is empty
         """
         is_empty_ironic = True
         printer.add(self.palette.blue("Ironic: "), 1)
 
-        if deployment.ironic_inspector.value:
-            if deployment.ironic_inspector.value != "N/A" or \
+        if ironic.ironic_inspector.value:
+            if ironic.ironic_inspector.value != "N/A" or \
                self.verbosity > 0:
                 is_empty_ironic = False
                 printer.add(self.palette.blue('Ironic inspector: '), 2)
-                printer[-1].append(deployment.ironic_inspector)
+                printer[-1].append(ironic.ironic_inspector)
 
-        if deployment.cleaning_network.value:
-            if deployment.cleaning_network.value != "N/A" or \
+        if ironic.cleaning_network.value:
+            if ironic.cleaning_network.value != "N/A" or \
                self.verbosity > 0:
                 is_empty_ironic = False
                 printer.add(self.palette.blue('Cleaning network: '), 2)
-                printer[-1].append(deployment.cleaning_network)
+                printer[-1].append(ironic.cleaning_network)
 
         if is_empty_ironic:
             printer.pop()
@@ -171,12 +170,21 @@ class OSColoredPrinter(OSPrinter):
             printer.add(self.palette.blue('Topology: '), 1)
             printer[-1].append(deployment.topology)
 
-        is_empty_network = self._print_deployment_network_section(deployment,
-                                                                  printer)
-        is_empty_storage = self._print_deployment_storage_section(deployment,
-                                                                  printer)
-        is_empty_ironic = self._print_deployment_ironic_section(deployment,
-                                                                printer)
+        is_empty_network = True
+        if deployment.network.value:
+            network = deployment.network.value
+            is_empty_network = self._print_deployment_network_section(network,
+                                                                      printer)
+        is_empty_storage = True
+        if deployment.storage.value:
+            storage = deployment.storage.value
+            is_empty_storage = self._print_deployment_storage_section(storage,
+                                                                      printer)
+        is_empty_ironic = True
+        if deployment.ironic.value:
+            ironic = deployment.ironic.value
+            is_empty_ironic = self._print_deployment_ironic_section(ironic,
+                                                                    printer)
         if deployment.overcloud_templates.value:
             if deployment.overcloud_templates.value != "N/A" or \
                self.verbosity > 0:

@@ -26,6 +26,7 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.build import Build
 from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
+from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.sources.jenkins import Jenkins as OSPJenkins
 from cibyl.sources.jenkins import Jenkins
 
@@ -101,7 +102,8 @@ class TestOrchestrator(TestCase):
         source_instance_mock.return_value = Jenkins(url="url")
         builds = {"1": Build("1")}
         builds_out = {"job1": Job("job1", builds=builds), "job2": Job("job2")}
-        deployment = Deployment("N/A", "N/A", {}, {}, ip_version="4")
+        network = Network(ip_version="4")
+        deployment = Deployment("N/A", "N/A", {}, {}, network=network)
         deployment_out = {"job1": Job("job1", deployment=deployment),
                           "job3": Job("job3")}
         jenkins_builds.return_value = AttributeDictValue("jobs", attr_type=Job,
@@ -120,7 +122,7 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          url: url\n")
             config_file.seek(0)
             sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
-                        '--last-build', '--ip-version', '4', '-f', 'text']
+                        '--last-build', '--spec', '4', '-f', 'text']
 
             main()
 

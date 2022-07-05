@@ -170,7 +170,8 @@ class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
+            network = deployment.network.value
+            self.assertEqual(network.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
             self.assertEqual(len(deployment.nodes.value), 0)
 
@@ -209,11 +210,12 @@ class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
                                                    releases, topologies):
             job = jobs[job_name]
             deployment = job.deployment.value
+            network = deployment.network.value
             self.assertEqual(job.name.value, job_name)
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(network.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
 
     def test_get_deployment_artifacts_fallback(self):
@@ -250,11 +252,12 @@ class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
                                                    releases, topologies):
             job = jobs[job_name]
             deployment = job.deployment.value
+            network = deployment.network.value
             self.assertEqual(job.name.value, job_name)
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(network.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
 
     def test_get_deployment_artifacts_fallback_no_logs_link(self):
@@ -292,11 +295,12 @@ class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
                                                    releases, topologies):
             job = jobs[job_name]
             deployment = job.deployment.value
+            network = deployment.network.value
             self.assertEqual(job.name.value, job_name)
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(network.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
 
     def test_get_deployment_artifacts(self):
@@ -373,16 +377,18 @@ tripleo_ironic_conductor.service loaded    active     running
                                                    releases, topologies):
             job = jobs[job_name]
             deployment = job.deployment.value
+            network = deployment.network.value
+            storage = deployment.storage.value
             self.assertEqual(job.name.value, job_name)
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(network.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
-            self.assertEqual(deployment.cinder_backend.value, "ceph")
-            self.assertEqual(deployment.network_backend.value, "geneve")
-            self.assertEqual(deployment.dvr.value, "False")
-            self.assertEqual(deployment.tls_everywhere.value, "False")
+            self.assertEqual(storage.cinder_backend.value, "ceph")
+            self.assertEqual(network.network_backend.value, "geneve")
+            self.assertEqual(network.dvr.value, "False")
+            self.assertEqual(network.tls_everywhere.value, "False")
             self.assertEqual(deployment.infra_type.value, "ovb")
             for component in topology.split(","):
                 role, amount = component.split(":")
@@ -430,16 +436,18 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name, ip, release in zip(job_names, ip_versions, releases):
             job = jobs[job_name]
             deployment = job.deployment.value
+            network = deployment.network.value
+            storage = deployment.storage.value
             self.assertEqual(job.name.value, job_name)
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(network.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, "")
-            self.assertEqual(deployment.cinder_backend.value, "")
-            self.assertEqual(deployment.network_backend.value, "")
-            self.assertEqual(deployment.dvr.value, "")
-            self.assertEqual(deployment.tls_everywhere.value, "")
+            self.assertEqual(storage.cinder_backend.value, "")
+            self.assertEqual(network.network_backend.value, "")
+            self.assertEqual(network.dvr.value, "")
+            self.assertEqual(network.tls_everywhere.value, "")
             self.assertEqual(deployment.infra_type.value, "")
             self.assertEqual(deployment.nodes.value, {})
             self.assertEqual(deployment.services.value, {})
@@ -476,11 +484,12 @@ tripleo_ironic_conductor.service loaded    active     running
                                                    releases, topologies):
             job = jobs[job_name]
             deployment = job.deployment.value
+            network = deployment.network.value
             self.assertEqual(job.name.value, job_name)
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(network.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
 
     def test_get_deployment_filter_ipv(self):
@@ -503,11 +512,12 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = 'test_17.3_ipv4_job'
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "")
-        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(network.ip_version.value, "4")
         self.assertEqual(deployment.topology.value, "")
 
     def test_get_deployment_job_names_nodes(self):
@@ -536,11 +546,12 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name, node_list in zip(job_names, nodes):
             job = jobs[job_name]
             deployment = job.deployment.value
+            network = deployment.network.value
             self.assertEqual(job.name.value, job_name)
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, "")
-            self.assertEqual(deployment.ip_version.value, "")
+            self.assertEqual(network.ip_version.value, "")
             self.assertEqual(deployment.topology.value, "")
             self.assertEqual(len(deployment.nodes.value), len(node_list))
             for node_name, node_expected in zip(deployment.nodes, node_list):
@@ -569,11 +580,12 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = 'test_17.3_ipv4_job_2comp_1cont'
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "")
-        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(network.ip_version.value, "")
         self.assertEqual(deployment.topology.value, topology_value)
 
     def test_get_deployment_filter_release(self):
@@ -596,11 +608,12 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = 'test_17.3_ipv4_job_2comp_1cont'
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "17.3")
-        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(network.ip_version.value, "")
         self.assertEqual(deployment.topology.value, "")
 
     def test_get_deployment_filter_topology_ip_version(self):
@@ -643,13 +656,14 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = 'test_17.3_ipv4_job_2comp_1cont_geneve'
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "")
-        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(network.ip_version.value, "")
         self.assertEqual(deployment.topology.value, "")
-        self.assertEqual(deployment.network_backend.value, "geneve")
+        self.assertEqual(network.network_backend.value, "geneve")
 
     def test_get_deployment_filter_cinder_backend(self):
         """Test that get_deployment filters by storage backend."""
@@ -672,14 +686,16 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = 'test_17.3_ipv4_job_2comp_1cont_geneve_swift'
         job = jobs[job_name]
         deployment = job.deployment.value
+        storage = deployment.storage.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "")
-        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(network.ip_version.value, "")
         self.assertEqual(deployment.topology.value, "")
-        self.assertEqual(deployment.cinder_backend.value, "swift")
-        self.assertEqual(deployment.network_backend.value, "")
+        self.assertEqual(storage.cinder_backend.value, "swift")
+        self.assertEqual(network.network_backend.value, "")
 
     def test_get_deployment_filter_controller(self):
         """Test that get_deployment filters by controller."""
@@ -700,11 +716,12 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = 'test_17.3_ipv4_job_2comp_1cont'
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "")
-        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(network.ip_version.value, "")
         self.assertEqual(deployment.topology.value, "")
 
     def test_get_deployment_filter_computes(self):
@@ -726,11 +743,12 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = 'test_17.3_ipv4_job_2comp_1cont'
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "")
-        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(network.ip_version.value, "")
         self.assertEqual(deployment.topology.value, "")
 
     def test_get_deployment_filter_infra_type(self):
@@ -753,11 +771,12 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = 'test_17.3_ipv4_job_2comp_1cont_ovb'
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "")
-        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(network.ip_version.value, "")
         self.assertEqual(deployment.topology.value, "")
         self.assertEqual(deployment.infra_type.value, "ovb")
 
@@ -782,13 +801,14 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = 'test_17.3_ipv4_job_2comp_1cont_no_dvr'
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "")
-        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(network.ip_version.value, "")
         self.assertEqual(deployment.topology.value, "")
-        self.assertEqual(deployment.dvr.value, "False")
+        self.assertEqual(network.dvr.value, "False")
 
     def test_get_deployment_artifacts_ironic_inspector(self):
         """ Test that get_deployment filters by ironic_inspector."""
@@ -829,13 +849,15 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = "test_17.3_ipv4_job"
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
+        ironic = deployment.ironic.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, release)
-        self.assertEqual(deployment.ip_version.value, ip_version)
+        self.assertEqual(network.ip_version.value, ip_version)
         self.assertEqual(deployment.topology.value, topology)
-        self.assertEqual(deployment.ironic_inspector.value, "True")
+        self.assertEqual(ironic.ironic_inspector.value, "True")
 
     def test_get_deployment_artifacts_dvr(self):
         """ Test that get_deployment reads properly the information obtained
@@ -887,13 +909,14 @@ tripleo_ironic_conductor.service loaded    active     running
                                                         dvr_status):
             job = jobs[job_name]
             deployment = job.deployment.value
+            network = deployment.network.value
             self.assertEqual(job.name.value, job_name)
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(network.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
-            self.assertEqual(deployment.dvr.value, dvr)
+            self.assertEqual(network.dvr.value, dvr)
 
     def test_get_deployment_filter_ml2_driver(self):
         """ Test that get_deployment filters properly according to the value of
@@ -947,14 +970,15 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = "test_17.3_ipv4_job"
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, releases[0])
-        self.assertEqual(deployment.ip_version.value, ip_versions[0])
+        self.assertEqual(network.ip_version.value, ip_versions[0])
         self.assertEqual(deployment.topology.value, topologies[0])
-        self.assertEqual(deployment.dvr.value, dvr_status[0])
-        self.assertEqual(deployment.ml2_driver.value, "ovs")
+        self.assertEqual(network.dvr.value, dvr_status[0])
+        self.assertEqual(network.ml2_driver.value, "ovs")
 
     def test_get_deployment_filter_overcloud_templates(self):
         """ Test that get_deployment filters properly according to the value of
@@ -1012,14 +1036,15 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = "test_17.3_ipv4_job"
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, releases[0])
-        self.assertEqual(deployment.ip_version.value, ip_versions[0])
+        self.assertEqual(network.ip_version.value, ip_versions[0])
         self.assertEqual(deployment.topology.value, topologies[0])
-        self.assertEqual(deployment.dvr.value, dvr_status[0])
-        self.assertEqual(deployment.ml2_driver.value, "ovs")
+        self.assertEqual(network.dvr.value, dvr_status[0])
+        self.assertEqual(network.ml2_driver.value, "ovs")
         self.assertEqual(deployment.overcloud_templates.value, set(["a"]))
 
     def test_get_deployment_filter_tls(self):
@@ -1043,13 +1068,14 @@ tripleo_ironic_conductor.service loaded    active     running
         job_name = 'test_17.3_ipv4_job_2comp_1cont_tls'
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "")
-        self.assertEqual(deployment.ip_version.value, "")
+        self.assertEqual(network.ip_version.value, "")
         self.assertEqual(deployment.topology.value, "")
-        self.assertEqual(deployment.tls_everywhere.value, "True")
+        self.assertEqual(network.tls_everywhere.value, "True")
 
     def test_get_deployment_artifacts_tls(self):
         """ Test that get_deployment reads properly the information obtained
@@ -1102,13 +1128,14 @@ tripleo_ironic_conductor.service loaded    active     running
                                                         tls_status):
             job = jobs[job_name]
             deployment = job.deployment.value
+            network = deployment.network.value
             self.assertEqual(job.name.value, job_name)
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(network.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
-            self.assertEqual(deployment.tls_everywhere.value, tls)
+            self.assertEqual(network.tls_everywhere.value, tls)
 
     def test_get_deployment_artifacts_missing_topology(self):
         """ Test that get_deployment reads properly the information obtained
@@ -1159,13 +1186,14 @@ tripleo_ironic_conductor.service loaded    active     running
                                                         tls_status):
             job = jobs[job_name]
             deployment = job.deployment.value
+            network = deployment.network.value
             self.assertEqual(job.name.value, job_name)
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
+            self.assertEqual(network.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
-            self.assertEqual(deployment.tls_everywhere.value, tls)
+            self.assertEqual(network.tls_everywhere.value, tls)
 
     def test_get_packages_node(self):
         """ Test that get_packages_node reads properly the information obtained
@@ -1340,17 +1368,19 @@ tripleo_ironic_conductor.service loaded    active     running
                                                    releases, topologies):
             job = jobs[job_name]
             deployment = job.deployment.value
+            network = deployment.network.value
+            storage = deployment.storage.value
             self.assertEqual(job.name.value, job_name)
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
-            self.assertEqual(deployment.topology.value, topology)
-            self.assertEqual(deployment.cinder_backend.value, "ceph")
-            self.assertEqual(deployment.network_backend.value, "geneve")
-            self.assertEqual(deployment.dvr.value, "False")
-            self.assertEqual(deployment.tls_everywhere.value, "False")
             self.assertEqual(deployment.infra_type.value, "ovb")
+            self.assertEqual(deployment.topology.value, topology)
+            self.assertEqual(storage.cinder_backend.value, "ceph")
+            self.assertEqual(network.ip_version.value, ip)
+            self.assertEqual(network.network_backend.value, "geneve")
+            self.assertEqual(network.dvr.value, "False")
+            self.assertEqual(network.tls_everywhere.value, "False")
             for component in topology.split(","):
                 role, amount = component.split(":")
                 for i in range(int(amount)):
@@ -1453,21 +1483,24 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(len(jobs), 1)
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
+        storage = deployment.storage.value
+        ironic = deployment.ironic.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, release)
-        self.assertEqual(deployment.ip_version.value, ip)
+        self.assertEqual(network.ip_version.value, ip)
         self.assertEqual(deployment.topology.value, topology)
-        self.assertEqual(deployment.cinder_backend.value, "ceph")
-        self.assertEqual(deployment.network_backend.value, "geneve")
-        self.assertEqual(deployment.dvr.value, "False")
-        self.assertEqual(deployment.tls_everywhere.value, "False")
         self.assertEqual(deployment.infra_type.value, "ovb")
-        self.assertEqual(deployment.ml2_driver.value, "ovs")
-        self.assertEqual(deployment.ironic_inspector.value, "False")
-        self.assertEqual(deployment.cleaning_network.value, "True")
-        self.assertEqual(deployment.security_group.value, "openvswitch")
+        self.assertEqual(storage.cinder_backend.value, "ceph")
+        self.assertEqual(network.network_backend.value, "geneve")
+        self.assertEqual(network.dvr.value, "False")
+        self.assertEqual(network.tls_everywhere.value, "False")
+        self.assertEqual(network.ml2_driver.value, "ovs")
+        self.assertEqual(network.security_group.value, "openvswitch")
+        self.assertEqual(ironic.ironic_inspector.value, "False")
+        self.assertEqual(ironic.cleaning_network.value, "True")
         self.assertEqual(deployment.overcloud_templates.value,
                          set(["a", "b"]))
         services = deployment.services
@@ -1518,21 +1551,24 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(len(jobs), 1)
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
+        storage = deployment.storage.value
+        ironic = deployment.ironic.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, release)
-        self.assertEqual(deployment.ip_version.value, ip_version)
+        self.assertEqual(network.ip_version.value, ip_version)
         self.assertEqual(deployment.topology.value, topology)
-        self.assertEqual(deployment.cinder_backend.value, "ceph")
-        self.assertEqual(deployment.network_backend.value, "geneve")
-        self.assertEqual(deployment.dvr.value, "False")
-        self.assertEqual(deployment.tls_everywhere.value, "False")
+        self.assertEqual(storage.cinder_backend.value, "ceph")
+        self.assertEqual(network.network_backend.value, "geneve")
+        self.assertEqual(network.dvr.value, "False")
+        self.assertEqual(network.tls_everywhere.value, "False")
         self.assertEqual(deployment.infra_type.value, "ovb")
-        self.assertEqual(deployment.ml2_driver.value, "ovs")
-        self.assertEqual(deployment.ironic_inspector.value, "False")
-        self.assertEqual(deployment.cleaning_network.value, "True")
-        self.assertEqual(deployment.security_group.value, "openvswitch")
+        self.assertEqual(network.ml2_driver.value, "ovs")
+        self.assertEqual(ironic.ironic_inspector.value, "False")
+        self.assertEqual(ironic.cleaning_network.value, "True")
+        self.assertEqual(network.security_group.value, "openvswitch")
         self.assertEqual(deployment.overcloud_templates.value,
                          set(["a", "b"]))
         services = deployment.services
@@ -1562,11 +1598,12 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(len(jobs), 1)
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "")
-        self.assertEqual(deployment.ip_version.value, ip_version)
+        self.assertEqual(network.ip_version.value, ip_version)
         self.assertEqual(deployment.topology.value, "")
         self.jenkins.send_request.assert_called_once()
 
@@ -1600,19 +1637,21 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(len(jobs), 1)
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
+        storage = deployment.storage.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, release)
-        self.assertEqual(deployment.ip_version.value, ip)
+        self.assertEqual(network.ip_version.value, ip)
         self.assertEqual(deployment.topology.value, topology)
-        self.assertEqual(deployment.cinder_backend.value, "ceph")
-        self.assertEqual(deployment.network_backend.value, "geneve")
-        self.assertEqual(deployment.dvr.value, "False")
-        self.assertEqual(deployment.ml2_driver.value, "ovn")
-        self.assertEqual(deployment.tls_everywhere.value, "False")
+        self.assertEqual(storage.cinder_backend.value, "ceph")
+        self.assertEqual(network.network_backend.value, "geneve")
+        self.assertEqual(network.dvr.value, "False")
+        self.assertEqual(network.ml2_driver.value, "ovn")
+        self.assertEqual(network.tls_everywhere.value, "False")
         self.assertEqual(deployment.infra_type.value, "ovb")
-        self.assertEqual(deployment.security_group.value, "native ovn")
+        self.assertEqual(network.security_group.value, "native ovn")
         services = deployment.services
         self.assertEqual(len(services), 0)
         test_collection = deployment.test_collection.value
@@ -1650,21 +1689,24 @@ tripleo_ironic_conductor.service loaded    active     running
         missing_info = "N/A"
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
+        ironic = deployment.ironic.value
+        storage = deployment.storage.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "17.3")
-        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(network.ip_version.value, "4")
         self.assertEqual(deployment.topology.value, topologies[0])
-        self.assertEqual(deployment.cinder_backend.value, missing_info)
-        self.assertEqual(deployment.network_backend.value, missing_info)
-        self.assertEqual(deployment.dvr.value, missing_info)
-        self.assertEqual(deployment.ml2_driver.value, "ovn")
-        self.assertEqual(deployment.tls_everywhere.value, missing_info)
+        self.assertEqual(storage.cinder_backend.value, missing_info)
+        self.assertEqual(network.network_backend.value, missing_info)
+        self.assertEqual(network.dvr.value, missing_info)
+        self.assertEqual(network.ml2_driver.value, "ovn")
+        self.assertEqual(network.tls_everywhere.value, missing_info)
         self.assertEqual(deployment.infra_type.value, missing_info)
-        self.assertEqual(deployment.security_group.value, "native ovn")
-        self.assertEqual(deployment.cleaning_network.value, missing_info)
-        self.assertEqual(deployment.ironic_inspector.value, missing_info)
+        self.assertEqual(network.security_group.value, "native ovn")
+        self.assertEqual(ironic.cleaning_network.value, missing_info)
+        self.assertEqual(ironic.ironic_inspector.value, missing_info)
 
     def test_get_deployment_spec_no_overcloud_info_ovs_default(self):
         """ Test get_deployment call with --spec and missing overcloud info.
@@ -1694,19 +1736,21 @@ tripleo_ironic_conductor.service loaded    active     running
         missing_info = "N/A"
         job = jobs[job_name]
         deployment = job.deployment.value
+        network = deployment.network.value
+        storage = deployment.storage.value
         self.assertEqual(job.name.value, job_name)
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, "14.3")
-        self.assertEqual(deployment.ip_version.value, "4")
+        self.assertEqual(network.ip_version.value, "4")
         self.assertEqual(deployment.topology.value, topologies[0])
-        self.assertEqual(deployment.cinder_backend.value, missing_info)
-        self.assertEqual(deployment.network_backend.value, missing_info)
-        self.assertEqual(deployment.dvr.value, missing_info)
-        self.assertEqual(deployment.ml2_driver.value, "ovs")
-        self.assertEqual(deployment.tls_everywhere.value, missing_info)
+        self.assertEqual(storage.cinder_backend.value, missing_info)
+        self.assertEqual(network.network_backend.value, missing_info)
+        self.assertEqual(network.dvr.value, missing_info)
+        self.assertEqual(network.ml2_driver.value, "ovs")
+        self.assertEqual(network.tls_everywhere.value, missing_info)
         self.assertEqual(deployment.infra_type.value, missing_info)
-        self.assertEqual(deployment.security_group.value, "iptables hybrid")
+        self.assertEqual(network.security_group.value, "iptables hybrid")
 
     def test_get_deployment_filter_containers(self):
         """ Test get_deployment call with --containers."""
@@ -1761,16 +1805,18 @@ tripleo_ironic_conductor.service loaded    active     running
                                                    releases, topologies):
             job = jobs[job_name]
             deployment = job.deployment.value
+            network = deployment.network.value
+            storage = deployment.storage.value
             self.assertEqual(job.name.value, job_name)
             self.assertEqual(job.url.value, "url")
             self.assertEqual(len(job.builds.value), 0)
             self.assertEqual(deployment.release.value, release)
-            self.assertEqual(deployment.ip_version.value, ip)
             self.assertEqual(deployment.topology.value, topology)
-            self.assertEqual(deployment.cinder_backend.value, "ceph")
-            self.assertEqual(deployment.network_backend.value, "geneve")
-            self.assertEqual(deployment.dvr.value, "False")
-            self.assertEqual(deployment.tls_everywhere.value, "False")
+            self.assertEqual(network.ip_version.value, ip)
+            self.assertEqual(storage.cinder_backend.value, "ceph")
+            self.assertEqual(network.network_backend.value, "geneve")
+            self.assertEqual(network.dvr.value, "False")
+            self.assertEqual(network.tls_everywhere.value, "False")
             self.assertEqual(deployment.infra_type.value, "ovb")
             for component in topology.split(","):
                 role, amount = component.split(":")
