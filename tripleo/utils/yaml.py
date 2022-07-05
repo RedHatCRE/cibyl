@@ -23,23 +23,30 @@ from tripleo.utils.types import YAML
 
 
 class YAMLError(Exception):
-    """
+    """Describes any errors that happened while parsing a stream in YAML
+    format.
     """
 
 
 class YAMLParser(ABC):
+    """Base class for all tools that transform some stream in YAML format
+    into a Python object.
+    """
+
     @abstractmethod
     def as_yaml(self, string: str) -> YAML:
         """
-
-        :param string:
-        :return:
-        :raises YAMLError:
+        :param string: Text in YAML format.
+        :return: The corresponding Python object.
+        :raises YAMLError: If the text is not in YAML format.
         """
         raise NotImplementedError
 
 
 class StandardYAMLParser(YAMLParser):
+    """Implementation of a YAML parser that uses Python's standard library.
+    """
+
     @overrides
     def as_yaml(self, string: str) -> YAML:
         try:

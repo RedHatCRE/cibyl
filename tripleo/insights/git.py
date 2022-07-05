@@ -211,20 +211,26 @@ class GitDownloaderFetcher:
 
 
 class GitDownload:
+    """Takes care of joining all the tools in this module together and
+    allow to safely download files from a Git repository.
+    """
+
     def __init__(
         self,
         downloader_fetcher: GitDownloaderFetcher = GitDownloaderFetcher()
     ):
         """Constructor.
 
-        :param downloader_fetcher: Tool used to get APIs to interact with Git.
+        :param downloader_fetcher: Tool that provides the APIs that this
+            will use to interact with Git.
         """
         self._download_fetcher = downloader_fetcher
 
     @property
     def download_fetcher(self) -> GitDownloaderFetcher:
         """
-        :return: Tool used to get APIs to interact with Git.
+        :return: Tool that provides the APIs that this
+            will use to interact with Git.
         """
         return self._download_fetcher
 
@@ -234,6 +240,18 @@ class GitDownload:
         file: str,
         yaml_parser: YAMLParser = StandardYAMLParser()
     ) -> YAML:
+        """Downloads a YAML file from a Git repository and parses it into
+        a Python object.
+
+        :param repo: The Git repository.
+        :param file: Relative path to the repo's root to the file to download.
+        :param yaml_parser: Tool used to parse the YAML file.
+        :return: The file as a Python object.
+        :raises DownloadError:
+            If no API is available to download the file.
+            If all APIs failed to download the file.
+            If the file is not in YAML format.
+        """
         try:
             for api in self._get_apis_for(repo):
                 LOG.info(
