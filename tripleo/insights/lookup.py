@@ -14,16 +14,11 @@
 #    under the License.
 """
 import logging
-from typing import Iterable
-
-import yaml
 
 from tripleo.insights.deployment import FeatureSetInterpreter
-from tripleo.insights.exceptions import InvalidURL, DownloadError
-from tripleo.insights.git import GitDownloader, GitDownloaderFetcher
+from tripleo.insights.git import GitDownload
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
 from tripleo.insights.validation import OutlineValidator
-from tripleo.utils.types import URL, YAML
 
 LOG = logging.getLogger(__name__)
 
@@ -38,15 +33,15 @@ class DeploymentLookUp:
     def __init__(
         self,
         validator: OutlineValidator = OutlineValidator(),
-        downloader_fetcher: GitDownloaderFetcher = GitDownloaderFetcher()
+        downloader: GitDownload = GitDownload()
     ):
         """Constructor.
 
         :param validator: Tool used to validate the input data.
-        :param downloader_fetcher: Tool used to get APIs to interact with Git.
+        :param downloader: Tool used to download files from Git repositories.
         """
         self._validator = validator
-        self._download_fetcher = downloader_fetcher
+        self._downloader = downloader
 
     @property
     def validator(self) -> OutlineValidator:
@@ -56,11 +51,11 @@ class DeploymentLookUp:
         return self._validator
 
     @property
-    def download_fetcher(self) -> GitDownloaderFetcher:
+    def downloader(self):
         """
-        :return: Tool used to get APIs to interact with Git.
+        :return: Tool used to download files from Git repositories.
         """
-        return self._download_fetcher
+        return self._downloader
 
     def run(self, outline: DeploymentOutline) -> DeploymentSummary:
         """Runs a lookup task, fetching all the necessary data out of the
@@ -76,7 +71,7 @@ class DeploymentLookUp:
         self._validate_outline(outline)
 
         featureset = FeatureSetInterpreter(
-            self._download_yaml(
+            self.downloader.download_as_yaml(
                 repo=outline.quickstart,
                 file=outline.featureset
             )
@@ -91,28 +86,3 @@ class DeploymentLookUp:
 
         if not is_valid:
             raise error
-
-    def _download_yaml(self, repo: URL, file: str) -> YAML:
-        for api in self._get_apis_for(repo):
-            try:
-                LOG.info(
-                    "Trying to download file: '%s' with API: '%s'...",
-                    file, type(api).__name__
-                )
-
-                return yaml.safe_load(api.download_as_text(file))
-            except DownloadError:
-                LOG.warning(
-                    "Failed to download file through API: '%s'.",
-                    type(api).__name__
-                )
-
-        raise DownloadError('No API could handle the download request.')
-
-    def _get_apis_for(self, url: URL) -> Iterable[GitDownloader]:
-        result = self._download_fetcher.get_downloaders_for(url)
-
-        if not result:
-            raise InvalidURL(f"Found no handlers for URL: '{url}'.")
-
-        return result
