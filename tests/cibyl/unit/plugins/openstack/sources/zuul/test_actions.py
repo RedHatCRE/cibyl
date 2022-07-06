@@ -37,7 +37,7 @@ class TestDeploymentGenerator(TestCase):
 
         variant = Mock()
 
-        tools = DeploymentGenerator.Tools()
+        tools = Mock()
         tools.release_search = release_search
 
         generator = DeploymentGenerator(tools)
@@ -64,7 +64,7 @@ class TestDeploymentGenerator(TestCase):
 
         variant = Mock()
 
-        tools = DeploymentGenerator.Tools()
+        tools = Mock()
         tools.release_search = release_search
 
         generator = DeploymentGenerator(tools)
@@ -91,7 +91,7 @@ class TestDeploymentGenerator(TestCase):
 
         variant = Mock()
 
-        tools = DeploymentGenerator.Tools()
+        tools = Mock()
         tools.release_search = release_search
 
         generator = DeploymentGenerator(tools)

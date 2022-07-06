@@ -19,10 +19,14 @@ from enum import Enum
 from typing import Callable
 
 from cibyl.plugins.openstack import Deployment
+from cibyl.plugins.openstack.network import Network
+from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
+    OutlineCreator
 from cibyl.plugins.openstack.sources.zuul.variants import ReleaseSearch
 from cibyl.sources.zuul.output import QueryOutputBuilder
 from cibyl.sources.zuul.queries.jobs import perform_jobs_query
 from cibyl.utils.filtering import matches_regex
+from tripleo.insights import DeploymentLookUp
 
 LOG = logging.getLogger(__name__)
 
@@ -120,6 +124,9 @@ class DeploymentGenerator:
     class Tools:
         """Tools the factory will use to do its task.
         """
+        outline_creator = OutlineCreator()
+        deployment_lookup = DeploymentLookUp()
+
         release_search = ReleaseSearch()
         """Takes care of finding the release of the deployment."""
 
@@ -139,11 +146,18 @@ class DeploymentGenerator:
         :return: The deployment.
         :rtype: :class:`Deployment`
         """
+        deployment = self._tools.deployment_lookup.run(
+            self._tools.outline_creator.new_outline_for(variant)
+        )
+
         return Deployment(
             release=self._get_release(variant, **kwargs),
             infra_type='',
             nodes={},
-            services={}
+            services={},
+            network=Network(
+                ip_version=deployment.ip_version
+            )
         )
 
     def _get_release(self, variant, **kwargs) -> str:
