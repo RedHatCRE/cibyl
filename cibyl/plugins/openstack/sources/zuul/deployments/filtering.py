@@ -15,6 +15,7 @@
 """
 from typing import Callable
 
+from cibyl.cli.argument import Argument
 from cibyl.plugins.openstack import Deployment
 from cibyl.utils.filtering import matches_regex
 
@@ -58,7 +59,7 @@ class DeploymentFiltering:
         for arg in filterable_args:
             self._handle_arg_filter(arg, **kwargs)
 
-    def _handle_arg_filter(self, arg, **kwargs):
+    def _handle_arg_filter(self, arg: str, **kwargs: Argument) -> None:
         if arg not in kwargs:
             return
 
