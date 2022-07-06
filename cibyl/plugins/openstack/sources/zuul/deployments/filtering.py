@@ -38,6 +38,10 @@ class DeploymentFiltering:
 
         self._filters = filters
 
+    @property
+    def filters(self):
+        return self._filters
+
     def add_filters_from(self, **kwargs):
         """Generates and adds to this filters coming from the command line
         arguments. The arguments are interpreted, the filters generated from
@@ -45,18 +49,17 @@ class DeploymentFiltering:
 
         :param kwargs: The command line arguments.
         """
-        filters = []
+        self._handle_release_filter(**kwargs)
 
+    def _handle_release_filter(self, **kwargs):
         if 'release' in kwargs:
             patterns = kwargs['release'].value
 
             if patterns:
                 for pattern in patterns:
-                    filters.append(
+                    self.filters.append(
                         lambda dpl: matches_regex(pattern, dpl.release.value)
                     )
-
-        self._filters += filters
 
     def is_valid_deployment(self, deployment):
         """Checks whether a deployment is valid and should be returned as
@@ -67,7 +70,7 @@ class DeploymentFiltering:
         :return: Whether it passes the filters in this instance or not.
         :rtype: bool
         """
-        for check in self._filters:
+        for check in self.filters:
             if not check(deployment):
                 return False
 
