@@ -13,8 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Optional
-
 from dataclasses import dataclass
 
 from cibyl.plugins.openstack.sources.zuul.tripleo import (
@@ -26,19 +24,39 @@ from tripleo.insights import DeploymentOutline
 
 
 class OverridesCollector:
+    """Tools used to gather all the overrides the job defines over the
+    TripleO deployment.
+    """
+
     @dataclass
     class Tools:
+        """Tools the factory will use to do its task.
+        """
         infra_type_search = InfraTypeSearch()
         """Checks whether there is an override for 'infra_type'."""
 
     def __init__(self, tools: Tools = Tools()):
+        """Constructor.
+
+        :param tools: The tools this will use.
+        """
         self._tools = tools
 
     @property
-    def tools(self):
+    def tools(self) -> Tools:
+        """
+        :return: The tools this will use.
+        """
         return self._tools
 
     def collect_overrides_for(self, variant: VariantResponse) -> dict:
+        """Collects all the known overrides that a variant may apply on top
+        of the TripleO deployment.
+
+        :param variant: The variant to fetch data from.
+        :return: A dictionary that matches a deployment item to its
+            overridden value.
+        """
         result = {}
 
         self._handle_infra_type(variant, result)
@@ -58,41 +76,52 @@ class OverridesCollector:
 
 
 class FeatureSetFetcher:
+    """Tool used to find any custom featureset a job may define.
+    """
+
     @dataclass
     class Tools:
+        """Tools the factory will use to do its task.
+        """
         quickstart_files = QuickStartFileCreator()
         """Factory for creating the name of files at the QuickStart repo."""
         quickstart_paths = QuickStartPathCreator()
         """Factory for creating paths relative to the QuickStart repo root."""
-
         featureset_search = FeatureSetSearch()
         """Takes care of finding the featureset of the outline."""
 
     def __init__(self, tools: Tools = Tools()):
+        """Constructor.
+
+        :param tools: The tools this will use.
+        """
         self._tools = tools
 
     @property
-    def tools(self):
+    def tools(self) -> Tools:
+        """
+        :return: The tools this will use.
+        """
         return self._tools
 
     def fetch_featureset(self, variant: VariantResponse, default: str) -> str:
-        def search_featureset() -> Optional[str]:
-            search = self.tools.featureset_search.search(variant)
+        """Studies a variant in order to determine the featureset file on
+        TripleO QuickStart that its deployment uses.
 
-            if not search:
-                return None
-
-            _, value = search
-
-            return value
-
-        featureset = search_featureset()
+        :param variant: The variant to fetch data from.
+        :param default: Path to the default featureset file that will be
+            returned in case the variant has no custom one.
+        :return: Path to the featureset file of the variant.
+        """
+        featureset = self.tools.featureset_search.search(variant)
 
         if not featureset:
             return default
 
+        _, value = featureset
+
         return self.tools.quickstart_paths.create_featureset_path(
-            self.tools.quickstart_files.create_featureset(featureset)
+            self.tools.quickstart_files.create_featureset(value)
         )
 
 

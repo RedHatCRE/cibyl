@@ -140,7 +140,10 @@ class DeploymentGenerator:
         self._tools = tools
 
     @property
-    def tools(self):
+    def tools(self) -> Tools:
+        """
+        :return: The tools this will use.
+        """
         return self._tools
 
     def generate_deployment_for(self, variant, **kwargs):

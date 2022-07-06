@@ -16,8 +16,8 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
-    OutlineCreator, FeatureSetFetcher, OverridesCollector
+from cibyl.plugins.openstack.sources.zuul.deployments.outlines import (
+    FeatureSetFetcher, OutlineCreator, OverridesCollector)
 from tripleo.insights.defaults import DEFAULT_FEATURESET_FILE
 
 
@@ -90,7 +90,7 @@ class TestFeatureSetFetcher(TestCase):
 
         search = Mock()
         search.search = Mock()
-        search.search.return_value = ('var', None)
+        search.search.return_value = None
 
         tools = Mock()
         tools.featureset_search = search
