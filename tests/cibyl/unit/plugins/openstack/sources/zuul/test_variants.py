@@ -38,7 +38,7 @@ class TestVariableSearch(TestCase):
 
         finder = VariableSearch([variable])
 
-        self.assertEqual(value, finder.search(variant))
+        self.assertEqual((variable, value), finder.search(variant))
 
         variant.variables.assert_called_once_with(recursive=True)
 
@@ -61,7 +61,7 @@ class TestVariableSearch(TestCase):
 
         finder = VariableSearch(search_terms=[variable1, variable2])
 
-        self.assertEqual(value1, finder.search(variant))
+        self.assertEqual((variable1, value1), finder.search(variant))
 
     def test_not_found_result(self):
         """Checks the returned value if the search terms were not found.
@@ -107,4 +107,4 @@ class TestReleaseSearch(TestCase):
 
         search = ReleaseSearch(search_terms=[variable])
 
-        self.assertEqual('1', search.search(variant))
+        self.assertEqual((variable, '1'), search.search(variant))

@@ -139,24 +139,28 @@ class DeploymentGenerator:
         :return: The deployment.
         :rtype: :class:`Deployment`
         """
-
-        def get_release():
-            if any(term in kwargs for term in ('spec', 'release')):
-                release = release_search.search(variant)
-
-                return release if release else 'N/A'
-
-            # Nothing means to not output this field.
-            return ''
-
-        release_search = self._tools.release_search
-
         return Deployment(
-            release=get_release(),
+            release=self._get_release(variant, **kwargs),
             infra_type='',
             nodes={},
             services={}
         )
+
+    def _get_release(self, variant, **kwargs) -> str:
+        release_search = self._tools.release_search
+
+        if any(term in kwargs for term in ('spec', 'release')):
+            release = release_search.search(variant)
+
+            if not release:
+                return 'N/A'
+
+            _, value = release
+
+            return value
+
+        # Nothing means to not output this field.
+        return ''
 
 
 class DeploymentFiltering:
