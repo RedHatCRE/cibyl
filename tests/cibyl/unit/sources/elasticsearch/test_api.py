@@ -16,7 +16,7 @@
 from __future__ import print_function
 
 from unittest import TestCase
-from unittest.mock import MagicMock, Mock, PropertyMock, patch
+from unittest.mock import Mock, patch
 
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.source import InvalidArgument, MissingArgument
@@ -499,7 +499,9 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
                                 '_source': {
                                     'job_name': 'test',
                                     'job_url': 'http://domain.tld/test/',
+                                    'test_setup': 'rpm',
                                     'ip_version': 'ipv4',
+                                    'test_suites': 'designate,neutron,octavia'
                                 }
                             }
                         ]
@@ -511,7 +513,7 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
                     'job_name': 'test2',
                     'job_url': 'http://domain.tld/test2/'
                 },
-                'key': 'test',
+                'key': 'test2',
                 'last_build': {
                     'hits': {
                         'hits': [
@@ -538,11 +540,8 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
         jobs_argument = Mock()
         jobs_argument.value = ['test']
 
-        # We need to mock the Argument kwargs passed. In this case
-        # ip_address
-        ip_address_kwargs = MagicMock()
-        ip_address_value = PropertyMock(return_value=[])
-        type(ip_address_kwargs).value = ip_address_value
+        ip_address_kwargs = Mock()
+        ip_address_kwargs.value = []
 
         jobs = self.es_api.get_deployment(jobs=jobs_argument,
                                           ip_version=ip_address_kwargs)
@@ -553,9 +552,9 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
 
     def test_spec_deployment(self: object):
         self.es_api.get_jobs = Mock(side_effect=self.job_hits)
-        spec = MagicMock()
-        spec_value = PropertyMock(return_value=[])
-        type(spec).value = spec_value
+        spec = Mock()
+        spec.value = []
+
         with self.assertRaises(InvalidArgument):
             self.es_api.get_deployment(spec=spec)
 
@@ -573,9 +572,8 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
 
         # We need to mock the Argument kwargs passed. In this case
         # ip_address
-        ip_address_kwargs = MagicMock()
-        ip_address_value = PropertyMock(return_value=['4'])
-        type(ip_address_kwargs).value = ip_address_value
+        ip_address_kwargs = Mock()
+        ip_address_kwargs.value = ['4']
 
         builds = self.es_api.get_deployment(jobs=jobs_argument,
                                             ip_version=ip_address_kwargs)
@@ -584,3 +582,53 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
         network = deployment.network.value
         self.assertEqual(network.ip_version.value, '4')
         self.assertEqual(deployment.topology.value, '')
+
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
+    def test_get_deployment_filter_test_setup(self, mock_query_hits) -> None:
+        """Tests that the internal logic from
+        :meth:`ElasticSearch.get_deployment` is correct and filters correctly
+        by test setup value.
+        """
+        mock_query_hits.return_value = self.tests_hits
+
+        jobs_argument = Mock()
+        jobs_argument.value = ['test']
+
+        test_setup = Mock()
+        test_setup.value = ["rpm"]
+
+        jobs = self.es_api.get_deployment(jobs=jobs_argument,
+                                          test_setup=test_setup)
+        self.assertEqual(len(jobs), 1)
+        deployment = jobs['test'].deployment.value
+        network = deployment.network.value
+        self.assertEqual(network.ip_version.value, '4')
+        self.assertEqual(deployment.topology.value, '')
+        test_collection = deployment.test_collection.value
+        self.assertEqual(test_collection.setup.value, 'rpm')
+
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
+    def test_get_deployment_test_suites(self, mock_query_hits) -> None:
+        """Tests that the internal logic from
+        :meth:`ElasticSearch.get_deployment` is correct and reads correctly
+        the test suites value.
+        """
+        mock_query_hits.return_value = self.tests_hits
+
+        jobs_argument = Mock()
+        jobs_argument.value = ['test$']
+
+        spec = Mock()
+        spec.value = []
+
+        jobs = self.es_api.get_deployment(jobs=jobs_argument,
+                                          spec=spec)
+        self.assertEqual(len(jobs), 1)
+        deployment = jobs['test'].deployment.value
+        network = deployment.network.value
+        self.assertEqual(network.ip_version.value, '4')
+        self.assertEqual(deployment.topology.value, '')
+        test_collection = deployment.test_collection.value
+        self.assertEqual(test_collection.setup.value, 'rpm')
+        suites = test_collection.tests.value
+        self.assertEqual(suites, set(["neutron", "designate", "octavia"]))
