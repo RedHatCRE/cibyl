@@ -140,7 +140,7 @@ Arguments Matrix
      - |:x:|
    * - --test-setup
      - | Source of test setup (rpm, git)
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
