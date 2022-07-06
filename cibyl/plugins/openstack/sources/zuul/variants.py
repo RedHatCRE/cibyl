@@ -89,7 +89,9 @@ class ReleaseSearch(VariableSearch):
         if not result:
             return None
 
-        return result[0], str(result[1])
+        variable, value = result
+
+        return variable, str(value)
 
 
 class FeatureSetSearch(VariableSearch):

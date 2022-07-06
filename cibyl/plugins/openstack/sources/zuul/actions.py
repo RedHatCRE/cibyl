@@ -152,8 +152,12 @@ class DeploymentGenerator:
         if any(term in kwargs for term in ('spec', 'release')):
             release = release_search.search(variant)
 
-            # The variable name can be ditched on this case
-            return release[1] if release else 'N/A'
+            if not release:
+                return 'N/A'
+
+            _, value = release
+
+            return value
 
         # Nothing means to not output this field.
         return ''
