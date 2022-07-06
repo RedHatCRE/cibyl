@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Optional
+
 from dataclasses import dataclass
 
 from cibyl.plugins.openstack.sources.zuul.tripleo import (
@@ -55,14 +57,9 @@ class OverridesCollector:
             overrides[variable] = value
 
 
-class OutlineCreator:
-    """Factory for generation of :class:`DeploymentOutline`.
-    """
-
+class FeatureSetFetcher:
     @dataclass
     class Tools:
-        """Tools the factory will use to do its task.
-        """
         quickstart_files = QuickStartFileCreator()
         """Factory for creating the name of files at the QuickStart repo."""
         quickstart_paths = QuickStartPathCreator()
@@ -71,6 +68,43 @@ class OutlineCreator:
         featureset_search = FeatureSetSearch()
         """Takes care of finding the featureset of the outline."""
 
+    def __init__(self, tools: Tools = Tools()):
+        self._tools = tools
+
+    @property
+    def tools(self):
+        return self._tools
+
+    def fetch_featureset(self, variant: VariantResponse, default: str) -> str:
+        def search_featureset() -> Optional[str]:
+            search = self.tools.featureset_search.search(variant)
+
+            if not search:
+                return None
+
+            _, value = search
+
+            return value
+
+        featureset = search_featureset()
+
+        if not featureset:
+            return default
+
+        return self.tools.quickstart_paths.create_featureset_path(
+            self.tools.quickstart_files.create_featureset(featureset)
+        )
+
+
+class OutlineCreator:
+    """Factory for generation of :class:`DeploymentOutline`.
+    """
+
+    @dataclass
+    class Tools:
+        """Tools the factory will use to do its task.
+        """
+        featureset_fetcher = FeatureSetFetcher()
         overrides_collector = OverridesCollector()
 
     def __init__(self, tools: Tools = Tools()):
@@ -101,24 +135,7 @@ class OutlineCreator:
         return result
 
     def _get_featureset(self, variant: VariantResponse, default: str) -> str:
-        def search_featureset():
-            search = self.tools.featureset_search.search(variant)
-
-            if not search:
-                return None
-
-            _, value = search
-
-            return value
-
-        featureset = search_featureset()
-
-        if not featureset:
-            return default
-
-        return self.tools.quickstart_paths.create_featureset_path(
-            self.tools.quickstart_files.create_featureset(featureset)
-        )
+        return self.tools.featureset_fetcher.fetch_featureset(variant, default)
 
     def _get_overrides(self, variant: VariantResponse) -> dict:
         return self.tools.overrides_collector.collect_overrides_for(variant)
