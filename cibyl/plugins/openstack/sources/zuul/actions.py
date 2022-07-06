@@ -131,13 +131,17 @@ class DeploymentGenerator:
         release_search = ReleaseSearch()
         """Takes care of finding the release of the deployment."""
 
-    def __init__(self, tools=Tools()):
+    def __init__(self, tools: Tools = Tools()):
         """Constructor.
 
         :param tools: The tools this will use.
         :type tools: :class:`DeploymentGenerator.Tools`
         """
         self._tools = tools
+
+    @property
+    def tools(self):
+        return self._tools
 
     def generate_deployment_for(self, variant, **kwargs):
         """Creates a new deployment based on the data from a job's variant.
@@ -147,13 +151,13 @@ class DeploymentGenerator:
         :return: The deployment.
         :rtype: :class:`Deployment`
         """
-        deployment = self._tools.deployment_lookup.run(
-            self._tools.outline_creator.new_outline_for(variant)
+        deployment = self.tools.deployment_lookup.run(
+            self.tools.outline_creator.new_outline_for(variant)
         )
 
         return Deployment(
             release=self._get_release(variant, **kwargs),
-            infra_type='',
+            infra_type=deployment.infra_type,
             nodes={},
             services={},
             network=Network(
@@ -162,7 +166,7 @@ class DeploymentGenerator:
         )
 
     def _get_release(self, variant, **kwargs) -> str:
-        release_search = self._tools.release_search
+        release_search = self.tools.release_search
 
         if any(term in kwargs for term in ('spec', 'release')):
             release = release_search.search(variant)
