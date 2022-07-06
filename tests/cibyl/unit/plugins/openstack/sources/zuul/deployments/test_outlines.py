@@ -26,10 +26,14 @@ class TestOverridesCollector(TestCase):
     """
 
     def test_no_infra_type(self):
-        """Tests that the result is not modified if there is not
-        'infra_type' override.
+        """Checks that the default override for 'infra_type' is returned in
+        case the variant does not have a custom one for it.
         """
-        overrides = {}
+        default_key = 'key'
+        default_val = 'val'
+
+        defaults = Mock()
+        defaults.infra_type = (default_key, default_val)
 
         variant = Mock()
 
@@ -40,11 +44,14 @@ class TestOverridesCollector(TestCase):
         tools = Mock()
         tools.infra_type_search = search
 
-        collector = OverridesCollector(tools)
+        collector = OverridesCollector(
+            defaults=defaults,
+            tools=tools
+        )
 
         result = collector.collect_overrides_for(variant)
 
-        self.assertEqual(overrides, result)
+        self.assertEqual({default_key: default_val}, result)
 
         search.search.assert_called_once_with(variant)
 
@@ -54,9 +61,8 @@ class TestOverridesCollector(TestCase):
         infra_type_var = 'infra_type'
         infra_type_val = 'ovb'
 
-        overrides = {
-            infra_type_var: infra_type_val
-        }
+        defaults = Mock()
+        defaults.infra_type = (infra_type_var, 'libvirt')
 
         variant = Mock()
 
@@ -67,11 +73,14 @@ class TestOverridesCollector(TestCase):
         tools = Mock()
         tools.infra_type_search = search
 
-        collector = OverridesCollector(tools)
+        collector = OverridesCollector(
+            defaults=defaults,
+            tools=tools
+        )
 
         result = collector.collect_overrides_for(variant)
 
-        self.assertEqual(overrides, result)
+        self.assertEqual({infra_type_var: infra_type_val}, result)
 
         search.search.assert_called_once_with(variant)
 

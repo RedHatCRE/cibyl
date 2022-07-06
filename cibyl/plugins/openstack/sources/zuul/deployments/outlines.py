@@ -13,13 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Tuple, Any
+
 from dataclasses import dataclass
 
 from cibyl.plugins.openstack.sources.zuul.tripleo import (
     QuickStartFileCreator, QuickStartPathCreator)
 from cibyl.plugins.openstack.sources.zuul.variants import (FeatureSetSearch,
                                                            InfraTypeSearch)
-from cibyl.sources.zuul.transactions import VariantResponse
+from cibyl.sources.zuul.transactions import VariantResponse as Variant
 from tripleo.insights import DeploymentOutline
 
 
@@ -29,18 +31,40 @@ class OverridesCollector:
     """
 
     @dataclass
+    class Defaults:
+        """Defines the overrides to fall back to in case none are available.
+        """
+        infra_type: Tuple[str, str] = ('environment_type', 'standalone')
+
+    @dataclass
     class Tools:
         """Tools the factory will use to do its task.
         """
         infra_type_search = InfraTypeSearch()
         """Checks whether there is an override for 'infra_type'."""
 
-    def __init__(self, tools: Tools = Tools()):
+    def __init__(
+        self,
+        defaults: Defaults = Defaults(),
+        tools: Tools = Tools()
+    ):
         """Constructor.
 
+        :param defaults: Default overrides to use in case custom ones
+            cannot be found. The values defined here will always be part of
+            the output of this class, had the target element had an override
+            for the item or not.
         :param tools: The tools this will use.
         """
+        self._defaults = defaults
         self._tools = tools
+
+    @property
+    def defaults(self) -> Defaults:
+        """
+        :return: Default overrides to use in case custom ones cannot be found.
+        """
+        return self._defaults
 
     @property
     def tools(self) -> Tools:
@@ -49,7 +73,7 @@ class OverridesCollector:
         """
         return self._tools
 
-    def collect_overrides_for(self, variant: VariantResponse) -> dict:
+    def collect_overrides_for(self, variant: Variant) -> dict:
         """Collects all the known overrides that a variant may apply on top
         of the TripleO deployment.
 
@@ -57,22 +81,46 @@ class OverridesCollector:
         :return: A dictionary that matches a deployment item to its
             overridden value.
         """
-        result = {}
+        result = self._default_overrides()
 
         self._handle_infra_type(variant, result)
 
         return result
 
-    def _handle_infra_type(
-        self,
-        variant: VariantResponse,
-        overrides: dict,
-    ) -> None:
+    def _default_overrides(self) -> dict:
+        """
+        :return: Dictionary with all default overrides preinstalled.
+        """
+        result = {}
+
+        self._insert_tuple(result, self.defaults.infra_type)
+
+        return result
+
+    def _handle_infra_type(self, variant: Variant, overrides: dict) -> None:
+        """Updates 'overrides' with any custom 'infra_type' override the
+        variant may have. Leaves 'overrides' as is if there is none.
+
+        :param variant: The variant to fetch data from.
+        :param overrides: The dictionary containing the overrides.
+        """
         infra_type = self.tools.infra_type_search.search(variant)
 
-        if infra_type:
-            variable, value = infra_type
-            overrides[variable] = value
+        if not infra_type:
+            return
+
+        self._insert_tuple(overrides, infra_type)
+
+    def _insert_tuple(self, _dict: dict, _tuple: Tuple[Any, Any]) -> None:
+        """Inserts a two-element tuple into a dictionary interpreting it as
+        (key, value). If the key already exists in the dictionary, then its
+        value is overridden.
+
+        :param _dict: The dictionary to modify.
+        :param _tuple: The tuple to insert.
+        """
+        key, val = _tuple
+        _dict[key] = val
 
 
 class FeatureSetFetcher:
@@ -104,7 +152,7 @@ class FeatureSetFetcher:
         """
         return self._tools
 
-    def fetch_featureset(self, variant: VariantResponse, default: str) -> str:
+    def fetch_featureset(self, variant: Variant, default: str) -> str:
         """Studies a variant in order to determine the featureset file on
         TripleO QuickStart that its deployment uses.
 
@@ -150,7 +198,7 @@ class OutlineCreator:
         """
         return self._tools
 
-    def new_outline_for(self, variant: VariantResponse) -> DeploymentOutline:
+    def new_outline_for(self, variant: Variant) -> DeploymentOutline:
         """Creates the outline of a deployment from the data found a job
         variant.
 
@@ -163,8 +211,8 @@ class OutlineCreator:
 
         return result
 
-    def _get_featureset(self, variant: VariantResponse, default: str) -> str:
+    def _get_featureset(self, variant: Variant, default: str) -> str:
         return self.tools.featureset_fetcher.fetch_featureset(variant, default)
 
-    def _get_overrides(self, variant: VariantResponse) -> dict:
+    def _get_overrides(self, variant: Variant) -> dict:
         return self.tools.overrides_collector.collect_overrides_for(variant)
