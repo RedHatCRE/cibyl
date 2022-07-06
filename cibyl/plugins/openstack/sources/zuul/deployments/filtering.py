@@ -49,17 +49,31 @@ class DeploymentFiltering:
 
         :param kwargs: The command line arguments.
         """
-        self._handle_release_filter(**kwargs)
+        filterable_args = (
+            'release',
+            'ip_version',
+            'infra_type'
+        )
 
-    def _handle_release_filter(self, **kwargs):
-        if 'release' in kwargs:
-            patterns = kwargs['release'].value
+        for arg in filterable_args:
+            self._handle_arg_filter(arg, **kwargs)
 
-            if patterns:
-                for pattern in patterns:
-                    self.filters.append(
-                        lambda dpl: matches_regex(pattern, dpl.release.value)
-                    )
+    def _handle_arg_filter(self, arg, **kwargs):
+        if arg not in kwargs:
+            return
+
+        patterns = kwargs[arg].value
+
+        if not patterns:
+            return
+
+        for pattern in patterns:
+            self.filters.append(
+                lambda dpl: matches_regex(
+                    pattern,
+                    getattr(dpl, arg).value
+                )
+            )
 
     def is_valid_deployment(self, deployment):
         """Checks whether a deployment is valid and should be returned as
