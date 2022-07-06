@@ -16,7 +16,7 @@
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable
+from typing import Any, Callable
 
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.network import Network
@@ -25,6 +25,7 @@ from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
 from cibyl.plugins.openstack.sources.zuul.variants import ReleaseSearch
 from cibyl.sources.zuul.output import QueryOutputBuilder
 from cibyl.sources.zuul.queries.jobs import perform_jobs_query
+from cibyl.sources.zuul.transactions import VariantResponse
 from cibyl.utils.filtering import matches_regex
 from tripleo.insights import DeploymentLookUp
 
@@ -135,7 +136,6 @@ class DeploymentGenerator:
         """Constructor.
 
         :param tools: The tools this will use.
-        :type tools: :class:`DeploymentGenerator.Tools`
         """
         self._tools = tools
 
@@ -146,13 +146,15 @@ class DeploymentGenerator:
         """
         return self._tools
 
-    def generate_deployment_for(self, variant, **kwargs):
+    def generate_deployment_for(
+        self,
+        variant: VariantResponse,
+        **kwargs: Any
+    ) -> Deployment:
         """Creates a new deployment based on the data from a job's variant.
 
         :param variant: The variant to fetch data from.
-        :type variant: :class:`cibyl.sources.zuul.transactions.VariantResponse`
         :return: The deployment.
-        :rtype: :class:`Deployment`
         """
         deployment = self.tools.deployment_lookup.run(
             self.tools.outline_creator.new_outline_for(variant)
@@ -168,7 +170,7 @@ class DeploymentGenerator:
             )
         )
 
-    def _get_release(self, variant, **kwargs) -> str:
+    def _get_release(self, variant: VariantResponse, **kwargs: Any) -> str:
         release_search = self.tools.release_search
 
         if any(term in kwargs for term in ('spec', 'release')):
