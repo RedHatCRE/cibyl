@@ -28,7 +28,9 @@ from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.service import Service
 from cibyl.plugins.openstack.sources.jenkins import (filter_models_by_name,
                                                      filter_models_set_field,
-                                                     filter_nodes)
+                                                     filter_nodes,
+                                                     filter_test_collection)
+from cibyl.plugins.openstack.test_collection import TestCollection
 from cibyl.sources.jenkins import Jenkins
 from tests.cibyl.utils import OpenstackPluginWithJobSystem
 
@@ -1490,10 +1492,10 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(job.url.value, "url")
         self.assertEqual(len(job.builds.value), 0)
         self.assertEqual(deployment.release.value, release)
-        self.assertEqual(network.ip_version.value, ip)
         self.assertEqual(deployment.topology.value, topology)
         self.assertEqual(deployment.infra_type.value, "ovb")
         self.assertEqual(storage.cinder_backend.value, "ceph")
+        self.assertEqual(network.ip_version.value, ip)
         self.assertEqual(network.network_backend.value, "geneve")
         self.assertEqual(network.dvr.value, "False")
         self.assertEqual(network.tls_everywhere.value, "False")
@@ -1832,6 +1834,86 @@ tripleo_ironic_conductor.service loaded    active     running
             services = deployment.services
             self.assertEqual(len(services), 0)
 
+    def test_get_deployment_test_setup(self):
+        """ Test get_deployment call with --test-setup."""
+        job_name = 'test_17.3_ipv4_job'
+        ip = '4'
+        release = '17.3'
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                 'name': job_name, 'url': 'url',
+                                 'lastCompletedBuild': {'description':
+                                                        logs_url}})
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        artifacts = [
+                get_yaml_overcloud(ip, release,
+                                   "ceph", "geneve", False,
+                                   False, "path/to/ovb",
+                                   ironic_inspector=False, ml2_driver="ovs",
+                                   cleaning_network=True,
+                                   security_group="openvswitch",
+                                   overcloud_templates=["a", "b"]),
+                get_yaml_tests(["designate", "neutron"], setup="rpm")]
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        test_setup = Argument("test_setup", str, "", value=["rpm"])
+        jobs = self.jenkins.get_deployment(test_setup=test_setup)
+        self.assertEqual(len(jobs), 1)
+        job = jobs[job_name]
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        deployment = job.deployment.value
+        network = deployment.network.value
+        storage = deployment.storage.value
+        ironic = deployment.ironic.value
+        self.assertEqual(storage.cinder_backend.value, "")
+        self.assertEqual(network.ip_version.value, "")
+        self.assertEqual(network.network_backend.value, "")
+        self.assertEqual(network.dvr.value, "")
+        self.assertEqual(network.tls_everywhere.value, "")
+        self.assertEqual(network.ml2_driver.value, "")
+        self.assertEqual(network.security_group.value, "")
+        self.assertEqual(ironic.ironic_inspector.value, "")
+        self.assertEqual(ironic.cleaning_network.value, "")
+        test_collection = deployment.test_collection.value
+        tests = test_collection.tests.value
+        self.assertEqual(len(tests), 0)
+        self.assertEqual(test_collection.setup.value, "rpm")
+
+    def test_get_deployment_test_setup_filter(self):
+        """ Test get_deployment call with --test-setup, and check that it
+        filters jobs that do not matched the value used."""
+        job_name = 'test_17.3_ipv4_job'
+        ip = '4'
+        release = '17.3'
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                 'name': job_name, 'url': 'url',
+                                 'lastCompletedBuild': {'description':
+                                                        logs_url}})
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        artifacts = [
+                get_yaml_overcloud(ip, release,
+                                   "ceph", "geneve", False,
+                                   False, "path/to/ovb",
+                                   ironic_inspector=False, ml2_driver="ovs",
+                                   cleaning_network=True,
+                                   security_group="openvswitch",
+                                   overcloud_templates=["a", "b"]),
+                get_yaml_tests(["designate", "neutron"], setup="rpm")]
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        test_setup = Argument("test_setup", str, "", value=["git"])
+        jobs = self.jenkins.get_deployment(test_setup=test_setup)
+        self.assertEqual(len(jobs), 0)
+
 
 class TestFilters(TestCase):
     """Tests for filter functions in jenkins source module."""
@@ -1870,7 +1952,7 @@ class TestFilters(TestCase):
         self.assertIn('service2', job['services'])
 
     def test_filter_models_set_attribute(self):
-        """Test that filter_models_set_field filters jbo according to user
+        """Test that filter_models_set_field filters job according to user
         input."""
         job = {'templates': set(["a", "b", "c", "d"])}
         template = Mock()
@@ -1879,10 +1961,22 @@ class TestFilters(TestCase):
         self.assertEqual(job["templates"], set(["c", "d"]))
 
     def test_filter_models_set_attribute_string(self):
-        """Test that filter_models_set_field filters jbo according to user
+        """Test that filter_models_set_field filters job according to user
         input."""
         job = {'templates': "N/A"}
         template = Mock()
         template.value = ["c", "d"]
         self.assertFalse(filter_models_set_field(job, template, 'templates'))
         self.assertEqual(job["templates"], "N/A")
+
+    def test_filter_test_collection(self):
+        """Test that filter_test_collection filters jobs according to user
+        input."""
+        job = {'test_collection': TestCollection(setup="rpm")}
+        test_setup = Mock()
+        test_setup.value = ["rpm"]
+        self.assertTrue(filter_test_collection(job, user_input=test_setup))
+        test_setup.value = ["git"]
+        self.assertFalse(filter_test_collection(job, user_input=test_setup))
+        # test that a job with no TestCollection returns False
+        self.assertFalse(filter_test_collection({}, user_input=test_setup))
