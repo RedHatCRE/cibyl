@@ -125,8 +125,9 @@ class DeploymentGenerator:
         """Tools the factory will use to do its task.
         """
         outline_creator = OutlineCreator()
+        """Tests care of creating the TripleO outline for a Zuul job."""
         deployment_lookup = DeploymentLookUp()
-
+        """Gets additional information on the deployment from TripleO."""
         release_search = ReleaseSearch()
         """Takes care of finding the release of the deployment."""
 
