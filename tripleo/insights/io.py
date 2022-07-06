@@ -41,6 +41,15 @@ class DeploymentOutline:
     """Path to release file relative to the repository's root."""
 
     overrides: dict = field(default_factory=lambda: {})
+    """Defines the collection of deployment items that will override those 
+    coming from the deployment's files. The dictionary is meant to have the 
+    format: YAML item -> New value. On any case, the items on the dictionary 
+    must follow the same item naming and value types as the original file.
+    
+    This can be used as a way of altering the deployment without the need of
+    modifying the files. For example, this dictionary: {'overcloud_ipv6' : 
+    True } will force the featureset to use IPv6.
+    """
 
 
 @dataclass
