@@ -17,8 +17,63 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
-    OutlineCreator, FeatureSetFetcher
+    OutlineCreator, FeatureSetFetcher, OverridesCollector
 from tripleo.insights.defaults import DEFAULT_FEATURESET_FILE
+
+
+class TestOverridesCollector(TestCase):
+    """Tests for :class:`OverridesCollector`.
+    """
+
+    def test_no_infra_type(self):
+        """Tests that the result is not modified if there is not
+        'infra_type' override.
+        """
+        overrides = {}
+
+        variant = Mock()
+
+        search = Mock()
+        search.search = Mock()
+        search.search.return_value = None
+
+        tools = Mock()
+        tools.infra_type_search = search
+
+        collector = OverridesCollector(tools)
+
+        result = collector.collect_overrides_for(variant)
+
+        self.assertEqual(overrides, result)
+
+        search.search.assert_called_once_with(variant)
+
+    def test_infra_type(self):
+        """Checks that an override for 'infra_type' is found.
+        """
+        infra_type_var = 'infra_type'
+        infra_type_val = 'ovb'
+
+        overrides = {
+            infra_type_var: infra_type_val
+        }
+
+        variant = Mock()
+
+        search = Mock()
+        search.search = Mock()
+        search.search.return_value = (infra_type_var, infra_type_val)
+
+        tools = Mock()
+        tools.infra_type_search = search
+
+        collector = OverridesCollector(tools)
+
+        result = collector.collect_overrides_for(variant)
+
+        self.assertEqual(overrides, result)
+
+        search.search.assert_called_once_with(variant)
 
 
 class TestFeatureSetFetcher(TestCase):
