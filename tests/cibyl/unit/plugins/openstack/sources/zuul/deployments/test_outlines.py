@@ -35,7 +35,7 @@ class TestOutlineCreator(TestCase):
         search.search = Mock()
         search.search.return_value = ('var', None)
 
-        tools = OutlineCreator.Tools()
+        tools = Mock()
         tools.featureset_search = search
 
         creator = OutlineCreator(tools)
@@ -66,7 +66,7 @@ class TestOutlineCreator(TestCase):
         search.search = Mock()
         search.search.return_value = ('var', fs)
 
-        tools = OutlineCreator.Tools()
+        tools = Mock()
         tools.quickstart_files = files
         tools.quickstart_paths = paths
         tools.featureset_search = search

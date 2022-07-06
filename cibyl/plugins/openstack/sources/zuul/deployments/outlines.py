@@ -17,9 +17,42 @@ from dataclasses import dataclass
 
 from cibyl.plugins.openstack.sources.zuul.tripleo import (
     QuickStartFileCreator, QuickStartPathCreator)
-from cibyl.plugins.openstack.sources.zuul.variants import FeatureSetSearch
+from cibyl.plugins.openstack.sources.zuul.variants import (FeatureSetSearch,
+                                                           InfraTypeSearch)
 from cibyl.sources.zuul.transactions import VariantResponse
 from tripleo.insights import DeploymentOutline
+
+
+class OverridesCollector:
+    @dataclass
+    class Tools:
+        infra_type_search = InfraTypeSearch()
+        """Checks whether there is an override for 'infra_type'."""
+
+    def __init__(self, tools: Tools = Tools()):
+        self._tools = tools
+
+    @property
+    def tools(self):
+        return self._tools
+
+    def collect_overrides_for(self, variant: VariantResponse) -> dict:
+        result = {}
+
+        self._handle_infra_type(variant, result)
+
+        return result
+
+    def _handle_infra_type(
+        self,
+        variant: VariantResponse,
+        overrides: dict,
+    ) -> None:
+        infra_type = self.tools.infra_type_search.search(variant)
+
+        if infra_type:
+            variable, value = infra_type
+            overrides[variable] = value
 
 
 class OutlineCreator:
@@ -37,6 +70,8 @@ class OutlineCreator:
 
         featureset_search = FeatureSetSearch()
         """Takes care of finding the featureset of the outline."""
+
+        overrides_collector = OverridesCollector()
 
     def __init__(self, tools: Tools = Tools()):
         """Constructor.
@@ -61,12 +96,13 @@ class OutlineCreator:
         """
         result = DeploymentOutline()
         result.featureset = self._get_featureset(variant, result.featureset)
+        result.overrides = self._get_overrides(variant)
 
         return result
 
     def _get_featureset(self, variant: VariantResponse, default: str) -> str:
         def search_featureset():
-            search = self._tools.featureset_search.search(variant)
+            search = self.tools.featureset_search.search(variant)
 
             if not search:
                 return None
@@ -80,6 +116,9 @@ class OutlineCreator:
         if not featureset:
             return default
 
-        return self._tools.quickstart_paths.create_featureset_path(
-            self._tools.quickstart_files.create_featureset(featureset)
+        return self.tools.quickstart_paths.create_featureset_path(
+            self.tools.quickstart_files.create_featureset(featureset)
         )
+
+    def _get_overrides(self, variant: VariantResponse) -> dict:
+        return self.tools.overrides_collector.collect_overrides_for(variant)
