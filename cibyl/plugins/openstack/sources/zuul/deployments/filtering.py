@@ -16,6 +16,7 @@
 from typing import Callable
 
 from cibyl.cli.argument import Argument
+from cibyl.models.model import Model
 from cibyl.plugins.openstack import Deployment
 from cibyl.utils.filtering import matches_regex
 
@@ -50,16 +51,35 @@ class DeploymentFiltering:
 
         :param kwargs: The command line arguments.
         """
-        filterable_args = (
+        deployment_args = (
             'release',
-            'ip_version',
             'infra_type'
         )
 
-        for arg in filterable_args:
-            self._handle_arg_filter(arg, **kwargs)
+        for arg in deployment_args:
+            self._handle_arg_filter(
+                arg,
+                lambda dpl: dpl,
+                **kwargs
+            )
 
-    def _handle_arg_filter(self, arg: str, **kwargs: Argument) -> None:
+        network_args = (
+            'ip_version',
+        )
+
+        for arg in network_args:
+            self._handle_arg_filter(
+                arg,
+                lambda dpl: dpl.network.value,
+                **kwargs
+            )
+
+    def _handle_arg_filter(
+        self,
+        arg: str,
+        attr: Callable[[Deployment], Model],
+        **kwargs: Argument
+    ) -> None:
         if arg not in kwargs:
             return
 
@@ -72,7 +92,7 @@ class DeploymentFiltering:
             self.filters.append(
                 lambda dpl: matches_regex(
                     pattern,
-                    getattr(dpl, arg).value
+                    getattr(attr(dpl), arg).value
                 )
             )
 

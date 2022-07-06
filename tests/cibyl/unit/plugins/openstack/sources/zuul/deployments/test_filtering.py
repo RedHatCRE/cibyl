@@ -49,31 +49,6 @@ class TestDeploymentFiltering(TestCase):
         self.assertTrue(filtering.is_valid_deployment(deployment1))
         self.assertFalse(filtering.is_valid_deployment(deployment2))
 
-    def test_applies_ip_version_filter(self):
-        """Checks that the filter for ip version is generated and applied.
-        """
-        ip_version1 = 'ipv4'
-        ip_version2 = 'ipv6'
-
-        ip_version_arg = Mock()
-        ip_version_arg.value = [ip_version1]
-
-        kwargs = {
-            'ip_version': ip_version_arg
-        }
-
-        deployment1 = Mock()
-        deployment1.ip_version.value = ip_version1
-
-        deployment2 = Mock()
-        deployment2.ip_version.value = ip_version2
-
-        filtering = DeploymentFiltering()
-        filtering.add_filters_from(**kwargs)
-
-        self.assertTrue(filtering.is_valid_deployment(deployment1))
-        self.assertFalse(filtering.is_valid_deployment(deployment2))
-
     def test_applies_infra_type_filter(self):
         """Checks that the filter for infra type is generated and applied.
         """
@@ -92,6 +67,31 @@ class TestDeploymentFiltering(TestCase):
 
         deployment2 = Mock()
         deployment2.infra_type.value = infra_type2
+
+        filtering = DeploymentFiltering()
+        filtering.add_filters_from(**kwargs)
+
+        self.assertTrue(filtering.is_valid_deployment(deployment1))
+        self.assertFalse(filtering.is_valid_deployment(deployment2))
+
+    def test_applies_ip_version_filter(self):
+        """Checks that the filter for ip version is generated and applied.
+        """
+        ip_version1 = 'ipv4'
+        ip_version2 = 'ipv6'
+
+        ip_version_arg = Mock()
+        ip_version_arg.value = [ip_version1]
+
+        kwargs = {
+            'ip_version': ip_version_arg
+        }
+
+        deployment1 = Mock()
+        deployment1.network.value.ip_version.value = ip_version1
+
+        deployment2 = Mock()
+        deployment2.network.value.ip_version.value = ip_version2
 
         filtering = DeploymentFiltering()
         filtering.add_filters_from(**kwargs)
