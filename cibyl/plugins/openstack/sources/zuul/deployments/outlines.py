@@ -13,9 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Tuple, Any
-
 from dataclasses import dataclass
+from typing import Any, Tuple
 
 from cibyl.plugins.openstack.sources.zuul.tripleo import (
     QuickStartFileCreator, QuickStartPathCreator)
