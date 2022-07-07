@@ -131,3 +131,21 @@ class FeatureSetOverridesSearch(VariableSearch):
         LOG.debug("Searching for overrides on variant: '%s'.", variant.name)
 
         return super().search(variant)
+
+
+class InfraTypeSearch(VariableSearch):
+    """Utility designed to make finding the infra type for a job
+    easier.
+    """
+    DEFAULT_SEARCH_TERMS = ('environment_type',)
+
+    def __init__(self, search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS):
+        """Constructor. See parent for more information.
+        """
+        super().__init__(search_terms)
+
+    @overrides
+    def search(self, variant: VariantResponse) -> Optional[Tuple[str, str]]:
+        LOG.debug("Searching for infra_type on variant: '%s'.", variant.name)
+
+        return super().search(variant)
