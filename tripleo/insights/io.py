@@ -54,9 +54,14 @@ class DeploymentOutline:
 
 @dataclass
 class Topology:
+    """Description of the deployment's topology.
+    """
     compute: int = 0
+    """Number of compute nodes."""
     ctrl: int = 0
+    """Number of controller nodes."""
     ceph: int = 0
+    """Number of ceph nodes."""
 
 
 @dataclass

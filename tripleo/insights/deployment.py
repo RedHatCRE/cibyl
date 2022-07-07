@@ -158,17 +158,31 @@ class FeatureSetInterpreter(FileInterpreter):
 
 
 class NodesInterpreter(FileInterpreter):
+    """Takes care of making sense out of the contents of a nodes file.
+    """
+
     @dataclass
     class Keys:
+        """Defines the fields of interest contained by a nodes file.
+        """
+        # Root level
         topology: str = 'topology_map'
+        """Field that defines the deployment's topology."""
 
+        # 'topology_map' level
         ctrl = 'Controller'
+        """Contains data on controller nodes."""
         compute = 'Compute'
+        """Contains data on compute nodes."""
         ceph = 'CephStorage'
+        """Contains data on ceph nodes."""
 
+        # 'node' level
         scale = 'scale'
+        """Number of nodes of a certain type."""
 
     KEYS = Keys()
+    """Knowledge that this has about the nodes file's contents."""
 
     def __init__(
         self,
@@ -180,6 +194,9 @@ class NodesInterpreter(FileInterpreter):
         super().__init__(data, schema, overrides, validator_factory)
 
     def get_topology(self) -> Optional[Topology]:
+        """
+        :return: Information on the topology described by the file.
+        """
         key = self.KEYS.topology
 
         for provider in (self.overrides, self.data):
@@ -189,6 +206,10 @@ class NodesInterpreter(FileInterpreter):
         return None
 
     def _new_topology_from(self, topology_map: dict) -> Topology:
+        """
+        :param topology_map: Take a look at the 'topology_map' level on the
+            'Keys' dictionary for the set of keys expected on this dictionary.
+        """
         result = Topology()
 
         keys = self.KEYS
