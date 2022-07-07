@@ -92,10 +92,6 @@ class DeploymentLookUp:
 
             result.infra_type = environment.get_intra_type()
 
-            # Handle missing fields
-            if not result.infra_type:
-                result.infra_type = 'N/A'
-
         def handle_featureset():
             featureset = FeatureSetInterpreter(
                 self.downloader.download_as_yaml(
