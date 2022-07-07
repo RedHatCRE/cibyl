@@ -16,8 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock, call
 
-from cibyl.plugins.openstack.sources.zuul.actions import (DeploymentFiltering,
-                                                          DeploymentGenerator,
+from cibyl.plugins.openstack.sources.zuul.actions import (DeploymentGenerator,
                                                           DeploymentQuery,
                                                           SpecArgumentHandler)
 
@@ -225,36 +224,6 @@ class TestSpecArgumentHandler(TestCase):
             SpecArgumentHandler.Option.NONE,
             handler.get_target_jobs(**kwargs)
         )
-
-
-class TestDeploymentFiltering(TestCase):
-    """Tests for :class:`DeploymentFiltering`.
-    """
-
-    def test_applies_release_filter(self):
-        """Checks that the filter for releases is generated and applied.
-        """
-        release1 = '1'
-        release2 = '2'
-
-        release_arg = Mock()
-        release_arg.value = release1
-
-        kwargs = {
-            'release': release_arg
-        }
-
-        deployment1 = Mock()
-        deployment1.release.value = release1
-
-        deployment2 = Mock()
-        deployment2.release.value = release2
-
-        filtering = DeploymentFiltering()
-        filtering.add_filters_from(**kwargs)
-
-        self.assertTrue(filtering.is_valid_deployment(deployment1))
-        self.assertFalse(filtering.is_valid_deployment(deployment2))
 
 
 class TestDeploymentQuery(TestCase):
