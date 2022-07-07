@@ -16,17 +16,18 @@
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.network import Network
+from cibyl.plugins.openstack.sources.zuul.deployments.filtering import \
+    DeploymentFiltering
 from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
     OutlineCreator
 from cibyl.plugins.openstack.sources.zuul.variants import ReleaseSearch
 from cibyl.sources.zuul.output import QueryOutputBuilder
 from cibyl.sources.zuul.queries.jobs import perform_jobs_query
 from cibyl.sources.zuul.transactions import VariantResponse
-from cibyl.utils.filtering import matches_regex
 from tripleo.insights import DeploymentLookUp
 
 LOG = logging.getLogger(__name__)
@@ -185,61 +186,6 @@ class DeploymentGenerator:
 
         # Nothing means to not output this field.
         return ''
-
-
-class DeploymentFiltering:
-    """Takes care of applying the filters coming from the command line to a
-    deployment.
-    """
-    Filter = Callable[[Deployment], bool]
-    """Type of the filters stored in this class."""
-
-    def __init__(self, filters=None):
-        """Constructor.
-
-        :param filters: Collection of filters that will be applied to
-            deployments.
-        :type filters: list[:class:`DeploymentFiltering.Filter`]
-        """
-        if not filters:
-            filters = []
-
-        self._filters = filters
-
-    def add_filters_from(self, **kwargs):
-        """Generates and adds to this filters coming from the command line
-        arguments. The arguments are interpreted, the filters generated from
-        them and then appended to the list of filters already present here.
-
-        :param kwargs: The command line arguments.
-        """
-        filters = []
-
-        if 'release' in kwargs:
-            patterns = kwargs['release'].value
-
-            if patterns:
-                for pattern in patterns:
-                    filters.append(
-                        lambda dpl: matches_regex(pattern, dpl.release.value)
-                    )
-
-        self._filters += filters
-
-    def is_valid_deployment(self, deployment):
-        """Checks whether a deployment is valid and should be returned as
-        part of the query output.
-
-        :param deployment: The deployment to check.
-        :type deployment: :class:`Deployment`
-        :return: Whether it passes the filters in this instance or not.
-        :rtype: bool
-        """
-        for check in self._filters:
-            if not check(deployment):
-                return False
-
-        return True
 
 
 class DeploymentQuery:
