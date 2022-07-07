@@ -242,8 +242,8 @@ class OSColoredPrinter(OSPrinter):
         """
         printer = IndentedTextBuilder()
         printer.add(self.palette.blue('Testing information: '), 0)
-        printer.add(self.palette.blue('Test suites: '), 1)
         if test_collection.tests.value:
+            printer.add(self.palette.blue('Test suites: '), 1)
             for test in test_collection.tests.value:
                 printer.add(self.palette.blue('- '), 2)
                 printer[-1].append(test)
