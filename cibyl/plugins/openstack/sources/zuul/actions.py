@@ -157,17 +157,15 @@ class DeploymentGenerator:
         :param variant: The variant to fetch data from.
         :return: The deployment.
         """
-        deployment = self.tools.deployment_lookup.run(
+        summary = self.tools.deployment_lookup.run(
             self.tools.outline_creator.new_outline_for(variant)
         )
 
         return Deployment(
             release=self._get_release(variant, **kwargs),
-            infra_type=deployment.infra_type,
-            nodes={},
-            services={},
+            infra_type=summary.infra_type,
             network=Network(
-                ip_version=deployment.ip_version
+                ip_version=summary.ip_version
             )
         )
 
