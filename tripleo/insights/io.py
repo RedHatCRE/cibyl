@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Optional
+
 from dataclasses import dataclass, field
 
 from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
@@ -73,3 +75,5 @@ class DeploymentSummary:
     """Name of the IP protocol used on the deployment."""
     infra_type: str = 'N/A'
     """Infrastructure type of the cloud."""
+    topology: Optional[Topology] = None
+    """Nodes on the deployment."""
