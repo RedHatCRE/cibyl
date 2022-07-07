@@ -16,13 +16,18 @@
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable
+from typing import Any, Callable
 
 from cibyl.plugins.openstack import Deployment
+from cibyl.plugins.openstack.network import Network
+from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
+    OutlineCreator
 from cibyl.plugins.openstack.sources.zuul.variants import ReleaseSearch
 from cibyl.sources.zuul.output import QueryOutputBuilder
 from cibyl.sources.zuul.queries.jobs import perform_jobs_query
+from cibyl.sources.zuul.transactions import VariantResponse
 from cibyl.utils.filtering import matches_regex
+from tripleo.insights import DeploymentLookUp
 
 LOG = logging.getLogger(__name__)
 
@@ -120,34 +125,53 @@ class DeploymentGenerator:
     class Tools:
         """Tools the factory will use to do its task.
         """
+        outline_creator = OutlineCreator()
+        """Tests care of creating the TripleO outline for a Zuul job."""
+        deployment_lookup = DeploymentLookUp()
+        """Gets additional information on the deployment from TripleO."""
         release_search = ReleaseSearch()
         """Takes care of finding the release of the deployment."""
 
-    def __init__(self, tools=Tools()):
+    def __init__(self, tools: Tools = Tools()):
         """Constructor.
 
         :param tools: The tools this will use.
-        :type tools: :class:`DeploymentGenerator.Tools`
         """
         self._tools = tools
 
-    def generate_deployment_for(self, variant, **kwargs):
+    @property
+    def tools(self) -> Tools:
+        """
+        :return: The tools this will use.
+        """
+        return self._tools
+
+    def generate_deployment_for(
+        self,
+        variant: VariantResponse,
+        **kwargs: Any
+    ) -> Deployment:
         """Creates a new deployment based on the data from a job's variant.
 
         :param variant: The variant to fetch data from.
-        :type variant: :class:`cibyl.sources.zuul.transactions.VariantResponse`
         :return: The deployment.
-        :rtype: :class:`Deployment`
         """
-        return Deployment(
-            release=self._get_release(variant, **kwargs),
-            infra_type='',
-            nodes={},
-            services={}
+        deployment = self.tools.deployment_lookup.run(
+            self.tools.outline_creator.new_outline_for(variant)
         )
 
-    def _get_release(self, variant, **kwargs) -> str:
-        release_search = self._tools.release_search
+        return Deployment(
+            release=self._get_release(variant, **kwargs),
+            infra_type=deployment.infra_type,
+            nodes={},
+            services={},
+            network=Network(
+                ip_version=deployment.ip_version
+            )
+        )
+
+    def _get_release(self, variant: VariantResponse, **kwargs: Any) -> str:
+        release_search = self.tools.release_search
 
         if any(term in kwargs for term in ('spec', 'release')):
             release = release_search.search(variant)
