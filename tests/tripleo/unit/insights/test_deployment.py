@@ -20,6 +20,7 @@ from tripleo.insights.deployment import (EnvironmentInterpreter,
                                          FeatureSetInterpreter,
                                          NodesInterpreter)
 from tripleo.insights.exceptions import IllegibleData
+from tripleo.insights.io import Topology
 
 
 class TestEnvironmentInterpreter(TestCase):
@@ -266,24 +267,6 @@ class TestFeatureSetInterpreter(TestCase):
         self.assertEqual(False, featureset.is_ipv6())
 
 
-class TestTopology(TestCase):
-    """Tests for :class:`NodesInterpreter`.
-    """
-
-    def test_default_to_str(self):
-        """Checks default textual representation of the class.
-        """
-        topology = NodesInterpreter.Topology()
-        topology.compute = 1
-        topology.ctrl = 3
-        topology.ceph = 2
-
-        self.assertEqual(
-            'compute:1,controller:3,ceph:2',
-            str(topology)
-        )
-
-
 class TestNodesInterpreter(TestCase):
     """Tests for :class:`NodesInterpreter`.
     """
@@ -377,8 +360,8 @@ class TestNodesInterpreter(TestCase):
         result = nodes.get_topology()
 
         self.assertEqual(
-            'compute:3,controller:1,ceph:0',
-            str(result)
+            Topology(3, 1, 0),
+            result
         )
 
     def test_overrides_get_topology(self):
@@ -418,6 +401,6 @@ class TestNodesInterpreter(TestCase):
         result = nodes.get_topology()
 
         self.assertEqual(
-            'compute:3,controller:1,ceph:0',
-            str(result)
+            Topology(3, 1, 0),
+            result
         )

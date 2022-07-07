@@ -53,6 +53,13 @@ class DeploymentOutline:
 
 
 @dataclass
+class Topology:
+    compute: int = 0
+    ctrl: int = 0
+    ceph: int = 0
+
+
+@dataclass
 class DeploymentSummary:
     """Defines the deployment that TripleO will perform based on the
     outline provided as input.

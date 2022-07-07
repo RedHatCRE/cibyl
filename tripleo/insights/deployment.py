@@ -15,10 +15,10 @@
 """
 from abc import ABC
 from dataclasses import dataclass
-from string import Template
 from typing import Dict, Optional
 
 from tripleo.insights.exceptions import IllegibleData
+from tripleo.insights.io import Topology
 from tripleo.utils.fs import File
 from tripleo.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
 from tripleo.utils.yaml import YAML
@@ -162,22 +162,11 @@ class NodesInterpreter(FileInterpreter):
     class Keys:
         topology: str = 'topology_map'
 
-    @dataclass
-    class Topology:
-        compute: int = 0
-        ctrl: int = 0
-        ceph: int = 0
+        ctrl = 'Controller'
+        compute = 'Compute'
+        ceph = 'CephStorage'
 
-        to_str_tmpl: Template = Template(
-            'compute:$compute,controller:$ctrl,ceph:$ceph'
-        )
-
-        def __str__(self):
-            return self.to_str_tmpl.substitute(
-                compute=self.compute,
-                ctrl=self.ctrl,
-                ceph=self.ceph
-            )
+        scale = 'scale'
 
     KEYS = Keys()
 
@@ -191,30 +180,26 @@ class NodesInterpreter(FileInterpreter):
         super().__init__(data, schema, overrides, validator_factory)
 
     def get_topology(self) -> Optional[Topology]:
-        def build_topology(data):
-            result = NodesInterpreter.Topology()
-
-            ctrl_key = 'Controller'
-            compute_key = 'Compute'
-            ceph_key = 'CephStorage'
-
-            scale_key = 'scale'
-
-            if ctrl_key in data:
-                result.ctrl = data[ctrl_key][scale_key]
-
-            if compute_key in data:
-                result.compute = data[compute_key][scale_key]
-
-            if ceph_key in data:
-                result.ceph = data[ceph_key][scale_key]
-
-            return result
-
         key = self.KEYS.topology
 
         for provider in (self.overrides, self.data):
             if key in provider:
-                return build_topology(provider[key])
+                return self._new_topology_from(provider[key])
 
         return None
+
+    def _new_topology_from(self, topology_map: dict) -> Topology:
+        result = Topology()
+
+        keys = self.KEYS
+
+        if keys.ctrl in topology_map:
+            result.ctrl = topology_map[keys.ctrl][keys.scale]
+
+        if keys.compute in topology_map:
+            result.compute = topology_map[keys.compute][keys.scale]
+
+        if keys.ceph in topology_map:
+            result.ceph = topology_map[keys.ceph][keys.scale]
+
+        return result
