@@ -101,7 +101,7 @@ class DeploymentLookUp:
                 overrides=outline.overrides
             )
 
-            result.ip_version = 'IPv6' if featureset.is_ipv6() else 'IPv4'
+            result.ip_version = '6' if featureset.is_ipv6() else '4'
 
         result = DeploymentSummary()
 
