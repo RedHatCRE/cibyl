@@ -102,7 +102,7 @@ class DeploymentFiltering:
 
         :param deployment: The deployment to check.
         :type deployment: :class:`Deployment`
-        :return: Whether it passes the filters in this instance or not.
+        :return: Whether it passes all filters in this instance or not.
         :rtype: bool
         """
         for check in self.filters:
