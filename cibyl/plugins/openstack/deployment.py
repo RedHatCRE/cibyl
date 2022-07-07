@@ -38,10 +38,7 @@ class Deployment(Model):
             'arguments': [Argument(name='--release', arg_type=str,
                                    func='get_deployment', nargs='*',
                                    description="Deployment release version"),
-                          Argument(name='--spec', arg_type=str,
-                                   func='get_deployment', nargs='*',
-                                   description="Print complete openstack"
-                                   " deployment")]
+                          ]
         },
         'infra_type': {
             'attr_type': str,
@@ -82,18 +79,7 @@ class Deployment(Model):
         },
         'network': {
             'attr_type': Network,
-            'arguments': [Argument(name='--ip-version', arg_type=str,
-                                   func='get_deployment', nargs='*',
-                                   description="Ip version used in the "
-                                               "deployment"),
-                          Argument(name='--ml2-driver', arg_type=str,
-                                   func='get_deployment', nargs='*',
-                                   description="ML2 driver used in the "
-                                               "deployment"),
-                          Argument(name='--network-backend', arg_type=str,
-                                   func='get_deployment', nargs='*',
-                                   description="Network backend used in the "
-                                               "deployment")]
+            'arguments': []
         },
 
         'ironic': {
@@ -112,10 +98,7 @@ class Deployment(Model):
         },
         'storage': {
             'attr_type': Storage,
-            'arguments': [Argument(name='--cinder-backend', arg_type=str,
-                                   func='get_deployment', nargs='*',
-                                   description="Cinder backend used in the "
-                                               "deployment")]
+            'arguments': []
         },
         'stages': {
             'attr_type': Stage,
