@@ -18,7 +18,7 @@ import operator
 import re
 import time
 from copy import deepcopy
-from typing import List
+from typing import List, Optional
 
 import cibyl.exceptions.config as conf_exc
 from cibyl.cli.argument import Argument
@@ -288,18 +288,28 @@ class Orchestrator:
         """Extend parser with arguments from CI models."""
         for attr_dict in attributes.values():
             arguments = attr_dict.get('arguments')
-            if arguments:
-                class_type = attr_dict.get('attr_type')
-                if class_type not in [str, list, dict, int] and \
-                   hasattr(class_type, 'API'):
-                    self.parser.extend(arguments, group_name, level=level+1)
-                    self.extend_parser(class_type.API, class_type.__name__,
+            class_type = attr_dict.get('attr_type')
+            has_api = class_type not in [str, list, dict, int] and \
+                hasattr(class_type, 'API')
+            if has_api:
+                # API entry is related to a model that has an API
+                new_group_name = class_type.__name__
+                if arguments:
+                    # add the arguments found in the current entry, but relate
+                    # them to the model
+                    self.parser.extend(arguments, new_group_name,
                                        level=level+1)
-                else:
-                    self.parser.extend(arguments, group_name, level=level)
+                # explore the API of the model found, even if there are no
+                # arguments
+                self.extend_parser(class_type.API, new_group_name,
+                                   level=level+1)
+            elif arguments:
+                # if the API entry has arguments but is not related to any
+                # model, just add them
+                self.parser.extend(arguments, group_name, level=level)
 
     def query_and_publish(self, output_style: str = "colorized",
-                          features: list = None) -> None:
+                          features: Optional[list] = None) -> None:
         """Iterate over the environments and their systems and publish
         the results of the queries.
 
