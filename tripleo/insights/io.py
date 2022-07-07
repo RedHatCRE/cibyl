@@ -13,9 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Optional
-
 from dataclasses import dataclass, field
+from typing import Optional
 
 from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
                                        DEFAULT_FEATURESET_FILE,
