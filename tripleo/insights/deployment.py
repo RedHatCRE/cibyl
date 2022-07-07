@@ -14,9 +14,8 @@
 #    under the License.
 """
 from abc import ABC
-from string import Template
-
 from dataclasses import dataclass
+from string import Template
 from typing import Dict, Optional
 
 from tripleo.insights.exceptions import IllegibleData
