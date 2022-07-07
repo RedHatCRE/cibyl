@@ -20,6 +20,7 @@ from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.ironic import Ironic
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.storage import Storage
+from cibyl.plugins.openstack.test_collection import TestCollection
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import chunk_dictionary_into_lists
@@ -29,7 +30,7 @@ from cibyl.utils.filtering import IP_PATTERN
 class ElasticSearch(SourceExtension):
     """Elasticsearch Source"""
 
-    @speed_index({'base': 2})
+    @speed_index({'base': 4})
     def get_deployment(self, **kwargs):
         """Get deployment information for jobs from elasticsearch server.
 
@@ -125,8 +126,10 @@ class ElasticSearch(SourceExtension):
             'ip_version',
             'dvr',
             'network_backend',
-            'cinder_backend',
-            'osp_release'
+            'storage_backend',
+            'osp_release',
+            'test_setup',
+            'test_suites'
         ]
 
         if 'spec' in kwargs:
@@ -150,20 +153,23 @@ class ElasticSearch(SourceExtension):
         release_argument = None
         if 'release' in kwargs:
             release_argument = kwargs.get('release').value
+            append_exists_field_to_query('osp_release')
+            append_get_specific_field('osp_release')
         network_argument = None
         if 'network_backend' in kwargs:
             network_argument = kwargs.get('network_backend').value
             append_exists_field_to_query('network_backend')
             append_get_specific_field('network_backend')
-        storage_argument = None
+        cinder_backend_argument = None
         if 'cinder_backend' in kwargs:
-            storage_argument = kwargs.get('cinder_backend').value
+            cinder_backend_argument = kwargs.get('cinder_backend').value
             append_exists_field_to_query('storage_backend')
             append_get_specific_field('storage_backend')
-        if 'osp_release' in kwargs:
-            storage_argument = kwargs.get('osp_release').value
-            append_exists_field_to_query('osp_release')
-            append_get_specific_field('osp_release')
+        test_setup_argument = None
+        if 'test_setup' in kwargs:
+            test_setup_argument = kwargs.get('test_setup').value
+            append_exists_field_to_query('test_setup')
+            append_get_specific_field('test_setup')
 
         hits_info = {}
         for jobs_list in chunked_list_of_jobs:
@@ -209,6 +215,10 @@ class ElasticSearch(SourceExtension):
                 "dvr", "")
             osp_release = job_source_data.get(
                 "osp_release", "")
+            test_setup = job_source_data.get("test_setup")
+            tests_suites = job_source_data.get("test_suites")
+            if tests_suites:
+                tests_suites = set(tests_suites.split(","))
 
             if ip_version != '':
                 matches = IP_PATTERN.search(ip_version)
@@ -234,9 +244,13 @@ class ElasticSearch(SourceExtension):
                     network_backend not in network_argument:
                 continue
 
-            # Check if necessary filter by storage backend:
-            if storage_argument and \
-                    cinder_backend not in storage_argument:
+            # Check if necessary filter by cinder_backend backend:
+            if cinder_backend_argument and \
+                    cinder_backend not in cinder_backend_argument:
+                continue
+
+            # check if necessary filter by test_setup
+            if test_setup_argument and test_setup not in test_setup_argument:
                 continue
 
             job_objects[job_name] = Job(name=job_name, url=job_url)
@@ -245,6 +259,9 @@ class ElasticSearch(SourceExtension):
                               tls_everywhere='')
             storage = Storage(cinder_backend=cinder_backend)
             ironic = Ironic()
+            test_collection = None
+            if tests_suites or test_setup or 'spec' in kwargs:
+                test_collection = TestCollection(tests_suites, test_setup)
             deployment = Deployment(
                 release=osp_release,
                 infra_type='',
@@ -253,7 +270,8 @@ class ElasticSearch(SourceExtension):
                 topology=topology,
                 network=network,
                 storage=storage,
-                ironic=ironic
+                ironic=ironic,
+                test_collection=test_collection
             )
 
             job_objects[job_name].add_deployment(deployment)
