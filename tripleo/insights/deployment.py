@@ -14,6 +14,8 @@
 #    under the License.
 """
 from abc import ABC
+from string import Template
+
 from dataclasses import dataclass
 from typing import Dict, Optional
 
@@ -154,3 +156,66 @@ class FeatureSetInterpreter(FileInterpreter):
             return self.data[key]
 
         return False
+
+
+class NodesInterpreter(FileInterpreter):
+    @dataclass
+    class Keys:
+        topology: str = 'topology_map'
+
+    @dataclass
+    class Topology:
+        compute: int = 0
+        ctrl: int = 0
+        ceph: int = 0
+
+        to_str_tmpl: Template = Template(
+            'compute:$compute,controller:$ctrl,ceph:$ceph'
+        )
+
+        def __str__(self):
+            return self.to_str_tmpl.substitute(
+                compute=self.compute,
+                ctrl=self.ctrl,
+                ceph=self.ceph
+            )
+
+    KEYS = Keys()
+
+    def __init__(
+        self,
+        data: YAML,
+        schema: File = File('tripleo/_data/schemas/nodes.json'),
+        overrides: Optional[Dict] = None,
+        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
+    ):
+        super().__init__(data, schema, overrides, validator_factory)
+
+    def get_topology(self) -> Optional[Topology]:
+        def build_topology(data):
+            result = NodesInterpreter.Topology()
+
+            ctrl_key = 'Controller'
+            compute_key = 'Compute'
+            ceph_key = 'CephStorage'
+
+            scale_key = 'scale'
+
+            if ctrl_key in data:
+                result.ctrl = data[ctrl_key][scale_key]
+
+            if compute_key in data:
+                result.compute = data[compute_key][scale_key]
+
+            if ceph_key in data:
+                result.ceph = data[ceph_key][scale_key]
+
+            return result
+
+        key = self.KEYS.topology
+
+        for provider in (self.overrides, self.data):
+            if key in provider:
+                return build_topology(provider[key])
+
+        return None
