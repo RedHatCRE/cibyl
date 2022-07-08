@@ -44,25 +44,24 @@ class LogOutput(Enum):
     ToFile = 1
 
 
-def enable_logging(level: int, *output: LogOutput, **kwargs: Any) -> None:
+def enable_logging(level: int, output: LogOutput, **kwargs: Any) -> None:
     logger = logging.getLogger('tripleo')
     logger.setLevel(level)
 
-    for option in output:
-        if option == LogOutput.StdOut:
-            _configure_logger_for_std_out(logger)
-            continue
+    if output == LogOutput.StdOut:
+        _configure_logger_for_std_out(logger)
+        return
 
-        if option == LogOutput.ToFile:
-            if 'file' not in kwargs:
-                msg = "Log output 'ToFile' requires key 'file'."
-                raise ValueError(msg)
+    if output == LogOutput.ToFile:
+        if 'file' not in kwargs:
+            msg = "Log output 'ToFile' requires key 'file'."
+            raise ValueError(msg)
 
-            file = File(kwargs['file'])
-            file.check_exists()
+        file = File(kwargs['file'])
+        file.check_exists()
 
-            _configure_logger_for_file_out(logger, file)
-            continue
+        _configure_logger_for_file_out(logger, file)
+        return
 
 
 def _configure_logger_for_std_out(logger: Logger) -> None:
