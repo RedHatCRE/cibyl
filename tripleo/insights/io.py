@@ -85,25 +85,6 @@ class Topology:
 
         return result
 
-    def __str__(self):
-        result = ''
-
-        for item in fields(type(self)):
-            name = item.name
-            value = getattr(self, name)
-
-            # Ignore if there are no nodes of this type
-            if not value:
-                continue
-
-            # If not the first element, add a separator
-            if result:
-                result += ','
-
-            result += f'{name}:{value}'
-
-        return result
-
 
 @dataclass
 class DeploymentSummary:
