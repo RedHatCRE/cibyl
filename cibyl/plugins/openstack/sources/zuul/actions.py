@@ -22,6 +22,8 @@ from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.sources.zuul.deployments.filtering import \
     DeploymentFiltering
+from cibyl.plugins.openstack.sources.zuul.deployments.formatting import \
+    TopologyPrinter
 from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
     OutlineCreator
 from cibyl.plugins.openstack.sources.zuul.variants import ReleaseSearch
@@ -132,6 +134,8 @@ class DeploymentGenerator:
         """Gets additional information on the deployment from TripleO."""
         release_search = ReleaseSearch()
         """Takes care of finding the release of the deployment."""
+        topology_printer = TopologyPrinter()
+        """Used to go from a topology to string that can be outputted."""
 
     def __init__(self, tools: Tools = Tools()):
         """Constructor.
@@ -164,6 +168,7 @@ class DeploymentGenerator:
         return Deployment(
             release=self._get_release(variant, **kwargs),
             infra_type=summary.infra_type,
+            topology=self.tools.topology_printer.print(summary.topology),
             network=Network(
                 ip_version=summary.ip_version
             )
