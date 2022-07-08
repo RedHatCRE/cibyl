@@ -17,8 +17,9 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.plugins.openstack.sources.zuul.deployments.outlines import (
-    FeatureSetFetcher, OutlineCreator, OverridesCollector)
-from tripleo.insights.defaults import DEFAULT_FEATURESET_FILE
+    FilesFetcher, OutlineCreator, OverridesCollector)
+from tripleo.insights.defaults import (DEFAULT_FEATURESET_FILE,
+                                       DEFAULT_NODES_FILE)
 
 
 class TestOverridesCollector(TestCase):
@@ -85,13 +86,13 @@ class TestOverridesCollector(TestCase):
         search.search.assert_called_once_with(variant)
 
 
-class TestFeatureSetFetcher(TestCase):
-    """Tests for :class:`FeatureSetFetcher`.
+class TestFilesFetcher(TestCase):
+    """Tests for :class:`FilesFetcher`.
     """
 
     def test_no_custom_featureset(self):
         """Checks that the default value is returned if the variant has no
-        custom featureset.
+        custom featureset file.
         """
         default = 'path'
 
@@ -104,14 +105,14 @@ class TestFeatureSetFetcher(TestCase):
         tools = Mock()
         tools.featureset_search = search
 
-        fetcher = FeatureSetFetcher(tools)
+        fetcher = FilesFetcher(tools)
 
         result = fetcher.fetch_featureset(variant, default)
 
         self.assertEqual(default, result)
 
     def test_custom_featureset(self):
-        """Checks that this generates the featureset path from the
+        """Checks that this generates the featureset file path from the
         variant's variables.
         """
         fs = '001'
@@ -137,7 +138,7 @@ class TestFeatureSetFetcher(TestCase):
         tools.quickstart_paths = paths
         tools.featureset_search = search
 
-        fetcher = FeatureSetFetcher(tools)
+        fetcher = FilesFetcher(tools)
 
         result = fetcher.fetch_featureset(variant, 'unused')
 
@@ -147,15 +148,73 @@ class TestFeatureSetFetcher(TestCase):
         files.create_featureset.assert_called_once_with(fs)
         paths.create_featureset_path.assert_called_once_with(file)
 
+    def test_no_custom_nodes(self):
+        """Checks that the default value is returned if the variant has no
+        custom nodes file.
+        """
+        default = 'path'
+
+        variant = Mock()
+
+        search = Mock()
+        search.search = Mock()
+        search.search.return_value = None
+
+        tools = Mock()
+        tools.nodes_search = search
+
+        fetcher = FilesFetcher(tools)
+
+        result = fetcher.fetch_nodes(variant, default)
+
+        self.assertEqual(default, result)
+
+    def test_custom_nodes(self):
+        """Checks that this generates the nodes file path from the
+        variant's variables.
+        """
+        nodes = 'ctrl1'
+        file = 'some_file.yml'
+        path = 'path/to/some_file.yml'
+
+        variant = Mock()
+
+        files = Mock()
+        files.create_nodes = Mock()
+        files.create_nodes.return_value = file
+
+        paths = Mock()
+        paths.create_nodes_path = Mock()
+        paths.create_nodes_path.return_value = path
+
+        search = Mock()
+        search.search = Mock()
+        search.search.return_value = ('var', nodes)
+
+        tools = Mock()
+        tools.quickstart_files = files
+        tools.quickstart_paths = paths
+        tools.nodes_search = search
+
+        fetcher = FilesFetcher(tools)
+
+        result = fetcher.fetch_nodes(variant, 'unused')
+
+        self.assertEqual(path, result)
+
+        search.search.assert_called_once_with(variant)
+        files.create_nodes.assert_called_once_with(nodes)
+        paths.create_nodes_path.assert_called_once_with(file)
+
 
 class TestOutlineCreator(TestCase):
     """Tests for :class:`OutlineCreator`.
     """
 
     def test_fetches_featureset(self):
-        """Checks that this will read the featureset from the variant. Also
-        checks the default value it will use if there is no custom
-        featureset on the variant.
+        """Checks that this will read the featureset file from the variant.
+        Also checks the default value it will use if there is no custom file
+        on it.
         """
         featureset = 'some_value'
 
@@ -166,7 +225,7 @@ class TestOutlineCreator(TestCase):
         fetcher.fetch_featureset.return_value = featureset
 
         tools = Mock()
-        tools.featureset_fetcher = fetcher
+        tools.files_fetcher = fetcher
 
         creator = OutlineCreator(tools)
 
@@ -177,6 +236,32 @@ class TestOutlineCreator(TestCase):
         fetcher.fetch_featureset.assert_called_once_with(
             variant,
             DEFAULT_FEATURESET_FILE
+        )
+
+    def test_fetches_nodes(self):
+        """Checks that this will read the nodes file from the variant. Also
+        checks the default value it will use if there is no custom file on it.
+        """
+        nodes = 'some_value'
+
+        variant = Mock()
+
+        fetcher = Mock()
+        fetcher.fetch_nodes = Mock()
+        fetcher.fetch_nodes.return_value = nodes
+
+        tools = Mock()
+        tools.files_fetcher = fetcher
+
+        creator = OutlineCreator(tools)
+
+        result = creator.new_outline_for(variant)
+
+        self.assertEqual(nodes, result.nodes)
+
+        fetcher.fetch_nodes.assert_called_once_with(
+            variant,
+            DEFAULT_NODES_FILE
         )
 
     def test_fetches_overrides(self):
