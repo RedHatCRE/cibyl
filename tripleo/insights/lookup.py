@@ -16,7 +16,8 @@
 import logging
 
 from tripleo.insights.deployment import (EnvironmentInterpreter,
-                                         FeatureSetInterpreter)
+                                         FeatureSetInterpreter,
+                                         NodesInterpreter)
 from tripleo.insights.git import GitDownload
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
 from tripleo.insights.validation import OutlineValidator
@@ -103,9 +104,21 @@ class DeploymentLookUp:
 
             result.ip_version = '6' if featureset.is_ipv6() else '4'
 
+        def handle_nodes():
+            nodes = NodesInterpreter(
+                self.downloader.download_as_yaml(
+                    repo=outline.quickstart,
+                    file=outline.nodes
+                ),
+                overrides=outline.overrides
+            )
+
+            result.topology = nodes.get_topology()
+
         result = DeploymentSummary()
 
         handle_environment()
         handle_featureset()
+        handle_nodes()
 
         return result

@@ -77,3 +77,5 @@ class DeploymentSummary:
     """Name of the IP protocol used on the deployment."""
     infra_type: Optional[str] = None
     """Infrastructure type of the cloud."""
+    topology: Optional[Topology] = None
+    """Nodes on the deployment."""
