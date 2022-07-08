@@ -124,8 +124,11 @@ class Deployment(Model):
             }
     }
 
-    def __init__(self, release: str, infra_type: str,
-                 nodes: Dict[str, Node], services: Dict[str, Service],
+    def __init__(self,
+                 release: Optional[str] = None,
+                 infra_type: Optional[str] = None,
+                 nodes: Optional[Dict[str, Node]] = None,
+                 services: Optional[Dict[str, Service]] = None,
                  topology: Optional[str] = None,
                  network: Optional[Network] = None,
                  storage: Optional[Storage] = None,

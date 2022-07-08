@@ -14,6 +14,7 @@
 #    under the License.
 """
 from dataclasses import dataclass, field
+from typing import Optional
 
 from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
                                        DEFAULT_FEATURESET_FILE,
@@ -56,8 +57,11 @@ class DeploymentOutline:
 class DeploymentSummary:
     """Defines the deployment that TripleO will perform based on the
     outline provided as input.
+
+    Every field left as 'None' indicates that no information related to it
+    could be found. Interpret it as missing content.
     """
-    ip_version: str = 'N/A'
+    ip_version: Optional[str] = None
     """Name of the IP protocol used on the deployment."""
-    infra_type: str = 'N/A'
+    infra_type: Optional[str] = None
     """Infrastructure type of the cloud."""
