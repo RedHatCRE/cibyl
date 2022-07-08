@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from typing import Dict, Optional
 
 from tripleo.insights.exceptions import IllegibleData
+from tripleo.insights.io import Topology
 from tripleo.utils.fs import File
 from tripleo.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
 from tripleo.utils.yaml import YAML
@@ -154,3 +155,72 @@ class FeatureSetInterpreter(FileInterpreter):
             return self.data[key]
 
         return False
+
+
+class NodesInterpreter(FileInterpreter):
+    """Takes care of making sense out of the contents of a nodes file.
+    """
+
+    @dataclass
+    class Keys:
+        """Defines the fields of interest contained by a nodes file.
+        """
+        # Root level
+        topology: str = 'topology_map'
+        """Field that defines the deployment's topology."""
+
+        # 'topology_map' level
+        ctrl = 'Controller'
+        """Contains data on controller nodes."""
+        compute = 'Compute'
+        """Contains data on compute nodes."""
+        ceph = 'CephStorage'
+        """Contains data on ceph nodes."""
+
+        # 'node' level
+        scale = 'scale'
+        """Number of nodes of a certain type."""
+
+    KEYS = Keys()
+    """Knowledge that this has about the nodes file's contents."""
+
+    def __init__(
+        self,
+        data: YAML,
+        schema: File = File('tripleo/_data/schemas/nodes.json'),
+        overrides: Optional[Dict] = None,
+        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
+    ):
+        super().__init__(data, schema, overrides, validator_factory)
+
+    def get_topology(self) -> Optional[Topology]:
+        """
+        :return: Information on the topology described by the file.
+        """
+        key = self.KEYS.topology
+
+        for provider in (self.overrides, self.data):
+            if key in provider:
+                return self._new_topology_from(provider[key])
+
+        return None
+
+    def _new_topology_from(self, topology_map: dict) -> Topology:
+        """
+        :param topology_map: Take a look at the 'topology_map' level on the
+            'Keys' dictionary for the set of keys expected on this dictionary.
+        """
+        result = Topology()
+
+        keys = self.KEYS
+
+        if keys.ctrl in topology_map:
+            result.ctrl = topology_map[keys.ctrl][keys.scale]
+
+        if keys.compute in topology_map:
+            result.compute = topology_map[keys.compute][keys.scale]
+
+        if keys.ceph in topology_map:
+            result.ceph = topology_map[keys.ceph][keys.scale]
+
+        return result

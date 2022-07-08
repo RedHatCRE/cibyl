@@ -17,8 +17,10 @@ from unittest import TestCase
 from unittest.mock import Mock, call
 
 from tripleo.insights.deployment import (EnvironmentInterpreter,
-                                         FeatureSetInterpreter)
+                                         FeatureSetInterpreter,
+                                         NodesInterpreter)
 from tripleo.insights.exceptions import IllegibleData
+from tripleo.insights.io import Topology
 
 
 class TestEnvironmentInterpreter(TestCase):
@@ -263,3 +265,142 @@ class TestFeatureSetInterpreter(TestCase):
         )
 
         self.assertEqual(False, featureset.is_ipv6())
+
+
+class TestNodesInterpreter(TestCase):
+    """Tests for :class:`NodesInterpreter`.
+    """
+
+    def test_checks_data_validity(self):
+        """Verifies that the class checks that the data follows the schema.
+        """
+        data = {}
+        overrides = {}
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        NodesInterpreter(
+            data,
+            schema=schema,
+            overrides=overrides,
+            validator_factory=factory
+        )
+
+        factory.from_file.assert_called_once_with(schema)
+
+        validator.is_valid.assert_has_calls(
+            [
+                call(data),
+                call(overrides)
+            ]
+        )
+
+    def test_error_if_invalid_data(self):
+        """Checks that an error is thrown if the data is not valid.
+        """
+        data = {}
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = False
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        with self.assertRaises(IllegibleData):
+            NodesInterpreter(
+                data,
+                schema=schema,
+                validator_factory=factory
+            )
+
+    def test_get_topology(self):
+        """Checks that the topology map is built from the data on the file.
+        """
+        keys = NodesInterpreter.KEYS
+
+        data = {
+            keys.topology: {
+                'Controller': {
+                    'scale': 1
+                },
+                'Compute': {
+                    'scale': 3
+                }
+            }
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        nodes = NodesInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        result = nodes.get_topology()
+
+        self.assertEqual(
+            Topology(3, 1, 0),
+            result
+        )
+
+    def test_overrides_get_topology(self):
+        """Checks that the topology map can be overridden.
+        """
+        keys = NodesInterpreter.KEYS
+
+        data = {}
+        overrides = {
+            keys.topology: {
+                'Controller': {
+                    'scale': 1
+                },
+                'Compute': {
+                    'scale': 3
+                }
+            }
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        nodes = NodesInterpreter(
+            data,
+            schema=schema,
+            overrides=overrides,
+            validator_factory=factory
+        )
+
+        result = nodes.get_topology()
+
+        self.assertEqual(
+            Topology(3, 1, 0),
+            result
+        )
