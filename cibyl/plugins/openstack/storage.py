@@ -15,6 +15,7 @@
 """
 from typing import Optional
 
+from cibyl.cli.argument import Argument
 from cibyl.models.model import Model
 
 # pylint: disable=no-member
@@ -26,7 +27,10 @@ class Storage(Model):
     API = {
         'cinder_backend': {
             'attr_type': str,
-            'arguments': []
+            'arguments': [Argument(name='--cinder-backend', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Cinder backend used in the "
+                                               "deployment")]
         }
     }
 
