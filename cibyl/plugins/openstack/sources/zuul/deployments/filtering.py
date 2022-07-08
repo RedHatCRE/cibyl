@@ -53,7 +53,8 @@ class DeploymentFiltering:
         """
         deployment_args = (
             'release',
-            'infra_type'
+            'infra_type',
+            'topology'
         )
 
         for arg in deployment_args:

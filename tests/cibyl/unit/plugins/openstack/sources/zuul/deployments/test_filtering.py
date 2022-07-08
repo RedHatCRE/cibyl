@@ -74,6 +74,31 @@ class TestDeploymentFiltering(TestCase):
         self.assertTrue(filtering.is_valid_deployment(deployment1))
         self.assertFalse(filtering.is_valid_deployment(deployment2))
 
+    def test_applies_topology_filter(self):
+        """Checks that the filter for topology is generated and applied.
+        """
+        topology1 = 'ctrl1;'
+        topology2 = 'ctrl2;'
+
+        topology_arg = Mock()
+        topology_arg.value = [topology1]
+
+        kwargs = {
+            'topology': topology_arg
+        }
+
+        deployment1 = Mock()
+        deployment1.topology.value = topology1
+
+        deployment2 = Mock()
+        deployment2.topology.value = topology2
+
+        filtering = DeploymentFiltering()
+        filtering.add_filters_from(**kwargs)
+
+        self.assertTrue(filtering.is_valid_deployment(deployment1))
+        self.assertFalse(filtering.is_valid_deployment(deployment2))
+
     def test_applies_ip_version_filter(self):
         """Checks that the filter for ip version is generated and applied.
         """
