@@ -38,6 +38,17 @@
               "type": "integer"
             }
           }
+        },
+        "CellController": {
+          "type": "object",
+          "required": [
+            "scale"
+          ],
+          "properties": {
+            "scale": {
+              "type": "integer"
+            }
+          }
         }
       }
     }

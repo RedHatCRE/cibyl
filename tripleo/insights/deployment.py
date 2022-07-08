@@ -176,6 +176,8 @@ class NodesInterpreter(FileInterpreter):
         """Contains data on controller nodes."""
         ceph = 'CephStorage'
         """Contains data on ceph nodes."""
+        cell = 'CellController'
+        """Contains data on cell nodes."""
 
         # 'node' level
         scale = 'scale'
@@ -222,5 +224,8 @@ class NodesInterpreter(FileInterpreter):
 
         if keys.ceph in topology_map:
             result.ceph = topology_map[keys.ceph][keys.scale]
+
+        if keys.cell in topology_map:
+            result.cell = topology_map[keys.cell][keys.scale]
 
         return result
