@@ -87,7 +87,10 @@ class Deployment(Model):
             'arguments': []
         },
         'overcloud_templates': {
-            'arguments': []
+            'arguments': [Argument(name='--overcloud-templates', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="TripleO templates use in the "
+                                               "deployment")]
         },
         'test_collection': {
             'attr_type': TestCollection,
