@@ -170,10 +170,10 @@ class NodesInterpreter(FileInterpreter):
         """Field that defines the deployment's topology."""
 
         # 'topology_map' level
-        ctrl = 'Controller'
-        """Contains data on controller nodes."""
         compute = 'Compute'
         """Contains data on compute nodes."""
+        controller = 'Controller'
+        """Contains data on controller nodes."""
         ceph = 'CephStorage'
         """Contains data on ceph nodes."""
 
@@ -214,11 +214,11 @@ class NodesInterpreter(FileInterpreter):
 
         keys = self.KEYS
 
-        if keys.ctrl in topology_map:
-            result.ctrl = topology_map[keys.ctrl][keys.scale]
-
         if keys.compute in topology_map:
             result.compute = topology_map[keys.compute][keys.scale]
+
+        if keys.controller in topology_map:
+            result.controller = topology_map[keys.controller][keys.scale]
 
         if keys.ceph in topology_map:
             result.ceph = topology_map[keys.ceph][keys.scale]
