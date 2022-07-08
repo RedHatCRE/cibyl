@@ -24,7 +24,8 @@ class TopologyPrinter:
     DEFAULT_TEMPLATE: Template = Template(
         'compute:$compute,'
         'controller:$ctrl,'
-        'ceph:$ceph'
+        'ceph:$ceph,'
+        'cell:$cell'
     )
     """Default output format."""
 
@@ -54,5 +55,6 @@ class TopologyPrinter:
         return self._template.substitute(
             compute=topology.compute,
             ctrl=topology.ctrl,
-            ceph=topology.ceph
+            ceph=topology.ceph,
+            cell=topology.cell
         )

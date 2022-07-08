@@ -63,6 +63,8 @@ class Topology:
     """Number of controller nodes."""
     ceph: int = 0
     """Number of ceph nodes."""
+    cell: int = 0
+    """Number of cell nodes."""
 
 
 @dataclass

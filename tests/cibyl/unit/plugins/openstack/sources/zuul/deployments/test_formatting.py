@@ -31,10 +31,11 @@ class TestTopologyPrinter(TestCase):
         model.compute = 2
         model.ctrl = 1
         model.ceph = 4
+        model.cell = 3
 
         printer = TopologyPrinter()
 
         self.assertEqual(
-            'compute:2,controller:1,ceph:4',
+            'compute:2,controller:1,ceph:4,cell:3',
             printer.print(model)
         )
