@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Optional
 
 from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
@@ -59,12 +59,31 @@ class Topology:
     """
     compute: int = 0
     """Number of compute nodes."""
-    ctrl: int = 0
+    controller: int = 0
     """Number of controller nodes."""
     ceph: int = 0
     """Number of ceph nodes."""
     cell: int = 0
     """Number of cell nodes."""
+
+    def __str__(self):
+        result = ''
+
+        for item in fields(type(self)):
+            name = item.name
+            value = getattr(self, name)
+
+            # Ignore if there are no nodes of this type
+            if not value:
+                continue
+
+            # If not the first element, add a separator
+            if result:
+                result += ','
+
+            result += f'{name}:{value}'
+
+        return result
 
 
 @dataclass
