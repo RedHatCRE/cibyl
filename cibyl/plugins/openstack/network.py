@@ -15,6 +15,7 @@
 """
 from typing import Optional
 
+from cibyl.cli.argument import Argument
 from cibyl.models.model import Model
 
 # pylint: disable=no-member
@@ -26,11 +27,17 @@ class Network(Model):
     API = {
         'ip_version': {
             'attr_type': str,
-            'arguments': []
+            'arguments': [Argument(name='--ip-version', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Ip version used in the "
+                                               "deployment")]
         },
         'ml2_driver': {
             'attr_type': str,
-            'arguments': []
+            'arguments': [Argument(name='--ml2-driver', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="ML2 driver used in the "
+                                               "deployment")]
         },
         'dvr': {
             'arguments': []
@@ -43,7 +50,10 @@ class Network(Model):
         },
         'network_backend': {
             'attr_type': str,
-            'arguments': []
+            'arguments': [Argument(name='--network-backend', arg_type=str,
+                                   func='get_deployment', nargs='*',
+                                   description="Network backend used in the "
+                                               "deployment")]
         },
     }
 

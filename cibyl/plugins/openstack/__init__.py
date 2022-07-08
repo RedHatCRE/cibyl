@@ -59,13 +59,10 @@ class Plugin:
         def get_deployment_api():
             return {
                 'attr_type': Deployment,
-                'arguments': [
-                    Argument(
-                        name="--deployment",
-                        arg_type=str,
-                        nargs="*",
-                        description="Openstack deployment")
-                ]
+                'arguments': [Argument(name='--spec', arg_type=str,
+                              func='get_deployment', nargs='*',
+                              description="Print complete openstack"
+                              " deployment")]
             }
 
         def extend_job_model():
