@@ -143,7 +143,7 @@ class FeatureSetInterpreter(FileInterpreter):
     def is_ipv6(self) -> bool:
         """
         :return: True if the deployment works under IPv6, False if it does
-            under IPv4.
+            under IPv4. If the field is not present, then IPv4 is assumed.
         """
         key = self.KEYS.ipv6
 
