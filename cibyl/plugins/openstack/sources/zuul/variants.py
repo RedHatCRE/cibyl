@@ -133,6 +133,23 @@ class FeatureSetOverridesSearch(VariableSearch):
         return super().search(variant)
 
 
+class NodesSearch(VariableSearch):
+    """Utility designed to make finding the nodes for a job easier.
+    """
+    DEFAULT_SEARCH_TERMS = ('nodes',)
+
+    def __init__(self, search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS):
+        """Constructor. See parent for more information.
+        """
+        super().__init__(search_terms)
+
+    @overrides
+    def search(self, variant: VariantResponse) -> Optional[Tuple[str, str]]:
+        LOG.debug("Searching for nodes on variant: '%s'.", variant.name)
+
+        return super().search(variant)
+
+
 class InfraTypeSearch(VariableSearch):
     """Utility designed to make finding the infra type for a job
     easier.

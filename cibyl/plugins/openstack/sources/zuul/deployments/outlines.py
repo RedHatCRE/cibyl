@@ -19,7 +19,8 @@ from typing import Any, Tuple
 from cibyl.plugins.openstack.sources.zuul.tripleo import (
     QuickStartFileCreator, QuickStartPathCreator)
 from cibyl.plugins.openstack.sources.zuul.variants import (FeatureSetSearch,
-                                                           InfraTypeSearch)
+                                                           InfraTypeSearch,
+                                                           NodesSearch)
 from cibyl.sources.zuul.transactions import VariantResponse as Variant
 from tripleo.insights import DeploymentOutline
 
@@ -122,13 +123,13 @@ class OverridesCollector:
         _dict[key] = val
 
 
-class FeatureSetFetcher:
-    """Tool used to find any custom featureset a job may define.
+class FilesFetcher:
+    """Tool used to find the files that describe a deployment.
     """
 
     @dataclass
     class Tools:
-        """Tools the factory will use to do its task.
+        """Tools this will use to do its task.
         """
         quickstart_files = QuickStartFileCreator()
         """Factory for creating the name of files at the QuickStart repo."""
@@ -136,6 +137,8 @@ class FeatureSetFetcher:
         """Factory for creating paths relative to the QuickStart repo root."""
         featureset_search = FeatureSetSearch()
         """Takes care of finding the featureset of the outline."""
+        nodes_search = NodesSearch()
+        """Takes care of finding the nodes of the outline."""
 
     def __init__(self, tools: Tools = Tools()):
         """Constructor.
@@ -171,6 +174,26 @@ class FeatureSetFetcher:
             self.tools.quickstart_files.create_featureset(value)
         )
 
+    def fetch_nodes(self, variant: Variant, default: str) -> str:
+        """Studies a variant in order to determine the nodes file on
+        TripleO QuickStart that its deployment uses.
+
+        :param variant: The variant to fetch data from.
+        :param default: Path to the default nodes file that will be
+            returned in case the variant has no custom one.
+        :return: Path to the nodes file of the variant.
+        """
+        nodes = self.tools.nodes_search.search(variant)
+
+        if not nodes:
+            return default
+
+        _, value = nodes
+
+        return self.tools.quickstart_paths.create_nodes_path(
+            self.tools.quickstart_files.create_nodes(value)
+        )
+
 
 class OutlineCreator:
     """Factory for generation of :class:`DeploymentOutline`.
@@ -180,7 +203,7 @@ class OutlineCreator:
     class Tools:
         """Tools the factory will use to do its task.
         """
-        featureset_fetcher = FeatureSetFetcher()
+        files_fetcher = FilesFetcher()
         overrides_collector = OverridesCollector()
 
     def __init__(self, tools: Tools = Tools()):
@@ -205,13 +228,18 @@ class OutlineCreator:
         :return: The outline to be passed to TripleO Insights for such variant.
         """
         result = DeploymentOutline()
+
         result.featureset = self._get_featureset(variant, result.featureset)
+        result.nodes = self._get_nodes(variant, result.nodes)
         result.overrides = self._get_overrides(variant)
 
         return result
 
     def _get_featureset(self, variant: Variant, default: str) -> str:
-        return self.tools.featureset_fetcher.fetch_featureset(variant, default)
+        return self.tools.files_fetcher.fetch_featureset(variant, default)
+
+    def _get_nodes(self, variant: Variant, default: str) -> str:
+        return self.tools.files_fetcher.fetch_nodes(variant, default)
 
     def _get_overrides(self, variant: Variant) -> dict:
         return self.tools.overrides_collector.collect_overrides_for(variant)

@@ -36,6 +36,19 @@ class TestQuickStartFileCreator(TestCase):
             creator.create_featureset(number)
         )
 
+    def test_default_nodes_template(self):
+        """Checks that the default nodes template produces the desired file
+        names.
+        """
+        node = 'node'
+
+        creator = QuickStartFileCreator()
+
+        self.assertEqual(
+            f'{node}.yml',
+            creator.create_nodes(node)
+        )
+
 
 class TestQuickStartPathCreator(TestCase):
     """Tests for :class:`QuickStartPathCreator`.
