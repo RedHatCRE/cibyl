@@ -28,11 +28,12 @@ class TestTopology(TestCase):
         topology = Topology(
             compute=3,
             controller=2,
-            ceph=1
+            ceph=1,
+            cell=2
         )
 
         self.assertEqual(
-            'compute:3,controller:2,ceph:1',
+            'compute:3,controller:2,ceph:1,cell:2',
             str(topology)
         )
 
@@ -43,10 +44,11 @@ class TestTopology(TestCase):
         topology = Topology(
             compute=2,
             controller=0,
-            ceph=1
+            ceph=0,
+            cell=1
         )
 
         self.assertEqual(
-            'compute:2,ceph:1',
+            'compute:2,cell:1',
             str(topology)
         )

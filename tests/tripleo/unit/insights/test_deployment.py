@@ -337,6 +337,12 @@ class TestNodesInterpreter(TestCase):
                 },
                 'Compute': {
                     'scale': 3
+                },
+                'CephStorage': {
+                    'scale': 2
+                },
+                'CellController': {
+                    'scale': 1
                 }
             }
         }
@@ -360,7 +366,7 @@ class TestNodesInterpreter(TestCase):
         result = nodes.get_topology()
 
         self.assertEqual(
-            Topology(3, 1, 0),
+            Topology(3, 1, 2, 1),
             result
         )
 
@@ -377,6 +383,12 @@ class TestNodesInterpreter(TestCase):
                 },
                 'Compute': {
                     'scale': 3
+                },
+                'CephStorage': {
+                    'scale': 2
+                },
+                'CellController': {
+                    'scale': 1
                 }
             }
         }
@@ -401,6 +413,6 @@ class TestNodesInterpreter(TestCase):
         result = nodes.get_topology()
 
         self.assertEqual(
-            Topology(3, 1, 0),
+            Topology(3, 1, 2, 1),
             result
         )
