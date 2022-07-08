@@ -174,9 +174,14 @@ class TestFilesFetcher(TestCase):
         variant's variables.
         """
         nodes = 'ctrl1'
+        file = 'some_file.yml'
         path = 'path/to/some_file.yml'
 
         variant = Mock()
+
+        files = Mock()
+        files.create_nodes = Mock()
+        files.create_nodes.return_value = file
 
         paths = Mock()
         paths.create_nodes_path = Mock()
@@ -187,6 +192,7 @@ class TestFilesFetcher(TestCase):
         search.search.return_value = ('var', nodes)
 
         tools = Mock()
+        tools.quickstart_files = files
         tools.quickstart_paths = paths
         tools.nodes_search = search
 
@@ -197,7 +203,8 @@ class TestFilesFetcher(TestCase):
         self.assertEqual(path, result)
 
         search.search.assert_called_once_with(variant)
-        paths.create_nodes_path.assert_called_once_with(nodes)
+        files.create_nodes.assert_called_once_with(nodes)
+        paths.create_nodes_path.assert_called_once_with(file)
 
 
 class TestOutlineCreator(TestCase):

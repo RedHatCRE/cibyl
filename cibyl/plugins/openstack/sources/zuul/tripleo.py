@@ -22,17 +22,24 @@ class QuickStartFileCreator:
     """
     DEFAULT_FEATURESET_TEMPLATE = Template('featureset$number.yml')
     """Default template used to generate the name of featureset files."""
+    DEFAULT_NODES_TEMPLATE = Template('$name.yml')
+    """Default template used to generate the name nodes files."""
 
     def __init__(self,
-                 featureset_template: Template = DEFAULT_FEATURESET_TEMPLATE):
+                 featureset_template: Template = DEFAULT_FEATURESET_TEMPLATE,
+                 nodes_template: Template = DEFAULT_NODES_TEMPLATE
+                 ):
         """Constructor.
 
         :param featureset_template: Template that will be used to generate
             the name of featureset files. The template only takes one argument,
-            $number, which is the ID of the featureset. The template must
-            also provide the file's extension, like '.yml'.
+            $number, which is the ID of the featureset.
+        :param nodes_template: Template that will be used to generate the
+            name of nodes files. The template only takes one argument,
+            $name, which is the name of the file without its extension.
         """
         self._featureset_template = featureset_template
+        self._nodes_template = nodes_template
 
     @property
     def featureset_template(self) -> Template:
@@ -40,6 +47,13 @@ class QuickStartFileCreator:
         :return: Template of featureset files.
         """
         return self._featureset_template
+
+    @property
+    def nodes_template(self):
+        """
+        :return: Template for node files.
+        """
+        return self._nodes_template
 
     def create_featureset(self, number: str) -> str:
         """Generate a new featureset file name from the given parameters.
@@ -49,6 +63,9 @@ class QuickStartFileCreator:
             QuickStart repository.
         """
         return self.featureset_template.substitute(number=number)
+
+    def create_nodes(self, name: str) -> str:
+        return self.nodes_template.substitute(name=name)
 
 
 class QuickStartPathCreator:

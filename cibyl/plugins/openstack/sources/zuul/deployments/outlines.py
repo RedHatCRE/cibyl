@@ -190,7 +190,9 @@ class FilesFetcher:
 
         _, value = nodes
 
-        return self.tools.quickstart_paths.create_nodes_path(value)
+        return self.tools.quickstart_paths.create_nodes_path(
+            self.tools.quickstart_files.create_nodes(value)
+        )
 
 
 class OutlineCreator:
