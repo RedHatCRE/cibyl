@@ -14,18 +14,18 @@
 #    under the License.
 """
 import logging
-import sys
 from enum import Enum
 from logging import FileHandler, Logger, StreamHandler
-from typing import Any
+from typing import Any, TextIO
 
 import colorlog
 
 from tripleo.utils.fs import File
 
 GENERIC_LOG_FORMAT = '{}%(levelname)-8s %(name)-20s %(message)s'
+"""Base format for logging messages."""
 
-STDOUT_LOG_FORMAT = colorlog.ColoredFormatter(
+STREAM_LOG_FORMAT = colorlog.ColoredFormatter(
     fmt='\r' + GENERIC_LOG_FORMAT.format('%(log_color)s'),
     log_colors={
         'DEBUG': 'blue',
@@ -35,21 +35,52 @@ STDOUT_LOG_FORMAT = colorlog.ColoredFormatter(
         'CRITICAL': 'bold_red,bg_white'
     }
 )
+"""Message format used when logging into an IO stream."""
 
 FILE_LOG_FORMAT = logging.Formatter(fmt=GENERIC_LOG_FORMAT.format(''))
+"""Message format used when logging into a file."""
 
 
 class LogOutput(Enum):
-    StdOut = 0
+    """Defines the options that the logger can output into.
+    """
+    ToStream = 0
+    """Log into an IO stream, like stdout for example."""
     ToFile = 1
+    """Log into a file."""
 
 
 def enable_logging(level: int, output: LogOutput, **kwargs: Any) -> None:
+    """Enables logging on this library.
+
+    The library hard uses the standard 'logging' module for this feature.
+
+    Each call to this function will add a new handler to the logger at the
+    'tripleo' root folder. Be free to call this function as many times
+    as desired to make the logger output into multiple targets.
+
+    :param level: Minimum logging level to output. This should be want of
+        the options defined by the standard library, like: logging.INFO.
+    :param output: Target where the logger will write into.
+    :param kwargs: Additional arguments for each of the output options.
+    :key stream: Only used for stream output. The IO stream where the log
+        will write to. Type: TextIO. Required.
+    :key file: Only used for file output. Path to an existing file that the
+        log will write to. Type: str. Required.
+    :raises ValueError: If some arguments are missing or are not valid.
+    :raises IOError: If the file cannot be opened or written into.
+    """
     logger = logging.getLogger('tripleo')
     logger.setLevel(level)
 
-    if output == LogOutput.StdOut:
-        _configure_logger_for_std_out(logger)
+    if output == LogOutput.ToStream:
+        if 'stream' not in kwargs:
+            msg = "Log output 'ToStream' required key 'stream'."
+            raise ValueError(msg)
+
+        stream = kwargs['stream']
+
+        _add_new_stream_handler(logger, stream)
         return
 
     if output == LogOutput.ToFile:
@@ -60,21 +91,27 @@ def enable_logging(level: int, output: LogOutput, **kwargs: Any) -> None:
         file = File(kwargs['file'])
         file.check_exists()
 
-        _configure_logger_for_file_out(logger, file)
+        _add_new_file_handler(logger, file)
         return
 
 
-def _configure_logger_for_std_out(logger: Logger) -> None:
-    stream_handler = StreamHandler(sys.stdout)
-    stream_handler.setFormatter(STDOUT_LOG_FORMAT)
-    stream_handler.setLevel(logger.getEffectiveLevel())
+def _add_new_stream_handler(
+    logger: Logger,
+    stream: TextIO
+) -> None:
+    stream_handler = StreamHandler(stream)
+    stream_handler.setFormatter(STREAM_LOG_FORMAT)
+    stream_handler.setLevel(logger.level)
 
     logger.addHandler(stream_handler)
 
 
-def _configure_logger_for_file_out(logger: Logger, file: File) -> None:
+def _add_new_file_handler(
+    logger: Logger,
+    file: File
+) -> None:
     file_handler = FileHandler(file, mode='w')
     file_handler.setFormatter(FILE_LOG_FORMAT)
-    file_handler.setLevel(logger.getEffectiveLevel())
+    file_handler.setLevel(logger.level)
 
     logger.addHandler(file_handler)

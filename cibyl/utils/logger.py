@@ -77,7 +77,7 @@ def configure_logging(
 
     if log_mode == "terminal":
         configure_terminal_logging(level)
-        tripleo_enable_logging(level, LogOutput.StdOut)
+        tripleo_enable_logging(level, LogOutput.ToStream, stream=sys.stderr)
     elif log_mode == "file":
         configure_file_logging(log_file, level)
         tripleo_enable_logging(level, LogOutput.ToFile, file=log_file)
@@ -85,5 +85,5 @@ def configure_logging(
         configure_terminal_logging(level)
         configure_file_logging(log_file, level)
 
-        tripleo_enable_logging(level, LogOutput.StdOut)
+        tripleo_enable_logging(level, LogOutput.ToStream, stream=sys.stderr)
         tripleo_enable_logging(level, LogOutput.ToFile, file=log_file)
