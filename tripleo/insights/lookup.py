@@ -17,7 +17,7 @@ import logging
 
 from tripleo.insights.deployment import (EnvironmentInterpreter,
                                          FeatureSetInterpreter,
-                                         NodesInterpreter)
+                                         NodesInterpreter, ReleaseInterpreter)
 from tripleo.insights.git import GitDownload
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
 from tripleo.insights.validation import OutlineValidator
@@ -115,10 +115,21 @@ class DeploymentLookUp:
 
             result.topology = nodes.get_topology()
 
+        def handle_release():
+            release = ReleaseInterpreter(
+                self.downloader.download_as_yaml(
+                    repo=outline.quickstart,
+                    file=outline.release
+                )
+            )
+
+            result.release = release.get_release_name()
+
         result = DeploymentSummary()
 
         handle_environment()
         handle_featureset()
         handle_nodes()
+        handle_release()
 
         return result
