@@ -18,7 +18,7 @@ from unittest.mock import Mock, call
 
 from tripleo.insights.deployment import (EnvironmentInterpreter,
                                          FeatureSetInterpreter,
-                                         NodesInterpreter)
+                                         NodesInterpreter, ReleaseInterpreter)
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
 
@@ -416,3 +416,68 @@ class TestNodesInterpreter(TestCase):
             Topology(3, 1, 2, 1),
             result
         )
+
+
+class TestReleaseInterpreter(TestCase):
+    """Tests for :class:`ReleaseInterpreter`.
+    """
+
+    def test_get_release_name(self):
+        """Checks that it is possible to get the release name from the file.
+        """
+        value = 'release'
+
+        keys = ReleaseInterpreter.KEYS
+
+        data = {
+            keys.release: value
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        release = ReleaseInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        self.assertEqual(value, release.get_release_name())
+
+    def test_overrides_get_release_name(self):
+        """Checks that it is possible override the release name from the file.
+        """
+        value = 'release'
+
+        keys = ReleaseInterpreter.KEYS
+
+        data = {}
+        overrides = {
+            keys.release: value
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        release = ReleaseInterpreter(
+            data,
+            schema=schema,
+            overrides=overrides,
+            validator_factory=factory
+        )
+
+        self.assertEqual(value, release.get_release_name())

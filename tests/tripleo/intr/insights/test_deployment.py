@@ -16,7 +16,8 @@
 from unittest import TestCase
 
 from tripleo.insights.deployment import (EnvironmentInterpreter,
-                                         FeatureSetInterpreter)
+                                         FeatureSetInterpreter,
+                                         NodesInterpreter, ReleaseInterpreter)
 from tripleo.insights.exceptions import IllegibleData
 
 
@@ -40,7 +41,7 @@ class TestFeatureSetInterpreter(TestCase):
     """Tests for :class:`FeatureSetInterpreter`.
     """
 
-    def tests_error_on_invalid_ipv6(self):
+    def test_error_on_invalid_ipv6(self):
         """Tests that an error is thrown if the ipv6 field does not follow the
         schema.
         """
@@ -50,3 +51,34 @@ class TestFeatureSetInterpreter(TestCase):
 
         with self.assertRaises(IllegibleData):
             FeatureSetInterpreter(data)
+
+
+class TestNodesInterpreter(TestCase):
+    """Tests for :class:`NodesInterpreter`.
+    """
+
+    def test_error_on_invalid_topology(self):
+        """Tests that an error is thrown if the 'topology_map' field does
+        not follow the schema.
+        """
+        data = {
+            NodesInterpreter.KEYS.topology: False  # Must be an object
+        }
+
+        with self.assertRaises(IllegibleData):
+            NodesInterpreter(data)
+
+
+class TestReleaseInterpreter(TestCase):
+    """Tests for :class:`TestReleaseInterpreter`.
+    """
+
+    def test_error_on_invalid_release(self):
+        """Tests that an error if the release field is not present.
+        """
+        data = {
+            ReleaseInterpreter.KEYS.release: False  # Must be string
+        }
+
+        with self.assertRaises(IllegibleData):
+            ReleaseInterpreter(data)
