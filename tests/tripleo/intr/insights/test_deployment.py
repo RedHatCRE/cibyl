@@ -73,15 +73,6 @@ class TestReleaseInterpreter(TestCase):
     """Tests for :class:`TestReleaseInterpreter`.
     """
 
-    def test_error_on_missing_release(self):
-        """Tests that an error if the release field is not present.
-        """
-        data = {
-        }
-
-        with self.assertRaises(IllegibleData):
-            ReleaseInterpreter(data)
-
     def test_error_on_invalid_release(self):
         """Tests that an error if the release field is not present.
         """
