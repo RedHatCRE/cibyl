@@ -54,10 +54,13 @@ class TestRepository(TestCase):
         path = 'path/to/file'
         contents = 'file_contents'
 
+        branch = 'master'
+
         file = Mock()
         file.decoded_content = bytes(contents, encoding)
 
         api = Mock()
+        api.default_branch = branch
         api.get_contents = Mock()
         api.get_contents.return_value = file
 
@@ -68,4 +71,33 @@ class TestRepository(TestCase):
             repo.download_as_text(path, encoding)
         )
 
-        api.get_contents.assert_called_once_with(path)
+        api.get_contents.assert_called_once_with(path, ref=branch)
+
+    def test_downloads_from_custom_branch(self):
+        """Checks that it is capable of retrieving the text from a file
+        in a branch different from the default one.
+        """
+        encoding = 'utf-8'
+
+        path = 'path/to/file'
+        contents = 'file_contents'
+
+        branch = 'branch'
+
+        file = Mock()
+        file.decoded_content = bytes(contents, encoding)
+
+        api = Mock()
+        api.default_branch = 'master'
+        api.get_contents = Mock()
+        api.get_contents.return_value = file
+
+        repo = Repository(api)
+        repo.checkout(branch)
+
+        self.assertEqual(
+            contents,
+            repo.download_as_text(path, encoding)
+        )
+
+        api.get_contents.assert_called_once_with(path, ref=branch)

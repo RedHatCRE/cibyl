@@ -33,6 +33,8 @@ class Repository(IRepository):
 
         :param api: PyGithub session used to interact with GitHub.
         """
+        super().__init__(branch=api.default_branch)
+
         self._api = api
 
     @property
@@ -45,7 +47,7 @@ class Repository(IRepository):
     @overrides
     def download_as_text(self, file: str, encoding: str = 'utf-8') -> str:
         try:
-            file = self.api.get_contents(file)
+            file = self.api.get_contents(file, ref=self.branch)
 
             # Decoded content is still in binary,
             # it has to be passed to string yet
