@@ -233,3 +233,42 @@ class NodesInterpreter(FileInterpreter):
             result.cell = topology_map[keys.cell][keys.scale]
 
         return result
+
+
+class ReleaseInterpreter(FileInterpreter):
+    """Takes care of making sense out of the contents of a release file.
+    """
+
+    @dataclass
+    class Keys:
+        """Defines the fields of interest contained by a release file.
+        """
+        release: str = 'release'
+        """Field that holds the release name."""
+
+    KEYS = Keys()
+    """Knowledge that this has about the release file's contents."""
+
+    def __init__(
+        self,
+        data: YAML,
+        schema: File = File('tripleo/_data/schemas/release.json'),
+        overrides: Optional[Dict] = None,
+        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
+    ):
+        super().__init__(data, schema, overrides, validator_factory)
+
+    def get_release_name(self) -> str:
+        """
+        :return: Name of the release, for example: 'wallaby'.
+        """
+        key = self.KEYS.release
+
+        for provider in (self.overrides, self.data):
+            if key in provider:
+                return provider[key]
+
+        raise NotImplementedError(
+            "Unexpected path. "
+            "The release name is a must on the release file."
+        )
