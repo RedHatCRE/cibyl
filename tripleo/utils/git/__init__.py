@@ -26,8 +26,36 @@ class GitError(Exception):
 
 
 class Repository(Closeable, ABC):
+    """Interface that defines interactions with a Git repository.
+    """
+
+    @property
+    @abstractmethod
+    def branch(self) -> str:
+        """
+        :return: The active branch on the repository.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def checkout(self, branch: str) -> None:
+        """Changes the active branch on the repository.
+
+        :param branch: Name of the branch to move to.
+        :raises GitError: If the branch does not exist.
+        """
+        raise NotImplementedError
+
     @abstractmethod
     def get_as_text(self, file: str, encoding: str = 'utf-8') -> str:
+        """Downloads a file on the repository as text.
+
+        :param file: Path, relative to the repository's root, to the file
+            to download.
+        :param encoding: Encoding of the file, following the same naming as the
+            builtin 'open' function.
+        :return: The contents of the file as text.
+        """
         raise NotImplementedError
 
 

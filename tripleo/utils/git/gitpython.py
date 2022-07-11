@@ -50,6 +50,20 @@ class Repository(IRepository):
         """
         return self._handler
 
+    @property
+    def branch(self) -> str:
+        return self.handler.active_branch.name
+
+    @overrides
+    def checkout(self, branch: str) -> None:
+        remote = self.handler.remote()
+
+        # Check that the branch exists.
+        if branch not in remote.refs:
+            raise GitError(f"Unknown branch: '{branch}'")
+
+        self.handler.git.checkout(branch)
+
     @overrides
     def get_as_text(self, file: str, encoding: str = 'utf-8') -> str:
         abs_path = self._get_absolute_path(file)
