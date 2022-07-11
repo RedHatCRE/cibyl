@@ -47,7 +47,7 @@ class THTPathCreator:
         """Creates a path pointing to a scenario file.
 
         Examples
-        ========
+        --------
         >>> creator = THTPathCreator()
         ... creator.create_scenario_path('my_file.yaml')
         'ci/environments/my_file.yaml'
