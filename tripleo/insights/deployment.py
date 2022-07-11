@@ -25,6 +25,10 @@ from tripleo.utils.yaml import YAML
 
 
 class FileInterpreter(ABC):
+    """Base class for all interpreters that take care of giving meaning to
+    the contents of the files that outline a deployment.
+    """
+
     def __init__(
         self,
         data: YAML,
@@ -48,8 +52,8 @@ class FileInterpreter(ABC):
             If the 'overrides' dictionary does not match the schema.
         """
 
-        def validate_data(__data):
-            if not validator.is_valid(__data):
+        def validate_data(instance):
+            if not validator.is_valid(instance):
                 raise IllegibleData('Data does not conform to its schema.')
 
         if overrides is None:
@@ -128,6 +132,8 @@ class FeatureSetInterpreter(FileInterpreter):
         """
         ipv6: str = 'overcloud_ipv6'
         """Indicates IP version of deployment."""
+        scenario: str = 'composable_scenario'
+        """Indicates the scenario of this deployment."""
 
     KEYS = Keys()
     """Knowledge that this has about the featureset file's contents."""
@@ -148,13 +154,24 @@ class FeatureSetInterpreter(FileInterpreter):
         """
         key = self.KEYS.ipv6
 
-        if key in self.overrides:
-            return self.overrides[key]
-
-        if key in self.data:
-            return self.data[key]
+        for provider in (self.overrides, self.data):
+            if key in provider:
+                return provider[key]
 
         return False
+
+    def get_scenario(self) -> Optional[str]:
+        """
+        :return: Name of the scenario file that complements this featureset.
+            None if it is not defined.
+        """
+        key = self.KEYS.scenario
+
+        for provider in (self.overrides, self.data):
+            if key in provider:
+                return provider[key]
+
+        return None
 
 
 class NodesInterpreter(FileInterpreter):

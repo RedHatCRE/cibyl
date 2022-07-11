@@ -266,6 +266,67 @@ class TestFeatureSetInterpreter(TestCase):
 
         self.assertEqual(False, featureset.is_ipv6())
 
+    def test_get_scenario(self):
+        """Checks that it is possible to get the scenario from the
+        featureset file.
+        """
+        scenario = 'scenario001'
+
+        keys = FeatureSetInterpreter.KEYS
+
+        data = {
+            keys.scenario: scenario
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        featureset = FeatureSetInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        self.assertEqual(scenario, featureset.get_scenario())
+
+    def test_overrides_get_scenario(self):
+        """Checks that it is possible to override the scenario file.
+        """
+        scenario = 'scenario001'
+
+        keys = FeatureSetInterpreter.KEYS
+
+        data = {}
+        overrides = {
+            keys.scenario: scenario
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        featureset = FeatureSetInterpreter(
+            data,
+            schema=schema,
+            overrides=overrides,
+            validator_factory=factory
+        )
+
+        self.assertEqual(scenario, featureset.get_scenario())
+
 
 class TestNodesInterpreter(TestCase):
     """Tests for :class:`NodesInterpreter`.
