@@ -258,9 +258,10 @@ class ReleaseInterpreter(FileInterpreter):
     ):
         super().__init__(data, schema, overrides, validator_factory)
 
-    def get_release_name(self) -> str:
+    def get_release_name(self) -> Optional[str]:
         """
-        :return: Name of the release, for example: 'wallaby'.
+        :return: Name of the release, for example: 'wallaby'. None if the
+            field is not present.
         """
         key = self.KEYS.release
 
@@ -268,7 +269,4 @@ class ReleaseInterpreter(FileInterpreter):
             if key in provider:
                 return provider[key]
 
-        raise NotImplementedError(
-            "Unexpected path. "
-            "The release name is a must on the release file."
-        )
+        return None
