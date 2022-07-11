@@ -52,17 +52,6 @@ class TestFeatureSetInterpreter(TestCase):
         with self.assertRaises(IllegibleData):
             FeatureSetInterpreter(data)
 
-    def tests_error_on_invalid_scenario(self):
-        """Tests that an error is thrown if the scenario field does not
-        follow the schema.
-        """
-        data = {
-            FeatureSetInterpreter.KEYS.scenario: True  # Must be string
-        }
-
-        with self.assertRaises(IllegibleData):
-            FeatureSetInterpreter(data)
-
 
 class TestNodesInterpreter(TestCase):
     """Tests for :class:`NodesInterpreter`.
