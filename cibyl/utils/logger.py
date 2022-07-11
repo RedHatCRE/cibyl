@@ -19,8 +19,8 @@ import sys
 
 import colorlog
 
-from tripleo.conf import enable_logging as tripleo_enable_logging
 from tripleo.conf import LogOutput
+from tripleo.conf import enable_logging as tripleo_enable_logging
 
 FORMAT_STR = '{}%(levelname)-8s %(name)-20s %(message)s'
 FILE_LOGGER_FORMATER = logging.Formatter(fmt=FORMAT_STR.format(""))

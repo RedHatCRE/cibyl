@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from tripleo.utils.logging import enable_logging, LogOutput
+from tripleo.utils.logging import LogOutput, enable_logging
 
 __all__ = (
     'enable_logging',
