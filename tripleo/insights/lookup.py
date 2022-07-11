@@ -120,7 +120,8 @@ class DeploymentLookUp:
                 self.downloader.download_as_yaml(
                     repo=outline.quickstart,
                     file=outline.release
-                )
+                ),
+                overrides=outline.overrides
             )
 
             result.release = release.get_release_name()
