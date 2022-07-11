@@ -51,11 +51,11 @@ class Repository(IRepository):
         return self._handler
 
     @overrides
-    def get_as_text(self, file: str) -> str:
+    def get_as_text(self, file: str, encoding: str = 'utf-8') -> str:
         abs_path = self._get_absolute_path(file)
 
         try:
-            with open(abs_path, 'r') as buffer:
+            with open(abs_path, 'r', encoding=encoding) as buffer:
                 return buffer.read()
         except IOError as ex:
             msg = f"Failed to open file at: '{abs_path}'."

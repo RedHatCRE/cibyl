@@ -27,7 +27,7 @@ class GitError(Exception):
 
 class Repository(Closeable, ABC):
     @abstractmethod
-    def get_as_text(self, file: str) -> str:
+    def get_as_text(self, file: str, encoding: str = 'utf-8') -> str:
         raise NotImplementedError
 
 
