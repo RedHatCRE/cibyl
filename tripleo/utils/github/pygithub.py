@@ -15,15 +15,12 @@
 """
 from github import Github as GitHubAPIv3
 from github import GithubException
-from github.Repository import Repository
+from github.Repository import Repository as RepoAPIv3
 from overrides import overrides
 
 from tripleo.utils.github import GitHub as IGitHub
 from tripleo.utils.github import GitHubError
 from tripleo.utils.github import Repository as IRepository
-
-RepoAPIv3 = Repository
-"""PyGitHub's representation of a repository."""
 
 
 class Repository(IRepository):
