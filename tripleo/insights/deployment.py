@@ -25,6 +25,10 @@ from tripleo.utils.yaml import YAML
 
 
 class FileInterpreter(ABC):
+    """Base class for all interpreters that take care of giving meaning to
+    the contents of the files that outline a deployment.
+    """
+
     def __init__(
         self,
         data: YAML,
@@ -48,8 +52,8 @@ class FileInterpreter(ABC):
             If the 'overrides' dictionary does not match the schema.
         """
 
-        def validate_data(__data):
-            if not validator.is_valid(__data):
+        def validate_data(instance):
+            if not validator.is_valid(instance):
                 raise IllegibleData('Data does not conform to its schema.')
 
         if overrides is None:
