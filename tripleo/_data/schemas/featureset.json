@@ -5,6 +5,9 @@
   "properties": {
     "overcloud_ipv6": {
       "type": "boolean"
+    },
+    "composable_scenario": {
+      "type": "string"
     }
   }
 }
