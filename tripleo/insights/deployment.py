@@ -14,9 +14,8 @@
 #    under the License.
 """
 from abc import ABC
-from typing import Dict, Optional, List
-
 from dataclasses import dataclass, fields
+from typing import Dict, List, Optional
 
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology

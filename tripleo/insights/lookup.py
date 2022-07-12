@@ -14,7 +14,6 @@
 #    under the License.
 """
 import logging
-
 from dataclasses import dataclass
 
 from tripleo.insights.deployment import (EnvironmentInterpreter,

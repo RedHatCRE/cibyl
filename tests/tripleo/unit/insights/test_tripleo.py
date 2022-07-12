@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from tripleo.insights.tripleo import THTPathCreator, THTBranchCreator
+from tripleo.insights.tripleo import THTBranchCreator, THTPathCreator
 
 
 class TestTHTBranchCreator(TestCase):
