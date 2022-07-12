@@ -18,7 +18,8 @@ from unittest.mock import Mock, call
 
 from tripleo.insights.deployment import (EnvironmentInterpreter,
                                          FeatureSetInterpreter,
-                                         NodesInterpreter, ReleaseInterpreter)
+                                         NodesInterpreter, ReleaseInterpreter,
+                                         ScenarioInterpreter)
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
 
@@ -542,3 +543,124 @@ class TestReleaseInterpreter(TestCase):
         )
 
         self.assertEqual(value, release.get_release_name())
+
+
+class TestScenarioInterpreter(TestCase):
+    """Tests for :class:`ScenarioInterpreter`.
+    """
+
+    def test_get_cinder_backend(self):
+        """Checks that this figures out the Cinder backend from the scenario.
+        """
+        keys = ScenarioInterpreter.KEYS.backends
+        mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
+
+        data = {
+            keys.rbd: True
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        scenario = ScenarioInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        self.assertEqual(mapping[keys.rbd], scenario.get_cinder_backend())
+
+    def test_ignores_false_cinder_backend(self):
+        """Checks that if a backend is present, but False, then it is
+        ignored.
+        """
+        keys = ScenarioInterpreter.KEYS.backends
+        mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
+
+        data = {
+            keys.rbd: True,
+            keys.iscsi: False
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        scenario = ScenarioInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        self.assertEqual(mapping[keys.rbd], scenario.get_cinder_backend())
+
+    def test_default_cinder_backend(self):
+        """Checks that ISCSI is chosen in case no backend is defined on the
+        scenario.
+        """
+        keys = ScenarioInterpreter.KEYS.backends
+        mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
+
+        data = {
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        scenario = ScenarioInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        self.assertEqual(mapping[keys.iscsi], scenario.get_cinder_backend())
+
+    def test_error_if_multiple_cinder_backends(self):
+        """Checks that if more than one backend is defined for Cinder,
+        an error is raised.
+        """
+        keys = ScenarioInterpreter.KEYS.backends
+
+        data = {
+            keys.iscsi: True,
+            keys.rbd: True
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        scenario = ScenarioInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        with self.assertRaises(IllegibleData):
+            scenario.get_cinder_backend()
