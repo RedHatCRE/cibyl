@@ -16,6 +16,45 @@
 from string import Template
 
 
+class THTBranchCreator:
+    """Utility to ease the creation of branch names inside the Heat
+    Templates repository.
+    """
+    DEFAULT_RELEASE_TEMPLATE = Template('stable/$release')
+    """Default template used to generate the branch assigned to a release."""
+
+    def __init__(self, release_template: Template = DEFAULT_RELEASE_TEMPLATE):
+        """Constructor.
+
+        :param release_template: Template used to generate branch names from
+            a RHOS release name. It only takes one argument, $release,
+            which is the name of the RHOS release.
+        """
+        self._release_template = release_template
+
+    @property
+    def release_template(self):
+        """
+        :return: Template used to generate branch names from a RHOS release
+            name.
+        """
+        return self._release_template
+
+    def create_release_branch(self, release: str) -> str:
+        """Creates the name of the branch for the given release.
+
+        Examples
+        --------
+        >>> creator = THTBranchCreator()
+        ... creator.create_release_branch('wallaby')
+        'stable/wallaby'
+
+        :param release: Name of the RHOS release. For example: 'wallaby'.
+        :return: The branch assigned to that release.
+        """
+        return self.release_template.substitute(release=release)
+
+
 class THTPathCreator:
     """Utility to ease the creation of paths inside the Heat Templates
     repository.

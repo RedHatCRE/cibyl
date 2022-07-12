@@ -15,7 +15,24 @@
 """
 from unittest import TestCase
 
-from tripleo.insights.tripleo import THTPathCreator
+from tripleo.insights.tripleo import THTPathCreator, THTBranchCreator
+
+
+class TestTHTBranchCreator(TestCase):
+    """Tests for :class:`THTBranchCreator`.
+    """
+
+    def test_creates_release_branch(self):
+        """Checks the default template for a release branch.
+        """
+        release = 'wallaby'
+
+        creator = THTBranchCreator()
+
+        self.assertEqual(
+            f'stable/{release}',
+            creator.create_release_branch(release)
+        )
 
 
 class TestTHTPathCreator(TestCase):
