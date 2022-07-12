@@ -163,5 +163,6 @@ class DeploymentLookUp:
         result.ip_version = '6' if featureset.is_ipv6() else '4'
         result.topology = nodes.get_topology()
         result.release = release.get_release_name()
+        result.cinder_backend = scenario.get_cinder_backend()
 
         return result
