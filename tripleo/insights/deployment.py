@@ -283,3 +283,14 @@ class ReleaseInterpreter(FileInterpreter):
                 return provider[key]
 
         return None
+
+
+class ScenarioInterpreter(FileInterpreter):
+    def __init__(
+        self,
+        data: YAML,
+        schema: File = File('tripleo/_data/schemas/scenario.json'),
+        overrides: Optional[Dict] = None,
+        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
+    ):
+        super().__init__(data, schema, overrides, validator_factory)

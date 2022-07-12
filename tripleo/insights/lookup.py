@@ -19,12 +19,51 @@ from dataclasses import dataclass
 
 from tripleo.insights.deployment import (EnvironmentInterpreter,
                                          FeatureSetInterpreter,
-                                         NodesInterpreter, ReleaseInterpreter)
+                                         NodesInterpreter, ReleaseInterpreter,
+                                         ScenarioInterpreter)
 from tripleo.insights.git import GitDownload
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
+from tripleo.insights.tripleo import THTBranchCreator, THTPathCreator
 from tripleo.insights.validation import OutlineValidator
 
 LOG = logging.getLogger(__name__)
+
+
+class ScenarioFactory:
+    @dataclass
+    class Tools:
+        """Collection of tools used by the class to perform its task.
+        """
+        branch_creator = THTBranchCreator()
+        path_creator = THTPathCreator()
+
+        downloader = GitDownload()
+
+    def __init__(self, tools: Tools = Tools()):
+        self._tools = tools
+
+    @property
+    def tools(self):
+        return self._tools
+
+    def from_interpreters(
+        self,
+        outline: DeploymentOutline,
+        featureset: FeatureSetInterpreter,
+        release: ReleaseInterpreter
+    ) -> ScenarioInterpreter:
+        return ScenarioInterpreter(
+            self.tools.downloader.download_as_yaml(
+                repo=outline.heat,
+                branch=self.tools.branch_creator.create_release_branch(
+                    release.get_release_name()
+                ),
+                file=self.tools.path_creator.create_scenario_path(
+                    featureset.get_scenario()
+                )
+            ),
+            overrides=outline.overrides
+        )
 
 
 class DeploymentLookUp:
@@ -42,6 +81,8 @@ class DeploymentLookUp:
         """Tool used to validate the input data."""
         downloader: GitDownload = GitDownload()
         """Tool used to download files from Git repositories."""
+
+        scenario_factory: ScenarioFactory = ScenarioFactory()
 
     def __init__(self, tools: Tools = Tools()):
         """Constructor.
@@ -80,55 +121,47 @@ class DeploymentLookUp:
         self,
         outline: DeploymentOutline
     ) -> DeploymentSummary:
-        def handle_environment():
-            environment = EnvironmentInterpreter(
-                self.tools.downloader.download_as_yaml(
-                    repo=outline.quickstart,
-                    file=outline.environment
-                ),
-                overrides=outline.overrides
-            )
+        environment = EnvironmentInterpreter(
+            self.tools.downloader.download_as_yaml(
+                repo=outline.quickstart,
+                file=outline.environment
+            ),
+            overrides=outline.overrides
+        )
 
-            result.infra_type = environment.get_intra_type()
+        featureset = FeatureSetInterpreter(
+            self.tools.downloader.download_as_yaml(
+                repo=outline.quickstart,
+                file=outline.featureset
+            ),
+            overrides=outline.overrides
+        )
 
-        def handle_featureset():
-            featureset = FeatureSetInterpreter(
-                self.tools.downloader.download_as_yaml(
-                    repo=outline.quickstart,
-                    file=outline.featureset
-                ),
-                overrides=outline.overrides
-            )
+        nodes = NodesInterpreter(
+            self.tools.downloader.download_as_yaml(
+                repo=outline.quickstart,
+                file=outline.nodes
+            ),
+            overrides=outline.overrides
+        )
 
-            result.ip_version = '6' if featureset.is_ipv6() else '4'
+        release = ReleaseInterpreter(
+            self.tools.downloader.download_as_yaml(
+                repo=outline.quickstart,
+                file=outline.release
+            ),
+            overrides=outline.overrides
+        )
 
-        def handle_nodes():
-            nodes = NodesInterpreter(
-                self.tools.downloader.download_as_yaml(
-                    repo=outline.quickstart,
-                    file=outline.nodes
-                ),
-                overrides=outline.overrides
-            )
-
-            result.topology = nodes.get_topology()
-
-        def handle_release():
-            release = ReleaseInterpreter(
-                self.tools.downloader.download_as_yaml(
-                    repo=outline.quickstart,
-                    file=outline.release
-                ),
-                overrides=outline.overrides
-            )
-
-            result.release = release.get_release_name()
+        scenario = self.tools.scenario_factory.from_interpreters(
+            outline, featureset, release
+        )
 
         result = DeploymentSummary()
 
-        handle_environment()
-        handle_featureset()
-        handle_nodes()
-        handle_release()
+        result.infra_type = environment.get_intra_type()
+        result.ip_version = '6' if featureset.is_ipv6() else '4'
+        result.topology = nodes.get_topology()
+        result.release = release.get_release_name()
 
         return result
