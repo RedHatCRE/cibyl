@@ -183,16 +183,19 @@ class DeploymentLookUp:
             overrides=outline.overrides
         )
 
-        scenario = self.tools.scenario_factory.from_interpreters(
-            outline, featureset, release
-        )
-
         result = DeploymentSummary()
 
         result.infra_type = environment.get_intra_type()
         result.ip_version = '6' if featureset.is_ipv6() else '4'
         result.topology = nodes.get_topology()
         result.release = release.get_release_name()
-        result.cinder_backend = scenario.get_cinder_backend()
+
+        # Take care of the scenario file too
+        if featureset.get_scenario():
+            scenario = self.tools.scenario_factory.from_interpreters(
+                outline, featureset, release
+            )
+
+            result.cinder_backend = scenario.get_cinder_backend()
 
         return result
