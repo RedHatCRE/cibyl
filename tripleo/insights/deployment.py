@@ -14,8 +14,9 @@
 #    under the License.
 """
 from abc import ABC
-from dataclasses import dataclass
 from typing import Dict, Optional
+
+from dataclasses import dataclass, fields
 
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
@@ -187,17 +188,17 @@ class NodesInterpreter(FileInterpreter):
         """Field that defines the deployment's topology."""
 
         # 'topology_map' level
-        compute = 'Compute'
+        compute: str = 'Compute'
         """Contains data on compute nodes."""
-        controller = 'Controller'
+        controller: str = 'Controller'
         """Contains data on controller nodes."""
-        ceph = 'CephStorage'
+        ceph: str = 'CephStorage'
         """Contains data on ceph nodes."""
-        cell = 'CellController'
+        cell: str = 'CellController'
         """Contains data on cell nodes."""
 
         # 'node' level
-        scale = 'scale'
+        scale: str = 'scale'
         """Number of nodes of a certain type."""
 
     KEYS = Keys()
@@ -286,6 +287,55 @@ class ReleaseInterpreter(FileInterpreter):
 
 
 class ScenarioInterpreter(FileInterpreter):
+    @dataclass
+    class Keys:
+        @dataclass
+        class BackEnds:
+            powerflex: str = 'CinderEnablePowerFlexBackend'
+            powermax: str = 'CinderEnablePowermaxBackend'
+            powerstore: str = 'CinderEnablePowerStoreBackend'
+            sc: str = 'CinderEnableScBackend'
+            dell_emc_unity = 'CinderEnableDellEMCUnityBackend'
+            dell_emc_vnx = 'CinderEnableDellEMCVNXBackend'
+            dell_sc = 'CinderEnableDellScBackend'
+            xtremio = 'CinderEnableXtremioBackend'
+            netapp = 'CinderEnableNetappBackend'
+            pure = 'CinderEnablePureBackend'
+            iscsi = 'CinderEnableIscsiBackend'
+            nfs = 'CinderEnableNfsBackend'
+            rbd = 'CinderEnableRbdBackend'
+
+        backends: BackEnds = BackEnds()
+
+    class Mappings:
+        def __init__(self, keys: 'ScenarioInterpreter.Keys'):
+            self._keys = keys
+
+        @property
+        def keys(self) -> 'ScenarioInterpreter.Keys':
+            return self._keys
+
+        @property
+        def cinder_backends(self) -> Dict[str, str]:
+            return {
+                self.keys.backends.powerflex: 'powerflex',
+                self.keys.backends.powermax: 'powermax',
+                self.keys.backends.powerstore: 'powerstore',
+                self.keys.backends.sc: 'sc',
+                self.keys.backends.dell_emc_unity: 'dell-emc unity',
+                self.keys.backends.dell_emc_vnx: 'dell-emc vnx',
+                self.keys.backends.dell_sc: 'dell sc',
+                self.keys.backends.xtremio: 'xtremio',
+                self.keys.backends.netapp: 'netapp',
+                self.keys.backends.pure: 'pure',
+                self.keys.backends.iscsi: 'iscsi',
+                self.keys.backends.nfs: 'nfs',
+                self.keys.backends.rbd: 'rbd'
+            }
+
+    KEYS = Keys()
+    MAPPINGS = Mappings(KEYS)
+
     def __init__(
         self,
         data: YAML,
@@ -294,3 +344,30 @@ class ScenarioInterpreter(FileInterpreter):
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
         super().__init__(data, schema, overrides, validator_factory)
+
+    def get_cinder_backend(self) -> Optional[str]:
+        def get_backends():
+            result = []
+
+            keys = self.KEYS.backends
+
+            for field in fields(type(keys)):
+                key = getattr(keys, field.name)
+
+                if key in self.data:
+                    result.append(key)
+
+            return result
+
+        backends = get_backends()
+
+        if not backends:
+            return None
+
+        if len(backends) != 1:
+            raise ValueError
+
+        backend = backends[0]
+        mappings = self.MAPPINGS.cinder_backends
+
+        return mappings[backend]
