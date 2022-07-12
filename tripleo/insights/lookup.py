@@ -15,6 +15,8 @@
 """
 import logging
 
+from dataclasses import dataclass
+
 from tripleo.insights.deployment import (EnvironmentInterpreter,
                                          FeatureSetInterpreter,
                                          NodesInterpreter, ReleaseInterpreter)
@@ -32,32 +34,28 @@ class DeploymentLookUp:
     deployment summary out of its outline.
     """
 
-    def __init__(
-        self,
-        validator: OutlineValidator = OutlineValidator(),
+    @dataclass
+    class Tools:
+        """Collection of tools used by the class to perform its task.
+        """
+        validator: OutlineValidator = OutlineValidator()
+        """Tool used to validate the input data."""
         downloader: GitDownload = GitDownload()
-    ):
+        """Tool used to download files from Git repositories."""
+
+    def __init__(self, tools: Tools = Tools()):
         """Constructor.
 
-        :param validator: Tool used to validate the input data.
-        :param downloader: Tool used to download files from Git repositories.
+        :param tools: The tools this will use to do its task.
         """
-        self._validator = validator
-        self._downloader = downloader
+        self._tools = tools
 
     @property
-    def validator(self) -> OutlineValidator:
+    def tools(self):
         """
-        :return: Tool used to validate the input data.
+        :return: The tools this will use to do its task.
         """
-        return self._validator
-
-    @property
-    def downloader(self):
-        """
-        :return: Tool used to download files from Git repositories.
-        """
-        return self._downloader
+        return self._tools
 
     def run(self, outline: DeploymentOutline) -> DeploymentSummary:
         """Runs a lookup task, fetching all the necessary data out of the
@@ -73,7 +71,7 @@ class DeploymentLookUp:
         return self._generate_deployment(outline)
 
     def _validate_outline(self, outline: DeploymentOutline) -> None:
-        is_valid, error = self.validator.validate(outline)
+        is_valid, error = self.tools.validator.validate(outline)
 
         if not is_valid:
             raise error
@@ -84,7 +82,7 @@ class DeploymentLookUp:
     ) -> DeploymentSummary:
         def handle_environment():
             environment = EnvironmentInterpreter(
-                self.downloader.download_as_yaml(
+                self.tools.downloader.download_as_yaml(
                     repo=outline.quickstart,
                     file=outline.environment
                 ),
@@ -95,7 +93,7 @@ class DeploymentLookUp:
 
         def handle_featureset():
             featureset = FeatureSetInterpreter(
-                self.downloader.download_as_yaml(
+                self.tools.downloader.download_as_yaml(
                     repo=outline.quickstart,
                     file=outline.featureset
                 ),
@@ -106,7 +104,7 @@ class DeploymentLookUp:
 
         def handle_nodes():
             nodes = NodesInterpreter(
-                self.downloader.download_as_yaml(
+                self.tools.downloader.download_as_yaml(
                     repo=outline.quickstart,
                     file=outline.nodes
                 ),
@@ -117,7 +115,7 @@ class DeploymentLookUp:
 
         def handle_release():
             release = ReleaseInterpreter(
-                self.downloader.download_as_yaml(
+                self.tools.downloader.download_as_yaml(
                     repo=outline.quickstart,
                     file=outline.release
                 ),
