@@ -25,6 +25,25 @@ class TestGitPython(TestCase):
     """Tests for :class:'GitPython'.
     """
 
+    def test_checkout_branch(self):
+        """Checks that it is possible to change the branch of the
+        repository.
+        """
+        branch = 'devel'
+
+        cibyl = URL('https://github.com/rhos-infra/cibyl.git')
+
+        with TemporaryDirectory() as folder:
+            git = GitPython()
+            directory = Dir(folder)
+
+            with git.clone(cibyl, directory) as repo:
+                self.assertNotEqual(branch, repo.branch)
+
+                repo.checkout(branch)
+
+                self.assertEqual(branch, repo.branch)
+
     def test_get_as_text(self):
         """Checks that it is possible to get the contents of a file in the
         repository as text.
@@ -32,7 +51,7 @@ class TestGitPython(TestCase):
         file = 'README.rst'
         cibyl = URL('https://github.com/rhos-infra/cibyl.git')
 
-        with open(file, 'r') as target:
+        with open(file, 'r', encoding='utf-8') as target:
             with TemporaryDirectory() as folder:
                 git = GitPython()
                 directory = Dir(folder)
