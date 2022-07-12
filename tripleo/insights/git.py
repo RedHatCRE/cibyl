@@ -15,16 +15,18 @@
 """
 import logging
 from abc import ABC, abstractmethod
-from typing import Iterable, Sequence
+from typing import Iterable, Optional, Sequence
 
 from overrides import overrides
 
 from tripleo.insights.exceptions import DownloadError, InvalidURL
 from tripleo.utils.fs import Dir
-from tripleo.utils.git import Git, Repository
+from tripleo.utils.git import Git
+from tripleo.utils.git import Repository as GitRepo
 from tripleo.utils.git.gitpython import GitPython
 from tripleo.utils.git.utils import get_repository_fullname
 from tripleo.utils.github import GitHub
+from tripleo.utils.github import Repository as GitHubRepo
 from tripleo.utils.github.pygithub import PyGitHub
 from tripleo.utils.paths import resolve_home
 from tripleo.utils.urls import URL, is_git, is_github
@@ -41,19 +43,30 @@ class GitDownloader(ABC):
     concentrate on what they need.
     """
 
-    def __init__(self, repository: URL):
+    def __init__(self, repository: URL, branch: Optional[str] = None):
         """Constructor.
 
         :param repository: URL to the Git repository.
+        :param branch: Name of the branch to download from. 'None' to use the
+            repo's default branch.
         """
         self._repository = repository
+        self._branch = branch
 
     @property
-    def repository(self):
+    def repository(self) -> URL:
         """
         :return: URL to the Git repository.
         """
         return self._repository
+
+    @property
+    def branch(self) -> Optional[str]:
+        """
+        :return: Name of the branch to download from. 'None' to use the
+            repo's default branch.
+        """
+        return self._branch
 
     @abstractmethod
     def download_as_text(self, file: str) -> str:
@@ -78,15 +91,15 @@ class GitCLIDownloader(GitDownloader):
         self,
         repository: URL,
         working_dir: Dir,
+        branch: Optional[str] = None,
         api: Git = GitPython()
     ):
-        """Constructor.
+        """Constructor. See parent for more information.
 
-        :param repository: URL to the Git repository.
         :param working_dir: Directory where the repository will get cloned in.
         :param api: API used to interact with the Git CLI.
         """
-        super().__init__(repository)
+        super().__init__(repository, branch)
 
         self._api = api
         self._working_dir = working_dir
@@ -107,9 +120,14 @@ class GitCLIDownloader(GitDownloader):
 
     @overrides
     def download_as_text(self, file: str) -> str:
-        return self._get_repo().get_as_text(file)
+        repo = self._get_repo()
 
-    def _get_repo(self) -> Repository:
+        if self.branch:
+            repo.checkout(self.branch)
+
+        return repo.get_as_text(file)
+
+    def _get_repo(self) -> GitRepo:
         # Check if working directory is ready
         if not self.working_dir.exists():
             self.working_dir.mkdir(recursive=True)
@@ -131,14 +149,14 @@ class GitHubDownloader(GitDownloader):
     def __init__(
         self,
         repository: URL,
+        branch: Optional[str] = None,
         api: GitHub = PyGitHub.from_no_login()
     ):
-        """Constructor.
+        """Constructor. See parent for more information.
 
-        :param repository: URL to the Git repository.
         :param api: API to interact with GitHub.
         """
-        super().__init__(repository)
+        super().__init__(repository, branch)
 
         self._api = api
 
@@ -151,18 +169,24 @@ class GitHubDownloader(GitDownloader):
 
     @overrides
     def download_as_text(self, file: str) -> str:
-        owner = self._get_repository_owner()
-        name = self._get_repository_name()
+        repo = self._get_repository()
 
-        repo = self.api.get_repository(owner, name)
+        if self.branch:
+            repo.checkout(self.branch)
 
         return repo.download_as_text(file)
 
-    def _get_repository_owner(self) -> str:
-        return get_repository_fullname(self.repository).split('/')[0]
+    def _get_repository(self) -> GitHubRepo:
+        def get_repository_owner():
+            return get_repository_fullname(self.repository).split('/')[0]
 
-    def _get_repository_name(self) -> str:
-        return get_repository_fullname(self.repository).split('/')[1]
+        def get_repository_name():
+            return get_repository_fullname(self.repository).split('/')[1]
+
+        return self.api.get_repository(
+            get_repository_owner(),
+            get_repository_name()
+        )
 
 
 class GitDownloaderFetcher:
@@ -186,9 +210,15 @@ class GitDownloaderFetcher:
         """
         return self._clone_path
 
-    def get_downloaders_for(self, url: URL) -> Sequence[GitHubDownloader]:
+    def get_downloaders_for(
+        self,
+        url: URL,
+        branch: Optional[str] = None
+    ) -> Sequence[GitHubDownloader]:
         """
         :param url: URL to test.
+        :param branch: Name of the branch to download from. 'None' to use the
+            repo's default branch.
         :return: List of downloaders that can provide support
             for the tested URL, ordered from most preferred to least.
             Can also be empty.
@@ -197,17 +227,32 @@ class GitDownloaderFetcher:
 
         if is_git(url):
             if is_github(url):
-                result.append(self._get_new_github_downloader(url))
+                result.append(self._get_new_github_downloader(url, branch))
 
-            result.append(self._get_new_cli_downloader(url))
+            result.append(self._get_new_cli_downloader(url, branch))
 
         return result
 
-    def _get_new_cli_downloader(self, url: URL) -> GitCLIDownloader:
-        return GitCLIDownloader(repository=url, working_dir=self.clone_path)
+    def _get_new_cli_downloader(
+        self,
+        url: URL,
+        branch: Optional[str]
+    ) -> GitCLIDownloader:
+        return GitCLIDownloader(
+            repository=url,
+            branch=branch,
+            working_dir=self.clone_path
+        )
 
-    def _get_new_github_downloader(self, url: URL) -> GitHubDownloader:
-        return GitHubDownloader(repository=url)
+    def _get_new_github_downloader(
+        self,
+        url: URL,
+        branch: Optional[str]
+    ) -> GitHubDownloader:
+        return GitHubDownloader(
+            repository=url,
+            branch=branch
+        )
 
 
 class GitDownload:
@@ -238,6 +283,7 @@ class GitDownload:
         self,
         repo: URL,
         file: str,
+        branch: Optional[str] = None,
         yaml_parser: YAMLParser = StandardYAMLParser()
     ) -> YAML:
         """Downloads a YAML file from a Git repository and parses it into
@@ -245,6 +291,8 @@ class GitDownload:
 
         :param repo: The Git repository.
         :param file: Relative path to the repo's root to the file to download.
+        :param branch: Name of the branch to download from. 'None' to use the
+            repo's default branch.
         :param yaml_parser: Tool used to parse the YAML file.
         :return: The file as a Python object.
         :raises DownloadError:
@@ -253,7 +301,7 @@ class GitDownload:
             If the file is not in YAML format.
         """
         try:
-            for api in self._get_apis_for(repo):
+            for api in self._get_apis_for(repo, branch):
                 LOG.info(
                     "Trying to download file: '%s' with API: '%s'...",
                     file, type(api).__name__
@@ -279,8 +327,12 @@ class GitDownload:
             msg = f"No API available to handle URL: '{repo}'."
             raise DownloadError(msg) from ex
 
-    def _get_apis_for(self, url: URL) -> Iterable[GitDownloader]:
-        result = self._download_fetcher.get_downloaders_for(url)
+    def _get_apis_for(
+        self,
+        url: URL,
+        branch: Optional[str]
+    ) -> Iterable[GitDownloader]:
+        result = self._download_fetcher.get_downloaders_for(url, branch)
 
         if not result:
             raise InvalidURL(f"Found no handlers for URL: '{url}'.")

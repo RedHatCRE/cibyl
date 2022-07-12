@@ -15,15 +15,12 @@
 """
 from github import Github as GitHubAPIv3
 from github import GithubException
-from github.Repository import Repository
+from github.Repository import Repository as RepoAPIv3
 from overrides import overrides
 
 from tripleo.utils.github import GitHub as IGitHub
 from tripleo.utils.github import GitHubError
 from tripleo.utils.github import Repository as IRepository
-
-RepoAPIv3 = Repository
-"""PyGitHub's representation of a repository."""
 
 
 class Repository(IRepository):
@@ -36,6 +33,8 @@ class Repository(IRepository):
 
         :param api: PyGithub session used to interact with GitHub.
         """
+        super().__init__(branch=api.default_branch)
+
         self._api = api
 
     @property
@@ -48,7 +47,7 @@ class Repository(IRepository):
     @overrides
     def download_as_text(self, file: str, encoding: str = 'utf-8') -> str:
         try:
-            file = self.api.get_contents(file)
+            file = self.api.get_contents(file, ref=self.branch)
 
             # Decoded content is still in binary,
             # it has to be passed to string yet
