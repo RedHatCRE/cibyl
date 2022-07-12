@@ -50,12 +50,26 @@ class Repository(IRepository):
         """
         return self._handler
 
+    @property
+    def branch(self) -> str:
+        return self.handler.active_branch.name
+
     @overrides
-    def get_as_text(self, file: str) -> str:
+    def checkout(self, branch: str) -> None:
+        remote = self.handler.remote()
+
+        # Check that the branch exists.
+        if branch not in remote.refs:
+            raise GitError(f"Unknown branch: '{branch}'")
+
+        self.handler.git.checkout(branch)
+
+    @overrides
+    def get_as_text(self, file: str, encoding: str = 'utf-8') -> str:
         abs_path = self._get_absolute_path(file)
 
         try:
-            with open(abs_path, 'r') as buffer:
+            with open(abs_path, 'r', encoding=encoding) as buffer:
                 return buffer.read()
         except IOError as ex:
             msg = f"Failed to open file at: '{abs_path}'."
