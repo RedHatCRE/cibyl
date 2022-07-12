@@ -13,17 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.utils.colors import ColorPalette
 
 
-def get_status_colored(palette, status):
+def get_status_colored(palette: ColorPalette, status: str) -> str:
     """Generates the text describing the status of a build.
 
     :param palette: The palette of colors to follow.
-    :type palette: :class:`cibyl.utils.colors.ColorPalette`
     :param status: The status to color.
-    :type status: str
     :return: The text with the status colored.
-    :rtype: str
     """
 
     status_x_color_map = {

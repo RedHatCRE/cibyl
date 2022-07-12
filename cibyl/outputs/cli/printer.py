@@ -16,7 +16,7 @@
 from abc import ABC
 
 from cibyl.cli.query import QueryType
-from cibyl.utils.colors import DefaultPalette
+from cibyl.utils.colors import ColorPalette, DefaultPalette
 
 
 class Printer(ABC):
@@ -24,25 +24,22 @@ class Printer(ABC):
     """
 
     def __init__(self,
-                 query=QueryType.NONE,
-                 verbosity=0):
+                 query: QueryType = QueryType.NONE,
+                 verbosity: int = 0):
         """Constructor.
 
         :param query: Type of query requested by the user. Determines how
             far down the model hierarchy the printer will go.
-        :type query: :class:`QueryType`
         :param verbosity: How verbose the output is to be expected. The
             bigger this is, the more is printed for each hierarchy level.
-        :type verbosity: int
         """
         self._query = query
         self._verbosity = verbosity
 
     @property
-    def query(self):
+    def query(self) -> QueryType:
         """
         :return: Query type requested by user.
-        :rtype: :class:`QueryType`
         """
         return self._query
 
@@ -60,24 +57,22 @@ class ColoredPrinter(Printer, ABC):
     """
 
     def __init__(self,
-                 query=QueryType.NONE,
-                 verbosity=0,
-                 palette=DefaultPalette()):
+                 query: QueryType = QueryType.NONE,
+                 verbosity: int = 0,
+                 palette: ColorPalette = DefaultPalette()):
         """Constructor.
 
         See parents for more information.
 
         :param palette: Palette of colors to be used.
-        :type palette: :class:`cibyl.utils.colors.ColorPalette`
         """
         super().__init__(query, verbosity)
 
         self._palette = palette
 
     @property
-    def palette(self):
+    def palette(self) -> ColorPalette:
         """
         :return: The palette currently in use.
-        :rtype: :class:`cibyl.utils.colors.ColorPalette`
         """
         return self._palette

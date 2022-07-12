@@ -15,6 +15,7 @@
 """
 from abc import ABC, abstractmethod
 
+from cibyl.models.ci.base.system import System
 from cibyl.outputs.cli.printer import Printer
 
 
@@ -23,11 +24,9 @@ class CISystemPrinter(Printer, ABC):
     """
 
     @abstractmethod
-    def print_system(self, system):
+    def print_system(self, system: System) -> str:
         """
         :param system: The system.
-        :type system: :class:`cibyl.models.ci.base.system.System`
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         raise NotImplementedError
