@@ -30,20 +30,33 @@ LOG = logging.getLogger(__name__)
 
 
 class ScenarioFactory:
+    """Used to build scenario interpreters from more heterogeneous inputs.
+    """
+
     @dataclass
     class Tools:
         """Collection of tools used by the class to perform its task.
         """
         branch_creator = THTBranchCreator()
+        """Used to generate the branch name for a certain release."""
         path_creator = THTPathCreator()
+        """Used to generate path to the scenario file."""
 
         downloader = GitDownload()
+        """Used to download the scenario file."""
 
     def __init__(self, tools: Tools = Tools()):
+        """Constructor.
+
+        :param tools: Tools used by the class to perform its task.
+        """
         self._tools = tools
 
     @property
     def tools(self):
+        """
+        :return: Tools used by the class to perform its task.
+        """
         return self._tools
 
     def from_interpreters(
@@ -52,15 +65,31 @@ class ScenarioFactory:
         featureset: FeatureSetInterpreter,
         release: ReleaseInterpreter
     ) -> ScenarioInterpreter:
+        """Builds a new interpreter out of the data extracted from others.
+
+        :param outline: Outline shared by the interpreters.
+        :param featureset: Gets data from the featureset file.
+        :param release: Gets data from the release file.
+        :return: An interpreter for the scenario indicated by the featureset.
+        :raises ValueError: If the featureset points to no scenario file.
+        """
+        branch_creator = self.tools.branch_creator
+        path_creator = self.tools.path_creator
+
+        release = release.get_release_name()
+        scenario = featureset.get_scenario()
+
+        if not scenario:
+            raise ValueError(
+                'Featureset has no scenario. '
+                'One is required for the interpreter to be build.'
+            )
+
         return ScenarioInterpreter(
             self.tools.downloader.download_as_yaml(
                 repo=outline.heat,
-                branch=self.tools.branch_creator.create_release_branch(
-                    release.get_release_name()
-                ),
-                file=self.tools.path_creator.create_scenario_path(
-                    featureset.get_scenario()
-                )
+                branch=branch_creator.create_release_branch(release),
+                file=path_creator.create_scenario_path(scenario)
             ),
             overrides=outline.overrides
         )
@@ -83,6 +112,7 @@ class DeploymentLookUp:
         """Tool used to download files from Git repositories."""
 
         scenario_factory: ScenarioFactory = ScenarioFactory()
+        """Used to created the scenario interpreter."""
 
     def __init__(self, tools: Tools = Tools()):
         """Constructor.
