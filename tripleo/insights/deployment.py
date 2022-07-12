@@ -14,8 +14,8 @@
 #    under the License.
 """
 from abc import ABC
-from dataclasses import dataclass
-from typing import Dict, Optional
+from dataclasses import dataclass, fields
+from typing import Dict, List, Optional
 
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
@@ -108,8 +108,8 @@ class EnvironmentInterpreter(FileInterpreter):
 
     def get_intra_type(self) -> Optional[str]:
         """
-        :return: Value of the infrastructure type field, None if the field
-            in not present.
+        :return: Value of the infrastructure type field. 'None' if the field
+            is not present.
         """
         key = self.KEYS.infra_type
 
@@ -132,6 +132,8 @@ class FeatureSetInterpreter(FileInterpreter):
         """
         ipv6: str = 'overcloud_ipv6'
         """Indicates IP version of deployment."""
+        scenario: str = 'composable_scenario'
+        """Indicates the scenario of this deployment."""
 
     KEYS = Keys()
     """Knowledge that this has about the featureset file's contents."""
@@ -152,13 +154,24 @@ class FeatureSetInterpreter(FileInterpreter):
         """
         key = self.KEYS.ipv6
 
-        if key in self.overrides:
-            return self.overrides[key]
-
-        if key in self.data:
-            return self.data[key]
+        for provider in (self.overrides, self.data):
+            if key in provider:
+                return provider[key]
 
         return False
+
+    def get_scenario(self) -> Optional[str]:
+        """
+        :return: Name of the scenario file that complements this featureset.
+            'None' if it is not defined.
+        """
+        key = self.KEYS.scenario
+
+        for provider in (self.overrides, self.data):
+            if key in provider:
+                return provider[key]
+
+        return None
 
 
 class NodesInterpreter(FileInterpreter):
@@ -174,17 +187,17 @@ class NodesInterpreter(FileInterpreter):
         """Field that defines the deployment's topology."""
 
         # 'topology_map' level
-        compute = 'Compute'
+        compute: str = 'Compute'
         """Contains data on compute nodes."""
-        controller = 'Controller'
+        controller: str = 'Controller'
         """Contains data on controller nodes."""
-        ceph = 'CephStorage'
+        ceph: str = 'CephStorage'
         """Contains data on ceph nodes."""
-        cell = 'CellController'
+        cell: str = 'CellController'
         """Contains data on cell nodes."""
 
         # 'node' level
-        scale = 'scale'
+        scale: str = 'scale'
         """Number of nodes of a certain type."""
 
     KEYS = Keys()
@@ -201,7 +214,8 @@ class NodesInterpreter(FileInterpreter):
 
     def get_topology(self) -> Optional[Topology]:
         """
-        :return: Information on the topology described by the file.
+        :return: Information on the topology described by the file. 'None'
+            if not enough information is present on the file.
         """
         key = self.KEYS.topology
 
@@ -270,3 +284,135 @@ class ReleaseInterpreter(FileInterpreter):
                 return provider[key]
 
         return None
+
+
+class ScenarioInterpreter(FileInterpreter):
+    """Takes care of making sense out of the contents of a scenario file.
+    """
+
+    @dataclass
+    class Keys:
+        """Defines the fields of interest in the scenario.
+        """
+
+        @dataclass
+        class CinderBackEnds:
+            """Defines all the fields related to the cinder backend.
+            """
+            powerflex: str = 'CinderEnablePowerFlexBackend'
+            powermax: str = 'CinderEnablePowermaxBackend'
+            powerstore: str = 'CinderEnablePowerStoreBackend'
+            sc: str = 'CinderEnableScBackend'
+            dell_emc_unity: str = 'CinderEnableDellEMCUnityBackend'
+            dell_emc_vnx: str = 'CinderEnableDellEMCVNXBackend'
+            dell_sc: str = 'CinderEnableDellScBackend'
+            xtremio: str = 'CinderEnableXtremioBackend'
+            netapp: str = 'CinderEnableNetappBackend'
+            pure: str = 'CinderEnablePureBackend'
+            iscsi: str = 'CinderEnableIscsiBackend'
+            nfs: str = 'CinderEnableNfsBackend'
+            rbd: str = 'CinderEnableRbdBackend'
+
+        backends: CinderBackEnds = CinderBackEnds()
+        """Fields related to cinder backends."""
+
+    class Mappings:
+        """Maps keys on the scenario file to an output.
+        """
+
+        def __init__(self, keys: 'ScenarioInterpreter.Keys'):
+            """Constructor.
+
+            :param keys: The keys to map.
+            """
+            self._keys = keys
+
+        @property
+        def keys(self) -> 'ScenarioInterpreter.Keys':
+            """
+            :return: The keys this will map.
+            """
+            return self._keys
+
+        @property
+        def cinder_backends(self) -> Dict[str, str]:
+            """
+            :return: A map that relates each of the cinder backend keys to
+                an output word. For example: CinderEnableIscsiBackend -> iscsi
+            """
+            return {
+                self.keys.backends.powerflex: 'powerflex',
+                self.keys.backends.powermax: 'powermax',
+                self.keys.backends.powerstore: 'powerstore',
+                self.keys.backends.sc: 'sc',
+                self.keys.backends.dell_emc_unity: 'dell-emc unity',
+                self.keys.backends.dell_emc_vnx: 'dell-emc vnx',
+                self.keys.backends.dell_sc: 'dell sc',
+                self.keys.backends.xtremio: 'xtremio',
+                self.keys.backends.netapp: 'netapp',
+                self.keys.backends.pure: 'pure',
+                self.keys.backends.iscsi: 'iscsi',
+                self.keys.backends.nfs: 'nfs',
+                self.keys.backends.rbd: 'rbd'
+            }
+
+    KEYS = Keys()
+    """Knowledge this has on the scenario file."""
+    MAPPINGS = Mappings(KEYS)
+    """Output for each of the keys."""
+
+    def __init__(
+        self,
+        data: YAML,
+        schema: File = File('tripleo/_data/schemas/scenario.json'),
+        overrides: Optional[Dict] = None,
+        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
+    ):
+        super().__init__(data, schema, overrides, validator_factory)
+
+    def get_cinder_backend(self) -> str:
+        """
+        :return: Name of the backend behind Cinder. If none is defined,
+            this will default to ISCSI.
+        :raises IllegibleData: If more than one backend is defined on the
+            scenario.
+        """
+
+        def get_backends() -> List[str]:
+            """
+            :return: Key to all the backends that were set to True on the
+                scenario.
+            """
+            result = []
+
+            # Iterate over all known backends
+            for field in fields(type(keys)):
+                # Get the key for this backend
+                key = getattr(keys, field.name)
+
+                # Is it present on the scenario?
+                if key in self.data:
+                    # Is it chosen?
+                    if self.data[key]:
+                        result.append(key)
+
+            return result
+
+        keys = self.KEYS.backends
+        mapping = self.MAPPINGS.cinder_backends
+
+        backends = get_backends()
+
+        if len(backends) == 0:
+            # Default value
+            return mapping[keys.iscsi]
+
+        if len(backends) != 1:
+            raise IllegibleData(
+                'More than one Cinder backend available. '
+                'Cannot determine which one to pick.'
+            )
+
+        backend = backends[0]
+
+        return mapping[backend]

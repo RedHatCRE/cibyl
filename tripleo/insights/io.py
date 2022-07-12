@@ -102,3 +102,4 @@ class DeploymentSummary:
     """Infrastructure type of the cloud."""
     topology: Optional[Topology] = None
     """Nodes on the deployment."""
+    cinder_backend: Optional[str] = None
