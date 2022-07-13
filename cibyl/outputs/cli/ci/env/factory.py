@@ -24,7 +24,7 @@ class CIPrinterFactory:
     """
 
     @staticmethod
-    def from_style(style, query, verbosity, complete):
+    def from_style(style, query, verbosity, complete=False):
         """Builds the appropriate printer for the desired output style.
 
         :param style: The desired output style.
