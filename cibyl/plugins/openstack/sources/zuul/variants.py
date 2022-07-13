@@ -94,6 +94,26 @@ class ReleaseSearch(VariableSearch):
         return variable, str(value)
 
 
+class ReleaseNameSearch(VariableSearch):
+    """Utility designed to make finding the release name variable of a job
+    easier.
+    """
+
+    DEFAULT_SEARCH_TERMS = ('release',)
+    """Default variables known to hold the job's release name."""
+
+    def __init__(self, search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS):
+        """Constructor. See parent for more information.
+        """
+        super().__init__(search_terms)
+
+    @overrides
+    def search(self, variant: VariantResponse) -> Optional[Tuple[str, str]]:
+        LOG.debug("Searching for release name on variant: '%s'.", variant.name)
+
+        return super().search(variant)
+
+
 class FeatureSetSearch(VariableSearch):
     """Utility designed to make finding the featureset variable of a job
     easier.
