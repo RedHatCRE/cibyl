@@ -20,7 +20,8 @@ from cibyl.plugins.openstack.sources.zuul.tripleo import (
     QuickStartFileCreator, QuickStartPathCreator)
 from cibyl.plugins.openstack.sources.zuul.variants import (FeatureSetSearch,
                                                            InfraTypeSearch,
-                                                           NodesSearch)
+                                                           NodesSearch,
+                                                           ReleaseNameSearch)
 from cibyl.sources.zuul.transactions import VariantResponse as Variant
 from tripleo.insights import DeploymentOutline
 
@@ -111,16 +112,16 @@ class OverridesCollector:
 
         self._insert_tuple(overrides, infra_type)
 
-    def _insert_tuple(self, _dict: dict, _tuple: Tuple[Any, Any]) -> None:
+    def _insert_tuple(self, target: dict, entry: Tuple[Any, Any]) -> None:
         """Inserts a two-element tuple into a dictionary interpreting it as
         (key, value). If the key already exists in the dictionary, then its
         value is overridden.
 
-        :param _dict: The dictionary to modify.
-        :param _tuple: The tuple to insert.
+        :param target: The dictionary to modify.
+        :param entry: The tuple to insert.
         """
-        key, val = _tuple
-        _dict[key] = val
+        key, val = entry
+        target[key] = val
 
 
 class FilesFetcher:
@@ -139,6 +140,8 @@ class FilesFetcher:
         """Takes care of finding the featureset of the outline."""
         nodes_search = NodesSearch()
         """Takes care of finding the nodes of the outline."""
+        release_search = ReleaseNameSearch()
+        """Takes care of finding the release of the outline."""
 
     def __init__(self, tools: Tools = Tools()):
         """Constructor.
@@ -194,6 +197,26 @@ class FilesFetcher:
             self.tools.quickstart_files.create_nodes(value)
         )
 
+    def fetch_release(self, variant: Variant, default: str) -> str:
+        """Studies a variant in order to determine the release file on
+        TripleO QuickStart that its deployment uses.
+
+        :param variant: The variant to fetch data from.
+        :param default: Path to the default release file that will be
+            returned in case the variant has no custom one.
+        :return: Path to the release file of the variant.
+        """
+        release = self.tools.release_search.search(variant)
+
+        if not release:
+            return default
+
+        _, value = release
+
+        return self.tools.quickstart_paths.create_release_path(
+            self.tools.quickstart_files.create_release(value)
+        )
+
 
 class OutlineCreator:
     """Factory for generation of :class:`DeploymentOutline`.
@@ -231,6 +254,7 @@ class OutlineCreator:
 
         result.featureset = self._get_featureset(variant, result.featureset)
         result.nodes = self._get_nodes(variant, result.nodes)
+        result.release = self._get_release(variant, result.release)
         result.overrides = self._get_overrides(variant)
 
         return result
@@ -240,6 +264,9 @@ class OutlineCreator:
 
     def _get_nodes(self, variant: Variant, default: str) -> str:
         return self.tools.files_fetcher.fetch_nodes(variant, default)
+
+    def _get_release(self, variant: Variant, default: str) -> str:
+        return self.tools.files_fetcher.fetch_release(variant, default)
 
     def _get_overrides(self, variant: Variant) -> dict:
         return self.tools.overrides_collector.collect_overrides_for(variant)

@@ -32,10 +32,10 @@ class TestDeploymentQuery(TestCase):
         """Checks that jobs are filtered by their deployment's release.
         """
 
-        def jobs(api, **_):
+        def jobs(*_, **__):
             return [job]
 
-        def variants(job, **_):
+        def variants(*_, **__):
             return [variant1, variant2]
 
         release_arg = Mock()
@@ -58,7 +58,7 @@ class TestDeploymentQuery(TestCase):
             'name': 'variant1'
         }
         variant1.variables.return_value = {
-            'release': '1.2'
+            'rhos_release_version': '1.2'
         }
 
         variant2 = Mock()
@@ -67,7 +67,7 @@ class TestDeploymentQuery(TestCase):
             'name': 'variant2'
         }
         variant2.variables.return_value = {
-            'release': '2.0'
+            'rhos_release_version': '2.0'
         }
 
         api = Mock()
