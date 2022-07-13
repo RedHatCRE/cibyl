@@ -22,13 +22,17 @@ class QuickStartFileCreator:
     """
     DEFAULT_FEATURESET_TEMPLATE = Template('featureset$number.yml')
     """Default template used to generate the name of featureset files."""
-    DEFAULT_NODES_TEMPLATE = Template('$name.yml')
-    """Default template used to generate the name nodes files."""
+    DEFAULT_NODES_TEMPLATE = Template('$topology.yml')
+    """Default template used to generate the name of nodes files."""
+    DEFAULT_RELEASE_TEMPLATE = Template('$name.yml')
+    """Default template used to generate the name of release files."""
 
-    def __init__(self,
-                 featureset_template: Template = DEFAULT_FEATURESET_TEMPLATE,
-                 nodes_template: Template = DEFAULT_NODES_TEMPLATE
-                 ):
+    def __init__(
+        self,
+        featureset_template: Template = DEFAULT_FEATURESET_TEMPLATE,
+        nodes_template: Template = DEFAULT_NODES_TEMPLATE,
+        release_template: Template = DEFAULT_RELEASE_TEMPLATE
+    ):
         """Constructor.
 
         :param featureset_template: Template that will be used to generate
@@ -36,10 +40,14 @@ class QuickStartFileCreator:
             $number, which is the ID of the featureset.
         :param nodes_template: Template that will be used to generate the
             name of nodes files. The template only takes one argument,
-            $name, which is the name of the file without its extension.
+            $topology, which is the name of the file without its extension.
+        :param release_template: Template that will be used to generate the
+            name of release files. The template only takes one argument,
+            $name, which is the name of the release ('wallaby').
         """
         self._featureset_template = featureset_template
         self._nodes_template = nodes_template
+        self._release_template = release_template
 
     @property
     def featureset_template(self) -> Template:
@@ -55,17 +63,40 @@ class QuickStartFileCreator:
         """
         return self._nodes_template
 
+    @property
+    def release_template(self):
+        """
+        :return: Template for release files.
+        """
+        return self._release_template
+
     def create_featureset(self, number: str) -> str:
         """Generate a new featureset file name from the given parameters.
 
         :param number: ID of the featureset. For example: '052'.
-        :return: Full name of the file defining the featureset inside the
-            QuickStart repository.
+        :return: Full name of the file inside the QuickStart repository that
+            defines the featureset.
         """
         return self.featureset_template.substitute(number=number)
 
-    def create_nodes(self, name: str) -> str:
-        return self.nodes_template.substitute(name=name)
+    def create_nodes(self, topology: str) -> str:
+        """Generate a new nodes file name from the given parameters.
+
+        :param topology: Topology that leads to one of the nodes file on the
+            QuickStart repository. For example: '1ctlr'.
+        :return: Full name of the file inside the QuickStart repository that
+            defines the topology.
+        """
+        return self.nodes_template.substitute(topology=topology)
+
+    def create_release(self, name: str) -> str:
+        """Generate a new release file name from the given parameters.
+
+        :param name: Name of the release. For example: 'wallaby'.
+        :return: Full name of the file inside the QuickStart repository that
+            defines the release.
+        """
+        return self.release_template.substitute(name=name)
 
 
 class QuickStartPathCreator:

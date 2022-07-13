@@ -49,6 +49,19 @@ class TestQuickStartFileCreator(TestCase):
             creator.create_nodes(node)
         )
 
+    def test_default_release_template(self):
+        """Checks that the default release template produces the desired
+        file names.
+        """
+        release = 'release'
+
+        creator = QuickStartFileCreator()
+
+        self.assertEqual(
+            f'{release}.yml',
+            creator.create_release(release)
+        )
+
 
 class TestQuickStartPathCreator(TestCase):
     """Tests for :class:`QuickStartPathCreator`.
