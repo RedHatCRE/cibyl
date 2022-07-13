@@ -22,6 +22,18 @@ class TestTHTBranchCreator(TestCase):
     """Tests for :class:`THTBranchCreator`.
     """
 
+    def test_ignores_master(self):
+        """Checks that the master branch is, by default, returned untouched.
+        """
+        release = 'master'
+
+        creator = THTBranchCreator()
+
+        self.assertEqual(
+            f'{release}',
+            creator.create_release_branch(release)
+        )
+
     def test_creates_release_branch(self):
         """Checks the default template for a release branch.
         """
