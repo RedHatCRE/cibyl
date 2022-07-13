@@ -14,15 +14,84 @@
 #    under the License.
 """
 import logging
+from dataclasses import dataclass
 
 from tripleo.insights.deployment import (EnvironmentInterpreter,
                                          FeatureSetInterpreter,
-                                         NodesInterpreter)
+                                         NodesInterpreter, ReleaseInterpreter,
+                                         ScenarioInterpreter)
 from tripleo.insights.git import GitDownload
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
+from tripleo.insights.tripleo import THTBranchCreator, THTPathCreator
 from tripleo.insights.validation import OutlineValidator
 
 LOG = logging.getLogger(__name__)
+
+
+class ScenarioFactory:
+    """Used to build scenario interpreters from more heterogeneous inputs.
+    """
+
+    @dataclass
+    class Tools:
+        """Collection of tools used by the class to perform its task.
+        """
+        branch_creator = THTBranchCreator()
+        """Used to generate the branch name for a certain release."""
+        path_creator = THTPathCreator()
+        """Used to generate path to the scenario file."""
+
+        downloader = GitDownload()
+        """Used to download the scenario file."""
+
+    def __init__(self, tools: Tools = Tools()):
+        """Constructor.
+
+        :param tools: Tools used by the class to perform its task.
+        """
+        self._tools = tools
+
+    @property
+    def tools(self):
+        """
+        :return: Tools used by the class to perform its task.
+        """
+        return self._tools
+
+    def from_interpreters(
+        self,
+        outline: DeploymentOutline,
+        featureset: FeatureSetInterpreter,
+        release: ReleaseInterpreter
+    ) -> ScenarioInterpreter:
+        """Builds a new interpreter out of the data extracted from others.
+
+        :param outline: Outline shared by the interpreters.
+        :param featureset: Gets data from the featureset file.
+        :param release: Gets data from the release file.
+        :return: An interpreter for the scenario indicated by the featureset.
+        :raises ValueError: If the featureset points to no scenario file.
+        """
+        branch_creator = self.tools.branch_creator
+        path_creator = self.tools.path_creator
+
+        release = release.get_release_name()
+        scenario = featureset.get_scenario()
+
+        if not scenario:
+            raise ValueError(
+                'Featureset has no scenario. '
+                'One is required for the interpreter to be build.'
+            )
+
+        return ScenarioInterpreter(
+            self.tools.downloader.download_as_yaml(
+                repo=outline.heat,
+                branch=branch_creator.create_release_branch(release),
+                file=path_creator.create_scenario_path(scenario)
+            ),
+            overrides=outline.overrides
+        )
 
 
 class DeploymentLookUp:
@@ -32,32 +101,31 @@ class DeploymentLookUp:
     deployment summary out of its outline.
     """
 
-    def __init__(
-        self,
-        validator: OutlineValidator = OutlineValidator(),
+    @dataclass
+    class Tools:
+        """Collection of tools used by the class to perform its task.
+        """
+        validator: OutlineValidator = OutlineValidator()
+        """Tool used to validate the input data."""
         downloader: GitDownload = GitDownload()
-    ):
+        """Tool used to download files from Git repositories."""
+
+        scenario_factory: ScenarioFactory = ScenarioFactory()
+        """Used to created the scenario interpreter."""
+
+    def __init__(self, tools: Tools = Tools()):
         """Constructor.
 
-        :param validator: Tool used to validate the input data.
-        :param downloader: Tool used to download files from Git repositories.
+        :param tools: The tools this will use to do its task.
         """
-        self._validator = validator
-        self._downloader = downloader
+        self._tools = tools
 
     @property
-    def validator(self) -> OutlineValidator:
+    def tools(self):
         """
-        :return: Tool used to validate the input data.
+        :return: The tools this will use to do its task.
         """
-        return self._validator
-
-    @property
-    def downloader(self):
-        """
-        :return: Tool used to download files from Git repositories.
-        """
-        return self._downloader
+        return self._tools
 
     def run(self, outline: DeploymentOutline) -> DeploymentSummary:
         """Runs a lookup task, fetching all the necessary data out of the
@@ -73,7 +141,7 @@ class DeploymentLookUp:
         return self._generate_deployment(outline)
 
     def _validate_outline(self, outline: DeploymentOutline) -> None:
-        is_valid, error = self.validator.validate(outline)
+        is_valid, error = self.tools.validator.validate(outline)
 
         if not is_valid:
             raise error
@@ -82,43 +150,51 @@ class DeploymentLookUp:
         self,
         outline: DeploymentOutline
     ) -> DeploymentSummary:
-        def handle_environment():
-            environment = EnvironmentInterpreter(
-                self.downloader.download_as_yaml(
-                    repo=outline.quickstart,
-                    file=outline.environment
-                ),
-                overrides=outline.overrides
-            )
+        environment = EnvironmentInterpreter(
+            self.tools.downloader.download_as_yaml(
+                repo=outline.quickstart,
+                file=outline.environment
+            ),
+            overrides=outline.overrides
+        )
 
-            result.infra_type = environment.get_intra_type()
+        featureset = FeatureSetInterpreter(
+            self.tools.downloader.download_as_yaml(
+                repo=outline.quickstart,
+                file=outline.featureset
+            ),
+            overrides=outline.overrides
+        )
 
-        def handle_featureset():
-            featureset = FeatureSetInterpreter(
-                self.downloader.download_as_yaml(
-                    repo=outline.quickstart,
-                    file=outline.featureset
-                ),
-                overrides=outline.overrides
-            )
+        nodes = NodesInterpreter(
+            self.tools.downloader.download_as_yaml(
+                repo=outline.quickstart,
+                file=outline.nodes
+            ),
+            overrides=outline.overrides
+        )
 
-            result.ip_version = '6' if featureset.is_ipv6() else '4'
-
-        def handle_nodes():
-            nodes = NodesInterpreter(
-                self.downloader.download_as_yaml(
-                    repo=outline.quickstart,
-                    file=outline.nodes
-                ),
-                overrides=outline.overrides
-            )
-
-            result.topology = nodes.get_topology()
+        release = ReleaseInterpreter(
+            self.tools.downloader.download_as_yaml(
+                repo=outline.quickstart,
+                file=outline.release
+            ),
+            overrides=outline.overrides
+        )
 
         result = DeploymentSummary()
 
-        handle_environment()
-        handle_featureset()
-        handle_nodes()
+        result.infra_type = environment.get_intra_type()
+        result.ip_version = '6' if featureset.is_ipv6() else '4'
+        result.topology = nodes.get_topology()
+        result.release = release.get_release_name()
+
+        # Take care of the scenario file too
+        if featureset.get_scenario():
+            scenario = self.tools.scenario_factory.from_interpreters(
+                outline, featureset, release
+            )
+
+            result.cinder_backend = scenario.get_cinder_backend()
 
         return result

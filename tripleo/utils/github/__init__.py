@@ -24,6 +24,27 @@ class Repository(ABC):
     """API that allows interactivity with a GitHub repository.
     """
 
+    def __init__(self, branch: str):
+        """Constructor.
+
+        :param branch: Name of the branch the repository is checked out at.
+        """
+        self._branch = branch
+
+    @property
+    def branch(self) -> str:
+        """
+        :return: Name of the checked out branch.
+        """
+        return self._branch
+
+    def checkout(self, branch: str) -> None:
+        """Changes the branch the repository works in.
+
+        :param branch: The branch to move to.
+        """
+        self._branch = branch
+
     @abstractmethod
     def download_as_text(self, file: str, encoding: str = 'utf-8') -> str:
         """Downloads a file and decodes it as text.

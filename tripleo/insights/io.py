@@ -94,9 +94,12 @@ class DeploymentSummary:
     Every field left as 'None' indicates that no information related to it
     could be found. Interpret it as missing content.
     """
+    release: Optional[str] = None
+    """Name of the OpenStack release deployed."""
     ip_version: Optional[str] = None
     """Name of the IP protocol used on the deployment."""
     infra_type: Optional[str] = None
     """Infrastructure type of the cloud."""
     topology: Optional[Topology] = None
     """Nodes on the deployment."""
+    cinder_backend: Optional[str] = None
