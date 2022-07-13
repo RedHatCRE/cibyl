@@ -164,7 +164,7 @@ class DeploymentGenerator:
         return Deployment(
             release=self._get_release(variant, **kwargs),
             infra_type=summary.infra_type,
-            topology=summary.topology,
+            topology=str(summary.topology),
             network=Network(
                 ip_version=summary.ip_version
             )
