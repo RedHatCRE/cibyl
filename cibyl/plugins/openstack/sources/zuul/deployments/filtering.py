@@ -75,6 +75,17 @@ class DeploymentFiltering:
                 **kwargs
             )
 
+        storage_args = (
+            'cinder_backend',
+        )
+
+        for arg in storage_args:
+            self._handle_arg_filter(
+                arg,
+                lambda dpl: dpl.storage.value,
+                **kwargs
+            )
+
     def _handle_arg_filter(
         self,
         arg: str,
