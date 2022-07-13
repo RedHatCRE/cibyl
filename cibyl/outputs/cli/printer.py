@@ -62,7 +62,8 @@ class ColoredPrinter(Printer, ABC):
     def __init__(self,
                  query=QueryType.NONE,
                  verbosity=0,
-                 palette=DefaultPalette()):
+                 palette=DefaultPalette(),
+                 complete=False):
         """Constructor.
 
         See parents for more information.
@@ -73,6 +74,7 @@ class ColoredPrinter(Printer, ABC):
         super().__init__(query, verbosity)
 
         self._palette = palette
+        self._complete = complete
 
     @property
     def palette(self):
@@ -81,3 +83,12 @@ class ColoredPrinter(Printer, ABC):
         :rtype: :class:`cibyl.utils.colors.ColorPalette`
         """
         return self._palette
+
+    @property
+    def complete(self):
+        """
+        :return: The output mode. When enabled, shows the projects and
+            pipelines hierarchy
+        :rtype: bool
+        """
+        return self._complete

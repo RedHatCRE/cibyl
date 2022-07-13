@@ -14,6 +14,7 @@
 #    under the License.
 """
 import logging
+from typing import Any
 
 from overrides import overrides
 
@@ -177,14 +178,37 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                 result[-1].append(branch)
 
             result.add(self.palette.blue('Variables: '), 1)
-            for key, value in variant.variables.items():
-                result.add(self.palette.blue(f'{key}: '), 2)
-                result[-1].append(value)
+            # Parse the variables recursively to present them in
+            # hierarchical fashion
+            self.print_variables(variant.variables, result, 2)
 
             if has_plugin_section(variant):
                 result.add(get_plugin_section(self, variant), 1)
 
             return result.build()
+
+        def print_variables(self, items: Any, result: IndentedTextBuilder, level: int = 2) -> None:
+            """
+            Print the variables in a recursive way, respecting the hierarchy
+            """
+            if type(items) is list:
+                for value in items:
+                    if type(value) in [dict, list]:
+                        self.print_variables(value, result, level + 1)
+                        continue
+
+                    result.add('- ', level)
+                    result[-1].append(value)
+            else:
+                for key in items:
+                    value = items[key]
+                    if type(value) in [dict, list]:
+                        result.add(self._palette.blue(f'{key}: '), level)
+                        self.print_variables(value, result, level + 1)
+                        continue
+
+                    result.add(self._palette.blue(f'{key}: '), level)
+                    result[-1].append(value)
 
         def print_build(self, build):
             result = IndentedTextBuilder()
@@ -220,6 +244,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             # if the user has only requested features, there is no need to
             # print anything else
             return printer.build()
+
         # Continue with text specific for this system type
         if self.query >= QueryType.TENANTS:
             if hasattr(system, 'tenants'):
@@ -309,10 +334,10 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         result.add(self.palette.blue('Tenant: '), 0)
         result[-1].append(tenant.name)
 
-        if self.query >= QueryType.PROJECTS:
+        if self.query >= QueryType.PROJECTS and self.complete is not False:
             print_projects()
 
-            if self.query >= QueryType.JOBS:
-                print_jobs()
+        if self.query >= QueryType.JOBS:
+            print_jobs()
 
         return result.build()

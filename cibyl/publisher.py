@@ -34,10 +34,11 @@ class Publisher:
                 target: str = "terminal",
                 style: OutputStyle = OutputStyle.TEXT,
                 query: QueryType = QueryType.NONE,
-                verbosity: int = 0) -> None:
+                verbosity: int = 0,
+                complete: bool = False) -> None:
         """Publishes the data of the given environments to the
         chosen destination.
         """
         if target == "terminal":
-            printer = CIPrinterFactory.from_style(style, query, verbosity)
+            printer = CIPrinterFactory.from_style(style, query, verbosity, complete)
             print(printer.print_environment(environment))

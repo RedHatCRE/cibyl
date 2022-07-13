@@ -327,4 +327,5 @@ class Orchestrator:
                 environment=env,
                 style=output_style,
                 query=get_query_type(**self.parser.ci_args),
-                verbosity=self.parser.app_args.get('verbosity'))
+                verbosity=self.parser.app_args.get('verbosity'),
+                complete=self.parser.app_args.get('complete', None))
