@@ -115,12 +115,6 @@ class File(FSPath):
             msg = f"Path is not a file or does not exist: '{self}'."
             raise IOError(msg)
 
-    @staticmethod
-    def from_existing(path: RawPath) -> 'File':
-        result = File(path)
-
-        return result
-
     @overrides
     def exists(self) -> bool:
         return self.as_path().is_file()
