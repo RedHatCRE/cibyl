@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import functools
 from typing import Callable
 
 from cibyl.cli.argument import Argument
@@ -20,13 +21,14 @@ from cibyl.models.model import Model
 from cibyl.plugins.openstack import Deployment
 from cibyl.utils.filtering import matches_regex
 
+Filter = Callable[[Deployment], bool]
+"""Type of the filters stored in this class."""
+
 
 class DeploymentFiltering:
     """Takes care of applying the filters coming from the command line to a
     deployment.
     """
-    Filter = Callable[[Deployment], bool]
-    """Type of the filters stored in this class."""
 
     def __init__(self, filters=None):
         """Constructor.
@@ -102,9 +104,11 @@ class DeploymentFiltering:
 
         for pattern in patterns:
             self.filters.append(
-                lambda dpl: matches_regex(
-                    pattern,
-                    getattr(attr(dpl), arg).value
+                functools.partial(
+                    lambda dpl, pat: matches_regex(
+                        pat, getattr(attr(dpl), arg).value
+                    ),
+                    pat=pattern
                 )
             )
 
