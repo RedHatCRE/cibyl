@@ -98,7 +98,6 @@ class ReleaseNameSearch(VariableSearch):
     """Utility designed to make finding the release name variable of a job
     easier.
     """
-
     DEFAULT_SEARCH_TERMS = ('release',)
     """Default variables known to hold the job's release name."""
 
