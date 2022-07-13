@@ -40,5 +40,6 @@ class Publisher:
         chosen destination.
         """
         if target == "terminal":
-            printer = CIPrinterFactory.from_style(style, query, verbosity, complete)
+            printer = CIPrinterFactory.from_style(style, query, verbosity,
+                                                  complete)
             print(printer.print_environment(environment))

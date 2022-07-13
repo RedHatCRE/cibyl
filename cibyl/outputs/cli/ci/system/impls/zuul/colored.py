@@ -187,7 +187,8 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             return result.build()
 
-        def print_variables(self, items: Any, result: IndentedTextBuilder, level: int = 2) -> None:
+        def print_variables(self, items: Any, result: IndentedTextBuilder,
+                            level: int = 2) -> None:
             """
             Print the variables in a recursive way, respecting the hierarchy
             """

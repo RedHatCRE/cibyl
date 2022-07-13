@@ -61,7 +61,8 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
             # Check specialized printers
             if isinstance(system, ZuulSystem):
                 return ColoredZuulSystemPrinter(
-                    self.query, self.verbosity, self.palette, complete=self.complete
+                    self.query, self.verbosity, self.palette,
+                    complete=self.complete
                 )
 
             if isinstance(system, JobsSystem):
