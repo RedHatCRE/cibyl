@@ -197,7 +197,7 @@ class GitDownloaderFetcher:
     """Tool used to find the downloaders that are compatible with a certain
     URL.
     """
-    DEFAULT_CLONE_PATH = Dir('~/.cibyl', resolve_home)
+    DEFAULT_CLONE_PATH = Dir('~/.cre', resolve_home)
     """Default directory where Git repositories are cloned to if needed."""
 
     def __init__(self, clone_path: Dir = DEFAULT_CLONE_PATH):
