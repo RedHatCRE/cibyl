@@ -14,26 +14,44 @@
 #    under the License.
 """
 from string import Template
+from typing import Iterable
 
 
 class THTBranchCreator:
     """Utility to ease the creation of branch names inside the Heat
     Templates repository.
     """
+    DEFAULT_IGNORED_RELEASES = ('master',)
     DEFAULT_RELEASE_TEMPLATE = Template('stable/$release')
     """Default template used to generate the branch assigned to a release."""
 
-    def __init__(self, release_template: Template = DEFAULT_RELEASE_TEMPLATE):
+    def __init__(
+        self,
+        ignored_releases: Iterable[str] = DEFAULT_IGNORED_RELEASES,
+        release_template: Template = DEFAULT_RELEASE_TEMPLATE
+    ):
         """Constructor.
 
+        :param ignored_releases: Collection of release names that map 1-to-1
+            to their branch and thus need no processing. If one of this is
+            seen, then it will be returned as is.
         :param release_template: Template used to generate branch names from
             a RHOS release name. It only takes one argument, $release,
             which is the name of the RHOS release.
         """
+        self._ignored_releases = ignored_releases
         self._release_template = release_template
 
     @property
-    def release_template(self):
+    def ignored_releases(self) -> Iterable[str]:
+        """
+        :return: The releases that require no processing to be mapped to
+            their branch.
+        """
+        return self._ignored_releases
+
+    @property
+    def release_template(self) -> Template:
         """
         :return: Template used to generate branch names from a RHOS release
             name.
@@ -48,10 +66,16 @@ class THTBranchCreator:
         >>> creator = THTBranchCreator()
         ... creator.create_release_branch('wallaby')
         'stable/wallaby'
+        >>> creator = THTBranchCreator(ignored_releases=('master',))
+        ... creator.create_release_branch('master')
+        'master'
 
         :param release: Name of the RHOS release. For example: 'wallaby'.
         :return: The branch assigned to that release.
         """
+        if release in self.ignored_releases:
+            return release
+
         return self.release_template.substitute(release=release)
 
 
@@ -75,7 +99,7 @@ class THTPathCreator:
         self._scenario_template = scenario_template
 
     @property
-    def scenario_template(self):
+    def scenario_template(self) -> Template:
         """
         :return: Template this will use to generate paths to scenario files
         inside the repository.
