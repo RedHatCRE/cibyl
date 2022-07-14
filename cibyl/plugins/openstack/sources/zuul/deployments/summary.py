@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from dataclasses import dataclass
 from typing import Optional
 
 from cached_property import cached_property
-from dataclasses import dataclass
 
 from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
     OutlineCreator

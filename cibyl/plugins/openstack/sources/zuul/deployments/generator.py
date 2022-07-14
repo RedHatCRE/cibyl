@@ -13,16 +13,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Any
+from typing import Any, Optional
 
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.network import Network
-from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
-    OutlineCreator
-from cibyl.plugins.openstack.sources.zuul.variants import ReleaseSearch
+from cibyl.plugins.openstack.sources.zuul.deployments.arguments import \
+    ArgumentReview
+from cibyl.plugins.openstack.sources.zuul.deployments.summary import (
+    VariantDeployment, VariantDeploymentFactory)
 from cibyl.plugins.openstack.storage import Storage
 from cibyl.sources.zuul.transactions import VariantResponse as Variant
-from tripleo.insights import DeploymentLookUp
 
 
 class DeploymentGenerator:
@@ -32,12 +32,8 @@ class DeploymentGenerator:
     class Tools:
         """Tools the factory will use to do its task.
         """
-        outline_creator = OutlineCreator()
-        """Tests care of creating the TripleO outline for a Zuul job."""
-        deployment_lookup = DeploymentLookUp()
-        """Gets additional information on the deployment from TripleO."""
-        release_search = ReleaseSearch()
-        """Takes care of finding the release of the deployment."""
+        argument_review = ArgumentReview()
+        variant_summary = VariantDeploymentFactory()
 
     def __init__(self, tools: Tools = Tools()):
         """Constructor.
@@ -63,35 +59,76 @@ class DeploymentGenerator:
         :param variant: The variant to fetch data from.
         :return: The deployment.
         """
-        summary = self.tools.deployment_lookup.run(
-            self.tools.outline_creator.new_outline_for(variant)
-        )
+        summary = self.tools.variant_summary.create_for(variant)
 
         return Deployment(
-            release=self._get_release(variant, **kwargs),
-            infra_type=summary.infra_type,
-            topology=str(summary.topology),
+            release=self._get_release(summary, **kwargs),
+            infra_type=self._get_infra_type(summary, **kwargs),
+            topology=self._get_topology(summary, **kwargs),
             storage=Storage(
-                cinder_backend=summary.cinder_backend
+                cinder_backend=self._get_cinder_backend(summary, **kwargs)
             ),
             network=Network(
-                ip_version=summary.ip_version
+                ip_version=self._get_ip_version(summary, **kwargs)
             )
         )
 
-    def _get_release(self, variant: Variant, **kwargs: Any) -> str:
-        release_search = self.tools.release_search
+    def _get_release(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
 
-        if any(term in kwargs for term in ('spec', 'release')):
-            release = release_search.search(variant)
+        if not arguments.is_release_requested(**kwargs):
+            return None
 
-            if not release:
-                # Fall back to the default value
-                return 'master'
+        return summary.get_release()
 
-            _, value = release
+    def _get_infra_type(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
 
-            return value
+        if not arguments.is_infra_type_requested(**kwargs):
+            return None
 
-        # Nothing means to not output this field.
-        return ''
+        return summary.get_infra_type()
+
+    def _get_topology(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
+
+        if not arguments.is_topology_requested(**kwargs):
+            return None
+
+        return summary.get_topology()
+
+    def _get_cinder_backend(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
+
+        if not arguments.is_cinder_backend_requested(**kwargs):
+            return None
+
+        return summary.get_cinder_backend()
+
+    def _get_ip_version(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
+
+        if not arguments.is_ip_version_requested(**kwargs):
+            return None
+
+        return summary.get_cinder_backend()
