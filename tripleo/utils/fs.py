@@ -94,6 +94,15 @@ class Dir(FSPath):
 
         return not any(self.as_path().iterdir())
 
+    def cd(self, path: RawPath) -> 'Dir':
+        """Combines this path with the one passed as an argument. Useful to
+        represent subdirectories.
+
+        :param path: The path to append.
+        :return: A new directory handler, pointing to the combined path.
+        """
+        return Dir(self.as_path() / path)
+
     def mkdir(self, recursive: bool = False) -> None:
         """Creates the directory on the filesystem.
 
