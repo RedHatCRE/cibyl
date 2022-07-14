@@ -94,6 +94,15 @@ class Dir(FSPath):
 
         return not any(self.as_path().iterdir())
 
+    def cd(self, path: RawPath) -> 'Dir':
+        """Combines this path with the one passed as an argument. Useful to
+        represent subdirectories.
+
+        :param path: The path to append.
+        :return: A new directory handler, pointing to the combined path.
+        """
+        return Dir(self.as_path() / path)
+
     def mkdir(self, recursive: bool = False) -> None:
         """Creates the directory on the filesystem.
 
@@ -114,12 +123,6 @@ class File(FSPath):
         if not self.exists():
             msg = f"Path is not a file or does not exist: '{self}'."
             raise IOError(msg)
-
-    @staticmethod
-    def from_existing(path: RawPath) -> 'File':
-        result = File(path)
-
-        return result
 
     @overrides
     def exists(self) -> bool:
