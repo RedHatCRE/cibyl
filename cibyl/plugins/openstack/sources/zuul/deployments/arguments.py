@@ -19,6 +19,23 @@ from enum import Enum
 LOG = logging.getLogger(__name__)
 
 
+class ArgumentReview:
+    def is_release_requested(self, **kwargs) -> bool:
+        return any(arg in kwargs for arg in ('spec', 'release'))
+
+    def is_infra_type_requested(self, **kwargs) -> bool:
+        return any(arg in kwargs for arg in ('spec', 'infra_type'))
+
+    def is_topology_requested(self, **kwargs) -> bool:
+        return any(arg in kwargs for arg in ('spec', 'topology'))
+
+    def is_cinder_backend_requested(self, **kwargs) -> bool:
+        return any(arg in kwargs for arg in ('spec', 'cinder_backend'))
+
+    def is_ip_version_requested(self, **kwargs) -> bool:
+        return any(arg in kwargs for arg in ('spec', 'ip_version'))
+
+
 class SpecArgumentHandler:
     """Figures out which argument holds the jobs to be fetched from the host.
     """
