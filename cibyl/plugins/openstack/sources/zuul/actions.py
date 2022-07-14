@@ -15,22 +15,15 @@
 """
 import logging
 from dataclasses import dataclass
-from typing import Any
 
-from cibyl.plugins.openstack import Deployment
-from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.sources.zuul.deployments.arguments import \
     SpecArgumentHandler
 from cibyl.plugins.openstack.sources.zuul.deployments.filtering import \
     DeploymentFiltering
-from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
-    OutlineCreator
-from cibyl.plugins.openstack.sources.zuul.variants import ReleaseSearch
-from cibyl.plugins.openstack.storage import Storage
+from cibyl.plugins.openstack.sources.zuul.deployments.generator import \
+    DeploymentGenerator
 from cibyl.sources.zuul.output import QueryOutputBuilder
 from cibyl.sources.zuul.queries.jobs import perform_jobs_query
-from cibyl.sources.zuul.transactions import VariantResponse
-from tripleo.insights import DeploymentLookUp
 
 LOG = logging.getLogger(__name__)
 
@@ -57,78 +50,6 @@ def _default_variant_query(job, **kwargs):
     :rtype: list[:class:`cibyl.sources.zuul.transactions.VariantResponse`]
     """
     return job.variants().get()
-
-
-class DeploymentGenerator:
-    """Factory for generation of :class:`Deployment`.
-    """
-
-    class Tools:
-        """Tools the factory will use to do its task.
-        """
-        outline_creator = OutlineCreator()
-        """Tests care of creating the TripleO outline for a Zuul job."""
-        deployment_lookup = DeploymentLookUp()
-        """Gets additional information on the deployment from TripleO."""
-        release_search = ReleaseSearch()
-        """Takes care of finding the release of the deployment."""
-
-    def __init__(self, tools: Tools = Tools()):
-        """Constructor.
-
-        :param tools: The tools this will use.
-        """
-        self._tools = tools
-
-    @property
-    def tools(self) -> Tools:
-        """
-        :return: The tools this will use.
-        """
-        return self._tools
-
-    def generate_deployment_for(
-        self,
-        variant: VariantResponse,
-        **kwargs: Any
-    ) -> Deployment:
-        """Creates a new deployment based on the data from a job's variant.
-
-        :param variant: The variant to fetch data from.
-        :return: The deployment.
-        """
-        summary = self.tools.deployment_lookup.run(
-            self.tools.outline_creator.new_outline_for(variant)
-        )
-
-        return Deployment(
-            release=self._get_release(variant, **kwargs),
-            infra_type=summary.infra_type,
-            topology=str(summary.topology),
-            storage=Storage(
-                cinder_backend=summary.cinder_backend
-            ),
-            network=Network(
-                ip_version=summary.ip_version
-            )
-        )
-
-    def _get_release(self, variant: VariantResponse, **kwargs: Any) -> str:
-        release_search = self.tools.release_search
-
-        if any(term in kwargs for term in ('spec', 'release')):
-            release = release_search.search(variant)
-
-            if not release:
-                # Fall back to the default value
-                return 'master'
-
-            _, value = release
-
-            return value
-
-        # Nothing means to not output this field.
-        return ''
 
 
 class DeploymentQuery:
