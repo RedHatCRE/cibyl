@@ -37,7 +37,8 @@ class TestCIPrinterFactory(TestCase):
 
         factory = CIPrinterFactory()
 
-        result = factory.from_style(OutputStyle.TEXT, query, verbosity, False)
+        result = factory.from_style(OutputStyle.TEXT, query, verbosity,
+                                    False)
 
         self.assertEqual(query, result.query)
         self.assertEqual(verbosity, result.verbosity)
@@ -50,7 +51,8 @@ class TestCIPrinterFactory(TestCase):
 
         factory = CIPrinterFactory()
 
-        result = factory.from_style(OutputStyle.COLORIZED, query, verbosity, False)
+        result = factory.from_style(OutputStyle.COLORIZED, query, verbosity,
+                                    False)
 
         self.assertEqual(query, result.query)
         self.assertEqual(verbosity, result.verbosity)
