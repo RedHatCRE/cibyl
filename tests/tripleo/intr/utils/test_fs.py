@@ -68,6 +68,53 @@ class TestDir(TestCase):
             with NamedTemporaryFile(dir=directory):
                 self.assertFalse(directory.is_empty())
 
+    def test_cd(self):
+        """Checks that a path to a subdirectory is created as expected.
+        """
+        subfolder = 'folder'
+
+        with TemporaryDirectory() as folder:
+            directory = Dir(folder)
+
+            self.assertEqual(
+                f'{directory}/{subfolder}',
+                directory.cd(subfolder)
+            )
+
+    def test_mkdir_error(self):
+        """Checks that an error is raised if the directory's parents do not
+        exist.
+        """
+        directory = Dir('path/to/some/dir')
+
+        with self.assertRaises(FileNotFoundError):
+            directory.mkdir(recursive=False)
+
+    def test_simple_mkdir(self):
+        """Checks that a folder can be created under a parent directory.
+        """
+        with TemporaryDirectory() as folder:
+            directory = Dir(f'{folder}/dir')
+
+            self.assertFalse(directory.exists())
+
+            directory.mkdir(recursive=False)
+
+            self.assertTrue(directory.exists())
+
+    def test_recursive_mkdir(self):
+        """Checks that all the folders leading to a directory can be
+        created.
+        """
+        with TemporaryDirectory() as folder:
+            directory = Dir(f'{folder}/dir/subdir')
+
+            self.assertFalse(directory.exists())
+
+            directory.mkdir(recursive=True)
+
+            self.assertTrue(directory.exists())
+
     def test_as_path(self):
         """Checks that the type can be converted into a path.
         """
@@ -115,40 +162,6 @@ class TestFile(TestCase):
             file = File(folder)
 
             self.assertFalse(file.exists())
-
-    def test_mkdir_error(self):
-        """Checks that an error is raised if the directory's parents do not
-        exist.
-        """
-        directory = Dir('path/to/some/dir')
-
-        with self.assertRaises(FileNotFoundError):
-            directory.mkdir(recursive=False)
-
-    def test_simple_mkdir(self):
-        """Checks that a folder can be created under a parent directory.
-        """
-        with TemporaryDirectory() as folder:
-            directory = Dir(f'{folder}/dir')
-
-            self.assertFalse(directory.exists())
-
-            directory.mkdir(recursive=False)
-
-            self.assertTrue(directory.exists())
-
-    def test_recursive_mkdir(self):
-        """Checks that all the folders leading to a directory can be
-        created.
-        """
-        with TemporaryDirectory() as folder:
-            directory = Dir(f'{folder}/dir/subdir')
-
-            self.assertFalse(directory.exists())
-
-            directory.mkdir(recursive=True)
-
-            self.assertTrue(directory.exists())
 
     def test_as_path(self):
         """Checks that the type can be converted into a path.
