@@ -165,7 +165,7 @@ class DeploymentGenerator:
         return Deployment(
             release=self._get_release(variant, **kwargs),
             infra_type=summary.infra_type,
-            topology=summary.topology,
+            topology=str(summary.topology),
             storage=Storage(
                 cinder_backend=summary.cinder_backend
             ),
@@ -181,7 +181,8 @@ class DeploymentGenerator:
             release = release_search.search(variant)
 
             if not release:
-                return 'N/A'
+                # Fall back to the default value
+                return 'master'
 
             _, value = release
 
