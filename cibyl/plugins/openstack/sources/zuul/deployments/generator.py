@@ -15,6 +15,8 @@
 """
 from typing import Any, Optional
 
+from dataclasses import dataclass
+
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.sources.zuul.deployments.arguments import \
@@ -29,6 +31,7 @@ class DeploymentGenerator:
     """Factory for generation of :class:`Deployment`.
     """
 
+    @dataclass
     class Tools:
         """Tools the factory will use to do its task.
         """
@@ -131,4 +134,4 @@ class DeploymentGenerator:
         if not arguments.is_ip_version_requested(**kwargs):
             return None
 
-        return summary.get_cinder_backend()
+        return summary.get_ip_version()

@@ -20,88 +20,217 @@ from cibyl.plugins.openstack.sources.zuul.deployments.generator import \
     DeploymentGenerator
 
 
-class TestReleaseArgument(TestCase):
-    """Tests how the '--release' argument affects :class:`DeploymentGenerator`.
+class TestDeploymentGenerator(TestCase):
+    """Tests for :class:`DeploymentGenerator`.
     """
+
+    def setUp(self):
+        self.arguments = Mock()
+
+        self.summary = Mock()
+
+        self.summaries = Mock()
+        self.summaries.create_for = Mock()
+        self.summaries.create_for.return_value = self.summary
+
+        self.tools = Mock()
+        self.tools.argument_review = self.arguments
+        self.tools.variant_summary = self.summaries
 
     def test_no_release(self):
-        """Checks that the release is not fetched if no arg for it is passed.
+        """Checks that the release is ignored if it is not requested.
         """
-        kwargs = {
-        }
+        kwargs = {'key': 'val'}
+        variant = Mock()
 
-        release_search = Mock()
-        release_search.search = Mock()
+        self.arguments.is_release_requested = Mock()
+        self.arguments.is_release_requested.return_value = False
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant, **kwargs)
+
+        self.assertEqual(None, result.release.value)
+
+        self.arguments.is_release_requested.assert_called_once_with(**kwargs)
+
+    def test_no_infra_type(self):
+        """Checks that the infra type is ignored if it is not requested.
+        """
+        kwargs = {'key': 'val'}
+        variant = Mock()
+
+        self.arguments.is_infra_type_requested = Mock()
+        self.arguments.is_infra_type_requested.return_value = False
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant, **kwargs)
+
+        self.assertEqual(None, result.infra_type.value)
+
+        self.arguments.is_infra_type_requested \
+            .assert_called_once_with(**kwargs)
+
+    def test_no_topology(self):
+        """Checks that the topology is ignored if it is not requested.
+        """
+        kwargs = {'key': 'val'}
+        variant = Mock()
+
+        self.arguments.is_topology_requested = Mock()
+        self.arguments.is_topology_requested.return_value = False
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant, **kwargs)
+
+        self.assertEqual(None, result.topology.value)
+
+        self.arguments.is_topology_requested.assert_called_once_with(**kwargs)
+
+    def test_no_cinder_backend(self):
+        """Checks that the cinder backend is ignored if it is not requested.
+        """
+        kwargs = {'key': 'val'}
+        variant = Mock()
+
+        self.arguments.is_cinder_backend_requested = Mock()
+        self.arguments.is_cinder_backend_requested.return_value = False
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant, **kwargs)
+
+        self.assertEqual(None, result.storage.value.cinder_backend.value)
+
+        self.arguments.is_cinder_backend_requested \
+            .assert_called_once_with(**kwargs)
+
+    def test_no_ip_version(self):
+        """Checks that the ip version is ignored if it is not requested.
+        """
+        kwargs = {'key': 'val'}
+        variant = Mock()
+
+        self.arguments.is_ip_version_requested = Mock()
+        self.arguments.is_ip_version_requested.return_value = False
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant, **kwargs)
+
+        self.assertEqual(None, result.network.value.ip_version.value)
+
+        self.arguments.is_ip_version_requested \
+            .assert_called_once_with(**kwargs)
+
+    def test_release(self):
+        """Checks that the release is returned if requested.
+        """
+        value = 'release'
 
         variant = Mock()
 
-        tools = Mock()
-        tools.release_search = release_search
+        self.arguments.is_release_requested = Mock()
+        self.arguments.is_release_requested.return_value = True
 
-        generator = DeploymentGenerator(tools)
+        self.summary.get_release = Mock()
+        self.summary.get_release.return_value = value
 
-        deployment = generator.generate_deployment_for(variant, **kwargs)
+        generator = DeploymentGenerator(tools=self.tools)
 
-        self.assertEqual('', deployment.release.value)
+        result = generator.generate_deployment_for(variant)
 
-        release_search.search.assert_not_called()
+        self.assertEqual(value, result.release.value)
 
-    def test_adds_release_on_spec_arg(self):
-        """Checks that the release is fetched if the 'spec' arg is passed.
+        self.summaries.create_for.assert_called_once_with(variant)
+        self.summary.get_release.assert_called_once()
+
+    def test_infra_type(self):
+        """Checks that the infra type is returned if requested.
         """
-        kwargs = {
-            'spec': None
-        }
-
-        variable = 'var'
-        release = 'v1.0'
-
-        release_search = Mock()
-        release_search.search = Mock()
-        release_search.search.return_value = (variable, release)
+        value = 'infra_type'
 
         variant = Mock()
 
-        tools = Mock()
-        tools.release_search = release_search
+        self.arguments.is_infra_type_requested = Mock()
+        self.arguments.is_infra_type_requested.return_value = True
 
-        generator = DeploymentGenerator(tools)
+        self.summary.get_infra_type = Mock()
+        self.summary.get_infra_type.return_value = value
 
-        deployment = generator.generate_deployment_for(variant, **kwargs)
+        generator = DeploymentGenerator(tools=self.tools)
 
-        self.assertEqual(release, deployment.release.value)
+        result = generator.generate_deployment_for(variant)
 
-        release_search.search.assert_called_once_with(variant)
+        self.assertEqual(value, result.infra_type.value)
 
-    def test_adds_release_on_release_arg(self):
-        """Checks that the release is fetched if the 'release' arg is passed.
+        self.summaries.create_for.assert_called_once_with(variant)
+        self.summary.get_infra_type.assert_called_once()
+
+    def test_topology(self):
+        """Checks that the topology is returned if requested.
         """
-        kwargs = {
-            'release': None
-        }
-
-        variable = 'var'
-        release = 'v1.0'
-
-        release_search = Mock()
-        release_search.search = Mock()
-        release_search.search.return_value = (variable, release)
+        value = 'topology'
 
         variant = Mock()
 
-        tools = Mock()
-        tools.release_search = release_search
+        self.arguments.is_topology_requested = Mock()
+        self.arguments.is_topology_requested.return_value = True
 
-        generator = DeploymentGenerator(tools)
+        self.summary.get_topology = Mock()
+        self.summary.get_topology.return_value = value
 
-        deployment = generator.generate_deployment_for(variant, **kwargs)
+        generator = DeploymentGenerator(tools=self.tools)
 
-        self.assertEqual(release, deployment.release.value)
+        result = generator.generate_deployment_for(variant)
 
-        release_search.search.assert_called_once_with(variant)
+        self.assertEqual(value, result.topology.value)
 
+        self.summaries.create_for.assert_called_once_with(variant)
+        self.summary.get_topology.assert_called_once()
 
-class TestInfraTypeArgument(TestCase):
-    """Tests how the '--infra-type' argument affects
-    :class:`DeploymentGenerator`.
-    """
+    def test_cinder_backend(self):
+        """Checks that the cinder backend is returned if requested.
+        """
+        value = 'cinder_backend'
+
+        variant = Mock()
+
+        self.arguments.is_cinder_backend_requested = Mock()
+        self.arguments.is_cinder_backend_requested.return_value = True
+
+        self.summary.get_cinder_backend = Mock()
+        self.summary.get_cinder_backend.return_value = value
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant)
+
+        self.assertEqual(value, result.storage.value.cinder_backend.value)
+
+        self.summaries.create_for.assert_called_once_with(variant)
+        self.summary.get_cinder_backend.assert_called_once()
+
+    def test_ip_version(self):
+        """Checks that the ip version is returned if requested.
+        """
+        value = 'release'
+
+        variant = Mock()
+
+        self.arguments.is_ip_version_requested = Mock()
+        self.arguments.is_ip_version_requested.return_value = True
+
+        self.summary.get_ip_version = Mock()
+        self.summary.get_ip_version.return_value = value
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant)
+
+        self.assertEqual(value, result.network.value.ip_version.value)
+
+        self.summaries.create_for.assert_called_once_with(variant)
+        self.summary.get_ip_version.assert_called_once()
