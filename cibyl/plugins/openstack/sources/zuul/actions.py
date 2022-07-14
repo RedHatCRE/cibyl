@@ -25,6 +25,7 @@ from cibyl.plugins.openstack.sources.zuul.deployments.filtering import \
 from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
     OutlineCreator
 from cibyl.plugins.openstack.sources.zuul.variants import ReleaseSearch
+from cibyl.plugins.openstack.storage import Storage
 from cibyl.sources.zuul.output import QueryOutputBuilder
 from cibyl.sources.zuul.queries.jobs import perform_jobs_query
 from cibyl.sources.zuul.transactions import VariantResponse
@@ -165,6 +166,9 @@ class DeploymentGenerator:
             release=self._get_release(variant, **kwargs),
             infra_type=summary.infra_type,
             topology=str(summary.topology),
+            storage=Storage(
+                cinder_backend=summary.cinder_backend
+            ),
             network=Network(
                 ip_version=summary.ip_version
             )
