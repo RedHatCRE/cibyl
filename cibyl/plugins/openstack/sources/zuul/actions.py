@@ -177,7 +177,8 @@ class DeploymentGenerator:
             release = release_search.search(variant)
 
             if not release:
-                return 'N/A'
+                # Fall back to the default value
+                return 'master'
 
             _, value = release
 
