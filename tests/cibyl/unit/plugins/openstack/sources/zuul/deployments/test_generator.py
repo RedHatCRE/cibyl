@@ -20,8 +20,8 @@ from cibyl.plugins.openstack.sources.zuul.deployments.generator import \
     DeploymentGenerator
 
 
-class TestDeploymentGenerator(TestCase):
-    """Tests for :class:`DeploymentGenerator`.
+class TestReleaseArgument(TestCase):
+    """Tests how the '--release' argument affects :class:`DeploymentGenerator`.
     """
 
     def test_no_release(self):
@@ -99,3 +99,9 @@ class TestDeploymentGenerator(TestCase):
         self.assertEqual(release, deployment.release.value)
 
         release_search.search.assert_called_once_with(variant)
+
+
+class TestInfraTypeArgument(TestCase):
+    """Tests how the '--infra-type' argument affects
+    :class:`DeploymentGenerator`.
+    """
