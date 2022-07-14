@@ -25,7 +25,38 @@ Models
 Usage
 ^^^^^
 
-To use the OpenStack plugin with Cibyl, specify `--plugin openstack`.
+To use the OpenStack plugin with Cibyl, specify `--plugin openstack` or include it in the configuration file.
+
+Spec
+^^^^
+
+.. note:: | This feature is currently working only with the Jenkins automation system.
+          | It is not supported with Zuul (The work on supporting it there is in progress)
+
+`cibyl --spec JOB_NAME` allows you to easily get the full OpenStack specification of a single job.
+
+The idea behind it is to allow the user to quickly get information on which OpenStack services and features
+are covered by a single job so the user doesn't have to go and deep dive into the job configuration and build
+artifacts to figure it out by himself.
+
+An example of an output from running `cibyl --spec JOB_NAME`::
+
+    Openstack deployment:
+      Release: 17.0
+      Infra type: virt
+      Topology: compute:2,controller:3,ironic:2
+      Network:
+        IP version: 4
+        Network backend: geneve
+        ML2 driver: ovn
+        Security group mechanism: native ovn
+        DVR: True
+        TLS everywhere: False
+      Storage:
+        Cinder backend: lvm
+      Ironic:
+        Ironic inspector: True
+        Cleaning network: False
 
 Arguments Matrix
 ----------------
