@@ -29,7 +29,7 @@ class TestCIPrinterFactory(TestCase):
         factory = CIPrinterFactory()
 
         with self.assertRaises(NotImplementedError):
-            factory.from_style(-1, query, verbosity)
+            factory.from_style(-1, query, verbosity, False)
 
     def test_returns_clear_text_printer(self):
         query = Mock()
@@ -37,7 +37,7 @@ class TestCIPrinterFactory(TestCase):
 
         factory = CIPrinterFactory()
 
-        result = factory.from_style(OutputStyle.TEXT, query, verbosity)
+        result = factory.from_style(OutputStyle.TEXT, query, verbosity, False)
 
         self.assertEqual(query, result.query)
         self.assertEqual(verbosity, result.verbosity)
@@ -50,7 +50,7 @@ class TestCIPrinterFactory(TestCase):
 
         factory = CIPrinterFactory()
 
-        result = factory.from_style(OutputStyle.COLORIZED, query, verbosity)
+        result = factory.from_style(OutputStyle.COLORIZED, query, verbosity, False)
 
         self.assertEqual(query, result.query)
         self.assertEqual(verbosity, result.verbosity)
