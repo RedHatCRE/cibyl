@@ -16,6 +16,10 @@
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
+from cibyl.models.ci.base.build import Build
+from cibyl.models.ci.base.job import Job
+from cibyl.models.ci.base.system import System
+from cibyl.models.ci.base.test import Test
 from cibyl.outputs.cli.ci.system.common.builds import (get_duration_section,
                                                        get_status_section)
 from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
@@ -34,7 +38,7 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
     """
 
     @overrides
-    def print_system(self, system):
+    def print_system(self, system: System) -> str:
         printer = IndentedTextBuilder()
 
         # Begin with the text common to all systems
@@ -54,12 +58,10 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
 
         return printer.build()
 
-    def print_job(self, job):
+    def print_job(self, job: Job) -> str:
         """
         :param job: The job.
-        :type job: :class:`cibyl.models.ci.base.job.Job`
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         printer = IndentedTextBuilder()
 
@@ -88,12 +90,10 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
 
         return printer.build()
 
-    def print_build(self, build):
+    def print_build(self, build: Build) -> str:
         """
         :param build: The build.
-        :type build: :class:`cibyl.models.ci.base.build.Build`
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         printer = IndentedTextBuilder()
 
@@ -123,12 +123,10 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
 
         return printer.build()
 
-    def print_test(self, test):
+    def print_test(self, test: Test) -> str:
         """
         :param test: The test.
-        :type test: :class:`cibyl.models.ci.base.test.Test`
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         printer = IndentedTextBuilder()
 

@@ -15,10 +15,13 @@
 """
 import json
 from abc import ABC
+from typing import Callable, Union
 
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
+from cibyl.models.ci.base.system import System
+from cibyl.models.product.feature import Feature
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
 
 
@@ -27,20 +30,18 @@ class SerializedBaseSystemPrinter(CISystemPrinter, ABC):
     """
 
     def __init__(self,
-                 load_function,
-                 dump_function,
-                 query=QueryType.NONE,
-                 verbosity=0):
+                 load_function: Callable[[str], dict],
+                 dump_function: Callable[[dict], str],
+                 query: QueryType = QueryType.NONE,
+                 verbosity: int = 0):
         """Constructor. See parent for more information.
 
         :param load_function: Function that transforms machine-readable text
             into a Python structure. Used to unmarshall output of sub-parts
             of the module.
-        :type load_function: (str) -> dict
         :param dump_function: Function that transforms a Python structure into
             machine-readable text. Used to marshall the data from the
             hierarchy.
-        :type dump_function: (dict) -> str
         """
         super().__init__(query, verbosity)
 
@@ -48,7 +49,7 @@ class SerializedBaseSystemPrinter(CISystemPrinter, ABC):
         self._dump = dump_function
 
     @overrides
-    def print_system(self, system):
+    def print_system(self, system: System) -> str:
         result = {
             'name': system.name.value,
             'type': system.system_type.value
@@ -66,13 +67,11 @@ class SerializedBaseSystemPrinter(CISystemPrinter, ABC):
 
         return self._dump(result)
 
-    def print_feature(self, feature):
+    def print_feature(self, feature: Feature) -> str:
         """Print a feature present in a system.
 
         :param feature: The feature.
-        :type feature: :class:`cibyl.models.ci.base.feature.Feature`
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         result = {
             'name': feature.name.value,
@@ -87,14 +86,13 @@ class JSONBaseSystemPrinter(SerializedBaseSystemPrinter):
     """
 
     def __init__(self,
-                 query=QueryType.NONE,
-                 verbosity=0,
-                 indentation=4):
+                 query: QueryType = QueryType.NONE,
+                 verbosity: int = 0,
+                 indentation: int = 4):
         """Constructor. See parent for more information.
 
         :param indentation: Number of spaces indenting each level of the
             JSON output.
-        :type indentation: int
         """
         super().__init__(
             load_function=self._from_json,
@@ -106,15 +104,14 @@ class JSONBaseSystemPrinter(SerializedBaseSystemPrinter):
         self._indentation = indentation
 
     @property
-    def indentation(self):
+    def indentation(self) -> int:
         """
         :return: Number of spaces preceding every level of the JSON output.
-        :rtype: int
         """
         return self._indentation
 
-    def _from_json(self, obj):
+    def _from_json(self, obj: Union[str, bytes, bytearray]) -> dict:
         return json.loads(obj)
 
-    def _to_json(self, obj):
+    def _to_json(self, obj: object) -> str:
         return json.dumps(obj, indent=self._indentation)

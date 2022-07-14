@@ -17,6 +17,8 @@ import logging
 
 from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
+from cibyl.models.model import Model
+from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
@@ -24,14 +26,12 @@ from cibyl.utils.strings import IndentedTextBuilder
 LOG = logging.getLogger(__name__)
 
 
-def has_plugin_section(model):
+def has_plugin_section(model: Model) -> bool:
     """Checks whether a model is worth having a plugins' section for.
 
     :param model: The model to check.
-    :type model: :class:`cibyl.models.model.Model`
     :return: True if the model has enough data to build
         a plugins' section with, False if not.
-    :rtype: bool
     """
     if not model.plugin_attributes:
         return False
@@ -47,7 +47,7 @@ def has_plugin_section(model):
     return has_plugin_attribute
 
 
-def get_plugin_section(printer, model):
+def get_plugin_section(printer: ColoredPrinter, model: Model) -> str:
     """Gets the text describing the plugins that affect a model.
 
     ..  seealso::
@@ -55,11 +55,8 @@ def get_plugin_section(printer, model):
 
     :param printer: The printer the text will be based on. The output of
         this function will follow the styling of this.
-    :type printer: :class:`cibyl.outputs.cli.printer.ColoredPrinter`
     :param model: The model to get the description for.
-    :type model: :class:`cibyl.models.model.Model`
     :return: The description.
-    :rtype: str
     :raises ValueError: If the model does not have enough data to build the
         section.
     """

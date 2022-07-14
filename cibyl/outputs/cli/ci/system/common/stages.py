@@ -13,23 +13,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.models.ci.base.stage import Stage
 from cibyl.outputs.cli.ci.system.common.status import get_status_colored
+from cibyl.utils.colors import ColorPalette
 from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
 
 
-def print_stage(stage, palette, verbosity=0):
+def print_stage(stage: Stage, palette: ColorPalette,
+                verbosity: int = 0) -> str:
     """
         Generate string representation of a Stage model.
 
         :param test: The stage.
-        :type test: :class:`cibyl.models.ci.base.stage.Stage`
         :param palette: The palette of colors to follow.
-        :type palette: :class:`cibyl.utils.colors.ColorPalette`
         :param verbosity: The verbosity level to use.
-        :type verbosity: int
         :return: Textual representation of the provided model.
-        :rtype: str
     """
     printer = IndentedTextBuilder()
 
