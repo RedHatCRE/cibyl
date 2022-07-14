@@ -126,10 +126,9 @@ class Job(BaseJob):
         'output_mode': {
             'arguments': [
                 Argument(
-                    name='--complete', arg_type=str, nargs=0, default=False,
-                    func='get_jobs', description='Shows the projects and '
-                                                 'pipelines hierarchy for '
-                                                 'the jobs'
+                    name='--complete', arg_type=bool, nargs=0,
+                    description='Shows the projects and pipelines hierarchy '
+                                'for the jobs'
                 ),
             ],
         },
