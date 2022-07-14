@@ -15,8 +15,8 @@
 """
 from unittest import TestCase
 
-from cibyl.plugins.openstack.sources.zuul.deployments.arguments import \
-    SpecArgumentHandler, ArgumentReview
+from cibyl.plugins.openstack.sources.zuul.deployments.arguments import (
+    ArgumentReview, SpecArgumentHandler)
 
 
 class TestArgumentReview(TestCase):

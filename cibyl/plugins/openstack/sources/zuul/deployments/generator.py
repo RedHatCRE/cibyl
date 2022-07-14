@@ -13,9 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Any, Optional
-
 from dataclasses import dataclass
+from typing import Any, Optional
 
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.network import Network
