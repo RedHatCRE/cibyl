@@ -20,6 +20,7 @@ from dataclasses import dataclass
 
 from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
     OutlineCreator
+from cibyl.plugins.openstack.sources.zuul.variants import ReleaseSearch
 from cibyl.sources.zuul.transactions import VariantResponse as Variant
 from tripleo.insights import DeploymentLookUp, DeploymentSummary
 
@@ -31,6 +32,8 @@ class VariantDeployment:
         """Tests care of creating the TripleO outline for a Zuul job."""
         deployment_lookup = DeploymentLookUp()
         """Gets additional information on the deployment from TripleO."""
+        release_search = ReleaseSearch()
+        """Takes care of finding the release of the deployment."""
 
     def __init__(self, variant: Variant, tools: Tools = Tools()):
         self._variant = variant
@@ -51,6 +54,18 @@ class VariantDeployment:
                 self.variant
             )
         )
+
+    def get_release(self) -> Optional[str]:
+        release = self.tools.release_search.search(self.variant)
+
+        if not release:
+            # No release defined -> Fall back to the default one
+            return 'master'
+
+        # Release defined -> Return its name
+        _, value = release
+
+        return value
 
     def get_infra_type(self) -> Optional[str]:
         return self._summary.infra_type
