@@ -35,7 +35,9 @@ class DeploymentGenerator:
         """Tools the factory will use to do its task.
         """
         argument_review = ArgumentReview()
+        """Used to understand what the user desires."""
         variant_summary = VariantDeploymentFactory()
+        """Used to get data on a variant's deployment."""
 
     def __init__(self, tools: Tools = Tools()):
         """Constructor.

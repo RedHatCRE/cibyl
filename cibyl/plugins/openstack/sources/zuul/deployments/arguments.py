@@ -15,24 +15,53 @@
 """
 import logging
 from enum import Enum
+from typing import Any
 
 LOG = logging.getLogger(__name__)
 
 
 class ArgumentReview:
-    def is_release_requested(self, **kwargs) -> bool:
+    """Interprets arguments coming from the CLI and provides their meaning.
+    """
+
+    def is_release_requested(self, **kwargs: Any) -> bool:
+        """
+        :param kwargs: Arguments coming from the CLI.
+        :return: True if the user requested the release to be part of the
+            deployment, False if not.
+        """
         return any(arg in kwargs for arg in ('spec', 'release'))
 
-    def is_infra_type_requested(self, **kwargs) -> bool:
+    def is_infra_type_requested(self, **kwargs: Any) -> bool:
+        """
+        :param kwargs: Arguments coming from the CLI.
+        :return: True if the user requested the infra type to be part of the
+            deployment, False if not.
+        """
         return any(arg in kwargs for arg in ('spec', 'infra_type'))
 
-    def is_topology_requested(self, **kwargs) -> bool:
+    def is_topology_requested(self, **kwargs: Any) -> bool:
+        """
+        :param kwargs: Arguments coming from the CLI.
+        :return: True if the user requested the topology to be part of the
+            deployment, False if not.
+        """
         return any(arg in kwargs for arg in ('spec', 'topology'))
 
-    def is_cinder_backend_requested(self, **kwargs) -> bool:
+    def is_cinder_backend_requested(self, **kwargs: Any) -> bool:
+        """
+        :param kwargs: Arguments coming from the CLI.
+        :return: True if the user requested the cinder backend to be part
+            of the deployment, False if not.
+        """
         return any(arg in kwargs for arg in ('spec', 'cinder_backend'))
 
-    def is_ip_version_requested(self, **kwargs) -> bool:
+    def is_ip_version_requested(self, **kwargs: Any) -> bool:
+        """
+        :param kwargs: Arguments coming from the CLI.
+        :return: True if the user requested the ip version to be part of the
+            deployment, False if not.
+        """
         return any(arg in kwargs for arg in ('spec', 'ip_version'))
 
 
