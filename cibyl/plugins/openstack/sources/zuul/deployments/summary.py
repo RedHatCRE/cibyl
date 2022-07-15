@@ -127,6 +127,13 @@ class VariantDeployment:
         """
         return self._summary.ip_version
 
+    def get_tls_everywhere(self) -> Optional[str]:
+        """
+        :return: State of TLS-Everywhere on the deployment. 'None' if it is
+            not defined.
+        """
+        return self._summary.tls_everywhere
+
 
 class VariantDeploymentFactory:
     """Builds instances of :class:`VariantDeployment`.

@@ -234,3 +234,25 @@ class TestDeploymentGenerator(TestCase):
 
         self.summaries.create_for.assert_called_once_with(variant)
         self.summary.get_ip_version.assert_called_once()
+
+    def test_tls_everywhere(self):
+        """Checks that TLS-Everywhere is returned if requested.
+        """
+        value = 'tls-everywhere'
+
+        variant = Mock()
+
+        self.arguments.is_tls_everywhere_requested = Mock()
+        self.arguments.is_tls_everywhere_requested.return_value = True
+
+        self.summary.get_tls_everywhere = Mock()
+        self.summary.get_tls_everywhere.return_value = value
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant)
+
+        self.assertEqual(value, result.network.value.tls_everywhere.value)
+
+        self.summaries.create_for.assert_called_once_with(variant)
+        self.summary.get_tls_everywhere.assert_called_once()

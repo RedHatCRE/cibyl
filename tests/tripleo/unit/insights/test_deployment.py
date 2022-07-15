@@ -267,6 +267,70 @@ class TestFeatureSetInterpreter(TestCase):
 
         self.assertEqual(False, featureset.is_ipv6())
 
+    def test_is_tls_everywhere_enabled(self):
+        """Checks whether it is able to tell if TLS everywhere is enabled.
+        """
+        keys = FeatureSetInterpreter.KEYS
+
+        data = {}
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        featureset = FeatureSetInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        self.assertFalse(featureset.is_tls_everywhere_enabled())
+
+        data[keys.tls_everywhere] = False
+
+        self.assertFalse(featureset.is_tls_everywhere_enabled())
+
+        data[keys.tls_everywhere] = True
+
+        self.assertTrue(featureset.is_tls_everywhere_enabled())
+
+    def test_overrides_tls_everywhere_enabled(self):
+        """Checks that the value of the 'overrides' dictionary is chosen
+        before the one from the file.
+        """
+        keys = FeatureSetInterpreter.KEYS
+
+        tls_everywhere = False
+        override = True
+
+        data = {keys.tls_everywhere: tls_everywhere}
+        overrides = {keys.tls_everywhere: override}
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        featureset = FeatureSetInterpreter(
+            data,
+            schema=schema,
+            overrides=overrides,
+            validator_factory=factory
+        )
+
+        self.assertTrue(featureset.is_tls_everywhere_enabled())
+
     def test_get_scenario(self):
         """Checks that it is possible to get the scenario from the
         featureset file.

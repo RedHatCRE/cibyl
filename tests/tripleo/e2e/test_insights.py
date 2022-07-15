@@ -30,6 +30,16 @@ class TestInsights(TestCase):
         # Enable output into console
         enable_logging(logging.DEBUG, LogOutput.ToStream, stream=sys.stdout)
 
+    def test_tls_everywhere(self):
+        """Checks that the state of TLS-Everywhere is extracted from a
+        scenario file.
+        """
+        outline = Outline(featureset='config/general_config/featureset039.yml')
+        lookup = DeploymentLookUp()
+        result = lookup.run(outline)
+
+        self.assertEqual('On', result.tls_everywhere)
+
     def test_cinder_backend(self):
         """Checks that the cinder backend is extracted from a scenario
         file.

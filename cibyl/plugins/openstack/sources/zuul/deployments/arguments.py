@@ -72,6 +72,14 @@ class ArgumentReview:
         """
         return any(arg in kwargs for arg in ('spec', 'ip_version'))
 
+    def is_tls_everywhere_requested(self, **kwargs: Any) -> bool:
+        """
+        :param kwargs: Arguments coming from the CLI.
+        :return: True if the user requested tls everywhere to be part of the
+            deployment, False if not.
+        """
+        return any(arg in kwargs for arg in ('spec',))
+
 
 class SpecArgumentHandler:
     """Figures out which argument holds the jobs to be fetched from the host.
