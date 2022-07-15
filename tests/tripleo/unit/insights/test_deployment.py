@@ -557,7 +557,7 @@ class TestScenarioInterpreter(TestCase):
 
         data = {
             keys.parameters: {
-                keys.backends.rbd: True
+                keys.cinder.backends.rbd: True
             }
         }
 
@@ -578,7 +578,7 @@ class TestScenarioInterpreter(TestCase):
         )
 
         self.assertEqual(
-            mapping[keys.backends.rbd],
+            mapping[keys.cinder.backends.rbd],
             scenario.get_cinder_backend()
         )
 
@@ -591,8 +591,8 @@ class TestScenarioInterpreter(TestCase):
 
         data = {
             keys.parameters: {
-                keys.backends.rbd: True,
-                keys.backends.iscsi: False
+                keys.cinder.backends.rbd: True,
+                keys.cinder.backends.iscsi: False
             }
         }
 
@@ -613,7 +613,7 @@ class TestScenarioInterpreter(TestCase):
         )
 
         self.assertEqual(
-            mapping[keys.backends.rbd],
+            mapping[keys.cinder.backends.rbd],
             scenario.get_cinder_backend()
         )
 
@@ -643,7 +643,7 @@ class TestScenarioInterpreter(TestCase):
         )
 
         self.assertEqual(
-            mapping[keys.backends.iscsi],
+            mapping[keys.cinder.backends.iscsi],
             scenario.get_cinder_backend()
         )
 
@@ -655,8 +655,8 @@ class TestScenarioInterpreter(TestCase):
 
         data = {
             keys.parameters: {
-                keys.backends.iscsi: True,
-                keys.backends.rbd: True
+                keys.cinder.backends.iscsi: True,
+                keys.cinder.backends.rbd: True
             }
         }
 

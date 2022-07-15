@@ -44,6 +44,9 @@
         },
         "CinderEnableRbdBackend": {
           "type": "boolean"
+        },
+        "NeutronNetworkType": {
+          "type": "string"
         }
       }
     }

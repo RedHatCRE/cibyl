@@ -196,5 +196,6 @@ class DeploymentLookUp:
             )
 
             result.cinder_backend = scenario.get_cinder_backend()
+            result.neutron_backend = scenario.get_neutron_backend()
 
         return result

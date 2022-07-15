@@ -103,3 +103,6 @@ class DeploymentSummary:
     topology: Optional[Topology] = None
     """Nodes on the deployment."""
     cinder_backend: Optional[str] = None
+    """Backend supporting the cinder component."""
+    neutron_backend: Optional[str] = None
+    """Backend supporting the neutron component."""
