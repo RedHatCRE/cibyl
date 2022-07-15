@@ -106,3 +106,5 @@ class DeploymentSummary:
     """Backend supporting the cinder component."""
     neutron_backend: Optional[str] = None
     """Backend supporting the neutron component."""
+    tls_everywhere: Optional[str] = None
+    """State (On / Off) of TLS-Everywhere on the deployment."""

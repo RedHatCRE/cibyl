@@ -184,10 +184,18 @@ class DeploymentLookUp:
 
         result = DeploymentSummary()
 
-        result.infra_type = environment.get_intra_type()
-        result.ip_version = '6' if featureset.is_ipv6() else '4'
-        result.topology = nodes.get_topology()
         result.release = release.get_release_name()
+        result.infra_type = environment.get_intra_type()
+        result.topology = nodes.get_topology()
+
+        result.ip_version = '4'
+        result.tls_everywhere = 'Off'
+
+        if featureset.is_ipv6():
+            result.ip_version = '6'
+
+        if featureset.is_tls_everywhere_enabled():
+            result.tls_everywhere = 'On'
 
         # Take care of the scenario file too
         if featureset.get_scenario():

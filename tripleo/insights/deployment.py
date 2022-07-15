@@ -134,6 +134,8 @@ class FeatureSetInterpreter(FileInterpreter):
         """Indicates IP version of deployment."""
         scenario: str = 'composable_scenario'
         """Indicates the scenario of this deployment."""
+        tls_everywhere: str = 'enable_tls_everywhere'
+        """Indicates whether TLS everywhere is enabled."""
 
     KEYS = Keys()
     """Knowledge that this has about the featureset file's contents."""
@@ -153,6 +155,19 @@ class FeatureSetInterpreter(FileInterpreter):
             under IPv4. If the field is not present, then IPv4 is assumed.
         """
         key = self.KEYS.ipv6
+
+        for provider in (self.overrides, self.data):
+            if key in provider:
+                return provider[key]
+
+        return False
+
+    def is_tls_everywhere_enabled(self) -> bool:
+        """
+        :return: True if the deployment uses tls everywhere, False if it does
+            not. If the field is not present, then False is returned too.
+        """
+        key = self.KEYS.tls_everywhere
 
         for provider in (self.overrides, self.data):
             if key in provider:
