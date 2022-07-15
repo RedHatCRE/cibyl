@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 import os
 
 from git import InvalidGitRepositoryError, NoSuchPathError, Repo
@@ -23,6 +24,8 @@ from tripleo.utils.git import Git as IGit
 from tripleo.utils.git import GitError
 from tripleo.utils.git import Repository as IRepository
 from tripleo.utils.urls import URL
+
+LOG = logging.getLogger(__name__)
 
 
 class Repository(IRepository):
@@ -98,8 +101,8 @@ class GitPython(IGit):
     @overrides
     def open(self, working_dir: Dir) -> Repository:
         try:
+            LOG.info("Opening repository at: '%s'.", working_dir)
             repo = Repo(working_dir.as_path())
-
             return Repository(repo)
         except InvalidGitRepositoryError as ex:
             msg = f"Failed to open repository at: '{working_dir}'."
@@ -110,6 +113,6 @@ class GitPython(IGit):
 
     @overrides
     def clone(self, url: URL, working_dir: Dir) -> Repository:
+        LOG.info("Cloning repository: '%s' into: '%s'.", url, working_dir)
         repo = Repo.clone_from(url, working_dir.as_path())
-
         return Repository(repo)

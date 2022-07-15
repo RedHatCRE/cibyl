@@ -123,3 +123,29 @@ class TestDeploymentFiltering(TestCase):
 
         self.assertTrue(filtering.is_valid_deployment(deployment1))
         self.assertFalse(filtering.is_valid_deployment(deployment2))
+
+    def test_applied_cinder_backend_filter(self):
+        """Checks that the filter for cinder backend is generated and
+        applied.
+        """
+        cinder_backend1 = 'iscsi'
+        cinder_backend2 = 'rbd'
+
+        cinder_backend_arg = Mock()
+        cinder_backend_arg.value = [cinder_backend1]
+
+        kwargs = {
+            'cinder_backend': cinder_backend_arg
+        }
+
+        deployment1 = Mock()
+        deployment1.storage.value.cinder_backend.value = cinder_backend1
+
+        deployment2 = Mock()
+        deployment2.storage.value.cinder_backend.value = cinder_backend2
+
+        filtering = DeploymentFiltering()
+        filtering.add_filters_from(**kwargs)
+
+        self.assertTrue(filtering.is_valid_deployment(deployment1))
+        self.assertFalse(filtering.is_valid_deployment(deployment2))

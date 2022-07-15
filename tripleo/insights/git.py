@@ -25,10 +25,11 @@ from tripleo.utils.git import Git
 from tripleo.utils.git import Repository as GitRepo
 from tripleo.utils.git.gitpython import GitPython
 from tripleo.utils.git.utils import get_repository_fullname
-from tripleo.utils.github import GitHub
+from tripleo.utils.github import GitHub, GitHubError
 from tripleo.utils.github import Repository as GitHubRepo
 from tripleo.utils.github.pygithub import PyGitHub
 from tripleo.utils.paths import resolve_home
+from tripleo.utils.rng import get_new_uuid
 from tripleo.utils.urls import URL, is_git, is_github
 from tripleo.utils.yaml import YAML, StandardYAMLParser, YAMLError, YAMLParser
 
@@ -169,12 +170,16 @@ class GitHubDownloader(GitDownloader):
 
     @overrides
     def download_as_text(self, file: str) -> str:
-        repo = self._get_repository()
+        try:
+            repo = self._get_repository()
 
-        if self.branch:
-            repo.checkout(self.branch)
+            if self.branch:
+                repo.checkout(self.branch)
 
-        return repo.download_as_text(file)
+            return repo.download_as_text(file)
+        except GitHubError as ex:
+            msg = f"GitHub failed with error: '{ex}'."
+            raise DownloadError(msg) from ex
 
     def _get_repository(self) -> GitHubRepo:
         def get_repository_owner():
@@ -193,20 +198,21 @@ class GitDownloaderFetcher:
     """Tool used to find the downloaders that are compatible with a certain
     URL.
     """
-    DEFAULT_CLONE_PATH = Dir('~/.cibyl', resolve_home)
-    """Default directory where Git repositories are cloned to if needed."""
+    DEFAULT_CLONE_PATH = Dir('~/.cre', resolve_home)
+    """Default directory where repositories are cloned into if required."""
 
     def __init__(self, clone_path: Dir = DEFAULT_CLONE_PATH):
         """
-        :param clone_path: Directory where Git repositories are cloned in if
-            required.
+        :param clone_path: Directory where cloned repositories will hang
+            from if required.
         """
         self._clone_path = clone_path
 
     @property
     def clone_path(self) -> Dir:
         """
-        :return: Directory where Git repositories are cloned in if required.
+        :return: Directory where cloned repositories will hang from if
+            required.
         """
         return self._clone_path
 
@@ -241,7 +247,7 @@ class GitDownloaderFetcher:
         return GitCLIDownloader(
             repository=url,
             branch=branch,
-            working_dir=self.clone_path
+            working_dir=self.clone_path.cd(get_new_uuid())
         )
 
     def _get_new_github_downloader(

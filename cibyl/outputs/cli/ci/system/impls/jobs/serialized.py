@@ -15,10 +15,15 @@
 """
 import json
 from abc import ABC
+from typing import Union
 
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
+from cibyl.models.ci.base.build import Build, Test
+from cibyl.models.ci.base.job import Job
+from cibyl.models.ci.base.stage import Stage
+from cibyl.models.ci.base.system import System
 from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     SerializedBaseSystemPrinter
 
@@ -29,7 +34,7 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
     """
 
     @overrides
-    def print_system(self, system):
+    def print_system(self, system: System) -> str:
         # Build on top of the base answer
         result = self._load(super().print_system(system))
 
@@ -41,12 +46,10 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
 
         return self._dump(result)
 
-    def print_job(self, job):
+    def print_job(self, job: Job) -> str:
         """
         :param job: The job.
-        :type job: :class:`cibyl.models.ci.base.job.Job`
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         result = {
             'name': job.name.value
@@ -63,12 +66,10 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
 
         return self._dump(result)
 
-    def print_build(self, build):
+    def print_build(self, build: Build) -> str:
         """
         :param build: The build.
-        :type build: :class:`cibyl.models.ci.base.build.Build`
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         result = {
             'uuid': build.build_id.value,
@@ -86,12 +87,10 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
 
         return self._dump(result)
 
-    def print_test(self, test):
+    def print_test(self, test: Test) -> str:
         """
         :param test: The test.
-        :type test: :class:`cibyl.models.ci.base.test.Test`
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         result = {
             'name': test.name.value,
@@ -102,12 +101,10 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
 
         return self._dump(result)
 
-    def print_stage(self, stage):
+    def print_stage(self, stage: Stage) -> str:
         """
         :param stage: The stage.
-        :type stage: :class:`cibyl.models.ci.base.stage.Stage`
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         result = {
             'name': stage.name.value,
@@ -123,14 +120,13 @@ class JSONJobsSystemPrinter(SerializedJobsSystemPrinter):
     """
 
     def __init__(self,
-                 query=QueryType.NONE,
-                 verbosity=0,
-                 indentation=4):
+                 query: QueryType = QueryType.NONE,
+                 verbosity: int = 0,
+                 indentation: int = 4):
         """Constructor. See parent for more information.
 
         :param indentation: Number of spaces indenting each level of the
             JSON output.
-        :type indentation: int
         """
         super().__init__(
             load_function=self._from_json,
@@ -142,15 +138,14 @@ class JSONJobsSystemPrinter(SerializedJobsSystemPrinter):
         self._indentation = indentation
 
     @property
-    def indentation(self):
+    def indentation(self) -> int:
         """
         :return: Number of spaces preceding every level of the JSON output.
-        :rtype: int
         """
         return self._indentation
 
-    def _from_json(self, obj):
+    def _from_json(self, obj: Union[str, bytes, bytearray]) -> dict:
         return json.loads(obj)
 
-    def _to_json(self, obj):
+    def _to_json(self, obj: object) -> str:
         return json.dumps(obj, indent=self._indentation)

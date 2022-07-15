@@ -18,12 +18,14 @@ import logging
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
+from cibyl.models.ci.base.system import System
+from cibyl.models.product.feature import Feature
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
 from cibyl.outputs.cli.ci.system.utils.sorting.builds import SortBuildsByUUID
 from cibyl.outputs.cli.ci.system.utils.sorting.jobs import SortJobsByName
 from cibyl.outputs.cli.printer import ColoredPrinter
-from cibyl.utils.colors import DefaultPalette
-from cibyl.utils.sorting import BubbleSortAlgorithm
+from cibyl.utils.colors import ColorPalette, DefaultPalette
+from cibyl.utils.sorting import BubbleSortAlgorithm, SortingAlgorithm
 from cibyl.utils.strings import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
@@ -35,20 +37,18 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
     """
 
     def __init__(self,
-                 query=QueryType.NONE,
-                 verbosity=0,
-                 palette=DefaultPalette(),
-                 job_sorter=BubbleSortAlgorithm(SortJobsByName()),
-                 build_sorter=BubbleSortAlgorithm(SortBuildsByUUID()),
+                 query: QueryType = QueryType.NONE,
+                 verbosity: int = 0,
+                 palette: ColorPalette = DefaultPalette(),
+                 job_sorter: SortingAlgorithm
+                 = BubbleSortAlgorithm(SortJobsByName()),
+                 build_sorter: SortingAlgorithm
+                 = BubbleSortAlgorithm(SortBuildsByUUID()),
                  args=None):
         """Constructor. See parent for more information.
 
         :param job_sorter: Determines the order on which jobs are printed.
-        :type job_sorter: :class:`cibyl.utils.sorting.SortingAlgorithm`
         :param build_sorter: Determines the order on which builds are printed.
-        :type build_sorter: :class:`cibyl.utils.sorting.SortingAlgorithm`
-        :param args: Command line CI arguments to determine what to print
-        :type args: dict
         """
         super().__init__(query, verbosity, palette, args)
 
@@ -56,7 +56,7 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
         self._build_sorter = build_sorter
 
     @overrides
-    def print_system(self, system):
+    def print_system(self, system: System) -> str:
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('System: '), 0)
@@ -71,12 +71,11 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
 
         return printer.build()
 
-    def print_feature(self, feature):
+    def print_feature(self, feature: Feature) -> str:
         """Print a feature present in a system.
         :param feature: The feature.
         :type feature: :class:`cibyl.models.ci.base.feature.Feature`
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         printer = IndentedTextBuilder()
         name = feature.name.value

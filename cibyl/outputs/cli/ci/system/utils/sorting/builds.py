@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.models.ci.base.build import Build
 from cibyl.utils.sorting import Comparator
 
 
@@ -20,12 +21,8 @@ class SortBuildsByUUID(Comparator):
     """Sorts builds in alphabetical order based on their uuid.
     """
 
-    def compare(self, left, right):
-        """See parent function for more information.
-
-        :type left: :class:`cibyl.models.ci.base.build.Build`
-        :type right: :class:`cibyl.models.ci.base.build.Build`
-        """
+    def compare(self, left: Build, right: Build) -> int:
+        """See parent function for more information."""
         uuid_left = left.build_id.value.lower()
         uuid_right = right.build_id.value.lower()
 

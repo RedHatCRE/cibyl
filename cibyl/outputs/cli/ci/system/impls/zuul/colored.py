@@ -18,6 +18,12 @@ import logging
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
+from cibyl.models.ci.base.build import Build
+from cibyl.models.ci.base.system import System
+from cibyl.models.ci.zuul.job import Job
+from cibyl.models.ci.zuul.pipeline import Pipeline
+from cibyl.models.ci.zuul.project import Project
+from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.outputs.cli.ci.system.common.builds import (get_duration_section,
                                                        get_status_section)
 from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
@@ -43,7 +49,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         relationship between elements more than their details.
         """
 
-        def print_project(self, project):
+        def print_project(self, project: Project) -> str:
             result = IndentedTextBuilder()
 
             result.add(self.palette.blue('Project: '), 0)
@@ -69,7 +75,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             return result.build()
 
-        def print_pipeline(self, project, pipeline):
+        def print_pipeline(self, project: Project, pipeline: Pipeline) -> str:
             result = IndentedTextBuilder()
 
             result.add(self.palette.blue('Pipeline: '), 0)
@@ -91,7 +97,8 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             return result.build()
 
-        def print_job(self, project, pipeline, job):
+        def print_job(self, project: Project, pipeline: Pipeline,
+                      job: Job) -> str:
             result = IndentedTextBuilder()
 
             result.add(self.palette.blue('Job: '), 0)
@@ -114,7 +121,8 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             return result.build()
 
-        def print_build(self, project, pipeline, job, build):
+        def print_build(self, project: Project, pipeline: Pipeline, job: Job,
+                        build: Build) -> str:
             result = IndentedTextBuilder()
 
             result.add(self.palette.blue('Build: '), 1)
@@ -131,7 +139,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         element.
         """
 
-        def print_job(self, job):
+        def print_job(self, job: Job) -> str:
             result = IndentedTextBuilder()
 
             result.add(self.palette.blue('Job: '), 0)
@@ -160,9 +168,8 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             return result.build()
 
-        def print_variant(self, variant):
+        def print_variant(self, variant: Job.Variant) -> str:
             result = IndentedTextBuilder()
-
             result.add(self.palette.blue('Variant: '), 0)
 
             result.add(self.palette.blue('Description: '), 1)
@@ -186,9 +193,8 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             return result.build()
 
-        def print_build(self, build):
+        def print_build(self, build: Build) -> str:
             result = IndentedTextBuilder()
-
             result.add(self.palette.blue('Build: '), 0)
             result[0].append(build.build_id.value)
 
@@ -210,7 +216,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             return result.build()
 
     @overrides
-    def print_system(self, system):
+    def print_system(self, system: System) -> str:
         printer = IndentedTextBuilder()
 
         # Begin with the text common to all systems
@@ -246,16 +252,14 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
         return printer.build()
 
-    def print_tenant(self, tenant):
+    def print_tenant(self, tenant: Tenant) -> str:
         """
         :param tenant: The tenant.
-        :type tenant: :class:`cibyl.models.ci.zuul.tenant.Tenant`
         :return: Textual representation of the provided model.
-        :rtype: str
         """
 
-        def print_projects():
-            def create_printer():
+        def print_projects() -> None:
+            def create_printer() -> ColoredZuulSystemPrinter.ProjectCascade:
                 return ColoredZuulSystemPrinter.ProjectCascade(
                     self.query, self.verbosity, self.palette
                 )
@@ -279,8 +283,8 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                 msg = 'No projects found in query.'
                 result.add(self.palette.red(msg), 2)
 
-        def print_jobs():
-            def create_printer():
+        def print_jobs() -> None:
+            def create_printer() -> ColoredZuulSystemPrinter.JobCascade:
                 return ColoredZuulSystemPrinter.JobCascade(
                     self.query, self.verbosity, self.palette
                 )

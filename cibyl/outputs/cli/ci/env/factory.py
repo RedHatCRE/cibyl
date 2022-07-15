@@ -14,8 +14,10 @@
 #    under the License.
 """
 from cibyl.cli.output import OutputStyle
+from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.env.impl.colored import CIColoredPrinter
 from cibyl.outputs.cli.ci.env.impl.serialized import JSONPrinter
+from cibyl.outputs.cli.ci.env.printer import CIPrinter
 from cibyl.utils.colors import ClearText
 
 
@@ -24,19 +26,14 @@ class CIPrinterFactory:
     """
 
     @staticmethod
-    def from_style(style, query, verbosity, args):
+    def from_style(style: OutputStyle, query: QueryType,
+                   verbosity: int, args: dict) -> CIPrinter:
         """Builds the appropriate printer for the desired output style.
 
         :param style: The desired output style.
-        :type style: :class:`OutputStyle`
         :param query: How far the hierarchy the printer shall go.
-        :type query: :class:`cibyl.models.cli.QueryType`
         :param verbosity: Verbosity level.
-        :type verbosity: int
-        :param args: CI arguments. Used to determine what to print
-        :type args: dict
         :return: The printer.
-        :rtype: :class:`cibyl.models.ci.printers.CIPrinter`
         :raise NotImplementedError: If there is no printer for the
             desired style.
         """

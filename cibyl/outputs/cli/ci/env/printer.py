@@ -15,6 +15,7 @@
 """
 from abc import ABC, abstractmethod
 
+from cibyl.models.ci.base.environment import Environment
 from cibyl.outputs.cli.printer import Printer
 
 
@@ -23,11 +24,9 @@ class CIPrinter(Printer, ABC):
     """
 
     @abstractmethod
-    def print_environment(self, env):
+    def print_environment(self, env: Environment) -> str:
         """
         :param env: The environment.
-        :type env: :class:`cibyl.models.ci.base.environment.Environment`
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         raise NotImplementedError

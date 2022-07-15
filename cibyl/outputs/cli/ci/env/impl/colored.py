@@ -17,7 +17,8 @@ import logging
 
 from overrides import overrides
 
-from cibyl.models.ci.base.system import JobsSystem
+from cibyl.models.ci.base.environment import Environment
+from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.outputs.cli.ci.env.printer import CIPrinter
 from cibyl.outputs.cli.ci.system.impls.base.colored import \
@@ -38,7 +39,7 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
     """
 
     @overrides
-    def print_environment(self, env):
+    def print_environment(self, env: Environment) -> str:
         printer = IndentedTextBuilder()
 
         printer.add(self._palette.blue('Environment: '), 0)
@@ -49,15 +50,13 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
 
         return printer.build()
 
-    def print_system(self, system):
+    def print_system(self, system: System) -> str:
         """
         :param system: The system.
-        :type system: :class:`cibyl.models.ci.base.system.System`
         :return: Textual representation of the system.
-        :rtype: str
         """
 
-        def get_printer():
+        def get_printer() -> ColoredBaseSystemPrinter:
             # Check specialized printers
             if isinstance(system, ZuulSystem):
                 return ColoredZuulSystemPrinter(
