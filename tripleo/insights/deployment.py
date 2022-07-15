@@ -469,8 +469,8 @@ class ScenarioInterpreter(FileInterpreter):
         key = self.KEYS.neutron.backend
         default = self.DEFAULTS.neutron_backend
 
-        if key not in self.data:
+        if key not in self._parameters:
             # The backend is not defined on the file
             return default
 
-        return self.data[key]
+        return self._parameters[key]
