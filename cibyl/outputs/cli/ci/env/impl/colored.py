@@ -62,7 +62,7 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
             if isinstance(system, ZuulSystem):
                 return ColoredZuulSystemPrinter(
                     self.query, self.verbosity, self.palette,
-                    complete=self.complete
+                    args=self.args
                 )
 
             if isinstance(system, JobsSystem):

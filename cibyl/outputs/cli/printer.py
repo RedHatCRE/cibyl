@@ -63,7 +63,7 @@ class ColoredPrinter(Printer, ABC):
                  query=QueryType.NONE,
                  verbosity=0,
                  palette=DefaultPalette(),
-                 complete=False):
+                 args=None):
         """Constructor.
 
         See parents for more information.
@@ -74,7 +74,7 @@ class ColoredPrinter(Printer, ABC):
         super().__init__(query, verbosity)
 
         self._palette = palette
-        self._complete = complete
+        self._args = args
 
     @property
     def palette(self):
@@ -85,10 +85,9 @@ class ColoredPrinter(Printer, ABC):
         return self._palette
 
     @property
-    def complete(self):
+    def args(self):
         """
-        :return: The output mode. When enabled, shows the projects and
-            pipelines hierarchy
-        :rtype: bool
+        :return: The command line arguments. Used to determine what to print
+        :rtype: dict
         """
-        return self._complete
+        return self._args

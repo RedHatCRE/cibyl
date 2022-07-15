@@ -24,7 +24,7 @@ class CIPrinterFactory:
     """
 
     @staticmethod
-    def from_style(style, query, verbosity, complete):
+    def from_style(style, query, verbosity, args):
         """Builds the appropriate printer for the desired output style.
 
         :param style: The desired output style.
@@ -33,8 +33,8 @@ class CIPrinterFactory:
         :type query: :class:`cibyl.models.cli.QueryType`
         :param verbosity: Verbosity level.
         :type verbosity: int
-        :param complete: Output mode. If enabled, prints extra information
-        :type complete: bool
+        :param args: CI arguments. Used to determine what to print
+        :type args: dict
         :return: The printer.
         :rtype: :class:`cibyl.models.ci.printers.CIPrinter`
         :raise NotImplementedError: If there is no printer for the
@@ -45,14 +45,14 @@ class CIPrinterFactory:
                 query=query,
                 verbosity=verbosity,
                 palette=ClearText(),
-                complete=complete
+                args=args
             )
 
         if style == OutputStyle.COLORIZED:
             return CIColoredPrinter(
                 query=query,
                 verbosity=verbosity,
-                complete=complete
+                args=args
             )
 
         if style == OutputStyle.JSON:

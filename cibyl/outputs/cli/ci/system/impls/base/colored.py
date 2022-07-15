@@ -40,15 +40,17 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
                  palette=DefaultPalette(),
                  job_sorter=BubbleSortAlgorithm(SortJobsByName()),
                  build_sorter=BubbleSortAlgorithm(SortBuildsByUUID()),
-                 complete=False):
+                 args=None):
         """Constructor. See parent for more information.
 
         :param job_sorter: Determines the order on which jobs are printed.
         :type job_sorter: :class:`cibyl.utils.sorting.SortingAlgorithm`
         :param build_sorter: Determines the order on which builds are printed.
         :type build_sorter: :class:`cibyl.utils.sorting.SortingAlgorithm`
+        :param args: Command line CI arguments to determine what to print
+        :type args: dict
         """
-        super().__init__(query, verbosity, palette, complete)
+        super().__init__(query, verbosity, palette, args)
 
         self._job_sorter = job_sorter
         self._build_sorter = build_sorter
