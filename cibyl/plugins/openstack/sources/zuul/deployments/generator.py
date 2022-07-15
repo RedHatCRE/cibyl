@@ -74,7 +74,8 @@ class DeploymentGenerator:
             ),
             network=Network(
                 network_backend=self._get_neutron_backend(summary, **kwargs),
-                ip_version=self._get_ip_version(summary, **kwargs)
+                ip_version=self._get_ip_version(summary, **kwargs),
+                tls_everywhere=self._get_tls_everywhere(summary, **kwargs)
             )
         )
 
@@ -149,3 +150,15 @@ class DeploymentGenerator:
             return None
 
         return summary.get_ip_version()
+
+    def _get_tls_everywhere(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
+
+        if not arguments.is_tls_everywhere_requested(**kwargs):
+            return None
+
+        return summary.get_tls_everywhere()

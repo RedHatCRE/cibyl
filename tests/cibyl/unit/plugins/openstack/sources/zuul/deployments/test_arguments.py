@@ -99,6 +99,15 @@ class TestArgumentReview(TestCase):
         self.assertTrue(review.is_ip_version_requested(**{'ip_version': None}))
         self.assertTrue(review.is_ip_version_requested(**{'spec': None}))
 
+    def test_is_tls_everywhere_requested(self):
+        """Checks the conditions requires for tls everywhere to be requested.
+        """
+        review = ArgumentReview()
+
+        self.assertFalse(review.is_tls_everywhere_requested(**{}))
+
+        self.assertTrue(review.is_tls_everywhere_requested(**{'spec': None}))
+
 
 class TestSpecArgumentHandler(TestCase):
     """Tests for :class:`SpecArgumentHandler`.
