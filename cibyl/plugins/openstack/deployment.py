@@ -30,7 +30,10 @@ from cibyl.plugins.openstack.test_collection import TestCollection
 
 
 class Deployment(Model):
-    """Openstack deployment model"""
+    """Openstack deployment model.
+
+    @DynamicAttrs: Contains attributes added on runtime.
+    """
 
     API = {
         'release': {
