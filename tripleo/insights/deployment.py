@@ -321,8 +321,17 @@ class ScenarioInterpreter(FileInterpreter):
             backends = Backends()
             """Keys pointing to the component's backend."""
 
+        @dataclass
+        class Neutron:
+            """Defines all the fields related to the neutron component.
+            """
+            backend: str = 'NeutronNetworkType'
+            """Keys pointing to the tenant network type."""
+
         cinder: Cinder = Cinder()
         """Keys related to the cinder component."""
+        neutron: Neutron = Neutron()
+        """Keys related to the neutron component."""
 
     class Mappings:
         """Maps keys on the scenario file to an output.
@@ -412,7 +421,6 @@ class ScenarioInterpreter(FileInterpreter):
         backends = get_backends()
 
         if len(backends) == 0:
-            # Default value
             return mapping[keys.iscsi]
 
         if len(backends) != 1:
@@ -424,3 +432,15 @@ class ScenarioInterpreter(FileInterpreter):
         backend = backends[0]
 
         return mapping[backend]
+
+    def get_neutron_backend(self) -> str:
+        """
+        :return: Name of the backend behind Neutron. If none is defined,
+            then this will fall back to Geneve.
+        """
+        key = self.KEYS.neutron.backend
+
+        if key not in self.data:
+            return 'geneve'
+
+        return self.data[key]

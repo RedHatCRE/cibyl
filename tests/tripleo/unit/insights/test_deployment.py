@@ -664,3 +664,56 @@ class TestScenarioInterpreter(TestCase):
 
         with self.assertRaises(IllegibleData):
             scenario.get_cinder_backend()
+
+    def test_default_neutron_backend(self):
+        """Checks the value returned in case the neutron backend is not
+        defined.
+        """
+        data = {}
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        scenario = ScenarioInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        self.assertEqual('geneve', scenario.get_neutron_backend())
+
+    def test_get_neutron_backend(self):
+        """Checks the returned value in case the neutron backend is defined.
+        """
+        value = 'vxlan'
+
+        keys = ScenarioInterpreter.KEYS.neutron
+
+        data = {
+            keys.backend: value
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        scenario = ScenarioInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        self.assertEqual(value, scenario.get_neutron_backend())
