@@ -67,6 +67,7 @@ class DeploymentFiltering:
             )
 
         network_args = (
+            'network_backend',
             'ip_version',
         )
 

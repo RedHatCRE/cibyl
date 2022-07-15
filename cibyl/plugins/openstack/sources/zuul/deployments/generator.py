@@ -73,6 +73,7 @@ class DeploymentGenerator:
                 cinder_backend=self._get_cinder_backend(summary, **kwargs)
             ),
             network=Network(
+                network_backend=self._get_neutron_backend(summary, **kwargs),
                 ip_version=self._get_ip_version(summary, **kwargs)
             )
         )
@@ -124,6 +125,18 @@ class DeploymentGenerator:
             return None
 
         return summary.get_cinder_backend()
+
+    def _get_neutron_backend(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
+
+        if not arguments.is_network_backend_requested(**kwargs):
+            return None
+
+        return summary.get_neutron_backend()
 
     def _get_ip_version(
         self,
