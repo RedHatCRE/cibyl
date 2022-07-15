@@ -67,7 +67,7 @@ class DeploymentFiltering:
             )
 
         network_args = (
-            'neutron_backend',
+            'network_backend',
             'ip_version',
         )
 

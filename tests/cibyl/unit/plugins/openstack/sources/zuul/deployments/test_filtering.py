@@ -99,24 +99,24 @@ class TestDeploymentFiltering(TestCase):
         self.assertTrue(filtering.is_valid_deployment(deployment1))
         self.assertFalse(filtering.is_valid_deployment(deployment2))
 
-    def test_applies_neutron_backend_filter(self):
-        """Checks that the filter for neutron backend is generated and applied.
+    def test_applies_network_backend_filter(self):
+        """Checks that the filter for network backend is generated and applied.
         """
-        neutron_backend1 = 'vlan'
-        neutron_backend2 = 'geneve'
+        network_backend1 = 'vlan'
+        network_backend2 = 'geneve'
 
-        neutron_backend_arg = Mock()
-        neutron_backend_arg.value = [neutron_backend1]
+        network_backend_arg = Mock()
+        network_backend_arg.value = [network_backend1]
 
         kwargs = {
-            'neutron_backend': neutron_backend_arg
+            'network_backend': network_backend_arg
         }
 
         deployment1 = Mock()
-        deployment1.network.value.neutron_backend.value = neutron_backend1
+        deployment1.network.value.network_backend.value = network_backend1
 
         deployment2 = Mock()
-        deployment2.network.value.neutron_backend.value = neutron_backend2
+        deployment2.network.value.network_backend.value = network_backend2
 
         filtering = DeploymentFiltering()
         filtering.add_filters_from(**kwargs)

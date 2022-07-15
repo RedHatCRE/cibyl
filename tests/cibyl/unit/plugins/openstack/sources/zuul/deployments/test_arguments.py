@@ -71,6 +71,24 @@ class TestArgumentReview(TestCase):
             review.is_cinder_backend_requested(**{'spec': None})
         )
 
+    def test_is_network_backend_requested(self):
+        """Checks the conditions requires for the network backend to be
+        requested.
+        """
+        review = ArgumentReview()
+
+        self.assertFalse(
+            review.is_network_backend_requested(**{})
+        )
+
+        self.assertTrue(
+            review.is_network_backend_requested(**{'network_backend': None})
+        )
+
+        self.assertTrue(
+            review.is_network_backend_requested(**{'spec': None})
+        )
+
     def test_is_ip_version_requested(self):
         """Checks the conditions requires for the ip version to be requested.
         """
