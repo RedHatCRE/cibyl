@@ -100,7 +100,7 @@ class TestArgumentReview(TestCase):
         self.assertTrue(review.is_ip_version_requested(**{'spec': None}))
 
     def test_is_tls_everywhere_requested(self):
-        """Checks the conditions requires for tls everywhere to be requested.
+        """Checks the conditions required for tls everywhere to be requested.
         """
         review = ArgumentReview()
 
