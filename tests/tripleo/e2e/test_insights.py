@@ -38,3 +38,13 @@ class TestInsights(TestCase):
         result = lookup.run(outline)
 
         self.assertEqual('rbd', result.cinder_backend)
+
+    def test_neutron_backend(self):
+        """Checks that the neutron backend is extracted from a scenario
+        file.
+        """
+        outline = Outline(featureset='config/general_config/featureset030.yml')
+        lookup = DeploymentLookUp()
+        result = lookup.run(outline)
+
+        self.assertEqual('vxlan', result.neutron_backend)
