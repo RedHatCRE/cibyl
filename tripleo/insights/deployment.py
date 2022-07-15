@@ -328,6 +328,9 @@ class ScenarioInterpreter(FileInterpreter):
             backend: str = 'NeutronNetworkType'
             """Keys pointing to the tenant network type."""
 
+        parameters: str = 'parameter_defaults'
+        """Level at which the parameters are defined."""
+
         cinder: Cinder = Cinder()
         """Keys related to the cinder component."""
         neutron: Neutron = Neutron()
@@ -402,6 +405,14 @@ class ScenarioInterpreter(FileInterpreter):
     ):
         super().__init__(data, schema, overrides, validator_factory)
 
+    @property
+    def _parameters(self) -> dict:
+        """
+        :return: Contents of the 'parameter_defaults' section. Empty if it
+            is not present.
+        """
+        return self.data.get(self.KEYS.parameters, {})
+
     def get_cinder_backend(self) -> str:
         """
         :return: Name of the backend behind Cinder. If none is defined,
@@ -423,9 +434,9 @@ class ScenarioInterpreter(FileInterpreter):
                 key = getattr(keys, field.name)
 
                 # Is it present on the scenario?
-                if key in self.data:
+                if key in self._parameters:
                     # Is it chosen?
-                    if self.data[key]:
+                    if self._parameters[key]:
                         result.append(key)
 
             return result
