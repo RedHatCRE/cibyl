@@ -552,11 +552,13 @@ class TestScenarioInterpreter(TestCase):
     def test_get_cinder_backend(self):
         """Checks that this figures out the Cinder backend from the scenario.
         """
-        keys = ScenarioInterpreter.KEYS.backends
+        keys = ScenarioInterpreter.KEYS
         mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
 
         data = {
-            keys.rbd: True
+            keys.parameters: {
+                keys.backends.rbd: True
+            }
         }
 
         schema = Mock()
@@ -575,18 +577,23 @@ class TestScenarioInterpreter(TestCase):
             validator_factory=factory
         )
 
-        self.assertEqual(mapping[keys.rbd], scenario.get_cinder_backend())
+        self.assertEqual(
+            mapping[keys.backends.rbd],
+            scenario.get_cinder_backend()
+        )
 
     def test_ignores_false_cinder_backend(self):
         """Checks that if a backend is present, but False, then it is
         ignored.
         """
-        keys = ScenarioInterpreter.KEYS.backends
+        keys = ScenarioInterpreter.KEYS
         mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
 
         data = {
-            keys.rbd: True,
-            keys.iscsi: False
+            keys.parameters: {
+                keys.backends.rbd: True,
+                keys.backends.iscsi: False
+            }
         }
 
         schema = Mock()
@@ -605,17 +612,19 @@ class TestScenarioInterpreter(TestCase):
             validator_factory=factory
         )
 
-        self.assertEqual(mapping[keys.rbd], scenario.get_cinder_backend())
+        self.assertEqual(
+            mapping[keys.backends.rbd],
+            scenario.get_cinder_backend()
+        )
 
     def test_default_cinder_backend(self):
         """Checks that ISCSI is chosen in case no backend is defined on the
         scenario.
         """
-        keys = ScenarioInterpreter.KEYS.backends
+        keys = ScenarioInterpreter.KEYS
         mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
 
-        data = {
-        }
+        data = {}
 
         schema = Mock()
 
@@ -633,17 +642,22 @@ class TestScenarioInterpreter(TestCase):
             validator_factory=factory
         )
 
-        self.assertEqual(mapping[keys.iscsi], scenario.get_cinder_backend())
+        self.assertEqual(
+            mapping[keys.backends.iscsi],
+            scenario.get_cinder_backend()
+        )
 
     def test_error_if_multiple_cinder_backends(self):
         """Checks that if more than one backend is defined for Cinder,
         an error is raised.
         """
-        keys = ScenarioInterpreter.KEYS.backends
+        keys = ScenarioInterpreter.KEYS
 
         data = {
-            keys.iscsi: True,
-            keys.rbd: True
+            keys.parameters: {
+                keys.backends.iscsi: True,
+                keys.backends.rbd: True
+            }
         }
 
         schema = Mock()

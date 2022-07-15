@@ -313,6 +313,9 @@ class ScenarioInterpreter(FileInterpreter):
             nfs: str = 'CinderEnableNfsBackend'
             rbd: str = 'CinderEnableRbdBackend'
 
+        parameters: str = 'parameter_defaults'
+        """Level at which the parameters are defined."""
+
         backends: CinderBackEnds = CinderBackEnds()
         """Fields related to cinder backends."""
 
@@ -370,6 +373,14 @@ class ScenarioInterpreter(FileInterpreter):
     ):
         super().__init__(data, schema, overrides, validator_factory)
 
+    @property
+    def _parameters(self) -> dict:
+        """
+        :return: Contents of the 'parameter_defaults' section. Empty if it
+            is not present.
+        """
+        return self.data.get(self.KEYS.parameters, {})
+
     def get_cinder_backend(self) -> str:
         """
         :return: Name of the backend behind Cinder. If none is defined,
@@ -391,9 +402,9 @@ class ScenarioInterpreter(FileInterpreter):
                 key = getattr(keys, field.name)
 
                 # Is it present on the scenario?
-                if key in self.data:
+                if key in self._parameters:
                     # Is it chosen?
-                    if self.data[key]:
+                    if self._parameters[key]:
                         result.append(key)
 
             return result
