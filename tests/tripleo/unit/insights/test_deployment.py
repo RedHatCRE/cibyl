@@ -552,11 +552,13 @@ class TestScenarioInterpreter(TestCase):
     def test_get_cinder_backend(self):
         """Checks that this figures out the Cinder backend from the scenario.
         """
-        keys = ScenarioInterpreter.KEYS.cinder.backends
+        keys = ScenarioInterpreter.KEYS
         mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
 
         data = {
-            keys.rbd: True
+            keys.parameters: {
+                keys.cinder.backends.rbd: True
+            }
         }
 
         schema = Mock()
@@ -575,18 +577,23 @@ class TestScenarioInterpreter(TestCase):
             validator_factory=factory
         )
 
-        self.assertEqual(mapping[keys.rbd], scenario.get_cinder_backend())
+        self.assertEqual(
+            mapping[keys.cinder.backends.rbd],
+            scenario.get_cinder_backend()
+        )
 
     def test_ignores_false_cinder_backend(self):
         """Checks that if a backend is present, but False, then it is
         ignored.
         """
-        keys = ScenarioInterpreter.KEYS.cinder.backends
+        keys = ScenarioInterpreter.KEYS
         mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
 
         data = {
-            keys.rbd: True,
-            keys.iscsi: False
+            keys.parameters: {
+                keys.cinder.backends.rbd: True,
+                keys.cinder.backends.iscsi: False
+            }
         }
 
         schema = Mock()
@@ -605,14 +612,19 @@ class TestScenarioInterpreter(TestCase):
             validator_factory=factory
         )
 
-        self.assertEqual(mapping[keys.rbd], scenario.get_cinder_backend())
+        self.assertEqual(
+            mapping[keys.cinder.backends.rbd],
+            scenario.get_cinder_backend()
+        )
 
     def test_default_cinder_backend(self):
         """Checks that ISCSI is chosen in case no backend is defined on the
         scenario.
         """
-        data = {
-        }
+        keys = ScenarioInterpreter.KEYS
+        mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
+
+        data = {}
 
         schema = Mock()
 
@@ -630,17 +642,22 @@ class TestScenarioInterpreter(TestCase):
             validator_factory=factory
         )
 
-        self.assertEqual('iscsi', scenario.get_cinder_backend())
+        self.assertEqual(
+            mapping[keys.cinder.backends.iscsi],
+            scenario.get_cinder_backend()
+        )
 
     def test_error_if_multiple_cinder_backends(self):
         """Checks that if more than one backend is defined for Cinder,
         an error is raised.
         """
-        keys = ScenarioInterpreter.KEYS.cinder.backends
+        keys = ScenarioInterpreter.KEYS
 
         data = {
-            keys.iscsi: True,
-            keys.rbd: True
+            keys.parameters: {
+                keys.cinder.backends.iscsi: True,
+                keys.cinder.backends.rbd: True
+            }
         }
 
         schema = Mock()
@@ -661,56 +678,3 @@ class TestScenarioInterpreter(TestCase):
 
         with self.assertRaises(IllegibleData):
             scenario.get_cinder_backend()
-
-    def test_default_neutron_backend(self):
-        """Checks the value returned in case the neutron backend is not
-        defined.
-        """
-        data = {}
-
-        schema = Mock()
-
-        validator = Mock()
-        validator.is_valid = Mock()
-        validator.is_valid.return_value = True
-
-        factory = Mock()
-        factory.from_file = Mock()
-        factory.from_file.return_value = validator
-
-        scenario = ScenarioInterpreter(
-            data,
-            schema=schema,
-            validator_factory=factory
-        )
-
-        self.assertEqual('geneve', scenario.get_neutron_backend())
-
-    def test_get_neutron_backend(self):
-        """Checks the returned value in case the neutron backend is defined.
-        """
-        value = 'vxlan'
-
-        keys = ScenarioInterpreter.KEYS.neutron
-
-        data = {
-            keys.backend: value
-        }
-
-        schema = Mock()
-
-        validator = Mock()
-        validator.is_valid = Mock()
-        validator.is_valid.return_value = True
-
-        factory = Mock()
-        factory.from_file = Mock()
-        factory.from_file.return_value = validator
-
-        scenario = ScenarioInterpreter(
-            data,
-            schema=schema,
-            validator_factory=factory
-        )
-
-        self.assertEqual(value, scenario.get_neutron_backend())
