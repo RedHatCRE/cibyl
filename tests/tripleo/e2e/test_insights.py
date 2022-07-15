@@ -17,8 +17,9 @@ import logging
 import sys
 from unittest import TestCase
 
-from tripleo.insights import DeploymentLookUp, DeploymentOutline as Outline
-from tripleo.utils.logging import enable_logging, LogOutput
+from tripleo.insights import DeploymentLookUp
+from tripleo.insights import DeploymentOutline as Outline
+from tripleo.utils.logging import LogOutput, enable_logging
 
 
 class TestInsights(TestCase):
