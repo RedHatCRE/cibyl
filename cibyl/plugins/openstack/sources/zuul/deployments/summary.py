@@ -113,6 +113,13 @@ class VariantDeployment:
         """
         return self._summary.cinder_backend
 
+    def get_neutron_backend(self) -> Optional[str]:
+        """
+        :return: Name of the backend that supports the Neutron component.
+            'None' if it is not defined.
+        """
+        return self._summary.neutron_backend
+
     def get_ip_version(self) -> Optional[str]:
         """
         :return: Number of the IP version used by the cloud. 'None' if it is

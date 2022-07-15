@@ -99,6 +99,31 @@ class TestDeploymentFiltering(TestCase):
         self.assertTrue(filtering.is_valid_deployment(deployment1))
         self.assertFalse(filtering.is_valid_deployment(deployment2))
 
+    def test_applies_network_backend_filter(self):
+        """Checks that the filter for network backend is generated and applied.
+        """
+        network_backend1 = 'vlan'
+        network_backend2 = 'geneve'
+
+        network_backend_arg = Mock()
+        network_backend_arg.value = [network_backend1]
+
+        kwargs = {
+            'network_backend': network_backend_arg
+        }
+
+        deployment1 = Mock()
+        deployment1.network.value.network_backend.value = network_backend1
+
+        deployment2 = Mock()
+        deployment2.network.value.network_backend.value = network_backend2
+
+        filtering = DeploymentFiltering()
+        filtering.add_filters_from(**kwargs)
+
+        self.assertTrue(filtering.is_valid_deployment(deployment1))
+        self.assertFalse(filtering.is_valid_deployment(deployment2))
+
     def test_applies_ip_version_filter(self):
         """Checks that the filter for ip version is generated and applied.
         """
