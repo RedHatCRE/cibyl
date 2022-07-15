@@ -373,10 +373,25 @@ class ScenarioInterpreter(FileInterpreter):
                 self.keys.cinder.backends.rbd: 'rbd'
             }
 
+    @dataclass
+    class Defaults:
+        """Defines the values returned by the interpreter when it cannot
+        find the data on the scenario file.
+
+        These values default themselves to the ones defined on the heat
+        templates repository.
+        """
+        cinder_backend: str = 'iscsi'
+        """Default backend supporting cinder."""
+        neutron_backend: str = 'geneve'
+        """Default backend supporting neutron."""
+
     KEYS = Keys()
     """Knowledge this has on the scenario file."""
     MAPPINGS = Mappings(KEYS)
     """Output for each of the keys."""
+    DEFAULTS = Defaults()
+    """Values returned by the interpreter when wanted data is not present."""
 
     def __init__(
         self,
@@ -417,11 +432,13 @@ class ScenarioInterpreter(FileInterpreter):
 
         keys = self.KEYS.cinder.backends
         mapping = self.MAPPINGS.cinder_backends
+        default = self.DEFAULTS.cinder_backend
 
         backends = get_backends()
 
         if len(backends) == 0:
-            return mapping[keys.iscsi]
+            # The backend is not defined on the file
+            return default
 
         if len(backends) != 1:
             raise IllegibleData(
@@ -439,8 +456,10 @@ class ScenarioInterpreter(FileInterpreter):
             then this will fall back to Geneve.
         """
         key = self.KEYS.neutron.backend
+        default = self.DEFAULTS.neutron_backend
 
         if key not in self.data:
-            return 'geneve'
+            # The backend is not defined on the file
+            return default
 
         return self.data[key]

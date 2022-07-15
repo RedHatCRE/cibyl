@@ -611,9 +611,6 @@ class TestScenarioInterpreter(TestCase):
         """Checks that ISCSI is chosen in case no backend is defined on the
         scenario.
         """
-        keys = ScenarioInterpreter.KEYS.cinder.backends
-        mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
-
         data = {
         }
 
@@ -633,7 +630,7 @@ class TestScenarioInterpreter(TestCase):
             validator_factory=factory
         )
 
-        self.assertEqual(mapping[keys.iscsi], scenario.get_cinder_backend())
+        self.assertEqual('iscsi', scenario.get_cinder_backend())
 
     def test_error_if_multiple_cinder_backends(self):
         """Checks that if more than one backend is defined for Cinder,
