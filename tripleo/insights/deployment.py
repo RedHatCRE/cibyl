@@ -296,28 +296,45 @@ class ScenarioInterpreter(FileInterpreter):
         """
 
         @dataclass
-        class CinderBackEnds:
-            """Defines all the fields related to the cinder backend.
+        class Cinder:
+            """Defines all the fields related to the cinder component.
             """
-            powerflex: str = 'CinderEnablePowerFlexBackend'
-            powermax: str = 'CinderEnablePowermaxBackend'
-            powerstore: str = 'CinderEnablePowerStoreBackend'
-            sc: str = 'CinderEnableScBackend'
-            dell_emc_unity: str = 'CinderEnableDellEMCUnityBackend'
-            dell_emc_vnx: str = 'CinderEnableDellEMCVNXBackend'
-            dell_sc: str = 'CinderEnableDellScBackend'
-            xtremio: str = 'CinderEnableXtremioBackend'
-            netapp: str = 'CinderEnableNetappBackend'
-            pure: str = 'CinderEnablePureBackend'
-            iscsi: str = 'CinderEnableIscsiBackend'
-            nfs: str = 'CinderEnableNfsBackend'
-            rbd: str = 'CinderEnableRbdBackend'
+
+            @dataclass
+            class Backends:
+                """Defines all the fields related to the cinder backend.
+                """
+                powerflex: str = 'CinderEnablePowerFlexBackend'
+                powermax: str = 'CinderEnablePowermaxBackend'
+                powerstore: str = 'CinderEnablePowerStoreBackend'
+                sc: str = 'CinderEnableScBackend'
+                dell_emc_unity: str = 'CinderEnableDellEMCUnityBackend'
+                dell_emc_vnx: str = 'CinderEnableDellEMCVNXBackend'
+                dell_sc: str = 'CinderEnableDellScBackend'
+                xtremio: str = 'CinderEnableXtremioBackend'
+                netapp: str = 'CinderEnableNetappBackend'
+                pure: str = 'CinderEnablePureBackend'
+                iscsi: str = 'CinderEnableIscsiBackend'
+                nfs: str = 'CinderEnableNfsBackend'
+                rbd: str = 'CinderEnableRbdBackend'
+
+            backends = Backends()
+            """Keys pointing to the component's backend."""
+
+        @dataclass
+        class Neutron:
+            """Defines all the fields related to the neutron component.
+            """
+            backend: str = 'NeutronNetworkType'
+            """Keys pointing to the tenant network type."""
 
         parameters: str = 'parameter_defaults'
         """Level at which the parameters are defined."""
 
-        backends: CinderBackEnds = CinderBackEnds()
-        """Fields related to cinder backends."""
+        cinder: Cinder = Cinder()
+        """Keys related to the cinder component."""
+        neutron: Neutron = Neutron()
+        """Keys related to the neutron component."""
 
     class Mappings:
         """Maps keys on the scenario file to an output.
@@ -344,25 +361,40 @@ class ScenarioInterpreter(FileInterpreter):
                 an output word. For example: CinderEnableIscsiBackend -> iscsi
             """
             return {
-                self.keys.backends.powerflex: 'powerflex',
-                self.keys.backends.powermax: 'powermax',
-                self.keys.backends.powerstore: 'powerstore',
-                self.keys.backends.sc: 'sc',
-                self.keys.backends.dell_emc_unity: 'dell-emc unity',
-                self.keys.backends.dell_emc_vnx: 'dell-emc vnx',
-                self.keys.backends.dell_sc: 'dell sc',
-                self.keys.backends.xtremio: 'xtremio',
-                self.keys.backends.netapp: 'netapp',
-                self.keys.backends.pure: 'pure',
-                self.keys.backends.iscsi: 'iscsi',
-                self.keys.backends.nfs: 'nfs',
-                self.keys.backends.rbd: 'rbd'
+                self.keys.cinder.backends.powerflex: 'powerflex',
+                self.keys.cinder.backends.powermax: 'powermax',
+                self.keys.cinder.backends.powerstore: 'powerstore',
+                self.keys.cinder.backends.sc: 'sc',
+                self.keys.cinder.backends.dell_emc_unity: 'dell-emc unity',
+                self.keys.cinder.backends.dell_emc_vnx: 'dell-emc vnx',
+                self.keys.cinder.backends.dell_sc: 'dell sc',
+                self.keys.cinder.backends.xtremio: 'xtremio',
+                self.keys.cinder.backends.netapp: 'netapp',
+                self.keys.cinder.backends.pure: 'pure',
+                self.keys.cinder.backends.iscsi: 'iscsi',
+                self.keys.cinder.backends.nfs: 'nfs',
+                self.keys.cinder.backends.rbd: 'rbd'
             }
+
+    @dataclass
+    class Defaults:
+        """Defines the values returned by the interpreter when it cannot
+        find the data on the scenario file.
+
+        These values default themselves to the ones defined on the heat
+        templates repository.
+        """
+        cinder_backend: str = 'iscsi'
+        """Default backend supporting cinder."""
+        neutron_backend: str = 'geneve'
+        """Default backend supporting neutron."""
 
     KEYS = Keys()
     """Knowledge this has on the scenario file."""
     MAPPINGS = Mappings(KEYS)
     """Output for each of the keys."""
+    DEFAULTS = Defaults()
+    """Values returned by the interpreter when wanted data is not present."""
 
     def __init__(
         self,
@@ -409,14 +441,15 @@ class ScenarioInterpreter(FileInterpreter):
 
             return result
 
-        keys = self.KEYS.backends
+        keys = self.KEYS.cinder.backends
         mapping = self.MAPPINGS.cinder_backends
+        default = self.DEFAULTS.cinder_backend
 
         backends = get_backends()
 
         if len(backends) == 0:
-            # Default value
-            return mapping[keys.iscsi]
+            # The backend is not defined on the file
+            return default
 
         if len(backends) != 1:
             raise IllegibleData(
@@ -427,3 +460,17 @@ class ScenarioInterpreter(FileInterpreter):
         backend = backends[0]
 
         return mapping[backend]
+
+    def get_neutron_backend(self) -> str:
+        """
+        :return: Name of the backend behind Neutron. If none is defined,
+            then this will fall back to Geneve.
+        """
+        key = self.KEYS.neutron.backend
+        default = self.DEFAULTS.neutron_backend
+
+        if key not in self._parameters:
+            # The backend is not defined on the file
+            return default
+
+        return self._parameters[key]
