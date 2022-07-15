@@ -552,7 +552,7 @@ class TestScenarioInterpreter(TestCase):
     def test_get_cinder_backend(self):
         """Checks that this figures out the Cinder backend from the scenario.
         """
-        keys = ScenarioInterpreter.KEYS.backends
+        keys = ScenarioInterpreter.KEYS.cinder.backends
         mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
 
         data = {
@@ -581,7 +581,7 @@ class TestScenarioInterpreter(TestCase):
         """Checks that if a backend is present, but False, then it is
         ignored.
         """
-        keys = ScenarioInterpreter.KEYS.backends
+        keys = ScenarioInterpreter.KEYS.cinder.backends
         mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
 
         data = {
@@ -611,7 +611,7 @@ class TestScenarioInterpreter(TestCase):
         """Checks that ISCSI is chosen in case no backend is defined on the
         scenario.
         """
-        keys = ScenarioInterpreter.KEYS.backends
+        keys = ScenarioInterpreter.KEYS.cinder.backends
         mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
 
         data = {
@@ -639,7 +639,7 @@ class TestScenarioInterpreter(TestCase):
         """Checks that if more than one backend is defined for Cinder,
         an error is raised.
         """
-        keys = ScenarioInterpreter.KEYS.backends
+        keys = ScenarioInterpreter.KEYS.cinder.backends
 
         data = {
             keys.iscsi: True,

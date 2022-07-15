@@ -296,25 +296,33 @@ class ScenarioInterpreter(FileInterpreter):
         """
 
         @dataclass
-        class CinderBackEnds:
-            """Defines all the fields related to the cinder backend.
+        class Cinder:
+            """Defines all the fields related to the cinder component.
             """
-            powerflex: str = 'CinderEnablePowerFlexBackend'
-            powermax: str = 'CinderEnablePowermaxBackend'
-            powerstore: str = 'CinderEnablePowerStoreBackend'
-            sc: str = 'CinderEnableScBackend'
-            dell_emc_unity: str = 'CinderEnableDellEMCUnityBackend'
-            dell_emc_vnx: str = 'CinderEnableDellEMCVNXBackend'
-            dell_sc: str = 'CinderEnableDellScBackend'
-            xtremio: str = 'CinderEnableXtremioBackend'
-            netapp: str = 'CinderEnableNetappBackend'
-            pure: str = 'CinderEnablePureBackend'
-            iscsi: str = 'CinderEnableIscsiBackend'
-            nfs: str = 'CinderEnableNfsBackend'
-            rbd: str = 'CinderEnableRbdBackend'
 
-        backends: CinderBackEnds = CinderBackEnds()
-        """Fields related to cinder backends."""
+            @dataclass
+            class Backends:
+                """Defines all the fields related to the cinder backend.
+                """
+                powerflex: str = 'CinderEnablePowerFlexBackend'
+                powermax: str = 'CinderEnablePowermaxBackend'
+                powerstore: str = 'CinderEnablePowerStoreBackend'
+                sc: str = 'CinderEnableScBackend'
+                dell_emc_unity: str = 'CinderEnableDellEMCUnityBackend'
+                dell_emc_vnx: str = 'CinderEnableDellEMCVNXBackend'
+                dell_sc: str = 'CinderEnableDellScBackend'
+                xtremio: str = 'CinderEnableXtremioBackend'
+                netapp: str = 'CinderEnableNetappBackend'
+                pure: str = 'CinderEnablePureBackend'
+                iscsi: str = 'CinderEnableIscsiBackend'
+                nfs: str = 'CinderEnableNfsBackend'
+                rbd: str = 'CinderEnableRbdBackend'
+
+            backends = Backends()
+            """Keys pointing to the component's backend."""
+
+        cinder: Cinder = Cinder()
+        """Keys related to the cinder component."""
 
     class Mappings:
         """Maps keys on the scenario file to an output.
@@ -341,19 +349,19 @@ class ScenarioInterpreter(FileInterpreter):
                 an output word. For example: CinderEnableIscsiBackend -> iscsi
             """
             return {
-                self.keys.backends.powerflex: 'powerflex',
-                self.keys.backends.powermax: 'powermax',
-                self.keys.backends.powerstore: 'powerstore',
-                self.keys.backends.sc: 'sc',
-                self.keys.backends.dell_emc_unity: 'dell-emc unity',
-                self.keys.backends.dell_emc_vnx: 'dell-emc vnx',
-                self.keys.backends.dell_sc: 'dell sc',
-                self.keys.backends.xtremio: 'xtremio',
-                self.keys.backends.netapp: 'netapp',
-                self.keys.backends.pure: 'pure',
-                self.keys.backends.iscsi: 'iscsi',
-                self.keys.backends.nfs: 'nfs',
-                self.keys.backends.rbd: 'rbd'
+                self.keys.cinder.backends.powerflex: 'powerflex',
+                self.keys.cinder.backends.powermax: 'powermax',
+                self.keys.cinder.backends.powerstore: 'powerstore',
+                self.keys.cinder.backends.sc: 'sc',
+                self.keys.cinder.backends.dell_emc_unity: 'dell-emc unity',
+                self.keys.cinder.backends.dell_emc_vnx: 'dell-emc vnx',
+                self.keys.cinder.backends.dell_sc: 'dell sc',
+                self.keys.cinder.backends.xtremio: 'xtremio',
+                self.keys.cinder.backends.netapp: 'netapp',
+                self.keys.cinder.backends.pure: 'pure',
+                self.keys.cinder.backends.iscsi: 'iscsi',
+                self.keys.cinder.backends.nfs: 'nfs',
+                self.keys.cinder.backends.rbd: 'rbd'
             }
 
     KEYS = Keys()
@@ -398,7 +406,7 @@ class ScenarioInterpreter(FileInterpreter):
 
             return result
 
-        keys = self.KEYS.backends
+        keys = self.KEYS.cinder.backends
         mapping = self.MAPPINGS.cinder_backends
 
         backends = get_backends()
