@@ -13,7 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-
 import logging
 import os
 import re
@@ -30,7 +29,6 @@ from cibyl.sources.source import safe_request_generic, speed_index
 
 LOG = logging.getLogger(__name__)
 
-
 safe_request = partial(safe_request_generic,
                        custom_error=JenkinsJobBuilderError)
 
@@ -44,49 +42,55 @@ class JenkinsJobBuilder(GitSource):
                  enabled: bool = True, priority: int = 0,
                  name: str = "jenkins_job_builder",
                  driver: str = "jenkins_job_builder"):
-        """Create a client to talk to a jenkins job definitions instance.
 
-        :param repos: A dictionary of repositories to clone
-        :type repos: dict
-        """
         super().__init__(name=name, repos=repos, driver=driver,
                          enabled=enabled, priority=priority)
 
     def _generate_xml(self):
         """Use tox to generate jenkins job xml files."""
         for repo in self.repos:
-            subprocess.run(["tox",  "-e", "jobs"], check=True,
+            subprocess.run(["tox", "-e", "jobs"], check=True,
                            cwd=repo.get('dest'))
 
     @speed_index({'base': 1})
     def get_jobs(self, **kwargs):
-        """Get all jobs from jenkins server.
-
-        :returns: All jobs from jenkins server, as dictionaries of _class,
-        name, fullname, url, color
-        :rtype: list
+        """Get jobs from a given repo
+            :returns: container of Job objects extracted from JJB generated
+                      xml files
+            :rtype: :class:`AttributeDictValue`
         """
         all_jobs = {}
         for repo in self.repos:
-            all_jobs.update(self.get_jobs_from_repo(repo, **kwargs))
+
+            all_jobs.update(
+                self.get_jobs_from_repo(frozenset(repo.items()), **kwargs))
         return AttributeDictValue("jobs", attr_type=Job, value=all_jobs)
 
     def get_jobs_from_repo(self, repo, **kwargs):
-        """Get all jobs from a given repo
+        """Get jobs from a given repo
 
-        :param repo: repo information like path and url
-        :type repo: dict
-        :returns: All jobs from the given repository
-        :rtype: dict
+            :returns: container of Job objects extracted from JJB generated
+                      xml files
+            :rtype: :class:`AttributeDictValue`
         """
+        repo = dict(repo)  # convert set 2 dictionary
+
+        # TODO: generate only if repo was updated AND time elapced
+        # TODO: add --ignore-cashe option and generate if repo was
+        #       updated
+        # TODO: get_jobs_from_repo is called per repo while  _generate_xml
+        #       does the same, potentially introducing a huge overhead if
+        #       more then one repo is specified
         self._generate_xml()
-        jobs_available = {}
+
+        jobs = {}
         jobs_arg = kwargs.get('jobs')
         pattern = None
         if jobs_arg:
             pattern = re.compile("|".join(jobs_arg.value))
 
         jobs_found = []
+        self._xml_files = {}
         for path in Path(os.path.join(repo.get('dest'),
                                       "out-xml")).rglob("*.xml"):
             file_content = ET.parse(path).getroot()
@@ -98,14 +102,15 @@ class JenkinsJobBuilder(GitSource):
             # for now we store the job name as the only information, later we
             # will need to see which additional information to pull from the
             # job definition
-            jobs_found.append(path.parent.name)
-        jobs_filtered = jobs_found
-        if pattern:
-            # filter the found jobs and keep only those specified in the user
-            # input
-            jobs_filtered = [job for job in jobs_found if re.search(pattern,
-                                                                    job
-                                                                    )]
-        for job in jobs_filtered:
-            jobs_available[job] = Job(name=job)
-        return jobs_available
+            if pattern:
+                if re.search(pattern, path.parent.name):
+                    # filter jobs according to the user specified regex
+                    jobs_found.append(path.parent.name)
+                    self._xml_files[path.parent.name] = path
+            else:
+                jobs_found.append(path.parent.name)
+                self._xml_files[path.parent.name] = path
+
+        for job in jobs_found:
+            jobs[job] = Job(name=job)
+        return jobs
