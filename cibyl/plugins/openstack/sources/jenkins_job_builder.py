@@ -21,6 +21,7 @@ from io import StringIO
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
+from cibyl.plugins.openstack.node import Node
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
 
@@ -33,18 +34,14 @@ NODE_NAME_COUNTER = "[a-zA-Z]+:[0-9]+"
 
 class JenkinsJobBuilder(SourceExtension):
     def _get_nodes(self, path, **kwargs):
-        if "topology" in kwargs:
-            # topology = self._get_topology(path, **kwargs)
-            nodes = {}
-            # for component in topology.split(","):
-            #     role, amount = component.split(":")
-            #     for i in range(int(amount)):
-            #         node_name = role + f"-{i}"
-            #         nodes[node_name] = Node(node_name, role=role)
-
-            return nodes
-        else:
-            return {}
+        topology = self._get_topology(path, **kwargs)
+        nodes = {}
+        for component in topology.split(","):
+            role, amount = component.split(":")
+            for i in range(int(amount)):
+                node_name = role + f"-{i}"
+                nodes[node_name] = Node(node_name, role=role)
+        return nodes
 
     def _get_topology(self, path, **kwargs):
         topology_str = ""
@@ -81,7 +78,7 @@ class JenkinsJobBuilder(SourceExtension):
         filterted_out = []
         jobs = {}
         for repo in self.repos:
-            # filter according to jobs paramater if specified by kwargs
+            # filter according to jobs parameter if specified by kwargs
             jobs.update(
                 self.get_jobs_from_repo(frozenset(repo.items()), **kwargs))
 
