@@ -197,23 +197,39 @@ class NodesInterpreter(FileInterpreter):
     class Keys:
         """Defines the fields of interest contained by a nodes file.
         """
-        # Root level
-        topology: str = 'topology_map'
-        """Field that defines the deployment's topology."""
 
-        # 'topology_map' level
-        compute: str = 'Compute'
-        """Contains data on compute nodes."""
-        controller: str = 'Controller'
-        """Contains data on controller nodes."""
-        ceph: str = 'CephStorage'
-        """Contains data on ceph nodes."""
-        cell: str = 'CellController'
-        """Contains data on cell nodes."""
+        @dataclass
+        class Root:
+            """Keys found at the file's root."""
+            topology: str = 'topology_map'
+            """Section that defines the deployment's topology."""
 
-        # 'node' level
-        scale: str = 'scale'
-        """Number of nodes of a certain type."""
+        @dataclass
+        class TopologyMap:
+            """Keys related to the definition of the topology."""
+
+            @dataclass
+            class NodeType:
+                """Keys related to the definition of a node type."""
+                scale: str = 'scale'
+                """Number of nodes of a certain type."""
+
+            compute: str = 'Compute'
+            """Contains data on compute nodes."""
+            controller: str = 'Controller'
+            """Contains data on controller nodes."""
+            ceph: str = 'CephStorage'
+            """Contains data on ceph nodes."""
+            cell: str = 'CellController'
+            """Contains data on cell nodes."""
+
+            nodes = NodeType()
+            """Keys inside all the other sections of this level."""
+
+        root = Root()
+        """Keys at the file's root."""
+        topology = TopologyMap()
+        """Keys inside the topology definition section."""
 
     KEYS = Keys()
     """Knowledge that this has about the nodes file's contents."""
@@ -232,7 +248,7 @@ class NodesInterpreter(FileInterpreter):
         :return: Information on the topology described by the file. 'None'
             if not enough information is present on the file.
         """
-        key = self.KEYS.topology
+        key = self.KEYS.root.topology
 
         for provider in (self.overrides, self.data):
             if key in provider:
@@ -241,25 +257,21 @@ class NodesInterpreter(FileInterpreter):
         return None
 
     def _new_topology_from(self, topology_map: dict) -> Topology:
-        """
-        :param topology_map: Take a look at the 'topology_map' level on the
-            'Keys' dictionary for the set of keys expected on this dictionary.
-        """
+        keys = self.KEYS.topology
+
         result = Topology()
 
-        keys = self.KEYS
-
         if keys.compute in topology_map:
-            result.compute = topology_map[keys.compute][keys.scale]
+            result.compute = topology_map[keys.compute][keys.nodes.scale]
 
         if keys.controller in topology_map:
-            result.controller = topology_map[keys.controller][keys.scale]
+            result.controller = topology_map[keys.controller][keys.nodes.scale]
 
         if keys.ceph in topology_map:
-            result.ceph = topology_map[keys.ceph][keys.scale]
+            result.ceph = topology_map[keys.ceph][keys.nodes.scale]
 
         if keys.cell in topology_map:
-            result.cell = topology_map[keys.cell][keys.scale]
+            result.cell = topology_map[keys.cell][keys.nodes.scale]
 
         return result
 

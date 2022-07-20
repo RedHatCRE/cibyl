@@ -457,7 +457,7 @@ class TestNodesInterpreter(TestCase):
         keys = NodesInterpreter.KEYS
 
         data = {
-            keys.topology: {
+            keys.root.topology: {
                 'Controller': {
                     'scale': 1
                 },
@@ -503,7 +503,7 @@ class TestNodesInterpreter(TestCase):
 
         data = {}
         overrides = {
-            keys.topology: {
+            keys.root.topology: {
                 'Controller': {
                     'scale': 1
                 },
