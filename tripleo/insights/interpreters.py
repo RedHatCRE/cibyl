@@ -15,7 +15,7 @@
 """
 from abc import ABC
 from enum import Enum
-from typing import Dict, NamedTuple, Optional, Sequence, Iterable
+from typing import Dict, Iterable, NamedTuple, Optional, Sequence
 
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
