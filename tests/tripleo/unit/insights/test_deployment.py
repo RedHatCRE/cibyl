@@ -85,7 +85,7 @@ class TestEnvironmentInterpreter(TestCase):
     def test_get_infra_type(self):
         """Checks that it is able to extract the infrastructure type.
         """
-        keys = EnvironmentInterpreter.KEYS
+        keys = EnvironmentInterpreter.Keys()
 
         infra_type = 'libvirt'
 
@@ -117,7 +117,7 @@ class TestEnvironmentInterpreter(TestCase):
         """Checks that the value of the 'overrides' dictionary is chosen
         before the one from the file.
         """
-        keys = EnvironmentInterpreter.KEYS
+        keys = EnvironmentInterpreter.Keys()
 
         infra_type = 'libvirt'
         override = 'ovb'
@@ -206,7 +206,7 @@ class TestFeatureSetInterpreter(TestCase):
     def test_is_ipv6(self):
         """Checks that it is able to tell if the deployment is IPv4 or IPv6.
         """
-        keys = FeatureSetInterpreter.KEYS
+        keys = FeatureSetInterpreter.Keys()
 
         data = {}
 
@@ -240,7 +240,7 @@ class TestFeatureSetInterpreter(TestCase):
         """Checks that the value of the 'overrides' dictionary is chosen
         before the one from the file.
         """
-        keys = FeatureSetInterpreter.KEYS
+        keys = FeatureSetInterpreter.Keys()
 
         ip_version = True
         override = False
@@ -270,7 +270,7 @@ class TestFeatureSetInterpreter(TestCase):
     def test_is_tls_everywhere_enabled(self):
         """Checks whether it is able to tell if TLS everywhere is enabled.
         """
-        keys = FeatureSetInterpreter.KEYS
+        keys = FeatureSetInterpreter.Keys()
 
         data = {}
 
@@ -304,7 +304,7 @@ class TestFeatureSetInterpreter(TestCase):
         """Checks that the value of the 'overrides' dictionary is chosen
         before the one from the file.
         """
-        keys = FeatureSetInterpreter.KEYS
+        keys = FeatureSetInterpreter.Keys()
 
         tls_everywhere = False
         override = True
@@ -337,7 +337,7 @@ class TestFeatureSetInterpreter(TestCase):
         """
         scenario = 'scenario001'
 
-        keys = FeatureSetInterpreter.KEYS
+        keys = FeatureSetInterpreter.Keys()
 
         data = {
             keys.scenario: scenario
@@ -366,7 +366,7 @@ class TestFeatureSetInterpreter(TestCase):
         """
         scenario = 'scenario001'
 
-        keys = FeatureSetInterpreter.KEYS
+        keys = FeatureSetInterpreter.Keys()
 
         data = {}
         overrides = {
@@ -454,7 +454,7 @@ class TestNodesInterpreter(TestCase):
     def test_get_topology(self):
         """Checks that the topology map is built from the data on the file.
         """
-        keys = NodesInterpreter.KEYS
+        keys = NodesInterpreter.Keys()
 
         data = {
             keys.topology: {
@@ -499,7 +499,7 @@ class TestNodesInterpreter(TestCase):
     def test_overrides_get_topology(self):
         """Checks that the topology map can be overridden.
         """
-        keys = NodesInterpreter.KEYS
+        keys = NodesInterpreter.Keys()
 
         data = {}
         overrides = {
@@ -553,7 +553,7 @@ class TestReleaseInterpreter(TestCase):
         """
         value = 'release'
 
-        keys = ReleaseInterpreter.KEYS
+        keys = ReleaseInterpreter.Keys()
 
         data = {
             keys.release: value
@@ -582,7 +582,7 @@ class TestReleaseInterpreter(TestCase):
         """
         value = 'release'
 
-        keys = ReleaseInterpreter.KEYS
+        keys = ReleaseInterpreter.Keys()
 
         data = {}
         overrides = {
@@ -616,8 +616,8 @@ class TestScenarioInterpreter(TestCase):
     def test_get_cinder_backend(self):
         """Checks that this figures out the Cinder backend from the scenario.
         """
-        keys = ScenarioInterpreter.KEYS
-        mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
+        keys = ScenarioInterpreter.Keys()
+        mappings = ScenarioInterpreter.Mappings(keys)
 
         data = {
             keys.parameters: {
@@ -642,7 +642,7 @@ class TestScenarioInterpreter(TestCase):
         )
 
         self.assertEqual(
-            mapping[keys.cinder.backends.rbd],
+            mappings.cinder_backends[keys.cinder.backends.rbd],
             scenario.get_cinder_backend()
         )
 
@@ -650,8 +650,8 @@ class TestScenarioInterpreter(TestCase):
         """Checks that if a backend is present, but False, then it is
         ignored.
         """
-        keys = ScenarioInterpreter.KEYS
-        mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
+        keys = ScenarioInterpreter.Keys()
+        mappings = ScenarioInterpreter.Mappings(keys)
 
         data = {
             keys.parameters: {
@@ -677,7 +677,7 @@ class TestScenarioInterpreter(TestCase):
         )
 
         self.assertEqual(
-            mapping[keys.cinder.backends.rbd],
+            mappings.cinder_backends[keys.cinder.backends.rbd],
             scenario.get_cinder_backend()
         )
 
@@ -685,8 +685,8 @@ class TestScenarioInterpreter(TestCase):
         """Checks that ISCSI is chosen in case no backend is defined on the
         scenario.
         """
-        keys = ScenarioInterpreter.KEYS
-        mapping = ScenarioInterpreter.MAPPINGS.cinder_backends
+        keys = ScenarioInterpreter.Keys()
+        mappings = ScenarioInterpreter.Mappings(keys)
 
         data = {}
 
@@ -707,7 +707,7 @@ class TestScenarioInterpreter(TestCase):
         )
 
         self.assertEqual(
-            mapping[keys.cinder.backends.iscsi],
+            mappings.cinder_backends[keys.cinder.backends.iscsi],
             scenario.get_cinder_backend()
         )
 
@@ -715,7 +715,7 @@ class TestScenarioInterpreter(TestCase):
         """Checks that if more than one backend is defined for Cinder,
         an error is raised.
         """
-        keys = ScenarioInterpreter.KEYS
+        keys = ScenarioInterpreter.Keys()
 
         data = {
             keys.parameters: {

@@ -92,9 +92,6 @@ class EnvironmentInterpreter(FileInterpreter):
         infra_type: str = 'environment_type'
         """Field that holds the cloud's infrastructure type."""
 
-    KEYS = Keys()
-    """Knowledge that this has about the environment file's contents."""
-
     def __init__(
         self,
         data: YAML,
@@ -104,18 +101,23 @@ class EnvironmentInterpreter(FileInterpreter):
     ):
         super().__init__(data, schema, overrides, validator_factory)
 
+    @property
+    def keys(self):
+        """
+        :return: Knowledge that this has about the environment file's contents.
+        """
+        return self.Keys()
+
     def get_intra_type(self) -> Optional[str]:
         """
         :return: Value of the infrastructure type field. 'None' if the field
             is not present.
         """
-        key = self.KEYS.infra_type
+        key = self.keys.infra_type
 
-        if key in self.overrides:
-            return self.overrides[key]
-
-        if key in self.data:
-            return self.data[key]
+        for provider in (self.overrides, self.data):
+            if key in provider:
+                return provider[key]
 
         return None
 
@@ -134,9 +136,6 @@ class FeatureSetInterpreter(FileInterpreter):
         tls_everywhere: str = 'enable_tls_everywhere'
         """Indicates whether TLS everywhere is enabled."""
 
-    KEYS = Keys()
-    """Knowledge that this has about the featureset file's contents."""
-
     def __init__(
         self,
         data: YAML,
@@ -146,12 +145,19 @@ class FeatureSetInterpreter(FileInterpreter):
     ):
         super().__init__(data, schema, overrides, validator_factory)
 
+    @property
+    def keys(self):
+        """
+        :return: Knowledge that this has about the featureset file's contents.
+        """
+        return self.Keys()
+
     def is_ipv6(self) -> bool:
         """
         :return: True if the deployment works under IPv6, False if it does
             under IPv4. If the field is not present, then IPv4 is assumed.
         """
-        key = self.KEYS.ipv6
+        key = self.keys.ipv6
 
         for provider in (self.overrides, self.data):
             if key in provider:
@@ -164,7 +170,7 @@ class FeatureSetInterpreter(FileInterpreter):
         :return: True if the deployment uses tls everywhere, False if it does
             not. If the field is not present, then False is returned too.
         """
-        key = self.KEYS.tls_everywhere
+        key = self.keys.tls_everywhere
 
         for provider in (self.overrides, self.data):
             if key in provider:
@@ -177,7 +183,7 @@ class FeatureSetInterpreter(FileInterpreter):
         :return: Name of the scenario file that complements this featureset.
             'None' if it is not defined.
         """
-        key = self.KEYS.scenario
+        key = self.keys.scenario
 
         for provider in (self.overrides, self.data):
             if key in provider:
@@ -211,9 +217,6 @@ class NodesInterpreter(FileInterpreter):
         scale: str = 'scale'
         """Number of nodes of a certain type."""
 
-    KEYS = Keys()
-    """Knowledge that this has about the nodes file's contents."""
-
     def __init__(
         self,
         data: YAML,
@@ -223,12 +226,19 @@ class NodesInterpreter(FileInterpreter):
     ):
         super().__init__(data, schema, overrides, validator_factory)
 
+    @property
+    def keys(self):
+        """
+        :return: Knowledge that this has about the nodes file's contents.
+        """
+        return self.Keys()
+
     def get_topology(self) -> Optional[Topology]:
         """
         :return: Information on the topology described by the file. 'None'
             if not enough information is present on the file.
         """
-        key = self.KEYS.topology
+        key = self.keys.topology
 
         for provider in (self.overrides, self.data):
             if key in provider:
@@ -241,9 +251,9 @@ class NodesInterpreter(FileInterpreter):
         :param topology_map: Take a look at the 'topology_map' level on the
             'Keys' dictionary for the set of keys expected on this dictionary.
         """
-        result = Topology()
+        keys = self.keys
 
-        keys = self.KEYS
+        result = Topology()
 
         if keys.compute in topology_map:
             result.compute = topology_map[keys.compute][keys.scale]
@@ -270,9 +280,6 @@ class ReleaseInterpreter(FileInterpreter):
         release: str = 'release'
         """Field that holds the release name."""
 
-    KEYS = Keys()
-    """Knowledge that this has about the release file's contents."""
-
     def __init__(
         self,
         data: YAML,
@@ -282,12 +289,19 @@ class ReleaseInterpreter(FileInterpreter):
     ):
         super().__init__(data, schema, overrides, validator_factory)
 
+    @property
+    def keys(self):
+        """
+        :return: Knowledge that this has about the release file's contents.
+        """
+        return self.Keys()
+
     def get_release_name(self) -> Optional[str]:
         """
         :return: Name of the release, for example: 'wallaby'. None if the
             field is not present.
         """
-        key = self.KEYS.release
+        key = self.keys.release
 
         for provider in (self.overrides, self.data):
             if key in provider:
@@ -349,22 +363,23 @@ class ScenarioInterpreter(FileInterpreter):
         def __init__(self, keys: 'ScenarioInterpreter.Keys'):
             """Constructor.
 
-            :param keys: The keys to map.
+            :param keys: Set of keys that this will map.
             """
             self._keys = keys
 
         @property
         def keys(self) -> 'ScenarioInterpreter.Keys':
             """
-            :return: The keys this will map.
+            :return: Set of keys that this will map.
             """
             return self._keys
 
         @property
         def cinder_backends(self) -> Dict[str, str]:
             """
-            :return: A map that relates each of the cinder backend keys to
-                an output word. For example: CinderEnableIscsiBackend -> iscsi
+            :return: A map that matches each of the cinder backend keys to
+                simple representation of the backend. For example:
+                'CinderEnableIscsiBackend' -> 'iscsi'.
             """
             return {
                 self.keys.cinder.backends.powerflex: 'powerflex',
@@ -386,20 +401,13 @@ class ScenarioInterpreter(FileInterpreter):
         """Defines the values returned by the interpreter when it cannot
         find the data on the scenario file.
 
-        These values default themselves to the ones defined on the heat
-        templates repository.
+        These values are set to be the same as in the heat templates
+        repository.
         """
         cinder_backend: str = 'iscsi'
         """Default backend supporting cinder."""
         neutron_backend: str = 'geneve'
         """Default backend supporting neutron."""
-
-    KEYS = Keys()
-    """Knowledge this has on the scenario file."""
-    MAPPINGS = Mappings(KEYS)
-    """Output for each of the keys."""
-    DEFAULTS = Defaults()
-    """Values returned by the interpreter when wanted data is not present."""
 
     def __init__(
         self,
@@ -411,12 +419,34 @@ class ScenarioInterpreter(FileInterpreter):
         super().__init__(data, schema, overrides, validator_factory)
 
     @property
+    def keys(self):
+        """
+        :return: Knowledge this has on the scenario file.
+        """
+        return self.Keys()
+
+    @property
+    def mappings(self):
+        """
+        :return: Output for each of the keys.
+        """
+        return self.Mappings(self.keys)
+
+    @property
+    def defaults(self):
+        """
+        :return: Values returned by the interpreter when wanted data
+            is not present.
+        """
+        return self.Defaults()
+
+    @property
     def _parameters(self) -> dict:
         """
         :return: Contents of the 'parameter_defaults' section. Empty if it
             is not present.
         """
-        return self.data.get(self.KEYS.parameters, {})
+        return self.data.get(self.keys.parameters, {})
 
     def get_cinder_backend(self) -> str:
         """
@@ -431,7 +461,7 @@ class ScenarioInterpreter(FileInterpreter):
             :return: Keys to all the backends that are set to True on the
                 scenario.
             """
-            keys = self.KEYS.cinder.backends
+            keys = self.keys.cinder.backends
 
             result = []
 
@@ -445,8 +475,8 @@ class ScenarioInterpreter(FileInterpreter):
 
             return result
 
-        mapping = self.MAPPINGS.cinder_backends
-        default = self.DEFAULTS.cinder_backend
+        mapping = self.mappings.cinder_backends
+        default = self.defaults.cinder_backend
 
         backends = get_backends()
 
@@ -469,8 +499,8 @@ class ScenarioInterpreter(FileInterpreter):
         :return: Name of the backend behind Neutron. If none is defined,
             then this will fall back to Geneve.
         """
-        key = self.KEYS.neutron.backend
-        default = self.DEFAULTS.neutron_backend
+        key = self.keys.neutron.backend
+        default = self.defaults.neutron_backend
 
         if key not in self._parameters:
             # The backend is not defined on the file

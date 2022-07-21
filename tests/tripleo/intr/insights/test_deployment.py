@@ -30,7 +30,7 @@ class TestEnvironmentInterpreter(TestCase):
         follow the schema.
         """
         data = {
-            EnvironmentInterpreter.KEYS.infra_type: False
+            EnvironmentInterpreter.Keys().infra_type: False
         }
 
         with self.assertRaises(IllegibleData):
@@ -46,7 +46,7 @@ class TestFeatureSetInterpreter(TestCase):
         schema.
         """
         data = {
-            FeatureSetInterpreter.KEYS.ipv6: 'hello_world'  # Must be bool
+            FeatureSetInterpreter.Keys().ipv6: 'hello_world'  # Must be bool
         }
 
         with self.assertRaises(IllegibleData):
@@ -62,7 +62,7 @@ class TestNodesInterpreter(TestCase):
         not follow the schema.
         """
         data = {
-            NodesInterpreter.KEYS.topology: False  # Must be an object
+            NodesInterpreter.Keys().topology: False  # Must be an object
         }
 
         with self.assertRaises(IllegibleData):
@@ -77,7 +77,7 @@ class TestReleaseInterpreter(TestCase):
         """Tests that an error if the release field is not present.
         """
         data = {
-            ReleaseInterpreter.KEYS.release: False  # Must be string
+            ReleaseInterpreter.Keys().release: False  # Must be string
         }
 
         with self.assertRaises(IllegibleData):
