@@ -14,7 +14,7 @@
 #    under the License.
 """
 from abc import ABC
-from typing import Dict, NamedTuple, Optional, Sequence
+from typing import Dict, NamedTuple, Optional, Sequence, Iterable
 
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
@@ -255,28 +255,15 @@ class NodesInterpreter(FileInterpreter):
 
         return None
 
-    def _new_topology_from(self, topology_map: dict) -> Topology:
-        """
-        :param topology_map: Take a look at the 'topology_map' level on the
-            'Keys' dictionary for the set of keys expected on this dictionary.
-        """
+    def _new_topology_from(self, overcloud_nodes: Iterable[dict]) -> Topology:
         keys = self.keys
 
         controller_nodes = []
         compute_nodes = []
         ceph_nodes = []
 
-        if keys.controller in topology_map:
-            for _ in range(topology_map[keys.controller][keys.scale]):
-                controller_nodes.append(Node('N/A'))
-
-        if keys.compute in topology_map:
-            for _ in range(topology_map[keys.compute][keys.scale]):
-                compute_nodes.append(Node('N/A'))
-
-        if keys.ceph in topology_map:
-            for _ in range(topology_map[keys.ceph][keys.scale]):
-                ceph_nodes.append(Node('N/A'))
+        for node in overcloud_nodes:
+            pass
 
         return Topology(
             nodes=Topology.Nodes(
