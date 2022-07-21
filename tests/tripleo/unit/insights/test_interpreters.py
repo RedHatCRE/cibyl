@@ -16,11 +16,12 @@
 from unittest import TestCase
 from unittest.mock import Mock, call
 
-from tripleo.insights.deployment import (EnvironmentInterpreter,
-                                         FeatureSetInterpreter,
-                                         NodesInterpreter, ReleaseInterpreter,
-                                         ScenarioInterpreter)
 from tripleo.insights.exceptions import IllegibleData
+from tripleo.insights.interpreters import (EnvironmentInterpreter,
+                                           FeatureSetInterpreter,
+                                           NodesInterpreter,
+                                           ReleaseInterpreter,
+                                           ScenarioInterpreter)
 from tripleo.insights.io import Topology
 
 

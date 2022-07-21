@@ -15,10 +15,11 @@
 """
 from unittest import TestCase
 
-from tripleo.insights.deployment import (EnvironmentInterpreter,
-                                         FeatureSetInterpreter,
-                                         NodesInterpreter, ReleaseInterpreter)
 from tripleo.insights.exceptions import IllegibleData
+from tripleo.insights.interpreters import (EnvironmentInterpreter,
+                                           FeatureSetInterpreter,
+                                           NodesInterpreter,
+                                           ReleaseInterpreter)
 
 
 class TestEnvironmentInterpreter(TestCase):

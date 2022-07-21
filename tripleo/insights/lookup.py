@@ -16,11 +16,12 @@
 import logging
 from dataclasses import dataclass
 
-from tripleo.insights.deployment import (EnvironmentInterpreter,
-                                         FeatureSetInterpreter,
-                                         NodesInterpreter, ReleaseInterpreter,
-                                         ScenarioInterpreter)
 from tripleo.insights.git import GitDownload
+from tripleo.insights.interpreters import (EnvironmentInterpreter,
+                                           FeatureSetInterpreter,
+                                           NodesInterpreter,
+                                           ReleaseInterpreter,
+                                           ScenarioInterpreter)
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
 from tripleo.insights.tripleo import THTBranchCreator, THTPathCreator
 from tripleo.insights.validation import OutlineValidator
