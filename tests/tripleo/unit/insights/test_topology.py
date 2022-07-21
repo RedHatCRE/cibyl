@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from tripleo.insights.io import Topology
+from tripleo.insights.topology import Topology
 
 
 class TestTopology(TestCase):
