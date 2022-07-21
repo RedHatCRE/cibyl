@@ -201,8 +201,16 @@ class NodesInterpreter(FileInterpreter):
         """Defines the fields of interest contained by a nodes file.
         """
         # Root level
+        overcloud: str = 'overcloud_nodes'
+        """Section giving an outline of the to be deployed cloud."""
         topology: str = 'topology_map'
-        """Field that defines the deployment's topology."""
+        """Section providing configuration on the to be deployed cloud."""
+
+        # 'overcloud_nodes' level
+        name: str = 'name'
+        """Name of the node."""
+        flavor: str = 'flavor'
+        """Type of the node."""
 
         # 'topology_map' level
         compute: str = 'Compute'
@@ -214,7 +222,7 @@ class NodesInterpreter(FileInterpreter):
         cell: str = 'CellController'
         """Contains data on cell nodes."""
 
-        # 'node' level
+        # 'topology_map' node level
         scale: str = 'scale'
         """Number of nodes of a certain type."""
 
