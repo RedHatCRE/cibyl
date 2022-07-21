@@ -23,6 +23,7 @@ from tripleo.insights.interpreters import (EnvironmentInterpreter,
                                            ReleaseInterpreter,
                                            ScenarioInterpreter)
 from tripleo.insights.io import Topology
+from tripleo.insights.topology import Node
 
 
 class TestEnvironmentInterpreter(TestCase):
@@ -467,9 +468,6 @@ class TestNodesInterpreter(TestCase):
                 },
                 'CephStorage': {
                     'scale': 2
-                },
-                'CellController': {
-                    'scale': 1
                 }
             }
         }
@@ -493,7 +491,22 @@ class TestNodesInterpreter(TestCase):
         result = nodes.get_topology()
 
         self.assertEqual(
-            Topology(3, 1, 2, 1),
+            Topology(
+                nodes=Topology.Nodes(
+                    compute=(
+                        Node('N/A'),
+                        Node('N/A'),
+                        Node('N/A')
+                    ),
+                    controller=(
+                        Node('N/A'),
+                    ),
+                    ceph=(
+                        Node('N/A'),
+                        Node('N/A'),
+                    )
+                )
+            ),
             result
         )
 
@@ -513,9 +526,6 @@ class TestNodesInterpreter(TestCase):
                 },
                 'CephStorage': {
                     'scale': 2
-                },
-                'CellController': {
-                    'scale': 1
                 }
             }
         }
@@ -540,7 +550,22 @@ class TestNodesInterpreter(TestCase):
         result = nodes.get_topology()
 
         self.assertEqual(
-            Topology(3, 1, 2, 1),
+            Topology(
+                nodes=Topology.Nodes(
+                    compute=(
+                        Node('N/A'),
+                        Node('N/A'),
+                        Node('N/A')
+                    ),
+                    controller=(
+                        Node('N/A'),
+                    ),
+                    ceph=(
+                        Node('N/A'),
+                        Node('N/A'),
+                    )
+                )
+            ),
             result
         )
 

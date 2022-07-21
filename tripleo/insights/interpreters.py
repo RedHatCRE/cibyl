@@ -18,6 +18,7 @@ from typing import Dict, NamedTuple, Optional, Sequence
 
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
+from tripleo.insights.topology import Node
 from tripleo.utils.fs import File
 from tripleo.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
 from tripleo.utils.yaml import YAML
@@ -253,21 +254,29 @@ class NodesInterpreter(FileInterpreter):
         """
         keys = self.keys
 
-        result = Topology()
-
-        if keys.compute in topology_map:
-            result.compute = topology_map[keys.compute][keys.scale]
+        controller_nodes = []
+        compute_nodes = []
+        ceph_nodes = []
 
         if keys.controller in topology_map:
-            result.controller = topology_map[keys.controller][keys.scale]
+            for _ in range(topology_map[keys.controller][keys.scale]):
+                controller_nodes.append(Node('N/A'))
+
+        if keys.compute in topology_map:
+            for _ in range(topology_map[keys.compute][keys.scale]):
+                compute_nodes.append(Node('N/A'))
 
         if keys.ceph in topology_map:
-            result.ceph = topology_map[keys.ceph][keys.scale]
+            for _ in range(topology_map[keys.ceph][keys.scale]):
+                ceph_nodes.append(Node('N/A'))
 
-        if keys.cell in topology_map:
-            result.cell = topology_map[keys.cell][keys.scale]
-
-        return result
+        return Topology(
+            nodes=Topology.Nodes(
+                controller=controller_nodes,
+                compute=compute_nodes,
+                ceph=ceph_nodes
+            )
+        )
 
 
 class ReleaseInterpreter(FileInterpreter):
