@@ -14,8 +14,7 @@
 #    under the License.
 """
 from abc import ABC
-from dataclasses import dataclass, fields
-from typing import Dict, List, Optional
+from typing import Dict, NamedTuple, Optional, Sequence
 
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
@@ -87,8 +86,7 @@ class EnvironmentInterpreter(FileInterpreter):
     """Takes care of making sense out of the contents of an environment file.
     """
 
-    @dataclass
-    class Keys:
+    class Keys(NamedTuple):
         """Defines the fields of interest contained by an environment file.
         """
         infra_type: str = 'environment_type'
@@ -126,8 +124,7 @@ class FeatureSetInterpreter(FileInterpreter):
     """Takes care of making sense out of the contents of a featureset file.
     """
 
-    @dataclass
-    class Keys:
+    class Keys(NamedTuple):
         """Defines the fields of interest contained by a featureset file.
         """
         ipv6: str = 'overcloud_ipv6'
@@ -193,8 +190,7 @@ class NodesInterpreter(FileInterpreter):
     """Takes care of making sense out of the contents of a nodes file.
     """
 
-    @dataclass
-    class Keys:
+    class Keys(NamedTuple):
         """Defines the fields of interest contained by a nodes file.
         """
         # Root level
@@ -268,8 +264,7 @@ class ReleaseInterpreter(FileInterpreter):
     """Takes care of making sense out of the contents of a release file.
     """
 
-    @dataclass
-    class Keys:
+    class Keys(NamedTuple):
         """Defines the fields of interest contained by a release file.
         """
         release: str = 'release'
@@ -305,18 +300,15 @@ class ScenarioInterpreter(FileInterpreter):
     """Takes care of making sense out of the contents of a scenario file.
     """
 
-    @dataclass
-    class Keys:
+    class Keys(NamedTuple):
         """Defines the fields of interest in the scenario.
         """
 
-        @dataclass
-        class Cinder:
+        class Cinder(NamedTuple):
             """Defines all the fields related to the cinder component.
             """
 
-            @dataclass
-            class Backends:
+            class Backends(NamedTuple):
                 """Defines all the fields related to the cinder backend.
                 """
                 powerflex: str = 'CinderEnablePowerFlexBackend'
@@ -336,8 +328,7 @@ class ScenarioInterpreter(FileInterpreter):
             backends = Backends()
             """Keys pointing to the component's backend."""
 
-        @dataclass
-        class Neutron:
+        class Neutron(NamedTuple):
             """Defines all the fields related to the neutron component.
             """
             backend: str = 'NeutronNetworkType'
@@ -391,8 +382,7 @@ class ScenarioInterpreter(FileInterpreter):
                 self.keys.cinder.backends.rbd: 'rbd'
             }
 
-    @dataclass
-    class Defaults:
+    class Defaults(NamedTuple):
         """Defines the values returned by the interpreter when it cannot
         find the data on the scenario file.
 
@@ -436,34 +426,32 @@ class ScenarioInterpreter(FileInterpreter):
             scenario.
         """
 
-        def get_backends() -> List[str]:
+        def get_backends() -> Sequence[str]:
             """
-            :return: Key to all the backends that were set to True on the
+            :return: Keys to all the backends that are set to True on the
                 scenario.
             """
+            keys = self.KEYS.cinder.backends
+
             result = []
 
             # Iterate over all known backends
-            for field in fields(type(keys)):
-                # Get the key for this backend
-                key = getattr(keys, field.name)
-
-                # Is it present on the scenario?
+            for key in keys:
+                # Is the backend present on the file?
                 if key in self._parameters:
-                    # Is it chosen?
+                    # Is it set to true then?
                     if self._parameters[key]:
                         result.append(key)
 
             return result
 
-        keys = self.KEYS.cinder.backends
         mapping = self.MAPPINGS.cinder_backends
         default = self.DEFAULTS.cinder_backend
 
         backends = get_backends()
 
         if len(backends) == 0:
-            # The backend is not defined on the file
+            # No backends are defined on the file
             return default
 
         if len(backends) != 1:
