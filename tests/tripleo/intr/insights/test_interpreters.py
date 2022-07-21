@@ -63,7 +63,7 @@ class TestNodesInterpreter(TestCase):
         not follow the schema.
         """
         data = {
-            NodesInterpreter.Keys().topology: False  # Must be an object
+            NodesInterpreter.Keys().root.topology: False  # Must be an object
         }
 
         with self.assertRaises(IllegibleData):

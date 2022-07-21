@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import ABC
+from enum import Enum
 from typing import Dict, NamedTuple, Optional, Sequence, Iterable
 
 from tripleo.insights.exceptions import IllegibleData
@@ -200,31 +201,54 @@ class NodesInterpreter(FileInterpreter):
     class Keys(NamedTuple):
         """Defines the fields of interest contained by a nodes file.
         """
-        # Root level
-        overcloud: str = 'overcloud_nodes'
-        """Section giving an outline of the to be deployed cloud."""
-        topology: str = 'topology_map'
-        """Section providing configuration on the to be deployed cloud."""
 
-        # 'overcloud_nodes' level
-        name: str = 'name'
-        """Name of the node."""
-        flavor: str = 'flavor'
-        """Type of the node."""
+        class Root(NamedTuple):
+            """Defines the keys found at the file's root.
+            """
+            overcloud: str = 'overcloud_nodes'
+            """Section giving an outline of the to be deployed cloud."""
+            topology: str = 'topology_map'
+            """Section providing configuration on the to be deployed cloud."""
 
-        # 'topology_map' level
-        compute: str = 'Compute'
-        """Contains data on compute nodes."""
-        controller: str = 'Controller'
-        """Contains data on controller nodes."""
-        ceph: str = 'CephStorage'
-        """Contains data on ceph nodes."""
-        cell: str = 'CellController'
-        """Contains data on cell nodes."""
+        class OvercloudNodes(NamedTuple):
+            """Keys found in the 'overcloud_nodes' section.
+            """
 
-        # 'topology_map' node level
-        scale: str = 'scale'
-        """Number of nodes of a certain type."""
+            class NodeFlavor(str, Enum):
+                """Values of the 'flavor' key that describe the node type.
+                """
+                CONTROL = 'control'
+                COMPUTE = 'compute'
+                CEPH = 'ceph'
+
+            name: str = 'name'
+            """Name of the node."""
+            flavor: str = 'flavor'
+            """Type of the node."""
+
+        class TopologyMap(NamedTuple):
+            """Keys found in the 'topology_map' section.
+            """
+            # Keys to node types
+            compute: str = 'Compute'
+            """Contains data on compute nodes."""
+            controller: str = 'Controller'
+            """Contains data on controller nodes."""
+            ceph: str = 'CephStorage'
+            """Contains data on ceph nodes."""
+            cell: str = 'CellController'
+            """Contains data on cell nodes."""
+
+            # Keys inside each node type
+            scale: str = 'scale'
+            """Number of nodes of a certain type."""
+
+        root: Root = Root()
+        """Keys at the file's root."""
+        overcloud_node: OvercloudNodes = OvercloudNodes()
+        """Keys at the 'overcloud_node' section."""
+        topology_map: TopologyMap = TopologyMap()
+        """Keys at the 'topology_map' section."""
 
     def __init__(
         self,
@@ -247,7 +271,7 @@ class NodesInterpreter(FileInterpreter):
         :return: Information on the topology described by the file. 'None'
             if not enough information is present on the file.
         """
-        key = self.keys.topology
+        key = self.keys.root.overcloud
 
         for provider in (self.overrides, self.data):
             if key in provider:
@@ -256,14 +280,28 @@ class NodesInterpreter(FileInterpreter):
         return None
 
     def _new_topology_from(self, overcloud_nodes: Iterable[dict]) -> Topology:
-        keys = self.keys
+        keys = self.keys.overcloud_node
+        flavors = self.keys.overcloud_node.NodeFlavor
 
         controller_nodes = []
         compute_nodes = []
         ceph_nodes = []
 
         for node in overcloud_nodes:
-            pass
+            name = node[keys.name]
+            flavor = node[keys.flavor]
+
+            if flavor == flavors.CONTROL:
+                controller_nodes.append(Node(name))
+                continue
+
+            if flavor == flavors.COMPUTE:
+                compute_nodes.append(Node(name))
+                continue
+
+            if flavor == flavors.CEPH:
+                ceph_nodes.append(Node(name))
+                continue
 
         return Topology(
             nodes=Topology.Nodes(

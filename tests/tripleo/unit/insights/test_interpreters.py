@@ -459,7 +459,7 @@ class TestNodesInterpreter(TestCase):
         keys = NodesInterpreter.Keys()
 
         data = {
-            keys.overcloud: [
+            keys.root.overcloud: [
                 {
                     'name': 'compute_0',
                     'flavor': 'compute'
@@ -532,7 +532,7 @@ class TestNodesInterpreter(TestCase):
 
         data = {}
         overrides = {
-            keys.overcloud: [
+            keys.root.overcloud: [
                 {
                     'name': 'compute_0',
                     'flavor': 'compute'
