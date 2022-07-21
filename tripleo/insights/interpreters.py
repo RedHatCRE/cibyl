@@ -103,7 +103,7 @@ class EnvironmentInterpreter(FileInterpreter):
         super().__init__(data, schema, overrides, validator_factory)
 
     @property
-    def keys(self):
+    def keys(self) -> 'EnvironmentInterpreter.Keys':
         """
         :return: Knowledge that this has about the environment file's contents.
         """
@@ -147,7 +147,7 @@ class FeatureSetInterpreter(FileInterpreter):
         super().__init__(data, schema, overrides, validator_factory)
 
     @property
-    def keys(self):
+    def keys(self) -> 'FeatureSetInterpreter.Keys':
         """
         :return: Knowledge that this has about the featureset file's contents.
         """
@@ -228,7 +228,7 @@ class NodesInterpreter(FileInterpreter):
         super().__init__(data, schema, overrides, validator_factory)
 
     @property
-    def keys(self):
+    def keys(self) -> 'NodesInterpreter.Keys':
         """
         :return: Knowledge that this has about the nodes file's contents.
         """
@@ -299,7 +299,7 @@ class ReleaseInterpreter(FileInterpreter):
         super().__init__(data, schema, overrides, validator_factory)
 
     @property
-    def keys(self):
+    def keys(self) -> 'ReleaseInterpreter.Keys':
         """
         :return: Knowledge that this has about the release file's contents.
         """
@@ -428,21 +428,21 @@ class ScenarioInterpreter(FileInterpreter):
         super().__init__(data, schema, overrides, validator_factory)
 
     @property
-    def keys(self):
+    def keys(self) -> 'ScenarioInterpreter.Keys':
         """
         :return: Knowledge this has on the scenario file.
         """
         return self.Keys()
 
     @property
-    def mappings(self):
+    def mappings(self) -> 'ScenarioInterpreter.Mappings':
         """
         :return: Output for each of the keys.
         """
         return self.Mappings(self.keys)
 
     @property
-    def defaults(self):
+    def defaults(self) -> 'ScenarioInterpreter.Defaults':
         """
         :return: Values returned by the interpreter when wanted data
             is not present.
