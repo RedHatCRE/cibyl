@@ -459,17 +459,32 @@ class TestNodesInterpreter(TestCase):
         keys = NodesInterpreter.Keys()
 
         data = {
-            keys.topology: {
-                'Controller': {
-                    'scale': 1
+            keys.root.overcloud: [
+                {
+                    'name': 'compute_0',
+                    'flavor': 'compute'
                 },
-                'Compute': {
-                    'scale': 3
+                {
+                    'name': 'compute_1',
+                    'flavor': 'compute'
                 },
-                'CephStorage': {
-                    'scale': 2
+                {
+                    'name': 'compute_2',
+                    'flavor': 'compute'
+                },
+                {
+                    'name': 'control_0',
+                    'flavor': 'control'
+                },
+                {
+                    'name': 'ceph_0',
+                    'flavor': 'ceph'
+                },
+                {
+                    'name': 'ceph_1',
+                    'flavor': 'ceph'
                 }
-            }
+            ]
         }
 
         schema = Mock()
@@ -494,16 +509,16 @@ class TestNodesInterpreter(TestCase):
             Topology(
                 nodes=Topology.Nodes(
                     compute=(
-                        Node('N/A'),
-                        Node('N/A'),
-                        Node('N/A')
+                        Node('compute_0'),
+                        Node('compute_1'),
+                        Node('compute_2')
                     ),
                     controller=(
-                        Node('N/A'),
+                        Node('control_0'),
                     ),
                     ceph=(
-                        Node('N/A'),
-                        Node('N/A'),
+                        Node('ceph_0'),
+                        Node('ceph_1'),
                     )
                 )
             ),
@@ -517,17 +532,32 @@ class TestNodesInterpreter(TestCase):
 
         data = {}
         overrides = {
-            keys.topology: {
-                'Controller': {
-                    'scale': 1
+            keys.root.overcloud: [
+                {
+                    'name': 'compute_0',
+                    'flavor': 'compute'
                 },
-                'Compute': {
-                    'scale': 3
+                {
+                    'name': 'compute_1',
+                    'flavor': 'compute'
                 },
-                'CephStorage': {
-                    'scale': 2
+                {
+                    'name': 'compute_2',
+                    'flavor': 'compute'
+                },
+                {
+                    'name': 'control_0',
+                    'flavor': 'control'
+                },
+                {
+                    'name': 'ceph_0',
+                    'flavor': 'ceph'
+                },
+                {
+                    'name': 'ceph_1',
+                    'flavor': 'ceph'
                 }
-            }
+            ]
         }
 
         schema = Mock()
@@ -553,16 +583,16 @@ class TestNodesInterpreter(TestCase):
             Topology(
                 nodes=Topology.Nodes(
                     compute=(
-                        Node('N/A'),
-                        Node('N/A'),
-                        Node('N/A')
+                        Node('compute_0'),
+                        Node('compute_1'),
+                        Node('compute_2')
                     ),
                     controller=(
-                        Node('N/A'),
+                        Node('control_0'),
                     ),
                     ceph=(
-                        Node('N/A'),
-                        Node('N/A'),
+                        Node('ceph_0'),
+                        Node('ceph_1'),
                     )
                 )
             ),
