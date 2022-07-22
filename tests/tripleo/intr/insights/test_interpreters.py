@@ -15,10 +15,11 @@
 """
 from unittest import TestCase
 
-from tripleo.insights.deployment import (EnvironmentInterpreter,
-                                         FeatureSetInterpreter,
-                                         NodesInterpreter, ReleaseInterpreter)
 from tripleo.insights.exceptions import IllegibleData
+from tripleo.insights.interpreters import (EnvironmentInterpreter,
+                                           FeatureSetInterpreter,
+                                           NodesInterpreter,
+                                           ReleaseInterpreter)
 
 
 class TestEnvironmentInterpreter(TestCase):
@@ -62,7 +63,7 @@ class TestNodesInterpreter(TestCase):
         not follow the schema.
         """
         data = {
-            NodesInterpreter.Keys().topology: False  # Must be an object
+            NodesInterpreter.Keys().root.topology: False  # Must be an object
         }
 
         with self.assertRaises(IllegibleData):

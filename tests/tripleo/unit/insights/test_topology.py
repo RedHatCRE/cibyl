@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from tripleo.insights.io import Topology
+from tripleo.insights.topology import Node, Topology
 
 
 class TestTopology(TestCase):
@@ -26,14 +26,24 @@ class TestTopology(TestCase):
         """Checks the output of __str__ if all elements have values.
         """
         topology = Topology(
-            compute=3,
-            controller=2,
-            ceph=1,
-            cell=2
+            nodes=Topology.Nodes(
+                compute=(
+                    Node('compute_1'),
+                    Node('compute_2'),
+                    Node('compute_3')
+                ),
+                controller=(
+                    Node('ctrl_1'),
+                    Node('ctrl_2')
+                ),
+                ceph=(
+                    Node('ceph_1')
+                )
+            )
         )
 
         self.assertEqual(
-            'compute:3,controller:2,ceph:1,cell:2',
+            'compute:3,controller:2,ceph:1',
             str(topology)
         )
 
@@ -42,13 +52,18 @@ class TestTopology(TestCase):
         output.
         """
         topology = Topology(
-            compute=2,
-            controller=0,
-            ceph=0,
-            cell=1
+            nodes=Topology.Nodes(
+                compute=(
+                    Node('compute_1'),
+                    Node('compute_2')
+                ),
+                ceph=(
+                    Node('ceph_1')
+                )
+            )
         )
 
         self.assertEqual(
-            'compute:2,cell:1',
+            'compute:2,ceph:1',
             str(topology)
         )

@@ -16,12 +16,14 @@
 from unittest import TestCase
 from unittest.mock import Mock, call
 
-from tripleo.insights.deployment import (EnvironmentInterpreter,
-                                         FeatureSetInterpreter,
-                                         NodesInterpreter, ReleaseInterpreter,
-                                         ScenarioInterpreter)
 from tripleo.insights.exceptions import IllegibleData
+from tripleo.insights.interpreters import (EnvironmentInterpreter,
+                                           FeatureSetInterpreter,
+                                           NodesInterpreter,
+                                           ReleaseInterpreter,
+                                           ScenarioInterpreter)
 from tripleo.insights.io import Topology
+from tripleo.insights.topology import Node
 
 
 class TestEnvironmentInterpreter(TestCase):
@@ -457,20 +459,32 @@ class TestNodesInterpreter(TestCase):
         keys = NodesInterpreter.Keys()
 
         data = {
-            keys.topology: {
-                'Controller': {
-                    'scale': 1
+            keys.root.overcloud: [
+                {
+                    'name': 'compute_0',
+                    'flavor': 'compute'
                 },
-                'Compute': {
-                    'scale': 3
+                {
+                    'name': 'compute_1',
+                    'flavor': 'compute'
                 },
-                'CephStorage': {
-                    'scale': 2
+                {
+                    'name': 'compute_2',
+                    'flavor': 'compute'
                 },
-                'CellController': {
-                    'scale': 1
+                {
+                    'name': 'control_0',
+                    'flavor': 'control'
+                },
+                {
+                    'name': 'ceph_0',
+                    'flavor': 'ceph'
+                },
+                {
+                    'name': 'ceph_1',
+                    'flavor': 'ceph'
                 }
-            }
+            ]
         }
 
         schema = Mock()
@@ -492,7 +506,22 @@ class TestNodesInterpreter(TestCase):
         result = nodes.get_topology()
 
         self.assertEqual(
-            Topology(3, 1, 2, 1),
+            Topology(
+                nodes=Topology.Nodes(
+                    compute=(
+                        Node('compute_0'),
+                        Node('compute_1'),
+                        Node('compute_2')
+                    ),
+                    controller=(
+                        Node('control_0'),
+                    ),
+                    ceph=(
+                        Node('ceph_0'),
+                        Node('ceph_1'),
+                    )
+                )
+            ),
             result
         )
 
@@ -503,20 +532,32 @@ class TestNodesInterpreter(TestCase):
 
         data = {}
         overrides = {
-            keys.topology: {
-                'Controller': {
-                    'scale': 1
+            keys.root.overcloud: [
+                {
+                    'name': 'compute_0',
+                    'flavor': 'compute'
                 },
-                'Compute': {
-                    'scale': 3
+                {
+                    'name': 'compute_1',
+                    'flavor': 'compute'
                 },
-                'CephStorage': {
-                    'scale': 2
+                {
+                    'name': 'compute_2',
+                    'flavor': 'compute'
                 },
-                'CellController': {
-                    'scale': 1
+                {
+                    'name': 'control_0',
+                    'flavor': 'control'
+                },
+                {
+                    'name': 'ceph_0',
+                    'flavor': 'ceph'
+                },
+                {
+                    'name': 'ceph_1',
+                    'flavor': 'ceph'
                 }
-            }
+            ]
         }
 
         schema = Mock()
@@ -539,7 +580,22 @@ class TestNodesInterpreter(TestCase):
         result = nodes.get_topology()
 
         self.assertEqual(
-            Topology(3, 1, 2, 1),
+            Topology(
+                nodes=Topology.Nodes(
+                    compute=(
+                        Node('compute_0'),
+                        Node('compute_1'),
+                        Node('compute_2')
+                    ),
+                    controller=(
+                        Node('control_0'),
+                    ),
+                    ceph=(
+                        Node('ceph_0'),
+                        Node('ceph_1'),
+                    )
+                )
+            ),
             result
         )
 
