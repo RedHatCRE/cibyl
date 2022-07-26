@@ -14,10 +14,11 @@
 #    under the License.
 """
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.network import Network
+from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.sources.zuul.deployments.arguments import \
     ArgumentReview
 from cibyl.plugins.openstack.sources.zuul.deployments.summary import (
@@ -68,14 +69,15 @@ class DeploymentGenerator:
         return Deployment(
             release=self._get_release(summary, **kwargs),
             infra_type=self._get_infra_type(summary, **kwargs),
+            nodes=self._get_nodes(summary, **kwargs),
             topology=self._get_topology(summary, **kwargs),
+            network=Network(
+                ip_version=self._get_ip_version(summary, **kwargs),
+                network_backend=self._get_neutron_backend(summary, **kwargs),
+                tls_everywhere=self._get_tls_everywhere(summary, **kwargs)
+            ),
             storage=Storage(
                 cinder_backend=self._get_cinder_backend(summary, **kwargs)
-            ),
-            network=Network(
-                network_backend=self._get_neutron_backend(summary, **kwargs),
-                ip_version=self._get_ip_version(summary, **kwargs),
-                tls_everywhere=self._get_tls_everywhere(summary, **kwargs)
             )
         )
 
@@ -103,6 +105,28 @@ class DeploymentGenerator:
 
         return summary.get_infra_type()
 
+    def _get_nodes(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[Dict[str, Node]]:
+        arguments = self.tools.argument_review
+
+        if not arguments.is_nodes_requested(**kwargs):
+            return None
+
+        nodes = summary.get_nodes()
+
+        if not nodes:
+            return None
+
+        result = {}
+
+        for node in nodes:
+            result[node.name.value] = node
+
+        return result
+
     def _get_topology(
         self,
         summary: VariantDeployment,
@@ -114,30 +138,6 @@ class DeploymentGenerator:
             return None
 
         return summary.get_topology()
-
-    def _get_cinder_backend(
-        self,
-        summary: VariantDeployment,
-        **kwargs: Any
-    ) -> Optional[str]:
-        arguments = self.tools.argument_review
-
-        if not arguments.is_cinder_backend_requested(**kwargs):
-            return None
-
-        return summary.get_cinder_backend()
-
-    def _get_neutron_backend(
-        self,
-        summary: VariantDeployment,
-        **kwargs: Any
-    ) -> Optional[str]:
-        arguments = self.tools.argument_review
-
-        if not arguments.is_network_backend_requested(**kwargs):
-            return None
-
-        return summary.get_neutron_backend()
 
     def _get_ip_version(
         self,
@@ -151,6 +151,18 @@ class DeploymentGenerator:
 
         return summary.get_ip_version()
 
+    def _get_neutron_backend(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
+
+        if not arguments.is_network_backend_requested(**kwargs):
+            return None
+
+        return summary.get_neutron_backend()
+
     def _get_tls_everywhere(
         self,
         summary: VariantDeployment,
@@ -162,3 +174,15 @@ class DeploymentGenerator:
             return None
 
         return summary.get_tls_everywhere()
+
+    def _get_cinder_backend(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
+
+        if not arguments.is_cinder_backend_requested(**kwargs):
+            return None
+
+        return summary.get_cinder_backend()

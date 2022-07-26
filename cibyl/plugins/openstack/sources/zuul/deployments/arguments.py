@@ -40,6 +40,9 @@ class ArgumentReview:
         """
         return any(arg in kwargs for arg in ('spec', 'infra_type'))
 
+    def is_nodes_requested(self, **kwargs: Any) -> bool:
+        return any(arg in kwargs for arg in ('spec', 'nodes'))
+
     def is_topology_requested(self, **kwargs: Any) -> bool:
         """
         :param kwargs: Arguments coming from the CLI.
