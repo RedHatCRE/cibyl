@@ -15,7 +15,9 @@
 """
 import argparse
 import logging
-from typing import Callable, List
+from typing import Callable, List, Optional, Set
+
+import networkx as nx
 
 from cibyl.cli.argument import Argument
 
@@ -47,8 +49,7 @@ class CustomAction(argparse.Action):
         setattr(namespace, self.dest, Argument(
             name=self.dest, description=self.help, arg_type=self.type,
             nargs=self.nargs, level=self.level, func=self.func,
-            ranged=self.ranged, populated=self.populated,
-            value=values))
+            ranged=self.ranged, populated=self.populated, value=values))
 
 
 class Parser:
@@ -67,6 +68,7 @@ class Parser:
             self.app_args = {}
         self.argument_parser = argparse.ArgumentParser()
         self.__add_arguments()
+        self.graph_queries = nx.DiGraph()
 
     def __add_arguments(self) -> None:
         """Creates argparse parser with all its sub-parsers."""
@@ -99,6 +101,24 @@ class Parser:
         arguments that are currently added."""
         self.argument_parser.print_help()
 
+    def add_argument_to_tree(self, arg: Argument,
+                             parent_queries: Set[str]) -> None:
+        """Add argument to the tree of query method relationships. This tree
+        relates query method that have dependencies, e.g. get_jobs and
+        get_builds. Queries are added as nodes and the edges of the graph marks
+        the relationships. Nodes cannot be duplicated and self-links are
+        avoided."""
+        self.graph_queries.add_node(arg.func)
+        for query in parent_queries:
+            if query == arg.func:
+                # avoid creating self-links
+                continue
+            # the add_node and add_edge functions from the networkx are
+            # idempotent, if we add the same node twice, nothing happens in the
+            # second occurrence
+            self.graph_queries.add_node(query)
+            self.graph_queries.add_edge(query, arg.func)
+
     def parse(self, arguments: List[Argument] = None) -> None:
         """Parse application and CI models arguments.
 
@@ -115,13 +135,13 @@ class Parser:
                          arguments.items() if arg_value is not None and not
                          isinstance(arg_value, Argument)}
 
-    def get_group(self, group_name: str) -> argparse._ArgumentGroup:
+    def get_group(self, group_name: str) -> Optional[argparse._ArgumentGroup]:
         """Returns the argument parser group based on a given group_name
 
         :param group_name: The name of the group
 
-        :return: An argparse argument group if it exists and matches
-                 the given group name, otherwise returns None
+        :return: An argparse argument group if it exists and matches the
+        given group name, otherwise returns None
         """
         # pylint: disable=protected-access
         # Access the private member '_action_groups' to check
@@ -132,12 +152,15 @@ class Parser:
         return None
 
     def extend(self, arguments: List[Argument], group_name: str,
-               level: int = 0) -> None:
+               level: int = 0,
+               parent_queries: Optional[Set[str]] = None) -> None:
         """Adds arguments to a specific argument parser group.
 
         :param arguments: A list of argument objects
         :param group_name: The name of the argument parser group
         :param level: The level of the arguments in models
+        :param parent_queries: The query methods of the source that comes
+        before the ones in the arguments to add
         """
         group = self.get_group(group_name)
         # If the group doesn't exists, we would like to add it
@@ -147,6 +170,8 @@ class Parser:
 
         try:
             for arg in arguments:
+                if parent_queries and arg.func:
+                    self.add_argument_to_tree(arg, parent_queries)
                 group.add_argument(
                     arg.name, type=arg.arg_type,
                     help=arg.description, nargs=arg.nargs,
