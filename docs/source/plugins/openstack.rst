@@ -89,7 +89,7 @@ Arguments Matrix
      - |:black_square_button:|
      - |:black_square_button:|
    * - --infra-type
-     - | The infrstructure on which
+     - | The infrastructure on which
        | OS is deployed (e.g. ovb,
        | baremetal, virthost)
      - |:ballot_box_with_check:|
@@ -105,8 +105,15 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
+   * - --nodes
+     - | List of nodes on the topology.
+     - |:ballot_box_with_check:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
    * - --controllers
-     - | Number of controlllers
+     - | Number of controllers
        | (Can be also range: ">=3")
      - |:ballot_box_with_check:|
      - |:black_square_button:|
