@@ -14,10 +14,11 @@
 #    under the License.
 """
 from dataclasses import dataclass
-from typing import Optional
+from typing import Iterable, Optional
 
 from cached_property import cached_property
 
+from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.sources.zuul.deployments.outlines import \
     OutlineCreator
 from cibyl.plugins.openstack.sources.zuul.variants import ReleaseSearch
@@ -99,26 +100,30 @@ class VariantDeployment:
         """
         return self._summary.infra_type
 
+    def get_nodes(self) -> Optional[Iterable[Node]]:
+        """
+        :return: Collection of nodes that form the topology. 'None' is they
+            were not defined.
+        """
+        topology = self._summary.topology
+
+        if not topology:
+            return None
+
+        result = []
+
+        for collection in topology.nodes:
+            for node in collection:
+                result.append(Node(name=node.name))
+
+        return result
+
     def get_topology(self) -> Optional[str]:
         """
         :return: Description of the topology of the deployment. 'None' if it
             is not defined.
         """
         return str(self._summary.topology)
-
-    def get_cinder_backend(self) -> Optional[str]:
-        """
-        :return: Name of the backend that supports the Cinder component.
-            'None' if it is not defined.
-        """
-        return self._summary.cinder_backend
-
-    def get_neutron_backend(self) -> Optional[str]:
-        """
-        :return: Name of the backend that supports the Neutron component.
-            'None' if it is not defined.
-        """
-        return self._summary.neutron_backend
 
     def get_ip_version(self) -> Optional[str]:
         """
@@ -127,12 +132,26 @@ class VariantDeployment:
         """
         return self._summary.ip_version
 
+    def get_neutron_backend(self) -> Optional[str]:
+        """
+        :return: Name of the backend that supports the Neutron component.
+            'None' if it is not defined.
+        """
+        return self._summary.neutron_backend
+
     def get_tls_everywhere(self) -> Optional[str]:
         """
         :return: State of TLS-Everywhere on the deployment. 'None' if it is
             not defined.
         """
         return self._summary.tls_everywhere
+
+    def get_cinder_backend(self) -> Optional[str]:
+        """
+        :return: Name of the backend that supports the Cinder component.
+            'None' if it is not defined.
+        """
+        return self._summary.cinder_backend
 
 
 class VariantDeploymentFactory:

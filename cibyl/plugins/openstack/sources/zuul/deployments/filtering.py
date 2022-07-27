@@ -14,15 +14,23 @@
 #    under the License.
 """
 import functools
-from typing import Callable
+from typing import Callable, Dict, Iterable
 
 from cibyl.cli.argument import Argument
+from cibyl.models.attribute import AttributeValue
 from cibyl.models.model import Model
 from cibyl.plugins.openstack import Deployment
 from cibyl.utils.filtering import matches_regex
 
+Arguments = Dict[str, Argument]
+"""Structure where the input arguments are stored in."""
+
+Pattern = str
+"""Regex pattern to filter by."""
+Check = Callable[[Deployment, Pattern], bool]
+"""Test that a filter performs."""
 Filter = Callable[[Deployment], bool]
-"""Type of the filters stored in this class."""
+"""Type of filters stored in this class."""
 
 
 class DeploymentFiltering:
@@ -43,7 +51,10 @@ class DeploymentFiltering:
         self._filters = filters
 
     @property
-    def filters(self):
+    def filters(self) -> Iterable[Filter]:
+        """
+        :return: Collection of filters hold by this.
+        """
         return self._filters
 
     def add_filters_from(self, **kwargs):
@@ -53,6 +64,10 @@ class DeploymentFiltering:
 
         :param kwargs: The command line arguments.
         """
+        self._handle_simple_args(**kwargs)
+        self._handle_dict_args(**kwargs)
+
+    def _handle_simple_args(self, **kwargs):
         deployment_args = (
             'release',
             'infra_type',
@@ -60,10 +75,10 @@ class DeploymentFiltering:
         )
 
         for arg in deployment_args:
-            self._handle_arg_filter(
+            self._handle_filter_for_simple_arg(
                 arg,
-                lambda dpl: dpl,
-                **kwargs
+                kwargs,
+                lambda dpl: dpl
             )
 
         network_args = (
@@ -72,10 +87,10 @@ class DeploymentFiltering:
         )
 
         for arg in network_args:
-            self._handle_arg_filter(
+            self._handle_filter_for_simple_arg(
                 arg,
-                lambda dpl: dpl.network.value,
-                **kwargs
+                kwargs,
+                lambda dpl: dpl.network.value
             )
 
         storage_args = (
@@ -83,35 +98,84 @@ class DeploymentFiltering:
         )
 
         for arg in storage_args:
-            self._handle_arg_filter(
+            self._handle_filter_for_simple_arg(
                 arg,
-                lambda dpl: dpl.storage.value,
-                **kwargs
+                kwargs,
+                lambda dpl: dpl.storage.value
             )
 
-    def _handle_arg_filter(
+    def _handle_dict_args(self, **kwargs):
+        deployment_args = (
+            'nodes',
+        )
+
+        for arg in deployment_args:
+            self._handle_filter_for_dict_arg(
+                arg,
+                kwargs,
+                lambda dpl: dpl,
+                lambda mdl: mdl.name
+            )
+
+    def _handle_filter_for_simple_arg(
         self,
         arg: str,
-        attr: Callable[[Deployment], Model],
-        **kwargs: Argument
-    ) -> None:
-        if arg not in kwargs:
-            return
+        args: Arguments,
+        get_model: Callable[[Deployment], Model]
+    ):
+        for pattern in self._get_patterns(arg, args):
+            self._add_filter_for_simple_arg(arg, pattern, get_model)
 
-        patterns = kwargs[arg].value
+    def _handle_filter_for_dict_arg(
+        self,
+        arg: str,
+        args: Arguments,
+        get_model: Callable[[Deployment], Model],
+        get_attr: Callable[[Model], AttributeValue]
+    ):
+        for pattern in self._get_patterns(arg, args):
+            self._add_filter_for_dict_arg(arg, pattern, get_model, get_attr)
 
-        if not patterns:
-            return
-
-        for pattern in patterns:
-            self.filters.append(
-                functools.partial(
-                    lambda dpl, pat: matches_regex(
-                        pat, getattr(attr(dpl), arg).value
-                    ),
-                    pat=pattern
-                )
+    def _add_filter_for_simple_arg(
+        self,
+        arg: str,
+        pattern: Pattern,
+        get_model: Callable[[Deployment], Model]
+    ):
+        def check(dpl, pttrn):
+            return matches_regex(
+                pattern=pttrn,
+                string=getattr(get_model(dpl), arg).value
             )
+
+        self._filters.append(self._new_filter_from_check(check, pattern))
+
+    def _add_filter_for_dict_arg(
+        self,
+        arg: str,
+        pattern: Pattern,
+        get_model: Callable[[Deployment], Model],
+        get_attr: Callable[[Model], AttributeValue]
+    ):
+        def check(dpl, pttrn):
+            return any(
+                matches_regex(pttrn, str(get_attr(model).value))
+                for model in getattr(get_model(dpl), arg).value.values()
+            )
+
+        self._filters.append(self._new_filter_from_check(check, pattern))
+
+    def _get_patterns(self, arg: str, args: Arguments) -> Iterable[Pattern]:
+        if arg not in args:
+            return ()
+
+        return args[arg].value
+
+    def _new_filter_from_check(self, check: Check, pattern: Pattern) -> Filter:
+        return functools.partial(
+            lambda dpl, pttrn, *_: check(dpl, pttrn),
+            pttrn=pattern
+        )
 
     def is_valid_deployment(self, deployment):
         """Checks whether a deployment is valid and should be returned as
