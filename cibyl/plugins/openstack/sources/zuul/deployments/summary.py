@@ -14,7 +14,7 @@
 #    under the License.
 """
 from dataclasses import dataclass
-from typing import Optional, Iterable
+from typing import Iterable, Optional
 
 from cached_property import cached_property
 

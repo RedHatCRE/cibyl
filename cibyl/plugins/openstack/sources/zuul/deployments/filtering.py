@@ -14,7 +14,7 @@
 #    under the License.
 """
 import functools
-from typing import Callable, Iterable, Dict
+from typing import Callable, Dict, Iterable
 
 from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeValue

@@ -14,7 +14,7 @@
 #    under the License.
 """
 from dataclasses import dataclass
-from typing import Any, Optional, Dict
+from typing import Any, Dict, Optional
 
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.network import Network
