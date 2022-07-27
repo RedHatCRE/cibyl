@@ -17,6 +17,7 @@ import functools
 from typing import Callable, Iterable, Dict
 
 from cibyl.cli.argument import Argument
+from cibyl.models.attribute import AttributeValue
 from cibyl.models.model import Model
 from cibyl.plugins.openstack import Deployment
 from cibyl.utils.filtering import matches_regex
@@ -57,6 +58,10 @@ class DeploymentFiltering:
 
         :param kwargs: The command line arguments.
         """
+        self._handle_simple_args(**kwargs)
+        self._handle_dict_args(**kwargs)
+
+    def _handle_simple_args(self, **kwargs):
         deployment_args = (
             'release',
             'infra_type',
@@ -93,14 +98,37 @@ class DeploymentFiltering:
                 lambda dpl: dpl.storage.value
             )
 
+    def _handle_dict_args(self, **kwargs):
+        deployment_args = (
+            'nodes',
+        )
+
+        for arg in deployment_args:
+            self._handle_filter_for_dict_arg(
+                arg,
+                kwargs,
+                lambda dpl: dpl,
+                lambda mdl: mdl.name
+            )
+
     def _handle_filter_for_str_arg(
         self,
         arg: str,
         args: Arguments,
         get_model: Callable[[Deployment], Model]
-    ) -> None:
+    ):
         for pattern in self._get_patterns(arg, args):
             self._add_filter_for_str_arg(arg, pattern, get_model)
+
+    def _handle_filter_for_dict_arg(
+        self,
+        arg: str,
+        args: Arguments,
+        get_model: Callable[[Deployment], Model],
+        get_attr: Callable[[Model], AttributeValue]
+    ):
+        for pattern in self._get_patterns(arg, args):
+            self._add_filter_for_dict_arg(arg, pattern, get_model, get_attr)
 
     def _add_filter_for_str_arg(
         self,
@@ -112,6 +140,21 @@ class DeploymentFiltering:
             return matches_regex(
                 pattern=pttrn,
                 string=getattr(get_model(dpl), arg).value
+            )
+
+        self._filters.append(self._new_filter_from_check(check, pattern))
+
+    def _add_filter_for_dict_arg(
+        self,
+        arg: str,
+        pattern: Pattern,
+        get_model: Callable[[Deployment], Model],
+        get_attr: Callable[[Model], AttributeValue]
+    ):
+        def check(dpl, pttrn):
+            return any(
+                matches_regex(pttrn, str(get_attr(model).value))
+                for model in getattr(get_model(dpl), arg).value.values()
             )
 
         self._filters.append(self._new_filter_from_check(check, pattern))
