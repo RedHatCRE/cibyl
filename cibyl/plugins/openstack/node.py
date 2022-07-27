@@ -35,8 +35,7 @@ class Node(Model):
     API = {
         'name': {
             'attr_type': str,
-            'arguments': [Argument(name='--node-name', arg_type=str,
-                                   description="Node name")]
+            'arguments': []
         },
         'role': {
             'attr_type': str,

@@ -53,7 +53,7 @@ class Deployment(Model):
             'attr_type': Node,
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--nodes', arg_type=str,
-                                   nargs='*',
+                                   func='get_deployment', nargs='*',
                                    description="Nodes on the deployment"),
                           Argument(name='--controllers', arg_type=str,
                                    func='get_deployment', nargs='*',
