@@ -108,8 +108,8 @@ class VariantDeployment:
 
         result = []
 
-        for nodes in topology.nodes:
-            for node in nodes:
+        for collection in topology.nodes:
+            for node in collection:
                 result.append(Node(name=node.name))
 
         return result

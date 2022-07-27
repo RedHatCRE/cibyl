@@ -24,7 +24,7 @@ class TestArgumentReview(TestCase):
     """
 
     def test_is_release_requested(self):
-        """Checks the conditions requires for the release to be requested.
+        """Checks the conditions required for the release to be requested.
         """
         review = ArgumentReview()
 
@@ -34,7 +34,7 @@ class TestArgumentReview(TestCase):
         self.assertTrue(review.is_release_requested(**{'spec': None}))
 
     def test_is_infra_type_requested(self):
-        """Checks the conditions requires for the infra type to be requested.
+        """Checks the conditions required for the infra type to be requested.
         """
         review = ArgumentReview()
 
@@ -43,8 +43,19 @@ class TestArgumentReview(TestCase):
         self.assertTrue(review.is_infra_type_requested(**{'infra_type': None}))
         self.assertTrue(review.is_infra_type_requested(**{'spec': None}))
 
+    def test_is_nodes_requested(self):
+        """Checks the conditions required for the nodes list to be
+        requested.
+        """
+        review = ArgumentReview()
+
+        self.assertFalse(review.is_nodes_requested(**{}))
+
+        self.assertTrue(review.is_nodes_requested(**{'nodes': None}))
+        self.assertTrue(review.is_nodes_requested(**{'spec': None}))
+
     def test_is_topology_requested(self):
-        """Checks the conditions requires for the topology to be requested.
+        """Checks the conditions required for the topology to be requested.
         """
         review = ArgumentReview()
 
@@ -54,7 +65,7 @@ class TestArgumentReview(TestCase):
         self.assertTrue(review.is_topology_requested(**{'spec': None}))
 
     def test_is_cinder_backend_requested(self):
-        """Checks the conditions requires for the cinder backend to be
+        """Checks the conditions required for the cinder backend to be
         requested.
         """
         review = ArgumentReview()
@@ -72,7 +83,7 @@ class TestArgumentReview(TestCase):
         )
 
     def test_is_network_backend_requested(self):
-        """Checks the conditions requires for the network backend to be
+        """Checks the conditions required for the network backend to be
         requested.
         """
         review = ArgumentReview()
@@ -90,7 +101,7 @@ class TestArgumentReview(TestCase):
         )
 
     def test_is_ip_version_requested(self):
-        """Checks the conditions requires for the ip version to be requested.
+        """Checks the conditions required for the ip version to be requested.
         """
         review = ArgumentReview()
 
