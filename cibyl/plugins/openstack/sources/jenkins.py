@@ -250,7 +250,9 @@ class Jenkins(SourceExtension):
                 return True
         return False
 
-    @speed_index({'base': 2})
+    @speed_index({'base': 2, 'release': 3, 'infra_type': 3, 'spec': 3,
+                  'ironic_inspector': 3, 'controllers': 3, 'computes': 3,
+                  'ml2_driver': 3, 'containers': 3, 'services': 3})
     def get_deployment(self, **kwargs) -> AttributeDictValue:
         """Get deployment information for jobs from jenkins server.
 
