@@ -101,6 +101,10 @@ class VariantDeployment:
         return self._summary.infra_type
 
     def get_nodes(self) -> Optional[Iterable[Node]]:
+        """
+        :return: Collection of nodes that form the topology. 'None' is they
+            were not defined.
+        """
         topology = self._summary.topology
 
         if not topology:

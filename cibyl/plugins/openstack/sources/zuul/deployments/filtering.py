@@ -23,11 +23,14 @@ from cibyl.plugins.openstack import Deployment
 from cibyl.utils.filtering import matches_regex
 
 Arguments = Dict[str, Argument]
+"""Structure where the input arguments are stored in."""
 
 Pattern = str
+"""Regex pattern to filter by."""
 Check = Callable[[Deployment, Pattern], bool]
+"""Test that a filter performs."""
 Filter = Callable[[Deployment], bool]
-"""Type of the filters stored in this class."""
+"""Type of filters stored in this class."""
 
 
 class DeploymentFiltering:
@@ -49,6 +52,9 @@ class DeploymentFiltering:
 
     @property
     def filters(self) -> Iterable[Filter]:
+        """
+        :return: Collection of filters hold by this.
+        """
         return self._filters
 
     def add_filters_from(self, **kwargs):
@@ -69,7 +75,7 @@ class DeploymentFiltering:
         )
 
         for arg in deployment_args:
-            self._handle_filter_for_str_arg(
+            self._handle_filter_for_simple_arg(
                 arg,
                 kwargs,
                 lambda dpl: dpl
@@ -81,7 +87,7 @@ class DeploymentFiltering:
         )
 
         for arg in network_args:
-            self._handle_filter_for_str_arg(
+            self._handle_filter_for_simple_arg(
                 arg,
                 kwargs,
                 lambda dpl: dpl.network.value
@@ -92,7 +98,7 @@ class DeploymentFiltering:
         )
 
         for arg in storage_args:
-            self._handle_filter_for_str_arg(
+            self._handle_filter_for_simple_arg(
                 arg,
                 kwargs,
                 lambda dpl: dpl.storage.value
@@ -111,14 +117,14 @@ class DeploymentFiltering:
                 lambda mdl: mdl.name
             )
 
-    def _handle_filter_for_str_arg(
+    def _handle_filter_for_simple_arg(
         self,
         arg: str,
         args: Arguments,
         get_model: Callable[[Deployment], Model]
     ):
         for pattern in self._get_patterns(arg, args):
-            self._add_filter_for_str_arg(arg, pattern, get_model)
+            self._add_filter_for_simple_arg(arg, pattern, get_model)
 
     def _handle_filter_for_dict_arg(
         self,
@@ -130,7 +136,7 @@ class DeploymentFiltering:
         for pattern in self._get_patterns(arg, args):
             self._add_filter_for_dict_arg(arg, pattern, get_model, get_attr)
 
-    def _add_filter_for_str_arg(
+    def _add_filter_for_simple_arg(
         self,
         arg: str,
         pattern: Pattern,
