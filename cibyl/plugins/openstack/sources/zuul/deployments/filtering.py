@@ -53,6 +53,9 @@ class DeploymentFiltering:
 
         :param kwargs: The command line arguments.
         """
+        self._add_str_filters(**kwargs)
+
+    def _add_str_filters(self, **kwargs):
         deployment_args = (
             'release',
             'infra_type',
@@ -60,7 +63,7 @@ class DeploymentFiltering:
         )
 
         for arg in deployment_args:
-            self._handle_arg_filter(
+            self._add_str_filter(
                 arg,
                 lambda dpl: dpl,
                 **kwargs
@@ -72,7 +75,7 @@ class DeploymentFiltering:
         )
 
         for arg in network_args:
-            self._handle_arg_filter(
+            self._add_str_filter(
                 arg,
                 lambda dpl: dpl.network.value,
                 **kwargs
@@ -83,13 +86,13 @@ class DeploymentFiltering:
         )
 
         for arg in storage_args:
-            self._handle_arg_filter(
+            self._add_str_filter(
                 arg,
                 lambda dpl: dpl.storage.value,
                 **kwargs
             )
 
-    def _handle_arg_filter(
+    def _add_str_filter(
         self,
         arg: str,
         attr: Callable[[Deployment], Model],
