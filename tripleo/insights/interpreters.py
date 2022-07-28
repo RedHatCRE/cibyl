@@ -17,12 +17,15 @@ from abc import ABC
 from enum import Enum
 from typing import Dict, Iterable, NamedTuple, Optional, Sequence
 
+from tripleo import __path__ as tripleo_package_path
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
 from tripleo.insights.topology import Node
 from tripleo.utils.fs import File
 from tripleo.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
 from tripleo.utils.yaml import YAML
+
+TRIPLEO_PATH = tripleo_package_path[0]
 
 
 class FileInterpreter(ABC):
@@ -97,7 +100,7 @@ class EnvironmentInterpreter(FileInterpreter):
     def __init__(
         self,
         data: YAML,
-        schema: File = File('tripleo/_data/schemas/environment.json'),
+        schema: File = File(f'{TRIPLEO_PATH}/_data/schemas/environment.json'),
         overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
@@ -141,7 +144,7 @@ class FeatureSetInterpreter(FileInterpreter):
     def __init__(
         self,
         data: YAML,
-        schema: File = File('tripleo/_data/schemas/featureset.json'),
+        schema: File = File(f'{TRIPLEO_PATH}/_data/schemas/featureset.json'),
         overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
@@ -253,7 +256,7 @@ class NodesInterpreter(FileInterpreter):
     def __init__(
         self,
         data: YAML,
-        schema: File = File('tripleo/_data/schemas/nodes.json'),
+        schema: File = File(f'{TRIPLEO_PATH}/_data/schemas/nodes.json'),
         overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
@@ -325,7 +328,7 @@ class ReleaseInterpreter(FileInterpreter):
     def __init__(
         self,
         data: YAML,
-        schema: File = File('tripleo/_data/schemas/release.json'),
+        schema: File = File(f'{TRIPLEO_PATH}/_data/schemas/release.json'),
         overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
@@ -454,7 +457,7 @@ class ScenarioInterpreter(FileInterpreter):
     def __init__(
         self,
         data: YAML,
-        schema: File = File('tripleo/_data/schemas/scenario.json'),
+        schema: File = File(f'{TRIPLEO_PATH}/_data/schemas/scenario.json'),
         overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):

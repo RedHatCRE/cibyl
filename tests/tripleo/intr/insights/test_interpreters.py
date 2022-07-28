@@ -13,8 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from tempfile import TemporaryDirectory
 from unittest import TestCase
 
+from tests.tripleo.intr.utils import cd_context_manager
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.interpreters import (EnvironmentInterpreter,
                                            FeatureSetInterpreter,
@@ -37,6 +39,16 @@ class TestEnvironmentInterpreter(TestCase):
         with self.assertRaises(IllegibleData):
             EnvironmentInterpreter(data)
 
+    def test_default_schema_path_outside_repo(self):
+        """Test that the default path for the schema file can be read properly
+        from a random directory, different from the cibyl source directory."""
+
+        data = {}
+
+        with TemporaryDirectory() as tempdir:
+            with cd_context_manager(tempdir):
+                EnvironmentInterpreter(data)
+
 
 class TestFeatureSetInterpreter(TestCase):
     """Tests for :class:`FeatureSetInterpreter`.
@@ -52,6 +64,16 @@ class TestFeatureSetInterpreter(TestCase):
 
         with self.assertRaises(IllegibleData):
             FeatureSetInterpreter(data)
+
+    def test_default_schema_path_outside_repo(self):
+        """Test that the default path for the schema file can be read properly
+        from a random directory, different from the cibyl source directory."""
+
+        data = {}
+
+        with TemporaryDirectory() as tempdir:
+            with cd_context_manager(tempdir):
+                FeatureSetInterpreter(data)
 
 
 class TestNodesInterpreter(TestCase):
@@ -69,6 +91,16 @@ class TestNodesInterpreter(TestCase):
         with self.assertRaises(IllegibleData):
             NodesInterpreter(data)
 
+    def test_default_schema_path_outside_repo(self):
+        """Test that the default path for the schema file can be read properly
+        from a random directory, different from the cibyl source directory."""
+
+        data = {}
+
+        with TemporaryDirectory() as tempdir:
+            with cd_context_manager(tempdir):
+                NodesInterpreter(data)
+
 
 class TestReleaseInterpreter(TestCase):
     """Tests for :class:`TestReleaseInterpreter`.
@@ -83,3 +115,13 @@ class TestReleaseInterpreter(TestCase):
 
         with self.assertRaises(IllegibleData):
             ReleaseInterpreter(data)
+
+    def test_default_schema_path_outside_repo(self):
+        """Test that the default path for the schema file can be read properly
+        from a random directory, different from the cibyl source directory."""
+
+        data = {}
+
+        with TemporaryDirectory() as tempdir:
+            with cd_context_manager(tempdir):
+                ReleaseInterpreter(data)

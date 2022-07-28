@@ -13,3 +13,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+
+import os
+from contextlib import contextmanager
+
+
+@contextmanager
+def cd_context_manager(path):
+    old_dir = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(old_dir)
