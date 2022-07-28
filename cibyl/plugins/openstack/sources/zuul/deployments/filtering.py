@@ -17,6 +17,7 @@ import functools
 from typing import Callable, Dict, Iterable
 
 from cibyl.cli.argument import Argument
+from cibyl.cli.ranged_argument import Range
 from cibyl.models.attribute import AttributeValue
 from cibyl.models.model import Model
 from cibyl.plugins.openstack import Deployment
@@ -66,6 +67,7 @@ class DeploymentFiltering:
         """
         self._handle_simple_args(**kwargs)
         self._handle_dict_args(**kwargs)
+        self._handle_ranged_args(**kwargs)
 
     def _handle_simple_args(self, **kwargs):
         deployment_args = (
@@ -117,14 +119,26 @@ class DeploymentFiltering:
                 lambda mdl: mdl.name
             )
 
+    def _handle_ranged_args(self, **kwargs):
+        deployment_args = (
+            'controllers',
+        )
+
+        for arg in deployment_args:
+            self._handle_filter_for_ranged_arg(
+                arg,
+                kwargs,
+                lambda dpl: dpl
+            )
+
     def _handle_filter_for_simple_arg(
         self,
         arg: str,
         args: Arguments,
         get_model: Callable[[Deployment], Model]
     ):
-        for pattern in self._get_patterns(arg, args):
-            self._add_filter_for_simple_arg(arg, pattern, get_model)
+        for pttrn in self._get_patterns(arg, args):
+            self._add_filter_for_simple_arg(arg, pttrn, get_model)
 
     def _handle_filter_for_dict_arg(
         self,
@@ -133,8 +147,29 @@ class DeploymentFiltering:
         get_model: Callable[[Deployment], Model],
         get_attr: Callable[[Model], AttributeValue]
     ):
-        for pattern in self._get_patterns(arg, args):
-            self._add_filter_for_dict_arg(arg, pattern, get_model, get_attr)
+        for pttrn in self._get_patterns(arg, args):
+            self._add_filter_for_dict_arg(arg, pttrn, get_model, get_attr)
+
+    def _get_patterns(self, arg: str, args: Arguments) -> Iterable[Pattern]:
+        if arg not in args:
+            return ()
+
+        return args[arg].value
+
+    def _handle_filter_for_ranged_arg(
+        self,
+        arg: str,
+        args: Arguments,
+        get_model: Callable[[Deployment], Model]
+    ):
+        for rng in self._get_ranges(arg, args):
+            self._add_filter_for_ranged_arg(arg, rng, get_model)
+
+    def _get_ranges(self, arg: str, args: Arguments) -> Iterable[Range]:
+        if arg not in args:
+            return ()
+
+        return args[arg].value
 
     def _add_filter_for_simple_arg(
         self,
@@ -165,11 +200,14 @@ class DeploymentFiltering:
 
         self._filters.append(self._new_filter_from_check(check, pattern))
 
-    def _get_patterns(self, arg: str, args: Arguments) -> Iterable[Pattern]:
-        if arg not in args:
-            return ()
-
-        return args[arg].value
+    def _add_filter_for_ranged_arg(
+        self,
+        arg: str,
+        range: Range,
+        get_model: Callable[[Deployment], Model]
+    ):
+        def check(dpl, pttrn):
+            pass
 
     def _new_filter_from_check(self, check: Check, pattern: Pattern) -> Filter:
         return functools.partial(

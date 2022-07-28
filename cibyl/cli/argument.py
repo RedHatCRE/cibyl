@@ -28,7 +28,8 @@ class Argument():
     def __init__(self, name: str, arg_type: Union[Type, argparse.FileType],
                  description: str, nargs: Union[str, int] = 1,
                  func: str = None, populated: bool = False, level: int = 0,
-                 ranged: bool = False, value: List[str] = None,
+                 ranged: bool = False,
+                 value: Union[List[str], List[Range]] = None,
                  default: object = None, choices: Optional[Iterable] = None):
         self.name = name
 
