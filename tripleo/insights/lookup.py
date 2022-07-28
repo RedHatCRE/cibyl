@@ -189,14 +189,15 @@ class DeploymentLookUp:
         result.infra_type = environment.get_intra_type()
         result.topology = nodes.get_topology()
 
-        result.ip_version = '4'
-        result.tls_everywhere = 'Off'
+        # Giving default values
+        result.components.neutron.ip_version = '4'
+        result.components.neutron.tls_everywhere = 'Off'
 
         if featureset.is_ipv6():
-            result.ip_version = '6'
+            result.components.neutron.ip_version = '6'
 
         if featureset.is_tls_everywhere_enabled():
-            result.tls_everywhere = 'On'
+            result.components.neutron.tls_everywhere = 'On'
 
         # Take care of the scenario file too
         if featureset.get_scenario():
@@ -204,7 +205,7 @@ class DeploymentLookUp:
                 outline, featureset, release
             )
 
-            result.cinder_backend = scenario.get_cinder_backend()
-            result.neutron_backend = scenario.get_neutron_backend()
+            result.components.cinder.backend = scenario.get_cinder_backend()
+            result.components.neutron.backend = scenario.get_neutron_backend()
 
         return result
