@@ -17,7 +17,7 @@ import functools
 from typing import Callable, Dict, Iterable
 
 from cibyl.cli.argument import Argument
-from cibyl.cli.ranged_argument import Range, RANGE_OPERATORS
+from cibyl.cli.ranged_argument import RANGE_OPERATORS, Range
 from cibyl.models.attribute import AttributeValue
 from cibyl.models.model import Model
 from cibyl.plugins.openstack import Deployment
