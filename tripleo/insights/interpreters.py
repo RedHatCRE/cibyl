@@ -388,7 +388,9 @@ class ScenarioInterpreter(FileInterpreter):
             """Defines all the fields related to the neutron component.
             """
             backend: str = 'NeutronNetworkType'
-            """Keys pointing to the tenant network type."""
+            """Key pointing to the tenant network type."""
+            ml2_driver: str = 'NeutronMechanismDrivers'
+            """Key pointing to the mechanism drivers for the tenant network."""
 
         parameters: str = 'parameter_defaults'
         """Level at which the parameters are defined."""
@@ -450,6 +452,8 @@ class ScenarioInterpreter(FileInterpreter):
         """Default backend supporting cinder."""
         neutron_backend: str = 'geneve'
         """Default backend supporting neutron."""
+        ml2_driver: str = 'ovn'
+        """Default ml2 driver."""
 
     def __init__(
         self,
@@ -546,6 +550,21 @@ class ScenarioInterpreter(FileInterpreter):
 
         if key not in self._parameters:
             # The backend is not defined on the file
+            return default
+
+        return self._parameters[key]
+
+    def get_ml2_driver(self) -> str:
+        """
+        :return: Comma delimited list with the names of the ml2 drivers
+            configured for Neutron. If none are defined, then this will fall
+            back to OVN.
+        """
+        key = self.keys.neutron.ml2_driver
+        default = self.defaults.ml2_driver
+
+        if key not in self._parameters:
+            # The drivers are not defined on the file
             return default
 
         return self._parameters[key]

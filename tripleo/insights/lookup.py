@@ -207,5 +207,6 @@ class DeploymentLookUp:
 
             result.components.cinder.backend = scenario.get_cinder_backend()
             result.components.neutron.backend = scenario.get_neutron_backend()
+            result.components.neutron.ml2_driver = scenario.get_ml2_driver()
 
         return result
