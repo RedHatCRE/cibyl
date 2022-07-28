@@ -112,9 +112,10 @@ class VariantDeployment:
 
         result = []
 
-        for collection in topology.nodes:
-            for node in collection:
-                result.append(Node(name=node.name))
+        # Call to private function is allowed on named tuples
+        for role, nodes in topology.nodes._asdict().items():
+            for node in nodes:
+                result.append(Node(name=node.name, role=role))
 
         return result
 

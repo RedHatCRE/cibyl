@@ -51,6 +51,7 @@ class TestArgumentReview(TestCase):
 
         self.assertFalse(review.is_nodes_requested(**{}))
 
+        self.assertTrue(review.is_nodes_requested(**{'controllers': None}))
         self.assertTrue(review.is_nodes_requested(**{'nodes': None}))
         self.assertTrue(review.is_nodes_requested(**{'spec': None}))
 
