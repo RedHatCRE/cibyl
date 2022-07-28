@@ -16,12 +16,12 @@
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
-from tests.tripleo.intr.utils import cd_context_manager
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.interpreters import (EnvironmentInterpreter,
                                            FeatureSetInterpreter,
                                            NodesInterpreter,
                                            ReleaseInterpreter)
+from tripleo.utils.fs import cd_context_manager
 
 
 class TestEnvironmentInterpreter(TestCase):
