@@ -40,6 +40,14 @@ class ArgumentReview:
         """
         return any(arg in kwargs for arg in ('spec', 'infra_type'))
 
+    def is_nodes_requested(self, **kwargs: Any) -> bool:
+        """
+        :param kwargs: Arguments coming from the CLI.
+        :return: True if the user requested the nodes to be part of the
+            deployment, False if not.
+        """
+        return any(arg in kwargs for arg in ('spec', 'nodes'))
+
     def is_topology_requested(self, **kwargs: Any) -> bool:
         """
         :param kwargs: Arguments coming from the CLI.
@@ -56,6 +64,14 @@ class ArgumentReview:
         """
         return any(arg in kwargs for arg in ('spec', 'cinder_backend'))
 
+    def is_network_backend_requested(self, **kwargs: Any) -> bool:
+        """
+        :param kwargs: Arguments coming from the CLI.
+        :return: True if the user requested the network backend to be part
+            of the deployment, False if not.
+        """
+        return any(arg in kwargs for arg in ('spec', 'network_backend'))
+
     def is_ip_version_requested(self, **kwargs: Any) -> bool:
         """
         :param kwargs: Arguments coming from the CLI.
@@ -63,6 +79,14 @@ class ArgumentReview:
             deployment, False if not.
         """
         return any(arg in kwargs for arg in ('spec', 'ip_version'))
+
+    def is_tls_everywhere_requested(self, **kwargs: Any) -> bool:
+        """
+        :param kwargs: Arguments coming from the CLI.
+        :return: True if the user requested tls everywhere to be part of the
+            deployment, False if not.
+        """
+        return any(arg in kwargs for arg in ('spec',))
 
 
 class SpecArgumentHandler:

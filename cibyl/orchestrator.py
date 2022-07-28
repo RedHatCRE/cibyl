@@ -18,7 +18,9 @@ import operator
 import re
 import time
 from copy import deepcopy
-from typing import List, Optional
+from typing import List, Optional, Set
+
+import networkx as nx
 
 import cibyl.exceptions.config as conf_exc
 from cibyl.cli.argument import Argument
@@ -200,26 +202,57 @@ class Orchestrator:
             system.populate(features_combination)
 
     def sort_and_filter_args(self) -> List[Argument]:
-        """Get a list of arguments that provide the queries that the sources
-        should perform. This requires filtering out the argument that have no
-        func associated, sorting the arguments by level and then making sure
-        that only one of the arguments is kept if many point to the same query
-        (e.g --builds and --build-status).
-        :returns: List of arguments that contain queries for the sources
-        """
-        args_with_query = {name: arg for name, arg in
-                           self.parser.ci_args.items() if arg.func}
-        sorted_args = sorted(args_with_query.values(),
-                             key=operator.attrgetter('level'), reverse=True)
-        queries = set()
-        final_args_to_query = []
-        for arg in sorted_args:
-            if arg.func not in queries:
-                queries.add(arg.func)
-                final_args_to_query.append(arg)
-        return final_args_to_query
+        """Select which arguments should be used to query the sources.
 
-    def run_query(self, system: System, start_level: int = 1) -> None:
+        The algorithm used filters out the arguments with no func attribute,
+        then sorts the remaining ones by level. For each argument the shortest
+        path to a root node in the graph of queries is constructed and all
+        input arguments with func values contained in that path are
+        eliminated. When all input arguments have been consumed, the remaining
+        arguments in the queries list are the deepes nodes in each branch of
+        the queries graph, which corresponds to the queries that should be
+        made to the sources.
+
+        :returns: List of arguments that contain the queries to make to the
+        sources.
+        """
+
+        args = [arg for arg in self.parser.ci_args.values() if arg.func]
+        sorted_args = sorted(args,
+                             key=operator.attrgetter('level'), reverse=True)
+        nodes_visited = set()
+        graph = self.parser.graph_queries
+        # the roots fo the graph will be those nodes that have no incoming
+        # edge, and thus their in_degree is zero. Essentially, this means that
+        # a root node will not have any parent method, like get_jobs for
+        # JobsSystem and get_tenants for ZuulSystems
+        roots = list(v for v, d in graph.in_degree() if d == 0)
+        queries = []
+        while sorted_args:
+            arg = sorted_args.pop(0)
+            if arg.func in nodes_visited:
+                # if the func was found in the path for a previous argument,
+                # skip it
+                continue
+            nodes_visited.add(arg.func)
+            queries.append(arg)
+            for root in roots:
+                # all the nodes in the path from the argument's func to a root
+                # node need not be queried
+                for path_to_arg in nx.all_simple_paths(graph, source=root,
+                                                       target=arg.func):
+                    # handle the case where there might be more than one path
+                    # between the node and the root, e.g. get_jobs has two
+                    # paths to the root (get_tenants). path_to_arg is a list of
+                    # the intermediate nodes (query methods) between the arg
+                    # and the root node, all those query method will not need
+                    # to be called, so the nodes_visited set is updated with
+                    # them so the arguments can be filtered accordingly
+                    nodes_visited.update(path_to_arg)
+
+        return queries
+
+    def run_query(self, system: System) -> None:
         """Execute query based on provided arguments."""
         if not system.is_enabled():
             return
@@ -231,61 +264,70 @@ class Orchestrator:
         system_args = system.export_attributes_to_source()
         ci_args = self.parser.ci_args
         query_result = None
-        last_level = -1
         for arg in sorted_args:
-            if arg.level >= start_level and arg.level >= last_level:
-                # we update last_level if the the arg has a func attribute
-                # and valid sources to query
-                last_level = arg.level
+            try:
+                source_methods = select_source_method(system, arg.func,
+                                                      **ci_args)
+            except NoSupportedSourcesFound as exception:
+                # if no sources are found in the system for this
+                # particular query, jump to the next one without
+                # stopping execution
+                LOG.error(exception, exc_info=debug)
+                continue
+            for source_method, speed_score in source_methods:
+                source_info = source_information_from_method(
+                        source_method)
+                source_obj = get_source_instance_from_method(source_method)
+                source_obj.ensure_source_setup()
+                start_time = time.time()
+                LOG.info("Performing query on system %s", system.name)
+                LOG.debug("Running %s and speed index %d",
+                          source_info, speed_score)
                 try:
-                    source_methods = select_source_method(system, arg.func,
-                                                          **ci_args)
-                except NoSupportedSourcesFound as exception:
-                    # if no sources are found in the system for this
-                    # particular query, jump to the next one without
-                    # stopping execution
-                    LOG.error(exception, exc_info=debug)
+                    with StatusBar(f"Performing query ({system.name})"):
+                        model_instances_dict = source_method(
+                            **ci_args, **self.parser.app_args,
+                            **system_args)
+                except SourceException as exception:
+                    LOG.error("Error in %s under system: '%s'. "
+                              "Reason: '%s'.",
+                              source_info, system.name.value,
+                              exception, exc_info=debug)
                     continue
-                for source_method, speed_score in source_methods:
-                    source_info = source_information_from_method(
-                            source_method)
-                    source_obj = get_source_instance_from_method(source_method)
-                    source_obj.ensure_source_setup()
-                    start_time = time.time()
-                    LOG.info("Performing query on system %s", system.name)
-                    LOG.debug("Running %s and speed index %d",
-                              source_info, speed_score)
-                    try:
-                        with StatusBar(f"Performing query ({system.name})"):
-                            model_instances_dict = source_method(
-                                **ci_args, **self.parser.app_args,
-                                **system_args)
-                    except SourceException as exception:
-                        LOG.error("Error in %s under system: '%s'. "
-                                  "Reason: '%s'.",
-                                  source_info, system.name.value,
-                                  exception, exc_info=debug)
-                        continue
-                    if query_result is None:
-                        query_result = model_instances_dict
-                    else:
-                        query_result = intersect_models(query_result,
-                                                        model_instances_dict)
-                    end_time = time.time()
-                    LOG.info("Took %.2fs to query system %s using %s",
-                             end_time-start_time, system.name.value,
-                             source_info)
-                    system.register_query()
-                    # if one source has provided the information, there is
-                    # no need to query the rest
-                    break
+                if query_result is None:
+                    query_result = model_instances_dict
+                else:
+                    query_result = intersect_models(query_result,
+                                                    model_instances_dict)
+                end_time = time.time()
+                LOG.info("Took %.2fs to query system %s using %s",
+                         end_time-start_time, system.name.value,
+                         source_info)
+                system.register_query()
+                # if one source has provided the information, there is
+                # no need to query the rest
+                break
         if query_result:
             # if no source could be called, there is nothing to add
             system.populate(query_result)
 
     def extend_parser(self, attributes: dict, group_name: str = 'Environment',
-                      level: int = 0) -> None:
-        """Extend parser with arguments from CI models."""
+                      level: int = 0,
+                      parent_queries: Optional[Set[str]] = None) -> None:
+        """
+        Extend parser with arguments from CI models.
+
+        :param attributes: Dictionary containing the relevant attributes of
+        a Model subclass, corresponds to the Model API.
+        :param group_name: Name to use for the group of arguments in the
+        command line help message
+        :param level: Level of the arguments, it increases as a new Model API
+        is explored and is used later to filter the user arguments and form
+        queries for the sources
+        :param parent_queries: Sources' query methods that have a dependency
+        relationship with the query methods associated with the arguments
+        found in the attributes dictionary
+        """
         for attr_dict in attributes.values():
             arguments = attr_dict.get('arguments')
             class_type = attr_dict.get('attr_type')
@@ -294,19 +336,34 @@ class Orchestrator:
             if has_api:
                 # API entry is related to a model that has an API
                 new_group_name = class_type.__name__
+                next_parent_queries = parent_queries
                 if arguments:
-                    # add the arguments found in the current entry, but relate
-                    # them to the model
+                    # add the arguments found in the current entry, but
+                    # group them to the model they relate to
                     self.parser.extend(arguments, new_group_name,
-                                       level=level+1)
+                                       level=level+1,
+                                       parent_queries=parent_queries)
+
+                    # generate a set of all query method associated with
+                    # the arguments
+                    query_methods = {arg.func for arg in arguments
+                                     if arg.func is not None}
+                    if query_methods:
+                        # if we found some query method in the arguments,
+                        # set it up as the parent_func to use when
+                        # recursing to explore the next Model's API
+                        next_parent_queries = query_methods
+
                 # explore the API of the model found, even if there are no
                 # arguments
                 self.extend_parser(class_type.API, new_group_name,
-                                   level=level+1)
+                                   level=level+1,
+                                   parent_queries=next_parent_queries)
             elif arguments:
                 # if the API entry has arguments but is not related to any
                 # model, just add them
-                self.parser.extend(arguments, group_name, level=level)
+                self.parser.extend(arguments, group_name, level=level,
+                                   parent_queries=parent_queries)
 
     def query_and_publish(self, output_style: str = "colorized",
                           features: Optional[list] = None) -> None:

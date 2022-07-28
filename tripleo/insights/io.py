@@ -13,13 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 from typing import Optional
 
 from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
                                        DEFAULT_FEATURESET_FILE,
                                        DEFAULT_NODES_FILE, DEFAULT_QUICKSTART,
                                        DEFAULT_RELEASE_FILE, DEFAULT_THT)
+from tripleo.insights.topology import Topology
 from tripleo.utils.urls import URL
 
 
@@ -54,39 +55,6 @@ class DeploymentOutline:
 
 
 @dataclass
-class Topology:
-    """Description of the deployment's topology.
-    """
-    compute: int = 0
-    """Number of compute nodes."""
-    controller: int = 0
-    """Number of controller nodes."""
-    ceph: int = 0
-    """Number of ceph nodes."""
-    cell: int = 0
-    """Number of cell nodes."""
-
-    def __str__(self):
-        result = ''
-
-        for item in fields(type(self)):
-            name = item.name
-            value = getattr(self, name)
-
-            # Ignore if there are no nodes of this type
-            if not value:
-                continue
-
-            # If not the first element, add a separator
-            if result:
-                result += ','
-
-            result += f'{name}:{value}'
-
-        return result
-
-
-@dataclass
 class DeploymentSummary:
     """Defines the deployment that TripleO will perform based on the
     outline provided as input.
@@ -103,3 +71,8 @@ class DeploymentSummary:
     topology: Optional[Topology] = None
     """Nodes on the deployment."""
     cinder_backend: Optional[str] = None
+    """Backend supporting the cinder component."""
+    neutron_backend: Optional[str] = None
+    """Backend supporting the neutron component."""
+    tls_everywhere: Optional[str] = None
+    """State (On / Off) of TLS-Everywhere on the deployment."""

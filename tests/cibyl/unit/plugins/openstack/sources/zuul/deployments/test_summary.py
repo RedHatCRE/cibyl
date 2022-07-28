@@ -66,6 +66,29 @@ class TestVariantDeployment(TestCase):
 
         self.release.search.assert_called_with(self.variant)
 
+    def test_get_nodes(self):
+        """Checks that the nodes are returned as a list.
+        """
+        node = Mock()
+        node.name = 'node'
+
+        nodes = ((node,),)
+
+        topology = Mock()
+        topology.nodes = Mock()
+        topology.nodes.__iter__ = Mock()
+        topology.nodes.__iter__.return_value = iter(nodes)
+
+        self.summary.topology = topology
+
+        deployment = VariantDeployment(self.variant, tools=self.tools)
+
+        result = deployment.get_nodes()
+
+        self.assertIsNotNone(result)
+        self.assertEqual(1, len(result))
+        self.assertEqual(node.name, result[0].name.value)
+
     def test_get_topology(self):
         """Checks that the topology is returned as a string.
         """

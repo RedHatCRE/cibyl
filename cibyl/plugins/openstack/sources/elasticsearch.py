@@ -126,6 +126,7 @@ class ElasticSearch(SourceExtension):
             'ip_version',
             'dvr',
             'network_backend',
+            'overcloud_templates',
             'storage_backend',
             'osp_release',
             'test_setup',
@@ -170,6 +171,13 @@ class ElasticSearch(SourceExtension):
             test_setup_argument = kwargs.get('test_setup').value
             append_exists_field_to_query('test_setup')
             append_get_specific_field('test_setup')
+        overcloud_templates_argument = None
+        if 'overcloud_templates' in kwargs:
+            user_overcloud_templates = kwargs.get('overcloud_templates')
+            overcloud_templates_argument = user_overcloud_templates.value
+            overcloud_templates_argument = set(overcloud_templates_argument)
+            append_exists_field_to_query('overcloud_templates')
+            append_get_specific_field('overcloud_templates')
 
         hits_info = {}
         for jobs_list in chunked_list_of_jobs:
@@ -215,6 +223,18 @@ class ElasticSearch(SourceExtension):
                 "dvr", "")
             osp_release = job_source_data.get(
                 "osp_release", "")
+            overcloud_templates = job_source_data.get(
+                "overcloud_templates", None)
+            if overcloud_templates:
+                # the overcloud templates are returned in a comma separated
+                # string, parsed it into a set of templates
+                overcloud_templates = overcloud_templates.split(",")
+                # infrared stores the overcloud templates as "none" if none are
+                # used
+                overcloud_templates = {name for name in overcloud_templates if
+                                       name != "none"}
+            else:
+                overcloud_templates = set()
             test_setup = job_source_data.get("test_setup")
             tests_suites = job_source_data.get("test_suites")
             if tests_suites:
@@ -253,6 +273,13 @@ class ElasticSearch(SourceExtension):
             if test_setup_argument and test_setup not in test_setup_argument:
                 continue
 
+            # check if necessary filter by overcloud_templates, and check if
+            # there is any intersection between the used-specified templates
+            # and the templates found in the job (if not, skip the job)
+            if overcloud_templates_argument and \
+                    not (overcloud_templates_argument & overcloud_templates):
+                continue
+
             job_objects[job_name] = Job(name=job_name, url=job_url)
             network = Network(ip_version=ip_version, dvr=dvr,
                               network_backend=network_backend,
@@ -271,6 +298,7 @@ class ElasticSearch(SourceExtension):
                 network=network,
                 storage=storage,
                 ironic=ironic,
+                overcloud_templates=overcloud_templates,
                 test_collection=test_collection
             )
 

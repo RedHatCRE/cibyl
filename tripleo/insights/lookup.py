@@ -16,11 +16,12 @@
 import logging
 from dataclasses import dataclass
 
-from tripleo.insights.deployment import (EnvironmentInterpreter,
-                                         FeatureSetInterpreter,
-                                         NodesInterpreter, ReleaseInterpreter,
-                                         ScenarioInterpreter)
 from tripleo.insights.git import GitDownload
+from tripleo.insights.interpreters import (EnvironmentInterpreter,
+                                           FeatureSetInterpreter,
+                                           NodesInterpreter,
+                                           ReleaseInterpreter,
+                                           ScenarioInterpreter)
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
 from tripleo.insights.tripleo import THTBranchCreator, THTPathCreator
 from tripleo.insights.validation import OutlineValidator
@@ -184,10 +185,18 @@ class DeploymentLookUp:
 
         result = DeploymentSummary()
 
-        result.infra_type = environment.get_intra_type()
-        result.ip_version = '6' if featureset.is_ipv6() else '4'
-        result.topology = nodes.get_topology()
         result.release = release.get_release_name()
+        result.infra_type = environment.get_intra_type()
+        result.topology = nodes.get_topology()
+
+        result.ip_version = '4'
+        result.tls_everywhere = 'Off'
+
+        if featureset.is_ipv6():
+            result.ip_version = '6'
+
+        if featureset.is_tls_everywhere_enabled():
+            result.tls_everywhere = 'On'
 
         # Take care of the scenario file too
         if featureset.get_scenario():
@@ -196,5 +205,6 @@ class DeploymentLookUp:
             )
 
             result.cinder_backend = scenario.get_cinder_backend()
+            result.neutron_backend = scenario.get_neutron_backend()
 
         return result

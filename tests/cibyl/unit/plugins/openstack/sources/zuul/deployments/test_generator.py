@@ -26,6 +26,7 @@ class TestDeploymentGenerator(TestCase):
 
     def setUp(self):
         self.arguments = Mock()
+        self.arguments.is_nodes_requested.return_value = False
 
         self.summary = Mock()
 
@@ -71,6 +72,23 @@ class TestDeploymentGenerator(TestCase):
 
         self.arguments.is_infra_type_requested \
             .assert_called_once_with(**kwargs)
+
+    def test_no_nodes(self):
+        """Checks that the nodes are ignored if it is not requested.
+        """
+        kwargs = {'key': 'val'}
+        variant = Mock()
+
+        self.arguments.is_nodes_requested = Mock()
+        self.arguments.is_nodes_requested.return_value = False
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant, **kwargs)
+
+        self.assertEqual({}, result.nodes.value)
+
+        self.arguments.is_nodes_requested.assert_called_once_with(**kwargs)
 
     def test_no_topology(self):
         """Checks that the topology is ignored if it is not requested.
@@ -169,6 +187,35 @@ class TestDeploymentGenerator(TestCase):
         self.summaries.create_for.assert_called_once_with(variant)
         self.summary.get_infra_type.assert_called_once()
 
+    def test_nodes(self):
+        """Checks that the nodes are returned if requested.
+        """
+        node = Mock()
+        node.name.value = 'node'
+
+        variant = Mock()
+
+        self.arguments.is_nodes_requested = Mock()
+        self.arguments.is_nodes_requested.return_value = True
+
+        self.summary.get_nodes = Mock()
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        self.summary.get_nodes.return_value = None
+
+        self.assertEqual(
+            {},
+            generator.generate_deployment_for(variant).nodes.value
+        )
+
+        self.summary.get_nodes.return_value = (node,)
+
+        self.assertEqual(
+            {node.name.value: node},
+            generator.generate_deployment_for(variant).nodes.value
+        )
+
     def test_topology(self):
         """Checks that the topology is returned if requested.
         """
@@ -234,3 +281,25 @@ class TestDeploymentGenerator(TestCase):
 
         self.summaries.create_for.assert_called_once_with(variant)
         self.summary.get_ip_version.assert_called_once()
+
+    def test_tls_everywhere(self):
+        """Checks that TLS-Everywhere is returned if requested.
+        """
+        value = 'tls-everywhere'
+
+        variant = Mock()
+
+        self.arguments.is_tls_everywhere_requested = Mock()
+        self.arguments.is_tls_everywhere_requested.return_value = True
+
+        self.summary.get_tls_everywhere = Mock()
+        self.summary.get_tls_everywhere.return_value = value
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant)
+
+        self.assertEqual(value, result.network.value.tls_everywhere.value)
+
+        self.summaries.create_for.assert_called_once_with(variant)
+        self.summary.get_tls_everywhere.assert_called_once()

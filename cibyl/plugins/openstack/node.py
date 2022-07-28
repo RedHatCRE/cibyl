@@ -28,13 +28,14 @@ from cibyl.plugins.openstack.package import Package
 class Node(Model):
     """
     This a model for your typical node used on Openstack deployment.
+
+    @DynamicAttrs: Contains attributes added on runtime.
     """
 
     API = {
         'name': {
             'attr_type': str,
-            'arguments': [Argument(name='--node-name', arg_type=str,
-                                   description="Node name")]
+            'arguments': []
         },
         'role': {
             'attr_type': str,
