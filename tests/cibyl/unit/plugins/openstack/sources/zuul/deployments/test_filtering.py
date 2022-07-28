@@ -217,7 +217,32 @@ class TestDeploymentFiltering(TestCase):
         self.assertTrue(filtering.is_valid_deployment(deployment1))
         self.assertFalse(filtering.is_valid_deployment(deployment2))
 
-    def test_applied_cinder_backend_filter(self):
+    def test_applies_ml2_driver_filter(self):
+        """Checks that the filter for ml2 driver is generated and applied.
+        """
+        ml2_driver1 = 'ipv4'
+        ml2_driver2 = 'ipv6'
+
+        ml2_driver_arg = Mock()
+        ml2_driver_arg.value = [ml2_driver1]
+
+        kwargs = {
+            'ml2_driver': ml2_driver_arg
+        }
+
+        deployment1 = Mock()
+        deployment1.network.value.ml2_driver.value = ml2_driver1
+
+        deployment2 = Mock()
+        deployment2.network.value.ml2_driver.value = ml2_driver2
+
+        filtering = DeploymentFiltering()
+        filtering.add_filters_from(**kwargs)
+
+        self.assertTrue(filtering.is_valid_deployment(deployment1))
+        self.assertFalse(filtering.is_valid_deployment(deployment2))
+
+    def test_applies_cinder_backend_filter(self):
         """Checks that the filter for cinder backend is generated and
         applied.
         """
