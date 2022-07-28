@@ -88,6 +88,9 @@ class ArgumentReview:
         """
         return any(arg in kwargs for arg in ('spec',))
 
+    def is_ml2_driver_requested(self, **kwargs: Any) -> bool:
+        return any(arg in kwargs for arg in ('spec', 'ml2_driver'))
+
 
 class SpecArgumentHandler:
     """Figures out which argument holds the jobs to be fetched from the host.

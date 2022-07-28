@@ -147,6 +147,9 @@ class VariantDeployment:
         """
         return self._summary.components.neutron.tls_everywhere
 
+    def get_ml2_driver(self) -> Optional[str]:
+        return self._summary.components.neutron.ml2_driver
+
     def get_cinder_backend(self) -> Optional[str]:
         """
         :return: Name of the backend that supports the Cinder component.
