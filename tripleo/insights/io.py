@@ -83,6 +83,8 @@ class DeploymentSummary:
             """TCP/IP protocol in use."""
             backend: Optional[str] = None
             """Name of the backend supporting neutron."""
+            ml2_driver: Optional[str] = None
+            """Comma delimited list with the name of the mechanism drivers."""
             tls_everywhere: Optional[str] = None
             """State (On / Off) of TLS-Everywhere."""
 
