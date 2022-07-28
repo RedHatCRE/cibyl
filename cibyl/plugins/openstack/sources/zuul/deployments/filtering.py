@@ -87,6 +87,7 @@ class DeploymentFiltering:
         network_args = (
             'network_backend',
             'ip_version',
+            'ml2_driver'
         )
 
         for arg in network_args:

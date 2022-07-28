@@ -88,6 +88,14 @@ class ArgumentReview:
         """
         return any(arg in kwargs for arg in ('spec',))
 
+    def is_ml2_driver_requested(self, **kwargs: Any) -> bool:
+        """
+        :param kwargs: Arguments coming from the CLI.
+        :return: True if the user requested ml2 driver to be part of the
+            deployment, False if not.
+        """
+        return any(arg in kwargs for arg in ('spec', 'ml2_driver'))
+
 
 class SpecArgumentHandler:
     """Figures out which argument holds the jobs to be fetched from the host.

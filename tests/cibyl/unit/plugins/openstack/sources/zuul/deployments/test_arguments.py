@@ -120,6 +120,16 @@ class TestArgumentReview(TestCase):
 
         self.assertTrue(review.is_tls_everywhere_requested(**{'spec': None}))
 
+    def test_is_ml2_driver_requested(self):
+        """Checks the conditions required for ml2 driver to be requested.
+        """
+        review = ArgumentReview()
+
+        self.assertFalse(review.is_ml2_driver_requested(**{}))
+
+        self.assertTrue(review.is_ml2_driver_requested(**{'spec': None}))
+        self.assertTrue(review.is_ml2_driver_requested(**{'ml2_driver': None}))
+
 
 class TestSpecArgumentHandler(TestCase):
     """Tests for :class:`SpecArgumentHandler`.
