@@ -16,6 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
+from cibyl.cli.ranged_argument import Range
 from cibyl.plugins.openstack.sources.zuul.deployments.filtering import \
     DeploymentFiltering
 
@@ -81,11 +82,9 @@ class TestDeploymentFiltering(TestCase):
         node2 = 'ctrl_2'
 
         model1 = Mock()
-        model1.name = Mock()
         model1.name.value = node1
 
         model2 = Mock()
-        model2.name = Mock()
         model2.name.value = node2
 
         nodes_arg = Mock()
@@ -93,6 +92,42 @@ class TestDeploymentFiltering(TestCase):
 
         kwargs = {
             'nodes': nodes_arg
+        }
+
+        deployment1 = Mock()
+        deployment1.nodes.value = {node1: model1}
+
+        deployment2 = Mock()
+        deployment2.nodes.value = {node2: model2}
+
+        filtering = DeploymentFiltering()
+        filtering.add_filters_from(**kwargs)
+
+        self.assertTrue(filtering.is_valid_deployment(deployment1))
+        self.assertFalse(filtering.is_valid_deployment(deployment2))
+
+    def test_applied_controllers_filter(self):
+        """Checks that the filter for controllers is generated and applied.
+        """
+        node1 = 'ctrl_1'
+        node2 = 'cmptr_1'
+
+        role1 = 'controller'
+        role2 = 'compute'
+
+        model1 = Mock()
+        model1.name.value = node1
+        model1.role.value = role1
+
+        model2 = Mock()
+        model2.name.value = node2
+        model2.role.value = role2
+
+        nodes_arg = Mock()
+        nodes_arg.value = [Range('>=', '1')]
+
+        kwargs = {
+            'controllers': nodes_arg
         }
 
         deployment1 = Mock()

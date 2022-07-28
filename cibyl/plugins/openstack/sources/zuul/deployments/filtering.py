@@ -17,10 +17,11 @@ import functools
 from typing import Callable, Dict, Iterable
 
 from cibyl.cli.argument import Argument
-from cibyl.cli.ranged_argument import Range
+from cibyl.cli.ranged_argument import Range, RANGE_OPERATORS
 from cibyl.models.attribute import AttributeValue
 from cibyl.models.model import Model
 from cibyl.plugins.openstack import Deployment
+from cibyl.plugins.openstack.node import Node
 from cibyl.utils.filtering import matches_regex
 
 Arguments = Dict[str, Argument]
@@ -120,15 +121,16 @@ class DeploymentFiltering:
             )
 
     def _handle_ranged_args(self, **kwargs):
-        deployment_args = (
-            'controllers',
+        nodes_args = (
+            ('controllers', 'controller'),
         )
 
-        for arg in deployment_args:
-            self._handle_filter_for_ranged_arg(
+        for arg, role in nodes_args:
+            self._handle_filter_for_nodes_arg(
                 arg,
+                role,
                 kwargs,
-                lambda dpl: dpl
+                lambda dpl: dpl.nodes.value.values()
             )
 
     def _handle_filter_for_simple_arg(
@@ -156,14 +158,15 @@ class DeploymentFiltering:
 
         return args[arg].value
 
-    def _handle_filter_for_ranged_arg(
+    def _handle_filter_for_nodes_arg(
         self,
         arg: str,
+        role: str,
         args: Arguments,
-        get_model: Callable[[Deployment], Model]
+        get_nodes: Callable[[Deployment], Iterable[Node]]
     ):
         for rng in self._get_ranges(arg, args):
-            self._add_filter_for_ranged_arg(arg, rng, get_model)
+            self._add_filter_for_nodes_arg(role, rng, get_nodes)
 
     def _get_ranges(self, arg: str, args: Arguments) -> Iterable[Range]:
         if arg not in args:
@@ -200,20 +203,31 @@ class DeploymentFiltering:
 
         self._filters.append(self._new_filter_from_check(check, pattern))
 
-    def _add_filter_for_ranged_arg(
-        self,
-        arg: str,
-        range: Range,
-        get_model: Callable[[Deployment], Model]
-    ):
-        def check(dpl, pttrn):
-            pass
-
     def _new_filter_from_check(self, check: Check, pattern: Pattern) -> Filter:
         return functools.partial(
             lambda dpl, pttrn, *_: check(dpl, pttrn),
             pttrn=pattern
         )
+
+    def _add_filter_for_nodes_arg(
+        self,
+        role: str,
+        test: Range,
+        get_nodes: Callable[[Deployment], Iterable[Node]]
+    ):
+        def check(dpl):
+            # Comparison function used by the test
+            run_test = RANGE_OPERATORS[test.operator]
+
+            # List of nodes belonging to the filtered role
+            nodes = [
+                node for node in get_nodes(dpl)
+                if node.role.value == role
+            ]
+
+            return run_test(len(nodes), int(test.operand))
+
+        self._filters.append(check)
 
     def is_valid_deployment(self, deployment):
         """Checks whether a deployment is valid and should be returned as
