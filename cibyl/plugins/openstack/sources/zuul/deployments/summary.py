@@ -112,6 +112,7 @@ class VariantDeployment:
 
         result = []
 
+        # Call to private function is allowed on named tuples
         for role, nodes in topology.nodes._asdict().items():
             for node in nodes:
                 result.append(Node(name=node.name, role=role))

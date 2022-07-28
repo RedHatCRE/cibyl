@@ -121,11 +121,12 @@ class DeploymentFiltering:
             )
 
     def _handle_ranged_args(self, **kwargs):
-        nodes_args = (
-            ('controllers', 'controller'),
-        )
+        # Argument -> Role
+        nodes_args = {
+            'controllers': 'controller'
+        }
 
-        for arg, role in nodes_args:
+        for arg, role in nodes_args.items():
             self._handle_filter_for_nodes_arg(
                 arg,
                 role,
