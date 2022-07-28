@@ -46,7 +46,7 @@ class ArgumentReview:
         :return: True if the user requested the nodes to be part of the
             deployment, False if not.
         """
-        return any(arg in kwargs for arg in ('spec', 'nodes'))
+        return any(arg in kwargs for arg in ('spec', 'nodes', 'controllers'))
 
     def is_topology_requested(self, **kwargs: Any) -> bool:
         """

@@ -69,15 +69,19 @@ class TestVariantDeployment(TestCase):
     def test_get_nodes(self):
         """Checks that the nodes are returned as a list.
         """
+        role = 'role'
+
         node = Mock()
         node.name = 'node'
 
-        nodes = ((node,),)
+        nodes = Mock()
+        nodes._asdict = Mock()
+        nodes._asdict.return_value = Mock()
+        nodes._asdict.return_value.items = Mock()
+        nodes._asdict.return_value.items.return_value = ((role, (node,)),)
 
         topology = Mock()
-        topology.nodes = Mock()
-        topology.nodes.__iter__ = Mock()
-        topology.nodes.__iter__.return_value = iter(nodes)
+        topology.nodes = nodes
 
         self.summary.topology = topology
 
@@ -87,6 +91,7 @@ class TestVariantDeployment(TestCase):
 
         self.assertIsNotNone(result)
         self.assertEqual(1, len(result))
+        self.assertEqual(role, result[0].role.value)
         self.assertEqual(node.name, result[0].name.value)
 
     def test_get_topology(self):
