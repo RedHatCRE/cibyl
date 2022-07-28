@@ -229,17 +229,16 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         # Continue with text specific for this system type
         if self.query >= QueryType.TENANTS:
             if hasattr(system, 'tenants'):
-                if system.tenants.value:
+                if not system.is_queried():
+                    msg = 'No query performed.'
+                    printer.add(self.palette.blue(msg), 1)
+                elif system.tenants.value:
                     for tenant in system.tenants.values():
                         printer.add(self.print_tenant(tenant), 1)
 
-                    if system.is_queried():
-                        header = 'Total tenants found in query: '
-                        printer.add(self.palette.blue(header), 1)
-                        printer[-1].append(len(system.tenants))
-                    else:
-                        msg = 'No query performed.'
-                        printer.add(self.palette.blue(msg), 1)
+                    header = 'Total tenants found in query: '
+                    printer.add(self.palette.blue(header), 1)
+                    printer[-1].append(len(system.tenants))
                 else:
                     msg = 'No tenants found in query.'
                     printer.add(self.palette.red(msg), 1)
