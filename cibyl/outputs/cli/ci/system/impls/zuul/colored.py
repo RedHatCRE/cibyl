@@ -313,8 +313,9 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         result.add(self.palette.blue('Tenant: '), 0)
         result[-1].append(tenant.name)
 
-        if self.query >= QueryType.PROJECTS and 'complete' in self.args:
-            print_projects()
+        if self.query >= QueryType.PROJECTS:
+            if self.verbosity > 0 or 'projects' in self.args:
+                print_projects()
 
         if self.query >= QueryType.JOBS:
             print_jobs()
