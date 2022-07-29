@@ -16,6 +16,10 @@
 from enum import Enum
 
 
+class ArtifactError(Exception):
+    pass
+
+
 class ArtifactKind(Enum):
     """Represents all known types of artifacts.
     """
