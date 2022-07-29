@@ -13,30 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from abc import ABC
-
-from dataclasses import dataclass, field
-from typing import Generic, List, Optional, TypeVar
-
-
-@dataclass
-class Test(ABC):
-    name: str
-    result: str
-    duration: float
-    url: str
-
-
-T = TypeVar("T", bound=Test)
-
-
-@dataclass
-class TestSuite(Generic[T]):
-    """Collection on test cases that have something in common.
-    """
-    name: str
-    """Name of the suite."""
-    url: Optional[str] = None
-    """Page where to get more information about the tests."""
-    tests: List[T] = field(default_factory=list)
-    """Collection of test cases stored by this suite."""
