@@ -18,8 +18,8 @@ from unittest.mock import Mock
 
 import cibyl
 from cibyl.sources.zuul.apis import ArtifactKind
-from cibyl.sources.zuul.apis.utils.artifacts.manifest import \
-    ManifestDownloader, Manifest
+from cibyl.sources.zuul.apis.utils.artifacts.manifest import (
+    Manifest, ManifestDownloader)
 from cibyl.sources.zuul.apis.utils.builds import ArtifactError
 
 

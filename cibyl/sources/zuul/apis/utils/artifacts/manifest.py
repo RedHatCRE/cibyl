@@ -14,7 +14,7 @@
 #    under the License.
 """
 from dataclasses import dataclass, field
-from typing import NamedTuple, Sequence, List, Optional
+from typing import List, NamedTuple, Optional, Sequence
 
 from xsdata.formats.dataclass.parsers import JsonParser
 
