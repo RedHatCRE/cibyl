@@ -15,6 +15,13 @@
 """
 from enum import Enum
 
+from cibyl.exceptions.source import SourceException
+
+
+class ArtifactError(SourceException):
+    """An error occurring during retrieval of a Zuul build artifact.
+    """
+
 
 class ArtifactKind(Enum):
     """Represents all known types of artifacts.
