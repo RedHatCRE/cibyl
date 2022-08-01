@@ -14,11 +14,9 @@
 #    under the License.
 """
 from dataclasses import dataclass, field
-from typing import List, Optional, Union
+from typing import List, Optional
 
-from cibyl.sources.zuul.apis.utils.tests.ansible.types import AnsibleTest
-
-Test = Union[AnsibleTest]
+Test = object
 """Defines all possible types of test known to Cibyl."""
 
 
