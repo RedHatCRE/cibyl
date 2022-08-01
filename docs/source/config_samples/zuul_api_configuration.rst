@@ -8,3 +8,6 @@
           zuul_api:             # The name of the source which belongs to "production_zuul" system
             driver: zuul        # The driver the source will be using
             url: https://...    # The URL of the system
+            tenants:            # List of tenants to use. This section is optional
+                - default       # and allows the user to restrict which zuul
+                - local         # tenants will be queried can be useful

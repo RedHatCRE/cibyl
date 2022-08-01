@@ -26,15 +26,3 @@ Plugin Support
 The Elasticsearch source is supported by the following built-in plugins:
 
   * OpenStack
-
-    - Fields
-
-      - ip_version
-
-      - network_backend
-
-      - cinder_backend
-
-      - topology
-
-      - dvr
