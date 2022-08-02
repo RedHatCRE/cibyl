@@ -87,7 +87,16 @@ Arguments are added to the application parser in the ``extend_parser`` method
 of the ``Orchestrator`` class.  This method loops through the API of a model
 (in the first call it will be an ``Environment`` model) and adds its arguments. If any
 of the API elements is a CI model, the element's API is recursively used to
-augment the parser.  For each recursive call, the **level** is increased.
+augment the parser. As the ``extend_parser`` method iterates through the model
+hierarchy, it creates a graph of the relationships between query methods (the
+sources' methods that are added to the arguments' `func` attribute). The edges
+of the graph are created when a new recursive call is made. As an example, when
+exploring the API for the Job model, we know that the arguments will call
+``get_jobs``, so when a new call is made for the Build API, a new edge wil be
+created from ``get_jobs`` to all the new query methods that are found, in this
+case it will be ``get_builds``.
+
+For each recursive call, the **level** is increased.
 The level parameter is key to identify the source of information for the query
 that the user sends. In the Jenkins environment example mentioned before,
 we may have a hierarchy like::
@@ -95,10 +104,20 @@ we may have a hierarchy like::
     Environment => System => Job => Build
 
 where each at each step we increase the level by 1. We can then parse the cli
-arguments and sort by decreasing level. Then we simply need to query for those
-models at the highest level, knowing exactly the relationship between the model
-to query for and the rest of models. In this example, *Build* is the model with
-the largest level, so we want to query the sources for builds, but we known that
-each build will be associated with a job, and each job will be associated with
-a system, etc. Note that this relationship, as mentioned before, is dependent
-on the environment defined by the user as well as plugins used.
+arguments and sort by decreasing level. To select which query method should be
+called, cibyl relies on the graph constructed during the call to
+``extend_parser``. It iterates over the sorted list of arguments and for each
+of them constructs a path to the root of the graph. The intermediate nodes in
+this path are removed from the list of arguments to query, since by the
+hierarchical nature of the relationship between the models, calling an
+argument's `func` makes the call to the argument's parent `func` redundant.
+
+In the example above, *Build* is the model with the largest level. If we assume that
+user has made a call like ``cibyl --jobs --builds``, we want to query the sources for builds,
+but we known that each build will be associated with a job, and each job will be associated with
+a system, etc. We also know that after calling ``get_builds``, we will not need
+to call ``get_jobs``. Thus we get a sorted list of arguments, which is [`builds`, `jobs`].
+We create a path from `builds` to the root of the graph, which in the case of
+a Jenkins systems is `jobs` (for a zuul system this would be more complex).
+After iterating over the path, we remove `jobs` from the list of arguments to
+query, since `builds` already will provide the `jobs` information.
