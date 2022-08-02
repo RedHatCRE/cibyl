@@ -20,7 +20,9 @@ import cibyl
 from cibyl.sources.zuul.apis import ArtifactKind
 from cibyl.sources.zuul.utils.artifacts import ArtifactError
 from cibyl.sources.zuul.utils.artifacts.manifest import (Manifest,
-                                                         ManifestDownloader)
+                                                         ManifestDownloader,
+                                                         ManifestFileSearch,
+                                                         ManifestDigger)
 
 
 class TestManifestDownloader(TestCase):
@@ -98,3 +100,145 @@ class TestManifestDownloader(TestCase):
 
         download.assert_called_once_with(url, session)
         tools.parser.from_string.assert_called_once_with(json, Manifest)
+
+
+class TestManifestDigger(TestCase):
+    """Tests for :class:`ManifestDigger`.
+    """
+
+    def test_error_on_invalid_level(self):
+        """Checks that an error is thrown in case the user tries to delve
+        into a level that does not exist.
+        """
+        level = 'some-level'
+
+        manifest = Mock()
+        manifest.tree = []
+
+        digger = ManifestDigger(manifest)
+
+        self.assertFalse(digger.has_sublevel(level))
+
+        with self.assertRaises(ArtifactError):
+            digger.delve_into(level)
+
+    def test_delves_into_level(self):
+        """Checks that it is capable to switch the current level if it does
+        exist.
+        """
+        level = 'some-level'
+
+        other = Mock()
+
+        item = Mock()
+        item.name = level
+        item.children = [other]
+
+        manifest = Mock()
+        manifest.tree = [item]
+
+        digger = ManifestDigger(manifest)
+
+        self.assertTrue(digger.has_sublevel(level))
+
+        digger.delve_into(level)
+
+        self.assertEqual([other], digger.current_level)
+
+
+class TestManifestFileSearch(TestCase):
+    """Tests for :class:`ManifestFileSearch`.
+    """
+
+    def test_finds_results_on_manifest(self):
+        """Checks that it is capable of finding the results file in a
+        manifest that has it somewhere on its tree.
+        """
+        path = '/'
+
+        item = Mock()
+        item.name = 'item.txt'
+
+        manifest = Mock()
+        manifest.tree = [item]
+
+        digger = Mock()
+        digger.delve_into = Mock()
+        digger.has_sublevel = Mock()
+        digger.has_sublevel.return_value = True
+        digger.current_level = manifest.tree
+
+        search_terms = Mock()
+        search_terms.paths = (path,)
+        search_terms.files = (item.name,)
+
+        tools = Mock()
+        tools.diggers = Mock()
+        tools.diggers.from_manifest = Mock()
+        tools.diggers.from_manifest.return_value = digger
+
+        finder = ManifestFileSearch(tools=tools)
+
+        result = finder.find_in(manifest, search_terms)
+
+        self.assertIsNotNone(result)
+        self.assertEqual((f'{path}{item.name}', item), result)
+
+    def test_no_results_if_not_on_path(self):
+        """Checks returned value if the requested file is not at the
+        indicated level.
+        """
+        item = Mock()
+        item.name = 'item.txt'
+
+        manifest = Mock()
+        manifest.tree = [item]
+
+        digger = Mock()
+        digger.delve_into = Mock()
+        digger.has_sublevel = Mock()
+        digger.has_sublevel.return_value = True
+        digger.current_level = manifest.tree
+
+        search_terms = Mock()
+        search_terms.paths = ('/',)
+        search_terms.files = ('other.txt',)
+
+        tools = Mock()
+        tools.diggers = Mock()
+        tools.diggers.from_manifest = Mock()
+        tools.diggers.from_manifest.return_value = digger
+
+        finder = ManifestFileSearch(tools=tools)
+
+        result = finder.find_in(manifest, search_terms)
+
+        self.assertIsNone(result)
+
+    def test_no_results_if_no_path(self):
+        """Checks returned value if the indicated path does not exist on the
+        manifest.
+        """
+        manifest = Mock()
+        manifest.tree = []
+
+        digger = Mock()
+        digger.delve_into = Mock()
+        digger.has_sublevel = Mock()
+        digger.has_sublevel.return_value = True
+        digger.current_level = manifest.tree
+
+        search_terms = Mock()
+        search_terms.paths = ('/some/path',)
+        search_terms.files = ('other.txt',)
+
+        tools = Mock()
+        tools.diggers = Mock()
+        tools.diggers.from_manifest = Mock()
+        tools.diggers.from_manifest.return_value = digger
+
+        finder = ManifestFileSearch(tools=tools)
+
+        result = finder.find_in(manifest, search_terms)
+
+        self.assertIsNone(result)
