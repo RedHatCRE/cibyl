@@ -14,6 +14,10 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
+from typing import Iterable
+
+from cibyl.models.ci.zuul.test_suite import TestSuite
+from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
 
 
 class TestFinder(ABC):
@@ -21,12 +25,10 @@ class TestFinder(ABC):
     the test cases that were run."""
 
     @abstractmethod
-    def find(self, build):
+    def find(self, build: Build) -> Iterable[TestSuite]:
         """Fetches all tests executed by the build, grouped in test suites.
 
         :param build: The build to get the tests from.
-        :type build: :class:`cibyl.sources.zuul.apis.rest.ZuulBuildRESTClient`
         :return: The tests, grouped by suites.
-        :rtype: list[:class:`TestSuite`]
         """
         raise NotImplementedError

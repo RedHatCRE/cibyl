@@ -21,10 +21,10 @@ from cibyl.sources.zuul.apis import ArtifactKind
 from cibyl.sources.zuul.utils.artifacts import ArtifactError
 from cibyl.sources.zuul.utils.artifacts.manifest import (Manifest,
                                                          ManifestDigger,
-                                                         ManifestDownloader,
-                                                         ManifestFileSearch,
                                                          ManifestDir,
-                                                         ManifestFile)
+                                                         ManifestDownloader,
+                                                         ManifestFile,
+                                                         ManifestFileSearch)
 
 
 class TestManifestDownloader(TestCase):
