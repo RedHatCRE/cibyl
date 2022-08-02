@@ -13,33 +13,107 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Iterable
+from typing import Iterable, NamedTuple, List, Optional
 
+from dataclasses import dataclass, field
+from requests import Session
+from xsdata.formats.dataclass.parsers import XmlParser
+
+from cibyl.models.ci.zuul.test_suite import TestSuite
 from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
 from cibyl.sources.zuul.utils.artifacts.manifest import ManifestFile
 from cibyl.sources.zuul.utils.builds import get_url_to_log_file
-from cibyl.sources.zuul.utils.tests.tempest.types import TempestTestSuite
 from cibyl.utils.net import download_into_memory
 
 
+@dataclass
+class ZuulTempestTestCase:
+    name: str = field(
+        metadata={
+            'type': 'Attribute'
+        }
+    )
+    classname: str = field(
+        metadata={
+            'type': 'Attribute'
+        }
+    )
+    time: float = field(
+        metadata={
+            'type': 'Attribute'
+        }
+    )
+    skipped: Optional[str] = field(
+        default=None,
+        metadata={
+            'type': 'Element'
+        }
+    )
+
+
+@dataclass
+class ZuulTempestTestSuite:
+    errors: int = field(
+        metadata={
+            'type': 'Attribute'
+        }
+    )
+    failures: int = field(
+        metadata={
+            'type': 'Attribute'
+        }
+    )
+    name: str = field(
+        metadata={
+            'type': 'Attribute'
+        }
+    )
+    tests: int = field(
+        metadata={
+            'type': 'Attribute'
+        }
+    )
+    time: float = field(
+        metadata={
+            'type': 'Attribute'
+        }
+    )
+    testcase: List[ZuulTempestTestCase] = field(
+        default_factory=list,
+        metadata={
+            'type': 'Element'
+        }
+    )
+
+
 class TempestTestParser:
-    def __init__(self, build: Build):
-        self._build = build
+    class Tools(NamedTuple):
+        parser: XmlParser = XmlParser()
+
+    def __init__(self, tools: Tools = Tools()):
+        self._tools = tools
 
     @property
-    def build(self):
-        return self._build
+    def tools(self):
+        return self._tools
 
-    @property
-    def session(self):
-        return self.build.session.session
+    def parser_tests_at(
+        self,
+        build: Build,
+        log: ManifestFile
+    ) -> Iterable[TestSuite]:
+        suites = self.tools.parser.from_string(
+            self._download_build_file(build, log),
+            ZuulTempestTestSuite
+        )
 
-    def parser_tests_at(self, log: ManifestFile) -> Iterable[TempestTestSuite]:
-        contents = self._download_build_file(log)
         return []
 
-    def _download_build_file(self, file: ManifestFile) -> str:
+    def _download_build_file(self, build: Build, file: ManifestFile) -> str:
         return download_into_memory(
-            get_url_to_log_file(self.build, file),
-            self.session
+            get_url_to_log_file(build, file),
+            self._get_session_from(build)
         )
+
+    def _get_session_from(self, build: Build) -> Session:
+        return build.session.session

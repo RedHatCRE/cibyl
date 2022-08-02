@@ -396,7 +396,7 @@ class ManifestFileSearch:
                     continue
 
                 # Generate path to the file
-                return ManifestFile(f'{path}{file}'), item
+                return ManifestFile(f'{path}/{file}'), item
 
         return None
 

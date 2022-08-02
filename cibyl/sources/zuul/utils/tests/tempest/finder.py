@@ -17,6 +17,7 @@ from typing import Iterable, NamedTuple
 
 from overrides import overrides
 
+from cibyl.models.ci.zuul.test_suite import TestSuite
 from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
 from cibyl.sources.zuul.utils.artifacts.manifest import (ManifestDir,
                                                          ManifestDownloader,
@@ -55,7 +56,7 @@ class TempestTestFinder(TestFinder):
         return self._tools
 
     @overrides
-    def find(self, build: Build) -> Iterable[TempestTestSuite]:
+    def find(self, build: Build) -> Iterable[TestSuite]:
         manifest = self.tools.manifest.download_from(build)
         result = self.tools.search.find_in(manifest, self.config.search_terms)
 
@@ -65,4 +66,4 @@ class TempestTestFinder(TestFinder):
 
         file, _ = result
 
-        return self.tools.parser.parser_tests_at(file)
+        return self.tools.parser.parser_tests_at(build, file)
