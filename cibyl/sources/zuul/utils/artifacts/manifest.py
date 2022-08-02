@@ -278,7 +278,24 @@ class ManifestDiggerFactory:
 
 
 class ManifestDir(str):
+    """Represents a path to a directory on a manifest file.
+    """
+
     def __new__(cls, value: str) -> 'ManifestDir':
+        """Constructor.
+
+        The path is expected to be in a specific format for it to be
+        accepted. Some valid examples of this format are as follows:
+            - '/' -> Root of the manifest
+            - '/var/logs/tempest' -> A directory some levels deep
+
+        These other examples will not be accepted though:
+            - '/home/zuul/' -> Trailing '/' is forbidden
+            - 'home/logs' -> Must begin with a '/' character
+
+        :param value: The path to the directory.
+        :raises ValueError: If the path's format is invalid.
+        """
         if not matches_regex(r'^(\/|(\/\w+)+)$', value):
             raise ValueError(f"Invalid format for manifest path: '{value}'.")
 
@@ -286,7 +303,24 @@ class ManifestDir(str):
 
 
 class ManifestFile(str):
+    """Represents a path to a file on manifest file.
+    """
+
     def __new__(cls, value: str) -> 'ManifestFile':
+        """Constructor.
+
+        The path is expected to be in a specific format for it to be
+        accepted. Some valid examples of this format are as follows:
+            - '/file.txt' -> File at the root of the manifest
+            - '/var/logs/tempest/results.xml' -> File on a subdir
+
+        These other examples will not be accepted though:
+            - 'home/file.txt' -> Must begin with a '/' character
+            - '/var/logs/file' -> Must have an extension
+
+        :param value: The path to the file.
+        :raises ValueError: If the path's format is invalid.
+        """
         if not matches_regex(r'^(\/\w+)*(\/\w*\.\w*)$', value):
             raise ValueError(f"Invalid format for manifest path: '{value}'.")
 
@@ -294,22 +328,39 @@ class ManifestFile(str):
 
 
 class ManifestFileSearch:
+    """Tool used to search for a certain file across a manifest's tree.
+    """
+
     class SearchTerms(NamedTuple):
         """Defines what the class has to search for.
         """
-        paths: Iterable[str]
-        """Collection of paths where the desired file may be."""
+        paths: Iterable[ManifestDir]
+        """Collection of paths where the desired file may be. The class will
+        iterate through these in search of one of the desired files."""
         files: Iterable[str]
-        """Collection of names the desired file may take."""
+        """Collection of names the desired file may take. The class will
+        iterate through these at each path until one of them is found. The
+        first to be will be the one to be returned. Each of the files added
+        here must have an extension."""
 
     class Tools(NamedTuple):
+        """Tools this uses to do its job.
+        """
         diggers: ManifestDiggerFactory = ManifestDiggerFactory()
+        """Creates the walkers that will allow this to transverse the tree."""
 
     def __init__(self, tools: Tools = Tools()):
+        """Constructor.
+
+        :param tools: The tools this will use to do its job.
+        """
         self._tools = tools
 
     @property
     def tools(self):
+        """
+        :return: The tools this will use to do its job.
+        """
         return self._tools
 
     def find_in(
@@ -317,8 +368,17 @@ class ManifestFileSearch:
         manifest: Manifest,
         search_terms: SearchTerms
     ) -> Optional[Tuple[ManifestFile, ManifestItem]]:
+        """Searches the manifest file for the element defined in the search
+        terms.
+
+        :param manifest: The manifest file to search in.
+        :param search_terms: Defines what this will need to search for.
+        :return: A tuple containing on its first element the path to the file
+            and on its second the manifest entry that represents it. 'None'
+            if nothing were found.
+        """
         for path in search_terms.paths:
-            level = self._get_manifest_level(manifest, ManifestDir(path))
+            level = self._get_manifest_level(manifest, path)
 
             if not level:
                 # The file's directory does not exist
@@ -326,17 +386,17 @@ class ManifestFileSearch:
 
             for file in search_terms.files:
                 # See if the file is at this level
-                results = next(
+                item = next(
                     (item for item in level if item.name == file),
                     None
                 )
 
-                if not results:
+                if not item:
                     # The file is not here
                     continue
 
                 # Generate path to the file
-                return ManifestFile(f'{path}{file}'), results
+                return ManifestFile(f'{path}{file}'), item
 
         return None
 
@@ -345,6 +405,12 @@ class ManifestFileSearch:
         manifest: Manifest,
         path: ManifestDir
     ) -> Optional[ManifestLevel]:
+        """
+        :param manifest: The manifest to go through.
+        :param path: Path to the directory to get.
+        :return: Contents of the directory indicated by them. 'None' if the
+            directory could not be reached.
+        """
         digger = self.tools.diggers.from_manifest(manifest)
 
         for step in self._split_path(path):
@@ -356,5 +422,10 @@ class ManifestFileSearch:
         return digger.current_level
 
     def _split_path(self, path: ManifestDir) -> Iterable[str]:
+        """
+        :param path: The path to divide.
+        :return: An ordered collection containing the names of the folders
+            that need to be cd'd in order to get to the one marked by the path.
+        """
         # Remove initial '/' to avoid empty splits
         return path[1:].split('/')
