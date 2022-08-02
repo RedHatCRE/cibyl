@@ -20,25 +20,58 @@ from cibyl.sources.zuul.apis.utils.artifacts.manifest import (Manifest,
                                                               ManifestItem)
 
 ManifestLevel = Iterable[ManifestItem]
+"""Represents a directory on the manifest."""
 
 
 class ManifestDigger:
+    """Tool used to transverse the directory tree of a manifest file. The
+    purpose of this tool is to be able to safely go down a branch on the
+    manifest's directory tree to its end. It allows to either observe the
+    contents of a level or to go deeper down the line. Once the end is
+    reached, this provides mechanism to be aware of so.
+    """
+
     def __init__(self, manifest: Manifest):
+        """Constructor.
+
+        :param manifest: The manifest to dig through.
+        """
         self._manifest = manifest
         self._current_level = manifest.tree
 
     @property
     def manifest(self) -> Manifest:
+        """
+        :return: The manifest this is working with.
+        """
         return self._manifest
 
     @property
     def current_level(self) -> ManifestLevel:
+        """
+        :return: Contents of the level the digger is currently at.
+        """
         return self._current_level
 
     def has_sublevel(self, name: str) -> bool:
+        """Checks whether there is a directory below this level with the
+        suggested name.
+
+        :param name: The name to check.
+        :return: True if there is, False if not.
+        """
         return bool(self._get_sublevel(name))
 
     def delve_into(self, level: str) -> None:
+        """Moves the digger down another level.
+
+        .. seealso::
+            :py:meth:`has_sublevel`
+                -> For checking if the level exists beforehand.
+
+        :param level: Name of the directory to go down to.
+        :raises ArtifactError: If the level does not exist.
+        """
         if not self.has_sublevel(level):
             msg = f"Manifest has no level: '{level}'."
             raise ArtifactError(msg)
@@ -46,20 +79,38 @@ class ManifestDigger:
         self._current_level = self._get_sublevel(level)
 
     def _get_sublevel(self, level: str) -> Optional[ManifestLevel]:
+        """Gets the contents of a directory pending from the current level.
+
+        :param level: Name of the directory to search for.
+        :return: Contents of that directory. 'None' if it does not exist or
+            the name points to a file instead.
+        """
+        # Search for the sublevel
         for item in self.current_level:
+            # Does the sublevel exist?
             if item.name != level:
                 continue
 
+            # Check if at the end of the branch
             if not item.children:
                 return None
 
+            # Not yet at the end -> Return the new level then
             return item.children
 
         return None
 
 
 class ManifestDiggerFactory:
+    """Factory for `ManifestDigger`.
+    """
+
     def from_manifest(self, manifest: Manifest) -> ManifestDigger:
+        """Builds a new instance from a manifest file.
+
+        :param manifest: The manifest that the digger will work with.
+        :return: The digger's instance.
+        """
         return ManifestDigger(manifest)
 
 
