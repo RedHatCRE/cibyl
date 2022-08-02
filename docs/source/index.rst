@@ -77,6 +77,12 @@ Index
 
 .. toctree::
    :maxdepth: 2
+   :caption: Features
+
+   features
+
+.. toctree::
+   :maxdepth: 2
    :caption: Developers
 
    development/tests
