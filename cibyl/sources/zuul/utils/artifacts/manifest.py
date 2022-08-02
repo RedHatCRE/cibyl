@@ -20,7 +20,7 @@ from xsdata.formats.dataclass.parsers import JsonParser
 
 from cibyl.sources.zuul.apis import Artifact, ArtifactKind
 from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
-from cibyl.sources.zuul.apis.utils.artifacts import ArtifactError
+from cibyl.sources.zuul.utils.artifacts import ArtifactError
 from cibyl.utils.net import download_into_memory
 
 

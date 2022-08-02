@@ -18,9 +18,9 @@ from unittest.mock import Mock
 
 import cibyl
 from cibyl.sources.zuul.apis import ArtifactKind
-from cibyl.sources.zuul.apis.utils.artifacts import ArtifactError
-from cibyl.sources.zuul.apis.utils.artifacts.manifest import (
-    Manifest, ManifestDownloader)
+from cibyl.sources.zuul.utils.artifacts import ArtifactError
+from cibyl.sources.zuul.utils.artifacts.manifest import (Manifest,
+                                                         ManifestDownloader)
 
 
 class TestManifestDownloader(TestCase):
@@ -81,7 +81,7 @@ class TestManifestDownloader(TestCase):
         build.artifacts = [artifact]
         build.session.session = session
 
-        module = cibyl.sources.zuul.apis.utils.artifacts.manifest
+        module = cibyl.sources.zuul.utils.artifacts.manifest
         download = module.download_into_memory = Mock()
         download.return_value = json
 
