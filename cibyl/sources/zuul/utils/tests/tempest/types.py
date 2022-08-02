@@ -15,10 +15,15 @@
 """
 from dataclasses import dataclass
 
-from cibyl.sources.zuul.utils.tests.types import Test
+from cibyl.sources.zuul.utils.tests.types import Test, TestSuite
 
 
 @dataclass
 class TempestTest(Test):
     class_name: str
     skip_reason: str
+
+
+@dataclass
+class TempestTestSuite(TestSuite[TempestTest]):
+    pass
