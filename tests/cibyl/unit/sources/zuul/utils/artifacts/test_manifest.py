@@ -20,9 +20,11 @@ import cibyl
 from cibyl.sources.zuul.apis import ArtifactKind
 from cibyl.sources.zuul.utils.artifacts import ArtifactError
 from cibyl.sources.zuul.utils.artifacts.manifest import (Manifest,
+                                                         ManifestDigger,
                                                          ManifestDownloader,
                                                          ManifestFileSearch,
-                                                         ManifestDigger)
+                                                         ManifestDir,
+                                                         ManifestFile)
 
 
 class TestManifestDownloader(TestCase):
@@ -144,6 +146,54 @@ class TestManifestDigger(TestCase):
         digger.delve_into(level)
 
         self.assertEqual([other], digger.current_level)
+
+
+class TestManifestDir(TestCase):
+    """Tests for :class:`ManifestDir`.
+    """
+
+    def test_regex_pattern(self):
+        """Checks that the regex pattern matches what the description says.
+        """
+        try:
+            ManifestDir('/')
+        except ValueError:
+            self.fail('Pattern is valid.')
+
+        try:
+            ManifestDir('/var/logs/tempest')
+        except ValueError:
+            self.fail('Pattern is valid.')
+
+        with self.assertRaises(ValueError):
+            ManifestDir('home/logs')
+
+        with self.assertRaises(ValueError):
+            ManifestDir('/home/zuul/')
+
+
+class TestManifestFile(TestCase):
+    """Tests for :class:`ManifestFile`.
+    """
+
+    def test_regex_pattern(self):
+        """Checks that the regex pattern matches what the description says.
+        """
+        try:
+            ManifestFile('/file.txt')
+        except ValueError:
+            self.fail('Pattern is valid.')
+
+        try:
+            ManifestFile('/var/logs/tempest/results.xml')
+        except ValueError:
+            self.fail('Pattern is valid.')
+
+        with self.assertRaises(ValueError):
+            ManifestFile('home/file.txt')
+
+        with self.assertRaises(ValueError):
+            ManifestFile('/var/logs/file')
 
 
 class TestManifestFileSearch(TestCase):
