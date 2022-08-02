@@ -14,7 +14,6 @@
 #    under the License.
 """
 from abc import ABC
-
 from dataclasses import dataclass, field
 from typing import Generic, List, Optional, TypeVar
 

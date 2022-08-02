@@ -173,6 +173,8 @@ class ManifestDownloader:
 
         :param build: The build to get the manifest for.
         :return: The manifest as a Python object.
+        :raises ArtifactError: If the build has no manifest or exposes
+                more than one.
         """
         downloader = ManifestDownloader.DownloadFromBuild(build, self.tools)
 
