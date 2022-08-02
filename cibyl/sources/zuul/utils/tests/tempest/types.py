@@ -15,7 +15,7 @@
 """
 from dataclasses import dataclass
 
-from cibyl.sources.zuul.apis.utils.tests.types import Test
+from cibyl.sources.zuul.utils.tests.types import Test
 
 
 @dataclass

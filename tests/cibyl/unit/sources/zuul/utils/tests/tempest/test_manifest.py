@@ -16,8 +16,8 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.sources.zuul.apis.utils.artifacts import ArtifactError
-from cibyl.sources.zuul.apis.utils.tests.tempest.manifest import (
+from cibyl.sources.zuul.utils.artifacts import ArtifactError
+from cibyl.sources.zuul.utils.tests.tempest.manifest import (
     ManifestDigger, TempestResultsFinder)
 
 

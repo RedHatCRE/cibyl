@@ -15,9 +15,8 @@
 """
 from typing import Iterable, NamedTuple, Optional
 
-from cibyl.sources.zuul.apis.utils.artifacts import ArtifactError
-from cibyl.sources.zuul.apis.utils.artifacts.manifest import (Manifest,
-                                                              ManifestItem)
+from cibyl.sources.zuul.utils.artifacts import ArtifactError
+from cibyl.sources.zuul.utils.artifacts.manifest import Manifest, ManifestItem
 
 ManifestLevel = Iterable[ManifestItem]
 """Represents a directory on the manifest."""
