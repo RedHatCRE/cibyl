@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 from typing import Iterable, NamedTuple
 
 from overrides import overrides
@@ -24,6 +25,8 @@ from cibyl.sources.zuul.utils.artifacts.manifest import (ManifestDir,
 from cibyl.sources.zuul.utils.tests.finder import TestFinder
 from cibyl.sources.zuul.utils.tests.tempest.parser import TempestTestParser
 from cibyl.sources.zuul.utils.tests.types import TestSuite
+
+LOG = logging.getLogger(__name__)
 
 SearchTerms = ManifestFileSearch.SearchTerms
 
@@ -60,7 +63,12 @@ class TempestTestFinder(TestFinder):
         result = self.tools.search.find_in(manifest, self.config.search_terms)
 
         if not result:
-            # TODO: Log a warning
+            LOG.warning(
+                "Unable to find tempest results xml for build: '%s'",
+                build.uuid
+            )
+
+            # Continue without any tests
             return ()
 
         file, _ = result
