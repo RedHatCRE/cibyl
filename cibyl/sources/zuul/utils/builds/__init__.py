@@ -32,4 +32,5 @@ def get_url_to_build_file(build: Build, file: ManifestFile) -> URL:
         starting point.
     :return: URL where the file can be downloaded from.
     """
-    return URL(f'{build.log_url}{file}')
+    # Take away starting '/' of the file path to avoid repetition
+    return URL(f'{build.log_url}{file[1:]}')
