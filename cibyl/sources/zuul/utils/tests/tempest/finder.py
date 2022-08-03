@@ -29,32 +29,59 @@ from cibyl.sources.zuul.utils.tests.types import TestSuite
 LOG = logging.getLogger(__name__)
 
 SearchTerms = ManifestFileSearch.SearchTerms
+"""Alias to reduce the type length."""
 
 
 class TempestTestFinder(TestFinder):
+    """Takes care of retrieving the results for all tempest tests executed
+    by a build.
+    """
+
     class Config(NamedTuple):
+        """Defines the behaviour of this class.
+        """
         DEFAULT_TEMPEST_SEARCH_TERMS = ManifestFileSearch.SearchTerms(
             paths=(ManifestDir('/logs/undercloud/var/log/tempest'),),
             files=('tempest_results.xml', 'tempest_results.xml.gz')
         )
+        """Default files the class will look for to retrieve the test
+        results."""
 
         search_terms: SearchTerms = DEFAULT_TEMPEST_SEARCH_TERMS
+        """Location and name of all possible files that contain the test
+        results."""
 
     class Tools(NamedTuple):
+        """Tools this uses to perform its task.
+        """
         manifest: ManifestDownloader = ManifestDownloader()
+        """Allows to retrieve the manifest from a Zuul build."""
         search: ManifestFileSearch = ManifestFileSearch()
+        """Allows to look for certain file within the manifest."""
         parser: TempestTestParser = TempestTestParser()
+        """Allows to go from a xml string to python objects."""
 
     def __init__(self, config: Config = Config(), tools: Tools = Tools()):
+        """Constructor.
+
+        :param config: Configuration of this instance.
+        :param tools: Tools this will use to do its task.
+        """
         self._config = config
         self._tools = tools
 
     @property
     def config(self):
+        """
+        :return: Configuration of this instance.
+        """
         return self._config
 
     @property
     def tools(self):
+        """
+        :return: Tools this will use to do its task.
+        """
         return self._tools
 
     @overrides

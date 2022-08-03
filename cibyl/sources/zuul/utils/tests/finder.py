@@ -22,7 +22,8 @@ from cibyl.sources.zuul.utils.tests.types import TestSuite
 
 class TestFinder(ABC):
     """Takes care of going through the artifacts of a build and find in there
-    the test cases that were run."""
+    the test cases that were run.
+    """
 
     @abstractmethod
     def find(self, build: Build) -> Iterable[TestSuite]:

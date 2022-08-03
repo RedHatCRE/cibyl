@@ -20,6 +20,8 @@ from typing import Generic, Iterable, Optional, TypeVar
 
 
 class TestResult(Enum):
+    """Ending state of a test case.
+    """
     UNKNOWN = 'UNKNOWN'
     SUCCESS = 'SUCCESS'
     FAILURE = 'FAILURE'
@@ -28,13 +30,20 @@ class TestResult(Enum):
 
 @dataclass
 class Test(ABC):
+    """Representation of a generic test case running on a Zuul job.
+    """
     name: str
+    """Name of the test case."""
     result: TestResult
+    """Describes how the test case ended."""
     duration: float
+    """Amount of second it took the test to complete."""
     url: str
+    """URL to the location where this test is described."""
 
 
 T = TypeVar("T", bound=Test)
+"""Generic type that extends from Test."""
 
 
 @dataclass
