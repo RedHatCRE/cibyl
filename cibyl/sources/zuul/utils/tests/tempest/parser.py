@@ -109,23 +109,8 @@ class XMLTempestTestSuite:
     )
 
 
-class TempestTestConverter:
-    def convert_suite(
-        self,
-        url: URL,
-        suite: XMLTempestTestSuite
-    ) -> TestSuite:
-        return TestSuite(
-            name=suite.name,
-            url=url,
-            tests=[self.convert_case(url, case) for case in suite.testcase]
-        )
-
-    def convert_case(
-        self,
-        url: URL,
-        case: XMLTempestTestCase
-    ) -> TempestTest:
+class XMLToTest:
+    def to_test(self, url: URL, case: XMLTempestTestCase) -> TempestTest:
         return TempestTest(
             name=case.name,
             result=self._get_case_result(case),
@@ -146,10 +131,32 @@ class TempestTestConverter:
         return TestResult.SUCCESS
 
 
+class XMLToTestSuite:
+    class Tools(NamedTuple):
+        cases: XMLToTest = XMLToTest()
+
+    def __init__(self, tools: Tools = Tools()):
+        self._tools = tools
+
+    @property
+    def tools(self):
+        return self._tools
+
+    def to_suite(self, url: URL, suite: XMLTempestTestSuite) -> TestSuite:
+        return TestSuite(
+            name=suite.name,
+            url=url,
+            tests=[
+                self.tools.cases.to_test(url, case)
+                for case in suite.testcase
+            ]
+        )
+
+
 class TempestTestParser:
     class Tools(NamedTuple):
         parser: XmlParser = XmlParser()
-        converter: TempestTestConverter = TempestTestConverter()
+        converter: XMLToTestSuite = XMLToTestSuite()
 
     def __init__(self, tools: Tools = Tools()):
         self._tools = tools
@@ -164,7 +171,7 @@ class TempestTestParser:
         file: ManifestFile
     ) -> Iterable[TestSuite]:
         return [
-            self.tools.converter.convert_suite(
+            self.tools.converter.to_suite(
                 url=self._get_url_to_file(build, file),
                 suite=self.tools.parser.from_string(
                     self._download_build_file(build, file),
