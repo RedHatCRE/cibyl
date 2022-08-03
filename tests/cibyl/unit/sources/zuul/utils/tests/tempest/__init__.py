@@ -13,19 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from dataclasses import dataclass
-from typing import Optional
-
-from cibyl.sources.zuul.utils.tests.types import Test
-
-
-@dataclass
-class TempestTest(Test):
-    """Representation of a tempest test case.
-    """
-    class_name: str
-    """Full path to the class containing the test case."""
-    skip_reason: Optional[str] = None
-    """Why the test case was skipped."""
-    failure_reason: Optional[str] = None
-    """Why the test case failed."""

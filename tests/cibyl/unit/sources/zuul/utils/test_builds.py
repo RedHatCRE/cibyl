@@ -13,23 +13,25 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from abc import ABC, abstractmethod
-from typing import Iterable
+from unittest import TestCase
+from unittest.mock import Mock
 
-from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
-from cibyl.sources.zuul.utils.tests.types import TestSuite
+from cibyl.sources.zuul.utils.artifacts.manifest import ManifestFile
+from cibyl.sources.zuul.utils.builds import get_url_to_build_file
 
 
-class TestFinder(ABC):
-    """Takes care of going through the artifacts of a build and find in there
-    the test cases that were run.
+class TestGetURLToBuildFile(TestCase):
+    """Tests for :func:`get_url_to_build_file`.
     """
 
-    @abstractmethod
-    def find(self, build: Build) -> Iterable[TestSuite]:
-        """Fetches all tests executed by the build, grouped in test suites.
-
-        :param build: The build to get the tests from.
-        :return: The tests, grouped by suites.
+    def test_url_is_well_build(self):
+        """Check that the URL is built as expected.
         """
-        raise NotImplementedError
+        build = Mock()
+        build.log_url = 'http://localhost:8080/'
+
+        file = '/var/log/file.txt'
+
+        result = get_url_to_build_file(build, ManifestFile(file))
+
+        self.assertEqual('http://localhost:8080/var/log/file.txt', result)
