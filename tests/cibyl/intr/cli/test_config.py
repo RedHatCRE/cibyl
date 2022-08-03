@@ -62,12 +62,12 @@ class TestConfigHelp(TestCase):
         """
         with NamedTemporaryFile() as config_file:
             sys.argv = [
-                'cibyl',
+                'cibyl', 'query',
                 '--config', config_file.name,
                 '--help'
             ]
             self.assertRaises(SystemExit, main)
-        self.assertIn("usage: cibyl [-h]", self.stdout)
+        self.assertIn("usage: cibyl query [-h]", self.stdout)
 
     def test_valid_config_help(self):
         """Test that the help message is printed when calling cibyl with an
@@ -85,9 +85,10 @@ class TestConfigHelp(TestCase):
             config_file.seek(0)
             sys.argv = [
                 'cibyl',
+                'query',
                 '--config', config_file.name,
                 '--jobs',
                 '--help'
             ]
             self.assertRaises(SystemExit, main)
-        self.assertIn("usage: cibyl [-h]", self.stdout)
+        self.assertIn("usage: cibyl query [-h]", self.stdout)

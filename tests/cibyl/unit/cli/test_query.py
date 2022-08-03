@@ -144,21 +144,36 @@ class TestGetQueryType(TestCase):
 
     def test_get_feature(self):
         """Checks that "FEATURES" is returned for "--feature"."""
-        args = {
-            'features': None
-        }
+        args = {}
 
-        self.assertEqual(QueryType.FEATURES, get_query_type(**args))
+        self.assertEqual(QueryType.FEATURES,
+                         get_query_type(command="features", **args))
+
+    def test_get_feature_no_command(self):
+        """Checks that "FEATURES" is returned for "--feature" without the
+        command argument."""
+        args = {}
+
+        self.assertEqual(QueryType.NONE, get_query_type(**args))
 
     def test_get_feature_jobs(self):
         """Checks that "FEATURES_JOBS" is returned for "--feature" and
         "--jobs"."""
         args = {
-            'features': None,
             'jobs': None
         }
 
-        self.assertEqual(QueryType.FEATURES_JOBS, get_query_type(**args))
+        self.assertEqual(QueryType.FEATURES_JOBS,
+                         get_query_type(command="features", **args))
+
+    def test_get_feature_jobs_no_command(self):
+        """Checks that "JOBS" is returned for "--feature" and
+        "--jobs" without the command argument."""
+        args = {
+            'jobs': None
+        }
+
+        self.assertEqual(QueryType.JOBS, get_query_type(**args))
 
     def test_get_tests_builds(self):
         """Checks that "Tests" is returned for "--tests" and "--last-build".

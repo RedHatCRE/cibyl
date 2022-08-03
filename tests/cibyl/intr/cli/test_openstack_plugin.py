@@ -62,9 +62,11 @@ class TestOpenstackCLI(RestoreAPIs):
             config_file.write(b"      system_type: zuul\n")
             config_file.write(b"      sources: {}\n")
             config_file.seek(0)
-            sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
+            sys.argv = ['query', '-h', '-p', 'openstack', '--config',
+                        config_file.name]
 
-            main()
+            with self.assertRaises(SystemExit):
+                main()
         self.assertIn('deployment', ZuulJob.Variant.API)
 
     def test_openstack_cli_jenkins_system(self):
@@ -78,9 +80,11 @@ class TestOpenstackCLI(RestoreAPIs):
             config_file.write(b"      system_type: jenkins\n")
             config_file.write(b"      sources: {}\n")
             config_file.seek(0)
-            sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
+            sys.argv = ['query', '-h', '-p', 'openstack', '--config',
+                        config_file.name]
 
-            main()
+            with self.assertRaises(SystemExit):
+                main()
         self.assertIn('deployment', BaseJob.API)
 
     def test_openstack_cli_zuul_jenkins_system(self):
@@ -97,9 +101,11 @@ class TestOpenstackCLI(RestoreAPIs):
             config_file.write(b"      system_type: jenkins\n")
             config_file.write(b"      sources: {}\n")
             config_file.seek(0)
-            sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
+            sys.argv = ['query', '-h', '-p', 'openstack', '--config',
+                        config_file.name]
 
-            main()
+            with self.assertRaises(SystemExit):
+                main()
         self.assertIn('deployment', ZuulJob.Variant.API)
 
     def test_openstack_cli_jenkins_zuul_system(self):
@@ -116,9 +122,11 @@ class TestOpenstackCLI(RestoreAPIs):
             config_file.write(b"      system_type: zuul\n")
             config_file.write(b"      sources: {}\n")
             config_file.seek(0)
-            sys.argv = ['-h', '-p', 'openstack', '--config', config_file.name]
+            sys.argv = ['query', '-h', '-p', 'openstack', '--config',
+                        config_file.name]
 
-            main()
+            with self.assertRaises(SystemExit):
+                main()
         self.assertIn('deployment', BaseJob.API)
 
     def test_openstack_cli_zuul_system_plugin_configuration(self):
@@ -135,7 +143,8 @@ class TestOpenstackCLI(RestoreAPIs):
             config_file.write(b"plugins:\n")
             config_file.write(b"  - openstack\n")
             config_file.seek(0)
-            sys.argv = ['-h', '--config', config_file.name]
+            sys.argv = ['cibyl', 'query', '-h', '--config', config_file.name]
 
-            main()
+            with self.assertRaises(SystemExit):
+                main()
         self.assertIn('deployment', ZuulJob.Variant.API)

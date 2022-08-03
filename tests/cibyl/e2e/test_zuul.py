@@ -40,10 +40,10 @@ class TestQueryLevel(EndToEndTest):
         """Checks that tenants are retrieved with the "--tenants" flag.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
             '-f', 'text',
-            '-vv',
+            '-vv', 'query',
             '--tenants'
         ]
 
@@ -55,10 +55,10 @@ class TestQueryLevel(EndToEndTest):
         """Checks that tenants are retrieved with the "--tenants name" flag.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
             '-f', 'text',
-            '-vv',
+            '-vv', 'query',
             '--tenants', '^(example-tenant)$'
         ]
 
@@ -71,10 +71,10 @@ class TestQueryLevel(EndToEndTest):
         """Checks that projects are retrieved with the "--projects" flag.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
             '-f', 'text',
-            '-vv',
+            '-vv', 'query',
             '--tenants', '^(example-tenant)$',
             '--projects'
         ]
@@ -91,10 +91,10 @@ class TestQueryLevel(EndToEndTest):
         name2" flag.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
             '-f', 'text',
-            '-vv',
+            '-vv', 'query',
             '--tenants', '^(example-tenant)$',
             '--projects', 'test1'
         ]
@@ -115,12 +115,11 @@ class TestQueryLevel(EndToEndTest):
         """Checks that "-v" will print a project's URL.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
+            '-f', 'text', '-v', 'query',
             '--tenants', '^(example-tenant)$',
-            '--projects', 'test1',
-            '-v'
+            '--projects', 'test1'
         ]
 
         main()
@@ -139,10 +138,10 @@ class TestQueryLevel(EndToEndTest):
         """Checks that jobs are retrieved with the "--jobs" flag.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
             '-f', 'text',
-            '-vv',
+            '-vv', 'query',
             '--tenants', '^(example-tenant)$',
             '--jobs'
         ]
@@ -158,10 +157,10 @@ class TestQueryLevel(EndToEndTest):
         """Checks retrieved jobs by "--jobs name" flag.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
             '-f', 'text',
-            '-vv',
+            '-vv', 'query',
             '--tenants', '^(example-tenant)$',
             '--jobs', 'build-docker-image'
         ]
@@ -182,12 +181,11 @@ class TestQueryLevel(EndToEndTest):
         """Checks that "-v" will print a job's URL.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
+            '-v', '-f', 'text', 'query',
             '--tenants', '^(example-tenant)$',
             '--jobs', 'build-docker-image',
-            '-v'
         ]
 
         main()
@@ -207,9 +205,9 @@ class TestQueryLevel(EndToEndTest):
         """Checks retrieved variants by "--jobs --variants" flag.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
+            '-f', 'text', 'query',
             '--tenants', '^(example-tenant)$',
             '--jobs', 'build-docker-image',
             '--variants'
@@ -254,9 +252,9 @@ class TestQueryComposing(EndToEndTest):
         """Checks that '--tenants --project projectA' gets you all tenants
         as well."""
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
+            '-f', 'text', 'query',
             '--tenants',
             '--projects', '^test2$'
         ]
@@ -278,9 +276,9 @@ class TestQueryComposing(EndToEndTest):
         """Checks that '--tenants --project projectA' gets you all tenants
         as well."""
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
+            '-f', 'text', 'query',
             '--tenants',
             '--jobs', '^build-docker-image$'
         ]
@@ -305,9 +303,9 @@ class TestQueryComposing(EndToEndTest):
         """Checks that '--tenants --project projectA' gets you all tenants
         as well."""
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
+            '-f', 'text', 'query',
             '--projects', '^test2$',
             '--jobs', '^build-docker-image$'
         ]
@@ -349,10 +347,9 @@ class TestOutputFormatting(EndToEndTest):
         '--tenants' query.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
-            '-vv',
+            '-vv', '-f', 'text', 'query',
             '--tenants', '^(example-tenant)$'
         ]
 
@@ -368,10 +365,9 @@ class TestOutputFormatting(EndToEndTest):
         '--projects' query.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
-            '-vv',
+            '-f', 'text', '-vv', 'query',
             '--tenants', '^(example-tenant)$',
             '--projects'
         ]
@@ -388,9 +384,9 @@ class TestOutputFormatting(EndToEndTest):
         query did not find any tenant.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
+            '-f', 'text', 'query',
             '--tenants', '^(some-unknown-tenant)$',
         ]
 
@@ -406,9 +402,9 @@ class TestOutputFormatting(EndToEndTest):
         query did not find any project.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
+            '-f', 'text', 'query',
             '--tenants',
             '--project', '^(some-unknown-project)$'
         ]
@@ -425,9 +421,9 @@ class TestOutputFormatting(EndToEndTest):
         query did not find any jobs.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
+            '-f', 'text', 'query',
             '--tenants',
             '--jobs', '^(some-unknown-job)$'
         ]
@@ -459,11 +455,9 @@ class TestDefaults(EndToEndTest):
         to be consulted.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul/with-tenants.yaml',
-            '-f', 'text',
-            '-vv',
-            '--jobs'
+            '-f', 'text', '-vv', 'query', '--jobs'
         ]
 
         main()
@@ -477,11 +471,9 @@ class TestDefaults(EndToEndTest):
         tenants define in the configuration file.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul/with-tenants.yaml',
-            '-f', 'text',
-            '-vv',
-            '--tenants'
+            '-f', 'text', '-vv', 'query', '--tenants'
         ]
 
         main()
@@ -508,9 +500,9 @@ class TestOthers(EndToEndTest):
         """Checks that when printed, jobs are alphabetically ordered.
         """
         sys.argv = [
-            '',
+            'cibyl',
             '--config', 'tests/cibyl/e2e/data/configs/zuul.yaml',
-            '-f', 'text',
+            '-f', 'text', 'query',
             '--jobs', '^nodejs-.*'
         ]
 
