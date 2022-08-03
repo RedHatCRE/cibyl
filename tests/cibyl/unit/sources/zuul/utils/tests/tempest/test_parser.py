@@ -16,8 +16,10 @@
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
-from cibyl.sources.zuul.utils.tests.tempest.parser import XMLToTestSuite, \
-    XMLToTest, TempestTestParser, XMLTempestTestSuite
+from cibyl.sources.zuul.utils.tests.tempest.parser import (TempestTestParser,
+                                                           XMLTempestTestSuite,
+                                                           XMLToTest,
+                                                           XMLToTestSuite)
 from cibyl.sources.zuul.utils.tests.types import TestResult
 
 
