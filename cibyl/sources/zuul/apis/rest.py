@@ -26,6 +26,7 @@ from cibyl.sources.zuul.apis import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
 from cibyl.sources.zuul.apis.http import ZuulHTTPBuildAPI, ZuulSession
 from cibyl.sources.zuul.utils.tests.finder import TestFinder
 from cibyl.sources.zuul.utils.tests.tempest.finder import TempestTestFinder
+from cibyl.sources.zuul.utils.tests.types import TestSuite
 
 LOG = logging.getLogger(__name__)
 
@@ -67,7 +68,7 @@ class ZuulBuildRESTClient(ZuulHTTPBuildAPI):
         return self._tools
 
     @overrides
-    def tests(self):
+    def tests(self) -> Iterable[TestSuite]:
         result = []
 
         for finder in self.tools.finders:

@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import ABC
+from typing import Optional, Union
 from urllib.parse import urljoin
 
 from overrides import overrides
@@ -29,19 +30,21 @@ class ZuulSession(Closeable):
     base class for all communication with the host.
     """
 
-    def __init__(self, session, host, verify):
+    def __init__(
+        self,
+        session: Session,
+        host: str,
+        verify: Optional[Union[bool, str]]
+    ):
         """Constructor.
 
         :param session: Low-level HTTP handler.
-        :type session: :class:`Session`
         :param host: URL to the Zuul host.
-        :type host: str
         :param verify: Indicates what is to be done regarding identification
             of the host. 'False' and 'None' disable need for validation.
             'True' activates it and leaves it up to the client's system to
             resolve it. A path to a certificate will use that file to
             identify the host.
-        :type verify: str or bool or None
         """
         self._session = session
         self._session.verify = verify

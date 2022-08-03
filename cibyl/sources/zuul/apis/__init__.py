@@ -15,6 +15,7 @@
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Iterable
 
 from deprecation import deprecated
 
@@ -144,10 +145,9 @@ class ZuulBuildAPI(Closeable, ABC):
         return self._build
 
     @abstractmethod
-    def tests(self):
+    def tests(self) -> Iterable[TestSuite]:
         """
         :return: The tests run by this build.
-        :rtype: list[:class:`TestSuite`]
         """
         raise NotImplementedError
 
