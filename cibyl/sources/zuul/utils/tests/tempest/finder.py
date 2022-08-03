@@ -23,7 +23,7 @@ from cibyl.sources.zuul.utils.artifacts.manifest import (ManifestDir,
                                                          ManifestFileSearch)
 from cibyl.sources.zuul.utils.tests.finder import TestFinder
 from cibyl.sources.zuul.utils.tests.tempest.parser import TempestTestParser
-from cibyl.sources.zuul.utils.tests.tempest.types import TempestTestSuite
+from cibyl.sources.zuul.utils.tests.types import TestSuite
 
 SearchTerms = ManifestFileSearch.SearchTerms
 
@@ -54,8 +54,8 @@ class TempestTestFinder(TestFinder):
     def tools(self):
         return self._tools
 
-    @overrides(check_signature=False)
-    def find(self, build: Build) -> Iterable[TempestTestSuite]:
+    @overrides
+    def find(self, build: Build) -> Iterable[TestSuite]:
         manifest = self.tools.manifest.download_from(build)
         result = self.tools.search.find_in(manifest, self.config.search_terms)
 
@@ -65,4 +65,4 @@ class TempestTestFinder(TestFinder):
 
         file, _ = result
 
-        return self.tools.parser.parser_tests_at(build, file)
+        return self.tools.parser.parse_tests_at(build, file)

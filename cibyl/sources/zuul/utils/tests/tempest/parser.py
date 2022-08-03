@@ -22,9 +22,8 @@ from xsdata.formats.dataclass.parsers import XmlParser
 from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
 from cibyl.sources.zuul.utils.artifacts.manifest import ManifestFile
 from cibyl.sources.zuul.utils.builds import get_url_to_build_file
-from cibyl.sources.zuul.utils.tests.tempest.types import (TempestTest,
-                                                          TempestTestSuite)
-from cibyl.sources.zuul.utils.tests.types import TestResult
+from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
+from cibyl.sources.zuul.utils.tests.types import TestResult, TestSuite
 from cibyl.utils.net import download_into_memory
 from tripleo.utils.urls import URL
 
@@ -115,8 +114,8 @@ class TempestTestConverter:
         self,
         url: URL,
         suite: XMLTempestTestSuite
-    ) -> TempestTestSuite:
-        return TempestTestSuite(
+    ) -> TestSuite:
+        return TestSuite(
             name=suite.name,
             url=url,
             tests=[self.convert_case(url, case) for case in suite.testcase]
@@ -159,11 +158,11 @@ class TempestTestParser:
     def tools(self):
         return self._tools
 
-    def parser_tests_at(
+    def parse_tests_at(
         self,
         build: Build,
         file: ManifestFile
-    ) -> Iterable[TempestTestSuite]:
+    ) -> Iterable[TestSuite]:
         return [
             self.tools.converter.convert_suite(
                 url=self._get_url_to_file(build, file),

@@ -16,7 +16,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from cibyl.sources.zuul.utils.tests.types import Test, TestSuite
+from cibyl.sources.zuul.utils.tests.types import Test
 
 
 @dataclass
@@ -24,8 +24,3 @@ class TempestTest(Test):
     class_name: str
     skip_reason: Optional[str] = None
     failure_reason: Optional[str] = None
-
-
-@dataclass
-class TempestTestSuite(TestSuite[TempestTest]):
-    pass
