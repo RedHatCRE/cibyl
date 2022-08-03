@@ -19,7 +19,7 @@ from typing import Iterable, List, NamedTuple, Optional
 from requests import Session
 from xsdata.formats.dataclass.parsers import XmlParser
 
-from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
+from cibyl.sources.zuul.apis.http import ZuulHTTPBuildAPI as Build
 from cibyl.sources.zuul.utils.artifacts.manifest import ManifestFile
 from cibyl.sources.zuul.utils.builds import get_url_to_build_file
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest

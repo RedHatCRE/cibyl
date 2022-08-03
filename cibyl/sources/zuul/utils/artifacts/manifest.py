@@ -19,7 +19,7 @@ from typing import Iterable, List, NamedTuple, Optional, Sequence, Tuple
 from xsdata.formats.dataclass.parsers import JsonParser
 
 from cibyl.sources.zuul.apis import Artifact, ArtifactKind
-from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
+from cibyl.sources.zuul.apis.http import ZuulHTTPBuildAPI as Build
 from cibyl.sources.zuul.utils.artifacts import ArtifactError
 from cibyl.utils.filtering import matches_regex
 from cibyl.utils.net import download_into_memory

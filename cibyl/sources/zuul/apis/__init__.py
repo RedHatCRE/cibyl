@@ -18,10 +18,10 @@ from dataclasses import dataclass
 
 from deprecation import deprecated
 
-from cibyl.sources.zuul.utils.tests.types import TestSuite
 from cibyl.exceptions.source import SourceException
 from cibyl.sources.zuul.apis.providers import JobsProvider, PipelinesProvider
 from cibyl.sources.zuul.utils.artifacts import Artifact, ArtifactKind
+from cibyl.sources.zuul.utils.tests.types import TestSuite
 from cibyl.utils.io import Closeable
 
 

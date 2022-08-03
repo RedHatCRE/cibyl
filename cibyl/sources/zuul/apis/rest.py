@@ -14,144 +14,41 @@
 #    under the License.
 """
 import logging
-from typing import NamedTuple, Iterable
-from urllib.parse import urljoin
+from typing import Iterable, NamedTuple
 
 from overrides import overrides
-from requests import HTTPError, Session
+from requests import Session
 
 from cibyl.sources.zuul.apis import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
                                      ZuulJobAPI, ZuulPipelineAPI,
                                      ZuulProjectAPI, ZuulTenantAPI,
                                      ZuulVariantAPI)
+from cibyl.sources.zuul.apis.http import ZuulHTTPBuildAPI, ZuulSession
 from cibyl.sources.zuul.utils.tests.finder import TestFinder
 from cibyl.sources.zuul.utils.tests.tempest.finder import TempestTestFinder
-from cibyl.utils.io import Closeable
 
 LOG = logging.getLogger(__name__)
 
 
-class ZuulSession(Closeable):
-    """Defines a link through which to communicate with the Zuul host.
-    Communication is performed through the host's REST-API. This forms the
-    base class for all communication with the host.
-    """
-
-    def __init__(self, session, host, verify):
-        """Constructor.
-
-        :param session: Low-level HTTP handler.
-        :type session: :class:`Session`
-        :param host: URL to the Zuul host.
-        :type host: str
-        :param verify: Indicates what is to be done regarding identification
-            of the host. 'False' and 'None' disable need for validation.
-            'True' activates it and leaves it up to the client's system to
-            resolve it. A path to a certificate will use that file to
-            identify the host.
-        :type verify: str or bool or None
-        """
-        self._session = session
-        self._session.verify = verify
-
-        if not host.endswith('/'):
-            host += '/'
-
-        self._host = host
-
-    @property
-    def session(self):
-        """
-        :return: The low-level session this uses to perform requests.
-        :rtype: :class:`Session`
-        """
-        return self._session
-
-    @property
-    def host(self):
-        return self._host
-
-    @property
-    def api(self):
-        """
-        :return: URL to the entry point of the host's REST-API.
-        :rtype: str
-        """
-        return urljoin(self.host, 'api/')
-
-    def get(self, service):
-        """Performs a GET action on one of the host's end-points.
-
-        :param service: Name of the end-point to be attacked.
-        :type service: str
-        :return: JSON-like response from host.
-        :rtype: dict
-        :raises ZuulAPIError: If the request failed.
-        """
-        request = self._session.get(urljoin(self.api, service))
-
-        self._check_request_status(request)
-
-        return request.json()
-
-    @overrides
-    def close(self):
-        self._session.close()
-
-    @staticmethod
-    def _check_request_status(request):
-        try:
-            request.raise_for_status()
-        except HTTPError as ex:
-            code = request.status_code
-
-            if code == 401:
-                msg = f"Error - 401. " \
-                      f"Unauthorized access to resource: '{request.url}'. " \
-                      f"Check credentials and try again."
-
-                raise ZuulAPIError(msg) from ex
-
-            if code == 403:
-                msg = f"Error - 403. " \
-                      f"Insufficient privileges " \
-                      f"to access resource at: '{request.url}'. " \
-                      f"Check credentials and try again."
-
-                raise ZuulAPIError(msg) from ex
-
-            if code == 404:
-                msg = f"Error - 404. " \
-                      f"Resource not found at: '{request.url}'. " \
-                      f"Check resource availability and try again."
-
-                raise ZuulAPIError(msg) from ex
-
-            msg = f"Unknown error code: '{code}' " \
-                  f"returned by host at: {request.url}. " \
-                  f"Wait for a couple of minutes and try again..."
-
-            raise ZuulAPIError(msg) from ex
-
-
-class ZuulBuildRESTClient(ZuulBuildAPI):
+class ZuulBuildRESTClient(ZuulHTTPBuildAPI):
     """Implementation of a Zuul client through the use of Zuul's REST-API.
     """
 
     class Tools(NamedTuple):
+        """Extra tools this uses to do its job.
+        """
         finders: Iterable[TestFinder] = (TempestTestFinder(),)
+        """Collection of tools used to get the build's tests from all
+        possible sources."""
 
     def __init__(self, session, job, build, tools=Tools()):
         """Constructor. See parent for more information.
 
-        :param session: The link through which the REST-API will be contacted.
-        :type session: :class:`ZuulSession`
         :param tools: Extra tools this uses to do its job.
         :type tools: :class:`ZuulBuildRESTClient.Tools`
         """
-        super().__init__(job, build)
+        super().__init__(session, job, build)
 
-        self._session = session
         self._tools = tools
 
     def __eq__(self, other):
@@ -164,10 +61,6 @@ class ZuulBuildRESTClient(ZuulBuildAPI):
         return \
             self.job == other.job and \
             self.raw == other.raw
-
-    @property
-    def session(self):
-        return self._session
 
     @property
     def tools(self):
