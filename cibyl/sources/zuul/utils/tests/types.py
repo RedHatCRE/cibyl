@@ -14,13 +14,12 @@
 #    under the License.
 """
 from abc import ABC
-from enum import StrEnum
-from typing import Generic, Optional, TypeVar, Iterable
-
 from dataclasses import dataclass, field
+from enum import Enum
+from typing import Generic, Iterable, Optional, TypeVar
 
 
-class TestResult(StrEnum):
+class TestResult(Enum):
     UNKNOWN = 'UNKNOWN'
     SUCCESS = 'SUCCESS'
     FAILURE = 'FAILURE'

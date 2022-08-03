@@ -19,12 +19,11 @@ from typing import Iterable, List, NamedTuple, Optional
 from requests import Session
 from xsdata.formats.dataclass.parsers import XmlParser
 
-from cibyl.models.ci.zuul.test_suite import TestSuite
 from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
 from cibyl.sources.zuul.utils.artifacts.manifest import ManifestFile
-from cibyl.sources.zuul.utils.builds import get_url_to_log_file
-from cibyl.sources.zuul.utils.tests.tempest.types import TempestTestSuite, \
-    TempestTest
+from cibyl.sources.zuul.utils.builds import get_url_to_build_file
+from cibyl.sources.zuul.utils.tests.tempest.types import (TempestTest,
+                                                          TempestTestSuite)
 from cibyl.sources.zuul.utils.tests.types import TestResult
 from cibyl.utils.net import download_into_memory
 from tripleo.utils.urls import URL
@@ -163,12 +162,13 @@ class TempestTestParser:
     def parser_tests_at(
         self,
         build: Build,
-        log: ManifestFile
-    ) -> Iterable[TestSuite]:
+        file: ManifestFile
+    ) -> Iterable[TempestTestSuite]:
         return [
             self.tools.converter.convert_suite(
-                self.tools.parser.from_string(
-                    self._download_build_file(build, log),
+                url=self._get_url_to_file(build, file),
+                suite=self.tools.parser.from_string(
+                    self._download_build_file(build, file),
                     XMLTempestTestSuite
                 )
             )
@@ -176,9 +176,12 @@ class TempestTestParser:
 
     def _download_build_file(self, build: Build, file: ManifestFile) -> str:
         return download_into_memory(
-            get_url_to_log_file(build, file),
+            self._get_url_to_file(build, file),
             self._get_session_from(build)
         )
+
+    def _get_url_to_file(self, build: Build, file: ManifestFile) -> URL:
+        return get_url_to_build_file(build, file)
 
     def _get_session_from(self, build: Build) -> Session:
         return build.session.session
