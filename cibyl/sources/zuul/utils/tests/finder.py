@@ -16,8 +16,8 @@
 from abc import ABC, abstractmethod
 from typing import Iterable
 
-from cibyl.models.ci.zuul.test_suite import TestSuite
 from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
+from cibyl.sources.zuul.utils.tests.types import TestSuite
 
 
 class TestFinder(ABC):
