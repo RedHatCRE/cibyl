@@ -396,7 +396,7 @@ class ManifestFileSearch:
                     continue
 
                 # Generate path to the file
-                return ManifestFile(f'{path}/{file}'), item
+                return self._from_dir_to_file(path, file), item
 
         return None
 
@@ -429,3 +429,14 @@ class ManifestFileSearch:
         """
         # Remove initial '/' to avoid empty splits
         return path[1:].split('/')
+
+    def _from_dir_to_file(self, path: ManifestDir, file: str) -> ManifestFile:
+        result = path
+
+        # In case it is not the manifest's root
+        if not result.endswith('/'):
+            result += '/'
+
+        result += file
+
+        return ManifestFile(result)
