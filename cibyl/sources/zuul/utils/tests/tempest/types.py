@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Optional
+
 from dataclasses import dataclass
 
 from cibyl.sources.zuul.utils.tests.types import Test, TestSuite
@@ -21,7 +23,8 @@ from cibyl.sources.zuul.utils.tests.types import Test, TestSuite
 @dataclass
 class TempestTest(Test):
     class_name: str
-    skip_reason: str
+    skip_reason: Optional[str] = None
+    failure_reason: Optional[str] = None
 
 
 @dataclass

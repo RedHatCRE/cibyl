@@ -14,14 +14,23 @@
 #    under the License.
 """
 from abc import ABC
+from enum import StrEnum
+from typing import Generic, Optional, TypeVar, Iterable
+
 from dataclasses import dataclass, field
-from typing import Generic, List, Optional, TypeVar
+
+
+class TestResult(StrEnum):
+    UNKNOWN = 'UNKNOWN'
+    SUCCESS = 'SUCCESS'
+    FAILURE = 'FAILURE'
+    SKIPPED = 'SKIPPED'
 
 
 @dataclass
 class Test(ABC):
     name: str
-    result: str
+    result: TestResult
     duration: float
     url: str
 
@@ -37,5 +46,5 @@ class TestSuite(Generic[T]):
     """Name of the suite."""
     url: Optional[str] = None
     """Page where to get more information about the tests."""
-    tests: List[T] = field(default_factory=list)
+    tests: Iterable[T] = field(default_factory=list)
     """Collection of test cases stored by this suite."""

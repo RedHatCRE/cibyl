@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Iterable, NamedTuple, List, Optional
-
 from dataclasses import dataclass, field
+from typing import Iterable, List, NamedTuple, Optional
+
 from requests import Session
 from xsdata.formats.dataclass.parsers import XmlParser
 
@@ -23,16 +23,20 @@ from cibyl.models.ci.zuul.test_suite import TestSuite
 from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
 from cibyl.sources.zuul.utils.artifacts.manifest import ManifestFile
 from cibyl.sources.zuul.utils.builds import get_url_to_log_file
+from cibyl.sources.zuul.utils.tests.tempest.types import TempestTestSuite, \
+    TempestTest
+from cibyl.sources.zuul.utils.tests.types import TestResult
 from cibyl.utils.net import download_into_memory
+from tripleo.utils.urls import URL
 
 
 @dataclass
-class ZuulTempestSkipped:
+class XMLTempestSkipped:
     value: str = field()
 
 
 @dataclass
-class ZuulTempestFailure:
+class XMLTempestFailure:
     type: str = field(
         metadata={
             'type': 'Attribute'
@@ -42,7 +46,7 @@ class ZuulTempestFailure:
 
 
 @dataclass
-class ZuulTempestTestCase:
+class XMLTempestTestCase:
     name: str = field(
         metadata={
             'type': 'Attribute'
@@ -58,13 +62,13 @@ class ZuulTempestTestCase:
             'type': 'Attribute'
         }
     )
-    failure: Optional[ZuulTempestFailure] = field(
+    failure: Optional[XMLTempestFailure] = field(
         default=None,
         metadata={
             'type': 'Element'
         }
     )
-    skipped: Optional[ZuulTempestSkipped] = field(
+    skipped: Optional[XMLTempestSkipped] = field(
         default=None,
         metadata={
             'type': 'Element'
@@ -73,7 +77,7 @@ class ZuulTempestTestCase:
 
 
 @dataclass
-class ZuulTempestTestSuite:
+class XMLTempestTestSuite:
     errors: int = field(
         metadata={
             'type': 'Attribute'
@@ -99,7 +103,7 @@ class ZuulTempestTestSuite:
             'type': 'Attribute'
         }
     )
-    testcase: List[ZuulTempestTestCase] = field(
+    testcase: List[XMLTempestTestCase] = field(
         default_factory=list,
         metadata={
             'type': 'Element'
@@ -107,9 +111,47 @@ class ZuulTempestTestSuite:
     )
 
 
+class TempestTestConverter:
+    def convert_suite(
+        self,
+        url: URL,
+        suite: XMLTempestTestSuite
+    ) -> TempestTestSuite:
+        return TempestTestSuite(
+            name=suite.name,
+            url=url,
+            tests=[self.convert_case(url, case) for case in suite.testcase]
+        )
+
+    def convert_case(
+        self,
+        url: URL,
+        case: XMLTempestTestCase
+    ) -> TempestTest:
+        return TempestTest(
+            name=case.name,
+            result=self._get_case_result(case),
+            duration=case.time,
+            url=url,
+            class_name=case.classname,
+            skip_reason=case.skipped.value if case.skipped else None,
+            failure_reason=case.failure.value if case.failure else None
+        )
+
+    def _get_case_result(self, case: XMLTempestTestCase) -> TestResult:
+        if case.skipped:
+            return TestResult.SKIPPED
+
+        if case.failure:
+            return TestResult.FAILURE
+
+        return TestResult.SUCCESS
+
+
 class TempestTestParser:
     class Tools(NamedTuple):
         parser: XmlParser = XmlParser()
+        converter: TempestTestConverter = TempestTestConverter()
 
     def __init__(self, tools: Tools = Tools()):
         self._tools = tools
@@ -123,12 +165,14 @@ class TempestTestParser:
         build: Build,
         log: ManifestFile
     ) -> Iterable[TestSuite]:
-        suite = self.tools.parser.from_string(
-            self._download_build_file(build, log),
-            ZuulTempestTestSuite
-        )
-
-        return []
+        return [
+            self.tools.converter.convert_suite(
+                self.tools.parser.from_string(
+                    self._download_build_file(build, log),
+                    XMLTempestTestSuite
+                )
+            )
+        ]
 
     def _download_build_file(self, build: Build, file: ManifestFile) -> str:
         return download_into_memory(
