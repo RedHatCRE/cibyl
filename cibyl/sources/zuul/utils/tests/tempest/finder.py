@@ -24,7 +24,6 @@ from cibyl.sources.zuul.utils.artifacts.manifest import (ManifestDir,
                                                          ManifestFileSearch)
 from cibyl.sources.zuul.utils.tests.finder import TestFinder
 from cibyl.sources.zuul.utils.tests.tempest.parser import TempestTestParser
-from cibyl.sources.zuul.utils.tests.tempest.types import TempestTestSuite
 
 SearchTerms = ManifestFileSearch.SearchTerms
 

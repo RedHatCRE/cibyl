@@ -27,6 +27,21 @@ from cibyl.utils.net import download_into_memory
 
 
 @dataclass
+class ZuulTempestSkipped:
+    value: str = field()
+
+
+@dataclass
+class ZuulTempestFailure:
+    type: str = field(
+        metadata={
+            'type': 'Attribute'
+        }
+    )
+    value: str = field()
+
+
+@dataclass
 class ZuulTempestTestCase:
     name: str = field(
         metadata={
@@ -43,7 +58,13 @@ class ZuulTempestTestCase:
             'type': 'Attribute'
         }
     )
-    skipped: Optional[str] = field(
+    failure: Optional[ZuulTempestFailure] = field(
+        default=None,
+        metadata={
+            'type': 'Element'
+        }
+    )
+    skipped: Optional[ZuulTempestSkipped] = field(
         default=None,
         metadata={
             'type': 'Element'
@@ -102,7 +123,7 @@ class TempestTestParser:
         build: Build,
         log: ManifestFile
     ) -> Iterable[TestSuite]:
-        suites = self.tools.parser.from_string(
+        suite = self.tools.parser.from_string(
             self._download_build_file(build, log),
             ZuulTempestTestSuite
         )
