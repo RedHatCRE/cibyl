@@ -14,6 +14,7 @@
 #    under the License.
 """
 import logging
+from typing import NamedTuple, Iterable
 from urllib.parse import urljoin
 
 from overrides import overrides
@@ -23,6 +24,8 @@ from cibyl.sources.zuul.apis import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
                                      ZuulJobAPI, ZuulPipelineAPI,
                                      ZuulProjectAPI, ZuulTenantAPI,
                                      ZuulVariantAPI)
+from cibyl.sources.zuul.utils.tests.finder import TestFinder
+from cibyl.sources.zuul.utils.tests.tempest.finder import TempestTestFinder
 from cibyl.utils.io import Closeable
 
 LOG = logging.getLogger(__name__)
@@ -135,15 +138,21 @@ class ZuulBuildRESTClient(ZuulBuildAPI):
     """Implementation of a Zuul client through the use of Zuul's REST-API.
     """
 
-    def __init__(self, session, job, build):
+    class Tools(NamedTuple):
+        finders: Iterable[TestFinder] = (TempestTestFinder(),)
+
+    def __init__(self, session, job, build, tools=Tools()):
         """Constructor. See parent for more information.
 
         :param session: The link through which the REST-API will be contacted.
         :type session: :class:`ZuulSession`
+        :param tools: Extra tools this uses to do its job.
+        :type tools: :class:`ZuulBuildRESTClient.Tools`
         """
         super().__init__(job, build)
 
         self._session = session
+        self._tools = tools
 
     def __eq__(self, other):
         if not issubclass(type(other), ZuulBuildAPI):
@@ -160,9 +169,18 @@ class ZuulBuildRESTClient(ZuulBuildAPI):
     def session(self):
         return self._session
 
+    @property
+    def tools(self):
+        return self._tools
+
     @overrides
     def tests(self):
-        return []
+        result = []
+
+        for finder in self.tools.finders:
+            result += finder.find(self)
+
+        return result
 
     @overrides
     def close(self):

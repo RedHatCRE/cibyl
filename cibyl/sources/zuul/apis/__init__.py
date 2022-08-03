@@ -18,6 +18,7 @@ from dataclasses import dataclass
 
 from deprecation import deprecated
 
+from cibyl.sources.zuul.utils.tests.types import TestSuite
 from cibyl.exceptions.source import SourceException
 from cibyl.sources.zuul.apis.providers import JobsProvider, PipelinesProvider
 from cibyl.sources.zuul.utils.artifacts import Artifact, ArtifactKind
@@ -146,7 +147,7 @@ class ZuulBuildAPI(Closeable, ABC):
     def tests(self):
         """
         :return: The tests run by this build.
-        :rtype: list[:class:`ZuulTestAPI`]
+        :rtype: list[:class:`TestSuite`]
         """
         raise NotImplementedError
 
