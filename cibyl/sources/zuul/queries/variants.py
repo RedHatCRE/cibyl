@@ -20,7 +20,7 @@ def perform_variants_query(job, **kwargs):
 
     :param job: API to interact with the owner of the variants.
     :type job: :class:`cibyl.sources.zuul.transactions.JobResponse`
-    :param kwargs: See :func:`handle_query`.
+    :param kwargs: Arguments coming from the CLI.
     :return: List of retrieved variants.
     :rtype: list[:class:`cibyl.sources.zuul.transactions.VariantResponse`]
     """

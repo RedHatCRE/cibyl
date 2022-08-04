@@ -143,9 +143,6 @@ class Zuul(ServerSource):
     def get_tenants(self, **kwargs):
         """Retrieves tenants present on the host.
 
-       ..  seealso::
-            For kwargs keys: :func:`handle_query`
-
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
@@ -157,9 +154,6 @@ class Zuul(ServerSource):
     @speed_index({'base': 2})
     def get_projects(self, **kwargs):
         """Retrieves projects present on the host.
-
-        ..  seealso::
-            For kwargs keys: :func:`handle_query`
 
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
@@ -173,9 +167,6 @@ class Zuul(ServerSource):
     def get_pipelines(self, **kwargs):
         """Retrieves pipelines present on the host.
 
-        ..  seealso::
-            For kwargs keys: :func:`handle_query`
-
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
@@ -188,9 +179,6 @@ class Zuul(ServerSource):
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 
-        ..  seealso::
-            For kwargs keys: :func:`handle_query`
-
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
@@ -202,9 +190,6 @@ class Zuul(ServerSource):
     @speed_index({'base': 4})
     def get_builds(self, **kwargs):
         """Retrieves builds present on the host.
-
-        ..  seealso::
-            For kwargs keys: :func:`handle_query`
 
         :param kwargs: All arguments from the command line.
             These define the query to be performed.

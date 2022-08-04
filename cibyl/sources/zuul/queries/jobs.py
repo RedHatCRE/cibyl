@@ -21,7 +21,7 @@ def perform_jobs_query(zuul, **kwargs):
 
     :param zuul: API to interact with Zuul with.
     :type zuul: :class:`cibyl.sources.zuul.apis.ZuulAPI`
-    :param kwargs: See :func:`handle_query`.
+    :param kwargs: Arguments coming from the CLI.
     :return: List of retrieved jobs.
     :rtype: list[:class:`cibyl.sources.zuul.transactions.JobResponse`]
     """

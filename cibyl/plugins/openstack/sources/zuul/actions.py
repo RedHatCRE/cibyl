@@ -45,7 +45,7 @@ def _default_variant_query(job, **kwargs):
 
     :param job: The job to get the variants for.
     :type job: :class:`cibyl.sources.zuul.transactions.JobResponse`
-    :param kwargs: See :func:`handle_query`.
+    :param kwargs: Arguments coming from the CLI.
     :return: List of retrieved variants.
     :rtype: list[:class:`cibyl.sources.zuul.transactions.VariantResponse`]
     """
