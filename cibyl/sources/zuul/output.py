@@ -191,3 +191,8 @@ class QueryOutputBuilder:
         :rtype: :class:`QueryOutput`
         """
         return self._tenants
+
+
+class QueryOutputBuilderFactory:
+    def new(self):
+        return QueryOutputBuilder()

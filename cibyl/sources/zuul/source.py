@@ -23,6 +23,7 @@ from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
 from cibyl.sources.zuul.actions import handle_query
+from cibyl.sources.zuul.apis import ZuulAPI
 from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
 from cibyl.utils.dicts import subset
 
@@ -126,6 +127,10 @@ class Zuul(ServerSource):
         fallbacks = new_fallbacks_from('tenants')
 
         return Zuul(url=url, cert=cert, fallbacks=fallbacks, **kwargs)
+
+    @property
+    def api(self) -> ZuulAPI:
+        return self._api
 
     @overrides
     def setup(self):
