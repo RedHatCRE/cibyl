@@ -18,7 +18,7 @@ from typing import Iterable, NamedTuple
 
 from overrides import overrides
 
-from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
+from cibyl.sources.zuul.apis.http import ZuulHTTPBuildAPI as Build
 from cibyl.sources.zuul.utils.artifacts.manifest import (ManifestDir,
                                                          ManifestDownloader,
                                                          ManifestFileSearch)

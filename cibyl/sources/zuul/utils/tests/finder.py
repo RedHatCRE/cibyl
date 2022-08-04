@@ -16,7 +16,7 @@
 from abc import ABC, abstractmethod
 from typing import Iterable
 
-from cibyl.sources.zuul.apis.rest import ZuulBuildRESTClient as Build
+from cibyl.sources.zuul.apis.http import ZuulHTTPBuildAPI as Build
 from cibyl.sources.zuul.utils.tests.types import TestSuite
 
 
