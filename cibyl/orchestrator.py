@@ -278,12 +278,12 @@ class Orchestrator:
                 source_info = source_information_from_method(
                         source_method)
                 source_obj = get_source_instance_from_method(source_method)
-                source_obj.ensure_source_setup()
-                start_time = time.time()
-                LOG.info("Performing query on system %s", system.name)
-                LOG.debug("Running %s and speed index %d",
-                          source_info, speed_score)
                 try:
+                    source_obj.ensure_source_setup()
+                    start_time = time.time()
+                    LOG.info("Performing query on system %s", system.name)
+                    LOG.debug("Running %s and speed index %d",
+                              source_info, speed_score)
                     with StatusBar(f"Performing query ({system.name})"):
                         model_instances_dict = source_method(
                             **ci_args, **self.parser.app_args,
@@ -294,15 +294,15 @@ class Orchestrator:
                               source_info, system.name.value,
                               exception, exc_info=debug)
                     continue
+                end_time = time.time()
+                LOG.info("Took %.2fs to query system %s using %s",
+                         end_time-start_time, system.name.value,
+                         source_info)
                 if query_result is None:
                     query_result = model_instances_dict
                 else:
                     query_result = intersect_models(query_result,
                                                     model_instances_dict)
-                end_time = time.time()
-                LOG.info("Took %.2fs to query system %s using %s",
-                         end_time-start_time, system.name.value,
-                         source_info)
                 system.register_query()
                 # if one source has provided the information, there is
                 # no need to query the rest
