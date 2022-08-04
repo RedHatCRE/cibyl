@@ -21,19 +21,38 @@ from cibyl.sources.zuul.output import QueryOutput, QueryOutputBuilderFactory
 
 
 class SourceManager(ABC):
+    """Base class for all handler that take care of performing the queries
+    that a Zuul source receives.
+    """
+
     class Tools(NamedTuple):
+        """Tools this class uses to perform its task.
+        """
         output: QueryOutputBuilderFactory = QueryOutputBuilderFactory()
+        """Provides the tool used to generate the query output."""
 
     def __init__(self, api: Zuul, tools: Tools = Tools()):
+        """Constructor.
+
+        :param api: Interface with which to interact with the Zuul host.
+            Must not be closed.
+        :param tools: Tools this class uses to perform its task.
+        """
         self._api = api
         self._tools = tools
 
     @property
     def api(self) -> Zuul:
+        """
+        :return: Interface this uses to interact with the Zuul host.
+        """
         return self._api
 
     @property
     def tools(self) -> Tools:
+        """
+        :return: Tools this class uses to perform its task.
+        """
         return self._tools
 
     @abstractmethod

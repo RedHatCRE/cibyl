@@ -26,6 +26,10 @@ from cibyl.sources.zuul.queries.variants import perform_variants_query
 
 
 class VerboseManager(SourceManager):
+    """Performs the source's queries retrieving as much information as it
+    can from them.
+    """
+
     @overrides
     def handle_tenants_query(self, **kwargs) -> QueryOutput:
         model = self.tools.output.new()

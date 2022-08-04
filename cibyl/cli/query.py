@@ -57,7 +57,9 @@ class QuerySelector:
         :key projects: Query targets projects.
         :key pipelines: Query targets pipelines.
         :key jobs: Query targets jobs.
+        :key variants: Query targets job variants.
         :key builds: Query target builds.
+        :key tests: Query target tests.
         :return: The lowest query level possible. For example,
             if both 'tenants' and 'builds' are requested, this will choose
             'builds' over 'tenants'.
@@ -74,7 +76,7 @@ class QuerySelector:
         if 'pipelines' in kwargs:
             result = QueryType.PIPELINES
 
-        job_args = subset(kwargs, ["jobs", "variants", "job_url"])
+        job_args = subset(kwargs, ["jobs", "job_url"])
         if job_args:
             result = QueryType.JOBS
 

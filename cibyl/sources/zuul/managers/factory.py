@@ -19,5 +19,15 @@ from cibyl.sources.zuul.managers.verbose import VerboseManager
 
 
 class SourceManagerFactory:
+    """Factory for :class:`SourceManager`.
+    """
+
     def from_kwargs(self, api: Zuul, **kwargs) -> SourceManager:
+        """Chooses the manager type from the undefined arguments passed to
+        this.
+
+        :param api: Interface to communicate with the Zuul host.
+        :param kwargs: Arguments coming from the CLI.
+        :return: A new manager instance.
+        """
         return VerboseManager(api)
