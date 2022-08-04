@@ -33,11 +33,13 @@ class QueryType(IntEnum):
     """Retrieve data concerning pipelines and above."""
     JOBS = 5
     """Retrieve data concerning jobs and above."""
-    BUILDS = 6
+    VARIANTS = 6
+    """Retrieve data concerning job variants and above."""
+    BUILDS = 7
     """Retrieve data concerning builds and above."""
-    TESTS = 7
+    TESTS = 8
     """Retrieve data concerning tests and above."""
-    FEATURES_JOBS = 8
+    FEATURES_JOBS = 9
     """Retrieve data using features and jobs."""
 
 
@@ -55,7 +57,9 @@ class QuerySelector:
         :key projects: Query targets projects.
         :key pipelines: Query targets pipelines.
         :key jobs: Query targets jobs.
+        :key variants: Query targets job variants.
         :key builds: Query target builds.
+        :key tests: Query target tests.
         :return: The lowest query level possible. For example,
             if both 'tenants' and 'builds' are requested, this will choose
             'builds' over 'tenants'.
@@ -72,9 +76,12 @@ class QuerySelector:
         if 'pipelines' in kwargs:
             result = QueryType.PIPELINES
 
-        job_args = subset(kwargs, ["jobs", "variants", "job_url"])
+        job_args = subset(kwargs, ["jobs", "job_url"])
         if job_args:
             result = QueryType.JOBS
+
+        if 'variants' in kwargs:
+            result = QueryType.VARIANTS
 
         build_args = subset(kwargs, ["builds", "last_build", "build_status"])
         if build_args:

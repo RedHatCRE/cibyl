@@ -191,3 +191,15 @@ class QueryOutputBuilder:
         :rtype: :class:`QueryOutput`
         """
         return self._tenants
+
+
+class QueryOutputBuilderFactory:
+    """Factory for :class:`QueryOutputBuilder`.
+    """
+
+    def new(self):
+        """Creates a new instance without conditions or dependencies.
+
+        :return: Then new instance.
+        """
+        return QueryOutputBuilder()

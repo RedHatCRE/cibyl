@@ -18,12 +18,14 @@ from typing import List, MutableMapping
 
 from overrides import overrides
 
+from cibyl.cli.query import QueryType, get_query_type
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
-from cibyl.sources.zuul.actions import handle_query
 from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
+from cibyl.sources.zuul.managers.factory import SourceManagerFactory
+from cibyl.sources.zuul.output import QueryOutput
 from cibyl.utils.dicts import subset
 
 
@@ -44,7 +46,8 @@ class Zuul(ServerSource):
 
     def __init__(self, name, driver, url, cert=None,
                  fallbacks=None, tenants=None, enabled=True,
-                 api_factory=ZuulRESTFactory()):
+                 api_factory=ZuulRESTFactory(),
+                 manager=SourceManagerFactory()):
         """Constructor.
 
         :param name: Name of the source.
@@ -80,6 +83,7 @@ class Zuul(ServerSource):
         self._fallbacks = fallbacks
         self._tenants = tenants
         self._api_factory = api_factory
+        self._manager = manager
 
     @staticmethod
     def new_source(url, cert=None, **kwargs):
@@ -139,81 +143,83 @@ class Zuul(ServerSource):
     def get_tenants(self, **kwargs):
         """Retrieves tenants present on the host.
 
-       ..  seealso::
-            For kwargs keys: :func:`handle_query`
-
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return AttributeDictValue(
-            name='tenants',
-            attr_type=Tenant,
-            value=handle_query(
-                self._api,
-                defaults=self._fallbacks,
-                **kwargs
-            )
-        )
+        return self._handle_query(**kwargs)
 
     @speed_index({'base': 2})
     def get_projects(self, **kwargs):
         """Retrieves projects present on the host.
 
-        ..  seealso::
-            For kwargs keys: :func:`handle_query`
-
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self.get_tenants(**kwargs)
+        return self._handle_query(**kwargs)
 
     @speed_index({'base': 2})
     def get_pipelines(self, **kwargs):
         """Retrieves pipelines present on the host.
 
-        ..  seealso::
-            For kwargs keys: :func:`handle_query`
-
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self.get_projects(**kwargs)
+        return self._handle_query(**kwargs)
 
     @speed_index({'base': 3})
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 
-        ..  seealso::
-            For kwargs keys: :func:`handle_query`
-
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self.get_tenants(**kwargs)
+        return self._handle_query(**kwargs)
 
     @speed_index({'base': 4})
     def get_builds(self, **kwargs):
         """Retrieves builds present on the host.
 
-        ..  seealso::
-            For kwargs keys: :func:`handle_query`
-
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self.get_jobs(**kwargs)
+        return self._handle_query(**kwargs)
+
+    def _handle_query(self, **kwargs) -> AttributeDictValue:
+        return AttributeDictValue(
+            name='tenants',
+            attr_type=Tenant,
+            value=self._perform_query(defaults=self._fallbacks, **kwargs)
+        )
+
+    def _perform_query(self, **kwargs) -> QueryOutput:
+        query = get_query_type(**kwargs)
+        manager = self._manager.from_kwargs(self._api, **kwargs)
+
+        if query == QueryType.TENANTS:
+            return manager.handle_tenants_query(**kwargs)
+
+        if query == QueryType.PROJECTS:
+            return manager.handle_projects_query(**kwargs)
+
+        if query == QueryType.PIPELINES:
+            return manager.handle_pipelines_query(**kwargs)
+
+        if query in (QueryType.JOBS, QueryType.VARIANTS, QueryType.BUILDS):
+            return manager.handle_jobs_query(**kwargs)
+
+        raise NotImplementedError(f'Unsupported query: {query}')

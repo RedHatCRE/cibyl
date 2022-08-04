@@ -13,3 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+
+
+def perform_variants_query(job, **kwargs):
+    """Query for variants.
+
+    :param job: API to interact with the owner of the variants.
+    :type job: :class:`cibyl.sources.zuul.transactions.JobResponse`
+    :param kwargs: Arguments coming from the CLI.
+    :return: List of retrieved variants.
+    :rtype: list[:class:`cibyl.sources.zuul.transactions.VariantResponse`]
+    """
+    return job.variants().get()

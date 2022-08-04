@@ -131,7 +131,7 @@ class TestGetQueryType(TestCase):
             'variants': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(QueryType.VARIANTS, get_query_type(**args))
 
     def test_get_ip_version(self):
         """Checks that "None" is returned for "--ip-version" if the openstack
