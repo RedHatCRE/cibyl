@@ -18,14 +18,14 @@ from typing import List, MutableMapping
 
 from overrides import overrides
 
+from cibyl.cli.query import QueryType, get_query_type
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
-from cibyl.sources.zuul.actions import handle_query
-from cibyl.sources.zuul.apis import ZuulAPI
 from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
 from cibyl.sources.zuul.managers.factory import SourceManagerFactory
+from cibyl.sources.zuul.output import QueryOutput
 from cibyl.utils.dicts import subset
 
 
@@ -131,10 +131,6 @@ class Zuul(ServerSource):
 
         return Zuul(url=url, cert=cert, fallbacks=fallbacks, **kwargs)
 
-    @property
-    def api(self) -> ZuulAPI:
-        return self._api
-
     @overrides
     def setup(self):
         self._api = self._api_factory.create(self.url, self.cert)
@@ -156,15 +152,7 @@ class Zuul(ServerSource):
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return AttributeDictValue(
-            name='tenants',
-            attr_type=Tenant,
-            value=handle_query(
-                self._api,
-                defaults=self._fallbacks,
-                **kwargs
-            )
-        )
+        return self._handle_query(**kwargs)
 
     @speed_index({'base': 2})
     def get_projects(self, **kwargs):
@@ -179,7 +167,7 @@ class Zuul(ServerSource):
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self.get_tenants(**kwargs)
+        return self._handle_query(**kwargs)
 
     @speed_index({'base': 2})
     def get_pipelines(self, **kwargs):
@@ -194,7 +182,7 @@ class Zuul(ServerSource):
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self.get_projects(**kwargs)
+        return self._handle_query(**kwargs)
 
     @speed_index({'base': 3})
     def get_jobs(self, **kwargs):
@@ -209,7 +197,7 @@ class Zuul(ServerSource):
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self.get_tenants(**kwargs)
+        return self._handle_query(**kwargs)
 
     @speed_index({'base': 4})
     def get_builds(self, **kwargs):
@@ -224,4 +212,29 @@ class Zuul(ServerSource):
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self.get_jobs(**kwargs)
+        return self._handle_query(**kwargs)
+
+    def _handle_query(self, **kwargs) -> AttributeDictValue:
+        return AttributeDictValue(
+            name='tenants',
+            attr_type=Tenant,
+            value=self._perform_query(defaults=self._fallbacks, **kwargs)
+        )
+
+    def _perform_query(self, **kwargs) -> QueryOutput:
+        query = get_query_type(**kwargs)
+        manager = self._manager.from_kwargs(self._api, **kwargs)
+
+        if query == QueryType.TENANTS:
+            return manager.handle_tenants_query(**kwargs)
+
+        if query == QueryType.PROJECTS:
+            return manager.handle_projects_query(**kwargs)
+
+        if query == QueryType.PIPELINES:
+            return manager.handle_pipelines_query(**kwargs)
+
+        if query in (QueryType.JOBS, QueryType.VARIANTS, QueryType.BUILDS):
+            return manager.handle_jobs_query(**kwargs)
+
+        raise NotImplementedError(f'Unsupported query: {query}')

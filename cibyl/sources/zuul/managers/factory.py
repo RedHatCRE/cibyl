@@ -14,7 +14,6 @@
 #    under the License.
 """
 from cibyl.sources.zuul.apis import ZuulAPI as Zuul
-
 from cibyl.sources.zuul.managers import SourceManager
 from cibyl.sources.zuul.managers.verbose import VerboseManager
 
