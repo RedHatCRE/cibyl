@@ -34,10 +34,10 @@ class TestJenkins(EndToEndTest):
             jenkins.add_job('test_2')
 
             sys.argv = [
-                '',
+                'cibyl',
                 '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
                 '-f', 'text',
-                '-vv',
+                '-vv', 'query',
                 '--jobs'
             ]
 
@@ -54,9 +54,9 @@ class TestJenkins(EndToEndTest):
             jenkins.add_job('job-x')
 
             sys.argv = [
-                '',
+                'cibyl',
                 '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
-                '-f', 'text',
+                '-f', 'text', 'query',
                 '--jobs'
             ]
 
@@ -80,11 +80,10 @@ class TestFeatures(EndToEndTest):
         """
         with JenkinsContainer():
             sys.argv = [
-                '',
+                'cibyl',
                 '--config',
                 'tests/cibyl/e2e/data/configs/jenkins/with-openstack.yaml',
-                '-f', 'text',
-                '--features', 'IPv4'
+                '-f', 'text', 'features', 'IPv4'
             ]
 
             main()

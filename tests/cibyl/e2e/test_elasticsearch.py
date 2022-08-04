@@ -29,10 +29,10 @@ class TestElasticSearch(EndToEndTest):
         """
         with ElasticSearchContainer(index_name='logstash_jenkins_jobs'):
             sys.argv = [
-                '',
+                'cibyl',
                 '--config', 'tests/cibyl/e2e/data/configs/elasticsearch.yaml',
                 '-f', 'text',
-                '-vv',
+                '-vv', 'query',
                 '--jobs'
             ]
 

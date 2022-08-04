@@ -147,11 +147,11 @@ class Orchestrator:
     def load_features(self) -> list:
         """Read user-requested features and setup the right argument to query
         the information for them."""
-        user_features = self.parser.ci_args.get('features')
+        user_features = self.parser.app_args.get('features')
         if user_features is None:
             return []
         load_features()
-        if not user_features.value:
+        if not user_features:
             # throw error in case cibyl is called with --features argument but
             # without any specified feature
             features_string = get_string_all_features()
@@ -164,7 +164,7 @@ class Orchestrator:
                 msg += "plugin that provides the requested feature is added."
             raise InvalidArgument(msg)
         return [get_feature(feature_name)
-                for feature_name in user_features.value]
+                for feature_name in user_features]
 
     def run_features(self, system: System, features_to_run: list) -> None:
         """Run user-requested features, the output of each feature will be
@@ -372,9 +372,10 @@ class Orchestrator:
 
         The query is performed per system, while the results are published
         once per environment"""
+        command = self.parser.app_args.get('command')
         for env in self.environments:
             for system in env.systems:
-                if features:
+                if command == "features":
                     self.run_features(system, features)
                 else:
                     self.run_query(system)
@@ -383,5 +384,5 @@ class Orchestrator:
             self.publisher.publish(
                 environment=env,
                 style=output_style,
-                query=get_query_type(**self.parser.ci_args),
-                verbosity=self.parser.app_args.get('verbosity'))
+                query=get_query_type(**self.parser.ci_args, command=command),
+                verbosity=self.parser.app_args.get('verbosity', 0))

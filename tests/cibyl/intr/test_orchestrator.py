@@ -81,8 +81,9 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: jenkins\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
-                        '--jobs', 'DFG-compute', '--spec']
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'query', '--jobs', 'DFG-compute',
+                        '--spec']
 
             main()
         jenkins_deployment.assert_called_once()
@@ -124,8 +125,9 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: jenkins\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
-                        '--last-build', '--spec', '4', '-f', 'text']
+            sys.argv = ['cibyl', '-p', 'openstack', '-f', 'text', '--config',
+                        config_file.name, 'query', '--last-build', '--spec',
+                        '4']
 
             main()
 
@@ -162,8 +164,9 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: jenkins\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
-                        '--jobs', 'DFG-compute', '--spec', '--tests']
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'query', '--jobs', 'DFG-compute',
+                        '--spec', '--tests']
 
             main()
         jenkins_deployment.assert_called_once()
@@ -195,8 +198,9 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: jenkins\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
-                        '--jobs', 'DFG-compute', '--spec', '--builds']
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'query', '--jobs', 'DFG-compute',
+                        '--spec', '--builds']
 
             main()
         jenkins_deployment.assert_called_once()
@@ -228,7 +232,8 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: jenkins\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'query',
                         '--jobs', 'DFG-compute', '--spec', '--tests',
                         '--builds']
 
@@ -264,7 +269,8 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: zuul\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'query',
                         '--jobs', 'DFG-compute', '--spec', '--tests']
 
             main()
@@ -298,7 +304,8 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: zuul\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'query',
                         '--jobs', 'DFG-compute', '--spec', '--builds']
 
             main()
@@ -335,8 +342,8 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: elasticsearch\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '--config', config_file.name,
-                        '--builds', 'DFG-compute']
+            sys.argv = ['cibyl', '--config', config_file.name,
+                        'query', '--builds', 'DFG-compute']
 
             main()
         elasticsearch_setup.assert_called_once()

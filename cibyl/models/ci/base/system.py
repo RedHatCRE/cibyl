@@ -66,11 +66,7 @@ class System(Model):
         'features': {
             'attr_type': Feature,
             'attribute_value_class': AttributeDictValue,
-            'arguments': [
-                Argument(name='--features', arg_type=str,
-                         nargs="*",
-                         description="Template to query for a given feature")
-            ]
+            'arguments': []
         },
     }
     """Defines the CLI arguments for all systems.
