@@ -21,11 +21,11 @@ import logging
 from cibyl.cli.query import QueryType, get_query_type
 from cibyl.sources.zuul.output import QueryOutputBuilder
 from cibyl.sources.zuul.queries.builds import perform_builds_query
-from cibyl.sources.zuul.queries.jobs import (perform_jobs_query,
-                                             perform_variants_query)
+from cibyl.sources.zuul.queries.jobs import perform_jobs_query
 from cibyl.sources.zuul.queries.pipelines import perform_pipelines_query
 from cibyl.sources.zuul.queries.projects import perform_projects_query
 from cibyl.sources.zuul.queries.tenants import perform_tenants_query
+from cibyl.sources.zuul.queries.variants import perform_variants_query
 
 LOG = logging.getLogger(__name__)
 
