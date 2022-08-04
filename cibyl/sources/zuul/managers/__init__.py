@@ -18,15 +18,14 @@ from typing import NamedTuple
 
 from cibyl.sources.zuul.apis import ZuulAPI as Zuul
 from cibyl.sources.zuul.output import QueryOutput, QueryOutputBuilderFactory
-from cibyl.sources.zuul.source import Zuul as Source
 
 
 class SourceManager(ABC):
     class Tools(NamedTuple):
         output: QueryOutputBuilderFactory = QueryOutputBuilderFactory()
 
-    def __init__(self, source: Source, tools: Tools = Tools()):
-        self._api = source.api
+    def __init__(self, api: Zuul, tools: Tools = Tools()):
+        self._api = api
         self._tools = tools
 
     @property

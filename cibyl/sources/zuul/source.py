@@ -25,6 +25,7 @@ from cibyl.sources.source import speed_index
 from cibyl.sources.zuul.actions import handle_query
 from cibyl.sources.zuul.apis import ZuulAPI
 from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
+from cibyl.sources.zuul.managers.factory import SourceManagerFactory
 from cibyl.utils.dicts import subset
 
 
@@ -45,7 +46,8 @@ class Zuul(ServerSource):
 
     def __init__(self, name, driver, url, cert=None,
                  fallbacks=None, tenants=None, enabled=True,
-                 api_factory=ZuulRESTFactory()):
+                 api_factory=ZuulRESTFactory(),
+                 manager=SourceManagerFactory()):
         """Constructor.
 
         :param name: Name of the source.
@@ -81,6 +83,7 @@ class Zuul(ServerSource):
         self._fallbacks = fallbacks
         self._tenants = tenants
         self._api_factory = api_factory
+        self._manager = manager
 
     @staticmethod
     def new_source(url, cert=None, **kwargs):
