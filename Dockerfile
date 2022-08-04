@@ -26,6 +26,7 @@ COPY $CIBYL_ROOT/setup.cfg .
 COPY $CIBYL_ROOT/requirements.txt .
 
 COPY $CIBYL_ROOT/cibyl ./cibyl
+COPY $CIBYL_ROOT/tripleo ./tripleo
 
 RUN python3 -m pip install .
 
