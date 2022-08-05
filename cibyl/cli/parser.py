@@ -114,9 +114,9 @@ class Parser:
         features_sp = subparsers.add_parser("features", add_help=True)
         features_sp.add_argument("features", nargs="*",
                                  help="Features to query")
-        features_sp.add_argument("--jobs", type=str, nargs=0, func='get_jobs',
-                                 help="List jobs that use the features",
-                                 action=CustomAction)
+        features_sp.add_argument("--jobs", type=str, nargs='*',
+                                 func='get_jobs', action=CustomAction,
+                                 help="List jobs that use the features")
 
     def print_help(self) -> None:
         """Call argparse's print_help method to show the help message with the

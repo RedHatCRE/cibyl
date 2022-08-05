@@ -21,8 +21,8 @@ provide several examples of queries that can be done with cibyl.
 CLI arguments that accept values follow the assumption that if they are passed
 without any value, the user is requesting to list the corresponding
 information, while if passed with a value, the value will be used as a filter.
-As an example, running ``cibyl --jobs`` will list all available jobs, while
-``cibyl --jobs abc`` will list the jobs that have the string `abc` in their
+As an example, running ``cibyl query --jobs`` will list all available jobs, while
+``cibyl query --jobs abc`` will list the jobs that have the string `abc` in their
 names.
 
 .. note:: Throughout this page we assume  for simplicity that there is only one
@@ -36,11 +36,30 @@ names.
    `--tests` will consider the input as a regular expression. The regex are
    matched using the syntax defined in the re module (`docs <https://docs.python.org/3/library/re.html>`_).
 
+CLI organization
+----------------
+
+Cibyl supports the following subcommands:
+
+  * query
+  * features
+
+This page will cover many uses of the ``query`` subcommand, for examples of the
+``features`` one see the `features section <../features.html>`_.
+
 General parameters
 ------------------
 
 Before listing interesting use-cases, cibyl has also a set of application-wide
-cli arguments that will affect the queries.
+cli arguments that will affect the queries. This arguments must be
+specified before the subcommand. For example, to run a command to list of all
+jobs with a verbose output and a configuration file outside the default path,
+you should run::
+
+    cibyl -v --config path/to/config.yml query --jobs
+
+The application-level arguments supported by cibyl are:
+
 
 ``-d, --debug``
     Turn on debug-level logging
@@ -101,61 +120,61 @@ Job queries
 
 Cibyl can be used to query the list of all jobs defined in a CI system::
 
-    cibyl --jobs
+    cibyl query --jobs
 
 or to list the jobs that contain the string `123`::
 
-    cibyl --jobs 123
+    cibyl query --jobs 123
 
 or to list the jobs that end with the string `123`::
 
-    cibyl --jobs "123$"
+    cibyl query --jobs "123$"
 
 Build queries
 ^^^^^^^^^^^^^
 
 Cibyl can be used to query the list of all builds for all jobs defined in a CI system::
 
-    cibyl --jobs --builds
+    cibyl query --jobs --builds
 
 or the last build for all jobs::
 
-    cibyl --jobs --last-build
+    cibyl query --jobs --last-build
 
 or the last build for all jobs where that build failed::
 
-    cibyl --jobs --last-build --build-status FAILED
+    cibyl query --jobs --last-build --build-status FAILED
 
 .. note:: The value for the --build-status argument in case insensitive, so
    both `FAILED` and `failed` would produce the same result
 
 or the last build for all jobs that have the string `123` in the name and where that build failed::
 
-    cibyl --jobs 123 --last-build --build-status FAILED
+    cibyl query --jobs 123 --last-build --build-status FAILED
 
 Test queries
 ^^^^^^^^^^^^
 
 Cibyl can be used to query the list of all tests for all jobs defined in a CI system. To query for tests, the user must specify a build where the tests were run, either through the --last-build or --builds arguments::
 
-    cibyl --jobs --last-build --tests
+    cibyl query --jobs --last-build --tests
 
 listing the tests that run in build number 5::
 
-    cibyl --jobs --builds 5 --tests
+    cibyl query --jobs --builds 5 --tests
 
 or list the  tests that contain the string `123` in their name::
 
-    cibyl --jobs --last-build --tests 123
+    cibyl query --jobs --last-build --tests 123
 
 or list only the failing tests::
 
-    cibyl --jobs --last-build --test-result FAILED
+    cibyl query --jobs --last-build --test-result FAILED
 
 or list only the tests that run for more than 5 minutes, but less than 10
 minutes (test duration is specified in seconds)::
 
-    cibyl --jobs --last-build --test-duration ">300" "<600"
+    cibyl query --jobs --last-build --test-duration ">300" "<600"
 
 .. _ranged:
 .. note:: The --test-duration is a ranged argument. In cibyl, ranged arguments
@@ -169,15 +188,15 @@ Zuul specific queries
 
 In cibyl, there are some argumetns that are only supported when running queries against a Zuul system, and will be ignored otherwise. For example, we can list all jobs in the `default` tenant::
 
-    cibyl --tenants default --jobs
+    cibyl query --tenants default --jobs
 
 or list all jobs related to project `example-project` in all tenants::
 
-    cibyl --projects example-project --jobs
+    cibyl query --projects example-project --jobs
 
 or list all jobs under the `check` pipeline::
 
-    ciby --pipelines check --jobs
+    ciby query --pipelines check --jobs
 
 The arguments shown in previous sections can be combined with the Zuul specific
 ones. For example, we could use cibyl to list the last build of the jobs that
@@ -185,7 +204,7 @@ have the string `123` in their name, belong to a project named `example`, to
 a `check` pipeline and under the `default` tenant, but only if the build was
 successful::
 
-    cibyl --tenants default --project example --pipeline check --jobs 123
+    cibyl query --tenants default --project example --pipeline check --jobs 123
     --last-build --build-statu SUCCESS
 
 Jenkins specific queries
@@ -196,7 +215,7 @@ that can combined with the more general ones. Cibyl can query Jenkins systems
 to list the stages that were run in a build. For example the following command
 would show the stages run for the last build of the job called `job_name`::
 
-    cibyl --jobs job_name --last-build --stages
+    cibyl query --jobs job_name --last-build --stages
 
 
 Product queries
@@ -209,29 +228,29 @@ As part of the functionality provided by the openstack plugin, cibyl can query
 the CI systems for openstack related information. For example it's quite simple
 to list the version of the ip protocol used in each job::
 
-    cibyl --ip-version
+    cibyl query --ip-version
 
 or listing the jobs that use ipv6 protocol::
 
-    cibyl --ip-version 6
+    cibyl query --ip-version 6
 
 Similarly, other openstack properties can be used for queries, and can be
 combined for more complex queries. Building on the previous example, let's
 build a cibyl command to show the network backend used in every job that also
 used ipv6::
 
-    cibyl --ip-version 6 --network-backend
+    cibyl query --ip-version 6 --network-backend
 
 Other examples of relevant openstack arguments include the spec, which provides
 the full Openstack specification of a job (note that the spec argument only accepts
 one value, more details in the `spec section <../plugins/openstack.html#spec>`_ of
 the openstack plugin documentation)::
 
-    cibyl --spec job_name
+    cibyl query --spec job_name
 
 checking which jobs setup the tests from git, instead of rpm packages::
 
-    cibyl --test-setup git
+    cibyl query --test-setup git
 
 or filtering by the number of compute and controller nodes used in
 a deployment. This can be done via the ``--controllers`` and ``--computes``
@@ -240,7 +259,7 @@ that means). Let's see an example of how to query for those jobs that use at
 least 2 compute nodes and more than 3 controller nodes, but no more than
 6 controllers::
 
-    cibyl --controllers ">3" "<=6" --computes ">=2"
+    cibyl query --controllers ">3" "<=6" --computes ">=2"
 
 The list shown here is not a comprehensive collection of all the arguments defined in
 the openstack plugin, check the `plugin page <../plugins/openstack.html>`_ in the documentation for the full list.
@@ -254,11 +273,11 @@ following call will list all jobs that contain the string `example`, deploy
 openstack using `ceph` as the cinder backend and `geneve` as the network
 backend, and also print the last build for each job::
 
-    cibyl --jobs example --cinder-backend ceph --network-backend geneve
+    cibyl query --jobs example --cinder-backend ceph --network-backend geneve
     --last-build
 
 the previous example could be expanded to only list those jobs that had
 a passing last build::
 
-    cibyl --jobs example --cinder-backend ceph --network-backend geneve
+    cibyl query --jobs example --cinder-backend ceph --network-backend geneve
     --last-build --build-status SUCCESS
