@@ -4,7 +4,7 @@ Features
 Cibyl allows users to define their own product related data in form of what is known as "features".
 Features are basically blocks of code with the purpose of querying for specific product features in one or more environments.
 
-Out of the box Cibyl supports multiple features for existing plugins and users can easily list them with ``cibyl --features``
+Out of the box Cibyl supports multiple features for existing plugins and users can easily list them with ``cibyl features``
 
 Allowing users to define their own sort of product arguments has multiple advantages:
 
@@ -15,13 +15,13 @@ Allowing users to define their own sort of product arguments has multiple advant
 Usage
 ^^^^^
 
-To list all the existing features: ``cibyl --features``
+To list all the existing features: ``cibyl features``
 
-Query IPv4 feature: ``cibyl --features ipv6``
+Query IPv4 feature: ``cibyl features ipv6``
 
-Query two features: ``cibyl --features ipv6 ha``
+Query two features: ``cibyl features ipv6 ha``
 
-Query for a feature in specific set of jobs: ``cibyl --features ha --jobs production``
+Query for a feature in specific set of jobs: ``cibyl features ha --jobs production``
 
 Development
 ^^^^^^^^^^^

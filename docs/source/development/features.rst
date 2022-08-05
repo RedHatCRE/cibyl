@@ -88,6 +88,6 @@ all systems will print the Feature models added to each system, and after that
 it will continue printing other information found in the system if the user ran
 cibyl with other arguments like --jobs. In order to handle the different cases,
 there are two kind of queries added to the QueryType class: *FEATURES* and
-*FEATURES_JOBS*. The first will signal the case when the user has only
-requested --feature, while the second will mark the case where the user has
-passed both --feature and some job-related argument.
+*FEATURES_JOBS*. The first will signal the case when the user has called the
+features subcommand, while the second will mark the case where the user has
+called the features subcommand with the ``--jobs`` argument.

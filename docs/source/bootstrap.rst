@@ -27,6 +27,11 @@ Usage - CLI
 
 Once you've installed Cibyl and set up the configuration, you can start running cibyl commands
 
-``cibyl --jobs`` will print all the jobs from each specified system in the configuration
+``cibyl query --jobs`` will print all the jobs from each specified system in the configuration
 
-To get an idea of what type of information you query for with Cibyl, run ``cibyl -h``
+To get an idea of what type of commands you can use with Cibyl, run ``cibyl -h``
+
+To get an idea of what type of information you query for with Cibyl, run ``cibyl query -h``
+
+For a more in depth guide on how to use Cibyl, read the `CLI usage
+<usage/cli.html>`_ section.

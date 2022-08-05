@@ -6,10 +6,20 @@ line arguments. The configuration file details the ci environment that the user
 wants to query, while the command line arguments tell Cibyl what the user wants
 to query.
 
-The parser for the cli arguments is extended dynamically depending on the
-contents of the configuration.  Cibyl will only show the arguments that are
-relevant to the user according to its configuration.  If there is no configuration
-file, Cibyl will just print a few general arguments when calling ``cibyl -h``.
+Cibyl's cli is divided in several subcommands. The parser is the component
+responsible for bringing all the subcommands together and ensuring the
+corresponding arguments are added. In the case of the ``features`` subcommands
+that is simple, since it only has one argument. The case of the ``query``
+sucommand is different, since the cli arguments are extended dynamically depending on the
+contents of the configuration.
+
+.. note::
+
+    The rest of this page is relevant **only** for the ``query`` subcommand.
+
+When running ``cibyl query -h`` only the arguments that are relevant to the user,
+according to its configuration, will be shown.  If there is no configuration
+file, Cibyl will just print a few general arguments when calling ``cibyl query -h``.
 If the configuration is populated then arguments will be added depending on its contents.
 
 The parser is extended using a hierarchy of CI models. This hierarchy is
@@ -18,7 +28,7 @@ configuration and the hierarchy is implicitely defined in the API attribute of
 said models. For example, one environment might include a Jenkins instance as
 CI system, and have it also as source for information, in addition to an
 ElasticSearch instance as a second source. With this environment, if the user
-runs ``cibyl -h``, it will show arguments that are relevant to a Jenkins
+runs ``cibyl query -h``, it will show arguments that are relevant to a Jenkins
 system, like ``--jobs``, ``--builds`` or ``--build-status``. In such a case it will
 not show arguments like ``--pipelines`` which would be useful if the CI system
 was a Zuul instance.
@@ -77,7 +87,7 @@ method a source must implement in order to provide information about a certain
 model. In the example shown here, only jobs has an argument with `func`
 defined, as it is the only CI model present. If the user runs a query like::
 
-    cibyl --jobs
+    cibyl query --jobs
 
 then Cibyl will look at the sources defined and check whether any has a method
 ``get_jobs``, and if it finds one it will use it to get all the jobs available
