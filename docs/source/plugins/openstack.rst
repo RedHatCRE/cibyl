@@ -33,13 +33,13 @@ Spec
 .. note:: | This feature is only fully implemented with the Jenkins automation system.
           | It is partially supported with Zuul (The option will work but will not provide the complete specification)
 
-`cibyl query --spec JOB_NAME` allows you to easily get the full OpenStack specification of a single job.
+`cibyl spec JOB_NAME` allows you to easily get the full OpenStack specification of a single job.
 
 The idea behind it is to allow the user to quickly get information on which OpenStack services and features
 are covered by a single job so the user doesn't have to go and deep dive into the job configuration and build
 artifacts to figure it out by himself.
 
-An example of an output from running `cibyl query --spec JOB_NAME`::
+An example of an output from running `cibyl spec JOB_NAME`::
 
     Openstack deployment:
       Release: 17.0

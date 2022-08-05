@@ -43,9 +43,11 @@ Cibyl supports the following subcommands:
 
   * query
   * features
+  * spec
 
 This page will cover many uses of the ``query`` subcommand, for examples of the
-``features`` one see the `features section <../features.html>`_.
+``features`` one see the `features section <../features.html>`_ and for
+examples of the ``spec`` subcommand see the `spec section <../plugins/openstack.html#spec>`_.
 
 General parameters
 ------------------
@@ -241,14 +243,8 @@ used ipv6::
 
     cibyl query --ip-version 6 --network-backend
 
-Other examples of relevant openstack arguments include the spec, which provides
-the full Openstack specification of a job (note that the spec argument only accepts
-one value, more details in the `spec section <../plugins/openstack.html#spec>`_ of
-the openstack plugin documentation)::
-
-    cibyl query --spec job_name
-
-checking which jobs setup the tests from git, instead of rpm packages::
+Other examples of relevant openstack arguments include checking which jobs
+setup the tests from git, instead of rpm packages::
 
     cibyl query --test-setup git
 

@@ -83,7 +83,7 @@ class TestOrchestrator(TestCase):
             config_file.seek(0)
             sys.argv = ['cibyl', '-p', 'openstack', '--config',
                         config_file.name, 'query', '--jobs', 'DFG-compute',
-                        '--spec']
+                        '--ip-version']
 
             main()
         jenkins_deployment.assert_called_once()
@@ -126,8 +126,8 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          url: url\n")
             config_file.seek(0)
             sys.argv = ['cibyl', '-p', 'openstack', '-f', 'text', '--config',
-                        config_file.name, 'query', '--last-build', '--spec',
-                        '4']
+                        config_file.name, 'query', '--last-build',
+                        '--ip-version', '4']
 
             main()
 
@@ -166,7 +166,7 @@ class TestOrchestrator(TestCase):
             config_file.seek(0)
             sys.argv = ['cibyl', '-p', 'openstack', '--config',
                         config_file.name, 'query', '--jobs', 'DFG-compute',
-                        '--spec', '--tests']
+                        '--ip-version', '--tests']
 
             main()
         jenkins_deployment.assert_called_once()
@@ -200,7 +200,7 @@ class TestOrchestrator(TestCase):
             config_file.seek(0)
             sys.argv = ['cibyl', '-p', 'openstack', '--config',
                         config_file.name, 'query', '--jobs', 'DFG-compute',
-                        '--spec', '--builds']
+                        '--ip-version', '--builds']
 
             main()
         jenkins_deployment.assert_called_once()
@@ -234,7 +234,7 @@ class TestOrchestrator(TestCase):
             config_file.seek(0)
             sys.argv = ['cibyl', '-p', 'openstack', '--config',
                         config_file.name, 'query',
-                        '--jobs', 'DFG-compute', '--spec', '--tests',
+                        '--jobs', 'DFG-compute', '--ip-version', '--tests',
                         '--builds']
 
             main()
@@ -271,7 +271,7 @@ class TestOrchestrator(TestCase):
             config_file.seek(0)
             sys.argv = ['cibyl', '-p', 'openstack', '--config',
                         config_file.name, 'query',
-                        '--jobs', 'DFG-compute', '--spec', '--tests']
+                        '--jobs', 'DFG-compute', '--ip-version', '--tests']
 
             main()
         zuul_deployment.assert_called_once()
@@ -306,7 +306,7 @@ class TestOrchestrator(TestCase):
             config_file.seek(0)
             sys.argv = ['cibyl', '-p', 'openstack', '--config',
                         config_file.name, 'query',
-                        '--jobs', 'DFG-compute', '--spec', '--builds']
+                        '--jobs', 'DFG-compute', '--ip-version', '--builds']
 
             main()
         zuul_deployment.assert_called_once()
@@ -348,3 +348,66 @@ class TestOrchestrator(TestCase):
             main()
         elasticsearch_setup.assert_called_once()
         jenkins_builds.assert_called_once()
+
+    @patch('cibyl.orchestrator.get_source_instance_from_method')
+    @patch('cibyl.orchestrator.source_information_from_method',
+           return_value="")
+    @patch.object(OSPJenkins, 'get_deployment', side_effect=JenkinsError)
+    @patch('cibyl.plugins.get_classes_in', return_value=[OSPJenkins])
+    def test_spec_subcommand(self, _get_classes_mock, jenkins_deployment, _,
+                             source_instance_mock):
+        """Test that calling the spec subcommand passed the argument to the
+        source."""
+        source_instance_mock.return_value = Jenkins(url="url")
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources:\n")
+            config_file.write(b"        jenkins:\n")
+            config_file.write(b"          driver: jenkins\n")
+            config_file.write(b"          url: url\n")
+            config_file.seek(0)
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'spec', 'DFG-compute']
+            main()
+        jenkins_deployment.assert_called_once()
+        _, arguments = jenkins_deployment.call_args
+        self.assertIn("spec", arguments)
+        self.assertEqual(["DFG-compute"], arguments["spec"].value)
+
+    def test_spec_subcommand_no_args(self):
+        """Test that calling the spec subcommand without any argument fails."""
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources:\n")
+            config_file.write(b"        jenkins:\n")
+            config_file.write(b"          driver: jenkins\n")
+            config_file.write(b"          url: url\n")
+            config_file.seek(0)
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'spec']
+            with self.assertRaises(SystemExit):
+                main()
+
+    def test_spec_subcommand_many_args(self):
+        """Test that calling the spec subcommand with more than
+        one argument fails."""
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources:\n")
+            config_file.write(b"        jenkins:\n")
+            config_file.write(b"          driver: jenkins\n")
+            config_file.write(b"          url: url\n")
+            config_file.seek(0)
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'spec', 'job1', 'job2']
+            with self.assertRaises(SystemExit):
+                main()

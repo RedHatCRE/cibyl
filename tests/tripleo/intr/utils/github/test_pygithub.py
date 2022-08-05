@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from unittest import TestCase, skip
+from unittest import TestCase
 
 from tripleo.utils.github import GitHubError
 from tripleo.utils.github.pygithub import PyGitHub
@@ -42,7 +42,6 @@ class TestPyGitHub(TestCase):
         with self.assertRaises(GitHubError):
             repo.download_as_text('some_file')
 
-    @skip("changed README in this commit, so it will differ from main")
     def test_downloads_file_as_text(self):
         """Checks that it is possible to download a file through the API."""
         github = PyGitHub.from_no_login()
