@@ -13,7 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.cli.argument import Argument
 from cibyl.cli.query import QuerySelector, QueryType
 from cibyl.features import add_feature_location
 from cibyl.models.ci.base.job import Job
@@ -59,10 +58,7 @@ class Plugin:
         def get_deployment_api():
             return {
                 'attr_type': Deployment,
-                'arguments': [Argument(name='--spec', arg_type=str,
-                              func='get_deployment', nargs='*',
-                              description="Print complete openstack"
-                              " deployment")]
+                'arguments': []
             }
 
         def extend_job_model():
