@@ -49,8 +49,11 @@ class JenkinsJobBuilder(GitSource):
     def _generate_xml(self):
         """Use tox to generate jenkins job xml files."""
         for repo in self.repos:
-            subprocess.run(["tox", "-e", "jobs"], check=True,
-                           cwd=repo.get('dest'))
+            subprocess.run(["tox", "-e", "jobs"],
+                           cwd=repo.get('dest'),
+                           check=True,
+                           stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
 
     @speed_index({'base': 1})
     def get_jobs(self, **kwargs):
@@ -63,7 +66,7 @@ class JenkinsJobBuilder(GitSource):
         for repo in self.repos:
 
             all_jobs.update(
-                self.get_jobs_from_repo(frozenset(repo.items()), **kwargs))
+                self.get_jobs_from_repo(repo, **kwargs))
         return AttributeDictValue("jobs", attr_type=Job, value=all_jobs)
 
     def get_jobs_from_repo(self, repo, **kwargs):
@@ -73,7 +76,6 @@ class JenkinsJobBuilder(GitSource):
                       xml files
             :rtype: :class:`AttributeDictValue`
         """
-        repo = dict(repo)  # convert set 2 dictionary
 
         # TODO: generate only if repo was updated AND time elapced
         # TODO: add --ignore-cashe option and generate if repo was
@@ -83,7 +85,6 @@ class JenkinsJobBuilder(GitSource):
         #       more then one repo is specified
         self._generate_xml()
 
-        jobs = {}
         jobs_arg = kwargs.get('jobs')
         pattern = None
         if jobs_arg:
@@ -91,7 +92,7 @@ class JenkinsJobBuilder(GitSource):
 
         jobs_found = []
         self._xml_files = {}
-        for path in Path(os.path.join(repo.get('dest'),
+        for path in Path(os.path.join(repo['dest'],
                                       "out-xml")).rglob("*.xml"):
             file_content = ET.parse(path).getroot()
             file_type = file_content.tag
@@ -111,6 +112,7 @@ class JenkinsJobBuilder(GitSource):
                 jobs_found.append(path.parent.name)
                 self._xml_files[path.parent.name] = path
 
+        jobs = {}
         for job in jobs_found:
             jobs[job] = Job(name=job)
         return jobs
