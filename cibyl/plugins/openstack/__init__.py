@@ -13,10 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Callable, List
+
+from cibyl.cli.parser import CustomAction
 from cibyl.cli.query import QuerySelector, QueryType
 from cibyl.features import add_feature_location
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.zuul.job import Job as ZuulJob
+from cibyl.plugins import PluginTemplate
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.utils.dicts import subset
 
@@ -48,13 +52,14 @@ def get_query_openstack(**kwargs) -> QueryType:
     return result
 
 
-class Plugin:
+class Plugin(PluginTemplate):
     """Extend a CI model with Openstack specific models and methods."""
     plugin_attributes_to_add = {
         'deployment': {'add_method': 'add_deployment'}
         }
 
     def extend_models(self):
+        """Extend models' API with product specific information."""
         def get_deployment_api():
             return {
                 'attr_type': Deployment,
@@ -88,3 +93,16 @@ class Plugin:
     def extend_query_types(self):
         """Register the plugin function to deduce the type of query."""
         QuerySelector.query_selector_functions.append(get_query_openstack)
+
+    def get_subparsers_creators(self) -> List[Callable]:
+        """Collect a list of functions from the plugin that will be used to
+        extend Cibyl's cli with additional subcommands. All functions returned
+        by this method must take an ArgumentParser object as an argument."""
+        def add_spec_subcommand(parser):
+            # subparser for spec
+            spec_sp = parser.add_parser("spec", add_help=True)
+            help_msg = "Name of the job to get the spec for"
+            spec_sp.add_argument("spec", nargs=1, metavar="job_name",
+                                 func='get_deployment',
+                                 action=CustomAction, help=help_msg)
+        return [add_spec_subcommand]
