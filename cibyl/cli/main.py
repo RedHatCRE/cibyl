@@ -105,12 +105,13 @@ def main() -> None:
             plugins = orchestrator.config.plugins
         # add plugins after the environments are created, since the environment
         # might modify some of the models APIs
+        plugin_parsers = []
         if plugins:
-            enable_plugins(plugins)
+            plugin_parsers = enable_plugins(plugins)
         # Add arguments from CI & product models to the parser of the app
         for env in orchestrator.environments:
             orchestrator.extend_parser(attributes=env.API)
-        orchestrator.parser.add_subparsers()
+        orchestrator.parser.add_subparsers(subparser_creators=plugin_parsers)
         # We can parse user's arguments only after we have loaded the
         # configuration and extended based on it the parser with arguments
         # from the CI models

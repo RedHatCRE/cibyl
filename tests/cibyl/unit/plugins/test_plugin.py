@@ -27,7 +27,9 @@ class TestPlugin(RestoreAPIs):
 
     def test_enable_plugins(self):
         """Test enable_plugins method"""
-        self.assertIsNone(enable_plugins(["openstack"]))
+        # check that the openstack plugin returns only a list with one element,
+        # the function to create the spec subparser
+        self.assertEqual(len(enable_plugins(["openstack"])), 1)
 
     def test_missing_plugin(self):
         """Test enable_plugins method with a non-existing plugin."""
