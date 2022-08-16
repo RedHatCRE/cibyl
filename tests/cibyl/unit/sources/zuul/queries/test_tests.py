@@ -16,6 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
+from cibyl.cli.ranged_argument import Range
 from cibyl.sources.zuul.queries.tests import perform_tests_query
 
 
@@ -29,8 +30,6 @@ class TestPerformTestsQuery(TestCase):
         """
         name = 'test'
 
-        expected = [Mock()]
-
         arg = Mock()
         arg.value = [name]
 
@@ -38,27 +37,20 @@ class TestPerformTestsQuery(TestCase):
 
         request = Mock()
         request.with_name = Mock()
-        request.get = Mock()
-        request.get.return_value = expected
 
         build = Mock()
         build.tests = Mock()
         build.tests.return_value = request
 
-        result = perform_tests_query(build, **kwargs)
-
-        self.assertEqual(expected, result)
+        perform_tests_query(build, **kwargs)
 
         request.with_name.assert_called_once_with(name)
-        request.get.assert_called_once()
 
     def test_status_filter(self):
-        """Checks that filtering by name is applied if the adequate argument
+        """Checks that filtering by status is applied if the adequate argument
         is passed.
         """
         status = 'SUCCESS'
-
-        expected = [Mock()]
 
         arg = Mock()
         arg.value = [status]
@@ -67,16 +59,33 @@ class TestPerformTestsQuery(TestCase):
 
         request = Mock()
         request.with_status = Mock()
-        request.get = Mock()
-        request.get.return_value = expected
 
         build = Mock()
         build.tests = Mock()
         build.tests.return_value = request
 
-        result = perform_tests_query(build, **kwargs)
-
-        self.assertEqual(expected, result)
+        perform_tests_query(build, **kwargs)
 
         request.with_status.assert_called_once_with(status)
-        request.get.assert_called_once()
+
+    def test_duration_filter(self):
+        """Checks that filtering by duration is applied if the adequate
+        argument is passed.
+        """
+        duration = Range('>', '2')
+
+        arg = Mock()
+        arg.value = [duration]
+
+        kwargs = {'test_duration': arg}
+
+        request = Mock()
+        request.with_duration = Mock()
+
+        build = Mock()
+        build.tests = Mock()
+        build.tests.return_value = request
+
+        perform_tests_query(build, **kwargs)
+
+        request.with_duration.assert_called_once_with(duration)

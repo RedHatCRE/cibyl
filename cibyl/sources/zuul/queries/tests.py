@@ -39,4 +39,7 @@ def perform_tests_query(build: Build, **kwargs) -> Iterable[Test]:
     if 'test_result' in kwargs:
         tests.with_status(*kwargs['test_result'].value)
 
+    if 'test_duration' in kwargs:
+        tests.with_duration(*kwargs['test_duration'].value)
+
     return tests.get()
