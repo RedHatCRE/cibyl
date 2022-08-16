@@ -74,7 +74,7 @@ class TestTestsRequest(TestCase):
         status = TestStatus.SUCCESS
 
         request = TestsRequest(build)
-        request.with_status(status)
+        request.with_status(str(status))
 
         result = list(request.get())
 
