@@ -51,3 +51,32 @@ class TestPerformTestsQuery(TestCase):
 
         request.with_name.assert_called_once_with(name)
         request.get.assert_called_once()
+
+    def test_status_filter(self):
+        """Checks that filtering by name is applied if the adequate argument
+        is passed.
+        """
+        status = 'SUCCESS'
+
+        expected = [Mock()]
+
+        arg = Mock()
+        arg.value = [status]
+
+        kwargs = {'test_result': arg}
+
+        request = Mock()
+        request.with_status = Mock()
+        request.get = Mock()
+        request.get.return_value = expected
+
+        build = Mock()
+        build.tests = Mock()
+        build.tests.return_value = request
+
+        result = perform_tests_query(build, **kwargs)
+
+        self.assertEqual(expected, result)
+
+        request.with_status.assert_called_once_with(status)
+        request.get.assert_called_once()

@@ -20,6 +20,12 @@ from cibyl.sources.zuul.transactions import TestResponse as Test
 
 
 def perform_tests_query(build: Build, **kwargs) -> Iterable[Test]:
+    """Query for tests.
+
+    :param build: API to interact with the owner of the tests.
+    :param kwargs: Arguments coming from the CLI.
+    :return: Collection of retrieved tests.
+    """
     tests = build.tests()
 
     # Apply test filters
@@ -29,5 +35,8 @@ def perform_tests_query(build: Build, **kwargs) -> Iterable[Test]:
         # An empty '--tests' means all of them
         if targets:
             tests.with_name(*targets)
+
+    if 'test_result' in kwargs:
+        tests.with_status(*kwargs['test_result'].value)
 
     return tests.get()
