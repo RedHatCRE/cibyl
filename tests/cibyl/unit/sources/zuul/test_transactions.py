@@ -42,13 +42,43 @@ class TestTestsRequest(TestCase):
         build.tests = Mock()
         build.tests.return_value = [suite]
 
+        name = test1.name
+
         request = TestsRequest(build)
-        request.with_name(test1.name)
+        request.with_name(name)
 
         result = list(request.get())
 
         self.assertEqual(1, len(result))
         self.assertEqual(test1, result[0].data)
+
+    def test_with_status(self):
+        """Checks that the request can filter tests by status.
+        """
+        test1 = Mock()
+        test1.name = 'test1'
+        test1.result = TestResult.SUCCESS
+
+        test2 = Mock()
+        test2.name = 'test2'
+        test2.result = TestResult.FAILURE
+
+        suite = Mock()
+        suite.tests = [test1, test2]
+
+        build = Mock()
+        build.tests = Mock()
+        build.tests.return_value = [suite]
+
+        status = TestStatus.SUCCESS
+
+        request = TestsRequest(build)
+        request.with_status(status)
+
+        result = list(request.get())
+
+        self.assertEqual(1, len(result))
+        self.assertEqual(status, result[0].status)
 
 
 class TestTestResponse(TestCase):

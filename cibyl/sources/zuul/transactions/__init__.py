@@ -380,9 +380,18 @@ class TestsRequest(Request):
         self._build = build
 
     def with_name(self, *pattern: str) -> 'TestsRequest':
-        def test(case):
+        def test(response):
             return any(
-                matches_regex(patt, case.name) for patt in pattern
+                matches_regex(patt, response.name) for patt in pattern
+            )
+
+        self._filters.append(test)
+        return self
+
+    def with_status(self, *status: TestStatus) -> 'TestsRequest':
+        def test(response):
+            return any(
+                response.status == patt for patt in status
             )
 
         self._filters.append(test)
@@ -396,8 +405,11 @@ class TestsRequest(Request):
         result = []
 
         for suite in self._build.tests():
-            for test in apply_filters(suite.tests, *self._filters):
+            for test in suite.tests:
                 result.append(TestResponse(self._build, suite, test))
+
+        # Out of convenience, filters are applied to responses instead
+        result = apply_filters(result, *self._filters)
 
         return result
 
