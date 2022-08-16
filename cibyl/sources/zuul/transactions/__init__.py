@@ -21,8 +21,14 @@ License:
 #
 """
 from abc import ABC
+from typing import Iterable
 
+from cibyl.models.ci.zuul.test import TestKind, TestStatus
+from cibyl.sources.zuul.apis import ZuulBuildAPI
+from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
+from cibyl.sources.zuul.utils.tests.types import Test, TestResult, TestSuite
 from cibyl.utils.filtering import apply_filters, matches_regex
+from cibyl.utils.urls import URL
 
 
 class Request(ABC):
@@ -358,6 +364,34 @@ class BuildsRequest(Request):
         return [BuildResponse(build) for build in builds]
 
 
+class TestsRequest(Request):
+    """High-Level petition focused on retrieval of data related to test
+    cases.
+    """
+
+    def __init__(self, build: ZuulBuildAPI):
+        """Constructor.
+
+        :param build: Low-Level API to the build to get the test cases from.
+        """
+        super().__init__()
+
+        self._build = build
+
+    def get(self) -> Iterable['TestResponse']:
+        """Performs the request.
+
+        :return: Answer from the host.
+        """
+        result = []
+
+        for suite in self._build.tests():
+            for test in suite.tests:
+                result.append(TestResponse(self._build, suite, test))
+
+        return result
+
+
 class TenantResponse:
     """Response for a :class:`TenantsRequest`.
     """
@@ -604,3 +638,92 @@ class BuildResponse:
         :rtype: dict[str, Any]
         """
         return self._build.raw
+
+    def tests(self) -> TestsRequest:
+        return TestsRequest(self._build)
+
+
+class TestResponse:
+    """Response for a :class:`TestsRequest`.
+    """
+
+    def __init__(self, build: ZuulBuildAPI, suite: TestSuite, test: Test):
+        """Constructor.
+
+        :param build: Low-Level API to access the build's data.
+        :param suite: The test suite the test belongs to.
+        :param test: Data on the test case.
+        """
+        self._build = build
+        self._suite = suite
+        self._test = test
+
+    @property
+    def build(self) -> BuildResponse:
+        """
+        :return: Response for the test's build.
+        """
+        return BuildResponse(self._build)
+
+    @property
+    def suite(self) -> TestSuite:
+        """
+        :return: Suite the test belongs to.
+        """
+        return self._suite
+
+    @property
+    def kind(self) -> TestKind:
+        """
+        :return: Type of the test case.
+        """
+        if isinstance(self.data, TempestTest):
+            return TestKind.TEMPEST
+
+        return TestKind.UNKNOWN
+
+    @property
+    def name(self) -> str:
+        """
+        :return: Name of the test case.
+        """
+        return self.data.name
+
+    @property
+    def status(self) -> TestStatus:
+        """
+        :return: Result of the test case.
+        """
+        result = self.data.result
+
+        if result == TestResult.SUCCESS:
+            return TestStatus.SUCCESS
+
+        if result == TestResult.FAILURE:
+            return TestStatus.FAILURE
+
+        if result == TestResult.SKIPPED:
+            return TestStatus.SKIPPED
+
+        return TestStatus.UNKNOWN
+
+    @property
+    def duration(self) -> float:
+        """
+        :return: How long the test case took to complete, in seconds.
+        """
+        return self.data.duration
+
+    @property
+    def url(self) -> URL:
+        """
+        :return: URL to the source of the test case data.
+        """
+        return URL(self.data.url)
+
+    @property
+    def data(self) -> Test:
+        """
+        :return: Raw data of this test.
+        """
+        return self._test
