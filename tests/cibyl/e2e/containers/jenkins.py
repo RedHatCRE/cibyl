@@ -22,8 +22,14 @@ from tests.cibyl.e2e.containers import ComposedContainer, wait_for
 
 
 class JenkinsContainer(ComposedContainer):
-    def __init__(self):
-        super().__init__('tests/cibyl/e2e/data/images/jenkins')
+    def __init__(self, compose_file='docker-compose.yml'):
+        """Constructor.
+
+        :param filename: Name of the 'docker-compose' file to read.
+        :type filename: str
+        """
+        super().__init__('tests/cibyl/e2e/data/images/jenkins',
+                         filename=compose_file)
 
     @property
     def url(self):
