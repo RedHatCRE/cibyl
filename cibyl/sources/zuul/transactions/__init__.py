@@ -23,7 +23,7 @@ License:
 from abc import ABC
 from typing import Iterable
 
-from cibyl.cli.ranged_argument import Range, RANGE_OPERATORS
+from cibyl.cli.ranged_argument import RANGE_OPERATORS, Range
 from cibyl.models.ci.zuul.test import TestKind, TestStatus
 from cibyl.sources.zuul.apis import ZuulBuildAPI
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
@@ -380,6 +380,12 @@ class TestsRequest(Request):
         self._build = build
 
     def with_name(self, *pattern: str) -> 'TestsRequest':
+        """Will limit request to tests whose name follows a certain pattern.
+
+        :param pattern: Regex pattern for the desired test name.
+        :return: The request's instance.
+        """
+
         def test(response):
             return any(
                 matches_regex(patt, response.name) for patt in pattern
@@ -389,6 +395,12 @@ class TestsRequest(Request):
         return self
 
     def with_status(self, *status: TestStatus) -> 'TestsRequest':
+        """Will limit request to tests on a certain status.
+
+        :param status: Desired status of the test cases.
+        :return: The request's instance.
+        """
+
         def test(response):
             return any(
                 response.status == patt for patt in status
@@ -398,6 +410,13 @@ class TestsRequest(Request):
         return self
 
     def with_duration(self, *duration: Range) -> 'TestsRequest':
+        """Will limit request to tests whose duration falls under the range.
+
+        :param duration: Desired scope of the test's duration. Keep in mind
+            that test duration is measured in seconds.
+        :return: The request's instance.
+        """
+
         def test(response):
             for condition in duration:
                 run_test = RANGE_OPERATORS[condition.operator]
