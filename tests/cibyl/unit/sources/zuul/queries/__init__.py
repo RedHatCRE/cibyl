@@ -13,21 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Iterable
-
-from cibyl.sources.zuul.transactions import BuildResponse as Build
-from cibyl.sources.zuul.transactions import TestResponse as Test
-
-
-def perform_tests_query(build: Build, **kwargs) -> Iterable[Test]:
-    tests = build.tests()
-
-    # Apply test filters
-    if 'tests' in kwargs:
-        targets = kwargs['tests'].value
-
-        # An empty '--tests' means all of them
-        if targets:
-            tests.with_name(*targets)
-
-    return tests.get()
