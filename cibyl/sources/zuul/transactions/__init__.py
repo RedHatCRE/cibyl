@@ -23,7 +23,7 @@ License:
 from abc import ABC
 from typing import Iterable
 
-from cibyl.cli.ranged_argument import Range
+from cibyl.cli.ranged_argument import Range, RANGE_OPERATORS
 from cibyl.models.ci.zuul.test import TestKind, TestStatus
 from cibyl.sources.zuul.apis import ZuulBuildAPI
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
@@ -393,6 +393,19 @@ class TestsRequest(Request):
             return any(
                 response.status == patt for patt in status
             )
+
+        self._filters.append(test)
+        return self
+
+    def with_duration(self, *duration: Range) -> 'TestsRequest':
+        def test(response):
+            for condition in duration:
+                run_test = RANGE_OPERATORS[condition.operator]
+
+                if run_test(response.duration, condition.operand):
+                    return True
+
+            return False
 
         self._filters.append(test)
         return self

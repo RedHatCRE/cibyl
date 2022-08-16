@@ -16,6 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
+from cibyl.cli.ranged_argument import Range
 from cibyl.models.ci.zuul.test import TestKind, TestStatus
 from cibyl.sources.zuul.transactions import TestResponse, TestsRequest
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
@@ -79,6 +80,34 @@ class TestTestsRequest(TestCase):
 
         self.assertEqual(1, len(result))
         self.assertEqual(status, result[0].status)
+
+    def test_with_duration(self):
+        """Checks that the request can filter tests by duration.
+        """
+        test1 = Mock()
+        test1.name = 'test1'
+        test1.duration = 10
+
+        test2 = Mock()
+        test2.name = 'test2'
+        test2.duration = 2
+
+        suite = Mock()
+        suite.tests = [test1, test2]
+
+        build = Mock()
+        build.tests = Mock()
+        build.tests.return_value = [suite]
+
+        duration = Range('>', 2)
+
+        request = TestsRequest(build)
+        request.with_duration(duration)
+
+        result = list(request.get())
+
+        self.assertEqual(1, len(result))
+        self.assertEqual(test1.name, result[0].name)
 
 
 class TestTestResponse(TestCase):
