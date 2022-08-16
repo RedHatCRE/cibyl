@@ -694,6 +694,9 @@ class BuildResponse:
         return self._build.raw
 
     def tests(self) -> TestsRequest:
+        """
+        :return: A request to this build's tests.
+        """
         return TestsRequest(self._build)
 
 
