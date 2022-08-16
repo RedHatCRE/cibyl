@@ -23,6 +23,7 @@ License:
 from abc import ABC
 from typing import Iterable
 
+from cibyl.cli.ranged_argument import Range
 from cibyl.models.ci.zuul.test import TestKind, TestStatus
 from cibyl.sources.zuul.apis import ZuulBuildAPI
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
@@ -378,6 +379,15 @@ class TestsRequest(Request):
 
         self._build = build
 
+    def with_name(self, *pattern: str) -> 'TestsRequest':
+        def test(case):
+            return any(
+                matches_regex(patt, case.name) for patt in pattern
+            )
+
+        self._filters.append(test)
+        return self
+
     def get(self) -> Iterable['TestResponse']:
         """Performs the request.
 
@@ -386,7 +396,7 @@ class TestsRequest(Request):
         result = []
 
         for suite in self._build.tests():
-            for test in suite.tests:
+            for test in apply_filters(suite.tests, *self._filters):
                 result.append(TestResponse(self._build, suite, test))
 
         return result

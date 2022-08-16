@@ -17,13 +17,42 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.models.ci.zuul.test import TestKind, TestStatus
-from cibyl.sources.zuul.transactions import TestResponse
+from cibyl.sources.zuul.transactions import TestResponse, TestsRequest
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
 from cibyl.sources.zuul.utils.tests.types import Test, TestResult
 
 
 class TestTestsRequest(TestCase):
     """Tests for :class:`TestsRequest`.
+    """
+
+    def test_with_name(self):
+        """Checks that the request can filter tests by name.
+        """
+        test1 = Mock()
+        test1.name = 'test1'
+
+        test2 = Mock()
+        test2.name = 'test2'
+
+        suite = Mock()
+        suite.tests = [test1, test2]
+
+        build = Mock()
+        build.tests = Mock()
+        build.tests.return_value = [suite]
+
+        request = TestsRequest(build)
+        request.with_name(test1.name)
+
+        result = list(request.get())
+
+        self.assertEqual(1, len(result))
+        self.assertEqual(test1, result[0].data)
+
+
+class TestTestResponse(TestCase):
+    """Tests for :class:`TestResponse`.
     """
 
     def test_kind(self):
