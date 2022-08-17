@@ -169,7 +169,7 @@ class QueryOutputBuilder:
         model = job.builds.get(
             build.data['uuid'],
             Build(
-                Build.Info(
+                Build.Data(
                     project=build.data['project'],
                     pipeline=build.data['pipeline'],
                     uuid=build.data['uuid'],
