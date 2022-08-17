@@ -20,6 +20,7 @@ License:
 #    under the License.
 #
 """
+import re
 from abc import ABC
 from typing import Iterable
 
@@ -403,7 +404,8 @@ class TestsRequest(Request):
 
         def test(response):
             return any(
-                matches_regex(patt, str(response.status)) for patt in pattern
+                matches_regex(patt, response.status, flags=re.I)
+                for patt in pattern
             )
 
         self._filters.append(test)
