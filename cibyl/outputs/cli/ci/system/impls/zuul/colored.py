@@ -24,6 +24,8 @@ from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
+from cibyl.models.ci.zuul.test import Test
+from cibyl.models.ci.zuul.test_suite import TestSuite
 from cibyl.outputs.cli.ci.system.common.builds import (get_duration_section,
                                                        get_status_section)
 from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
@@ -212,6 +214,71 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             if self.verbosity > 0:
                 if build.duration.value:
                     result.add(get_duration_section(self.palette, build), 1)
+
+            if self.query >= QueryType.TESTS:
+                result.add(self.palette.blue('Test Suites: '), 1)
+
+                for suite in build.suites:
+                    result.add(self.print_suite(suite), 2)
+
+            return result.build()
+
+        def print_suite(self, suite: TestSuite) -> str:
+            result = IndentedTextBuilder()
+
+            result.add(self.palette.blue('Test Suite: '), 0)
+
+            if suite.name.value:
+                result.add(self.palette.blue('Name: '), 1)
+                result[-1].append(suite.name.value)
+
+            result.add(self.palette.blue('Tests: '), 1)
+            result[-1].append(suite.test_count)
+
+            result.add(self.palette.blue('Succeeded: '), 1)
+            result[-1].append(suite.success_count)
+
+            result.add(self.palette.blue('Failed: '), 1)
+            result[-1].append(suite.failed_count)
+
+            result.add(self.palette.blue('Skipped: '), 1)
+            result[-1].append(suite.skipped_count)
+
+            if self.verbosity > 0:
+                if suite.url.value:
+                    result.add(self.palette.blue('URL: '), 1)
+                    result[-1].append(suite.url.value)
+
+            if suite.tests:
+                result.add(self.palette.blue('Tests: '), 1)
+
+                for test in suite.tests:
+                    result.add(self.print_test(test), 2)
+
+            return result.build()
+
+        def print_test(self, test: Test) -> str:
+            result = IndentedTextBuilder()
+
+            result.add(self.palette.blue('Test: '), 0)
+
+            if self.verbosity > 0:
+                result.add(self.palette.blue('Type: '), 1)
+                result[-1].append(test.kind.value)
+
+            result.add(self.palette.blue('Name: '), 1)
+            result[-1].append(test.name.value)
+
+            if self.verbosity > 0:
+                result.add(self.palette.blue('Duration: '), 1)
+                result[-1].append(test.duration.value)
+
+            result.add(self.palette.blue('Result: '), 1)
+            result[-1].append(test.result.value)
+
+            if self.verbosity > 1:
+                result.add(self.palette.blue('URL: '), 1)
+                result[-1].append(test.url.value)
 
             return result.build()
 
