@@ -199,6 +199,18 @@ class Zuul(ServerSource):
         """
         return self._handle_query(**kwargs)
 
+    @speed_index({'base': 5})
+    def get_tests(self, **kwargs):
+        """Retrieves tests present on the host.
+
+        :param kwargs: All arguments from the command line.
+            These define the query to be performed.
+        :return: Resulting CI model from the query, formatted as an
+            attribute of type :class:`Tenant`.
+        :rtype: :class:`AttributeDictValue`
+        """
+        return self._handle_query(**kwargs)
+
     def _handle_query(self, **kwargs) -> AttributeDictValue:
         return AttributeDictValue(
             name='tenants',
@@ -219,7 +231,16 @@ class Zuul(ServerSource):
         if query == QueryType.PIPELINES:
             return manager.handle_pipelines_query(**kwargs)
 
-        if query in (QueryType.JOBS, QueryType.VARIANTS, QueryType.BUILDS):
+        if query == QueryType.JOBS:
             return manager.handle_jobs_query(**kwargs)
+
+        if query == QueryType.VARIANTS:
+            return manager.handle_variants_query(**kwargs)
+
+        if query == QueryType.BUILDS:
+            return manager.handle_builds_query(**kwargs)
+
+        if query == QueryType.TESTS:
+            return manager.handle_tests_query(**kwargs)
 
         raise NotImplementedError(f'Unsupported query: {query}')

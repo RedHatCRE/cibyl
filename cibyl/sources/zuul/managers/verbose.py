@@ -22,6 +22,7 @@ from cibyl.sources.zuul.queries.jobs import perform_jobs_query
 from cibyl.sources.zuul.queries.pipelines import perform_pipelines_query
 from cibyl.sources.zuul.queries.projects import perform_projects_query
 from cibyl.sources.zuul.queries.tenants import perform_tenants_query
+from cibyl.sources.zuul.queries.tests import perform_tests_query
 from cibyl.sources.zuul.queries.variants import perform_variants_query
 
 
@@ -32,7 +33,7 @@ class VerboseManager(SourceManager):
 
     @overrides
     def handle_tenants_query(self, **kwargs) -> QueryOutput:
-        model = self.tools.output.new()
+        model = self.tools.output.from_scratch()
 
         for tenant in perform_tenants_query(self.api, **kwargs):
             model.with_tenant(tenant)
@@ -41,7 +42,7 @@ class VerboseManager(SourceManager):
 
     @overrides
     def handle_projects_query(self, **kwargs) -> QueryOutput:
-        model = self.tools.output.new()
+        model = self.tools.output.from_scratch()
 
         if 'tenants' in kwargs:
             for tenant in perform_tenants_query(self.api, **kwargs):
@@ -54,7 +55,7 @@ class VerboseManager(SourceManager):
 
     @overrides
     def handle_pipelines_query(self, **kwargs) -> QueryOutput:
-        model = self.tools.output.new()
+        model = self.tools.output.from_scratch()
 
         if 'tenants' in kwargs:
             for tenant in perform_tenants_query(self.api, **kwargs):
@@ -74,7 +75,7 @@ class VerboseManager(SourceManager):
         def get_pipeline_jobs():
             return [j.name for j in pipeline.jobs().get()]
 
-        model = self.tools.output.new()
+        model = self.tools.output.from_scratch()
 
         if 'tenants' in kwargs:
             for tenant in perform_tenants_query(self.api, **kwargs):
@@ -103,6 +104,10 @@ class VerboseManager(SourceManager):
                 for build in perform_builds_query(job, **kwargs):
                     model.with_build(build)
 
+                    if 'tests' in kwargs:
+                        for test in perform_tests_query(build, **kwargs):
+                            model.with_test(test)
+
             # Include also the pipelines where this job is present
             for pipeline in pipelines:
                 if job.name in get_pipeline_jobs():
@@ -117,12 +122,12 @@ class VerboseManager(SourceManager):
 
     @overrides
     def handle_variants_query(self, **kwargs) -> QueryOutput:
-        raise NotImplementedError
+        return self.handle_jobs_query(**kwargs)
 
     @overrides
     def handle_builds_query(self, **kwargs) -> QueryOutput:
-        raise NotImplementedError
+        return self.handle_jobs_query(**kwargs)
 
     @overrides
     def handle_tests_query(self, **kwargs) -> QueryOutput:
-        raise NotImplementedError
+        return self.handle_jobs_query(**kwargs)
