@@ -13,6 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from dataclasses import dataclass, field
+from typing import List, Optional
+
 from cibyl.models.attribute import AttributeListValue
 from cibyl.models.ci.zuul.test import Test, TestStatus
 from cibyl.models.model import Model
@@ -25,15 +28,16 @@ class TestSuite(Model):
     @DynamicAttrs: Contains attributes added on runtime.
     """
 
+    @dataclass
     class Data:
         """Holds the data that will define the model.
         """
-        name = 'UNKNOWN'
+        name: str = field(default='UNKNOWN')
         """Name of the tes collection."""
-        tests = []
-        """The collection of tests hold by the suite."""
-        url = None
+        url: Optional[str] = field(default=None)
         """Page where more information on the tests can be obtained."""
+        tests: List[Test] = field(default_factory=lambda: [])
+        """The collection of tests hold by the suite."""
 
     API = {
         'name': {
