@@ -43,13 +43,13 @@ class Test(Model):
                                    description="Test duration (in seconds)")]
         },
         'class_name': {
-            'attr_type': int,
+            'attr_type': str,
             'arguments': []
         }
     }
 
     def __init__(self, name: str, result: str = None,
-                 duration: int = None, class_name: str = None, **kwargs):
+                 duration: float = None, class_name: str = None, **kwargs):
         if result:
             result = result.upper()
 

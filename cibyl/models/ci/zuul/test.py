@@ -13,6 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from dataclasses import dataclass, field
+from typing import Optional
+
 from overrides import overrides
 from strenum import StrEnum
 
@@ -50,16 +53,17 @@ class Test(BaseTest):
     @DynamicAttrs: Contains attributes added on runtime.
     """
 
+    @dataclass
     class Data:
         """Holds the data that will define the model.
         """
-        name = 'UNDEFINED'
+        name: str = field(default='UNDEFINED')
         """Name of the test case."""
-        status = TestStatus.UNKNOWN
+        status: TestStatus = field(default=TestStatus.UNKNOWN)
         """Result of the test case."""
-        duration = None
+        duration: Optional[float] = field(default=None)
         """How long the test took to complete, in seconds."""
-        url = None
+        url: Optional[str] = field(default=None)
         """Page where more information about the test can be obtained."""
 
     API = {

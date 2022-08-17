@@ -20,6 +20,8 @@ from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
+from cibyl.models.ci.zuul.test import Test
+from cibyl.models.ci.zuul.test_suite import TestSuite
 
 
 class QueryOutput(Dict[str, Tenant]):
@@ -169,7 +171,7 @@ class QueryOutputBuilder:
         model = job.builds.get(
             build.data['uuid'],
             Build(
-                Build.Info(
+                Build.Data(
                     project=build.data['project'],
                     pipeline=build.data['pipeline'],
                     uuid=build.data['uuid'],
@@ -194,7 +196,37 @@ class QueryOutputBuilder:
         :return: Model for this test.
         :rtype: :class:`Test`
         """
-        pass
+        # Register the test's build
+        build = self.with_build(test.build)
+
+        # Register the test's suite if it is not already
+        suite = build.get_suite(test.suite.name)
+        if not suite:
+            suite = TestSuite(
+                TestSuite.Data(
+                    name=test.suite.name,
+                    url=test.suite.url
+                )
+            )
+
+            build.add_suite(suite)
+
+        # Register the test if it is not already
+        model = suite.get_test(test.name)
+        if not model:
+            model = Test(
+                kind=test.kind,
+                data=Test.Data(
+                    name=test.name,
+                    status=test.status,
+                    duration=test.duration,
+                    url=test.url
+                )
+            )
+
+            suite.add_test(model)
+
+        return model
 
     def assemble(self):
         """Generates the CI model.

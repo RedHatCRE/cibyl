@@ -13,6 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from dataclasses import dataclass, field
+from typing import List, Optional
+
 from cibyl.models.attribute import AttributeListValue
 from cibyl.models.ci.zuul.test import Test, TestStatus
 from cibyl.models.model import Model
@@ -25,15 +28,16 @@ class TestSuite(Model):
     @DynamicAttrs: Contains attributes added on runtime.
     """
 
+    @dataclass
     class Data:
         """Holds the data that will define the model.
         """
-        name = 'UNKNOWN'
+        name: str = field(default='UNKNOWN')
         """Name of the tes collection."""
-        tests = []
-        """The collection of tests hold by the suite."""
-        url = None
+        url: Optional[str] = field(default=None)
         """Page where more information on the tests can be obtained."""
+        tests: List[Test] = field(default_factory=lambda: [])
+        """The collection of tests hold by the suite."""
 
     API = {
         'name': {
@@ -93,9 +97,11 @@ class TestSuite(Model):
         :rtype: int
         """
         return len(
-            apply_filters(
-                self.tests,
-                lambda test: test.status == TestStatus.SUCCESS
+            list(
+                apply_filters(
+                    self.tests,
+                    lambda test: test.status == TestStatus.SUCCESS
+                )
             )
         )
 
@@ -106,9 +112,11 @@ class TestSuite(Model):
         :rtype: int
         """
         return len(
-            apply_filters(
-                self.tests,
-                lambda test: test.status == TestStatus.FAILURE
+            list(
+                apply_filters(
+                    self.tests,
+                    lambda test: test.status == TestStatus.FAILURE
+                )
             )
         )
 
@@ -119,9 +127,11 @@ class TestSuite(Model):
         :rtype: int
         """
         return len(
-            apply_filters(
-                self.tests,
-                lambda test: test.status == TestStatus.SKIPPED
+            list(
+                apply_filters(
+                    self.tests,
+                    lambda test: test.status == TestStatus.SKIPPED
+                )
             )
         )
 
@@ -132,3 +142,16 @@ class TestSuite(Model):
         :rtype: float
         """
         return sum(test.duration.value for test in self.tests)
+
+    def add_test(self, test: Test) -> None:
+        if self.get_test(test.name.value):
+            return
+
+        self.tests.append(test)
+
+    def get_test(self, name: str) -> Optional[Test]:
+        for test in self.tests:
+            if name == test.name.value:
+                return test
+
+        return None
