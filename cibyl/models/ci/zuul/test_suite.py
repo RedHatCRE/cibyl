@@ -142,3 +142,16 @@ class TestSuite(Model):
         :rtype: float
         """
         return sum(test.duration.value for test in self.tests)
+
+    def add_test(self, test: Test) -> None:
+        if self.get_test(test.name.value):
+            return
+
+        self.tests.append(test)
+
+    def get_test(self, name: str) -> Optional[Test]:
+        for test in self.tests:
+            if name == test.name.value:
+                return test
+
+        return None
