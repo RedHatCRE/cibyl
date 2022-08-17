@@ -91,7 +91,7 @@ class Test(BaseTest):
         """
         super().__init__(
             name=data.name,
-            result=data.status.name,
+            result=data.status,
             duration=data.duration,
             kind=kind,
             url=data.url,
