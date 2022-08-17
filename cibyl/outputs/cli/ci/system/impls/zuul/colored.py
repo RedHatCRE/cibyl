@@ -218,8 +218,12 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             if self.query >= QueryType.TESTS:
                 result.add(self.palette.blue('Test Suites: '), 1)
 
-                for suite in build.suites:
-                    result.add(self.print_suite(suite), 2)
+                if build.suites:
+                    for suite in build.suites:
+                        result.add(self.print_suite(suite), 2)
+                else:
+                    msg = 'No tests in query.'
+                    result.add(self.palette.red(msg), 2)
 
             return result.build()
 
