@@ -13,15 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from enum import Enum
-
 from overrides import overrides
+from strenum import StrEnum
 
 from cibyl.models.ci.base.test import Test as BaseTest
 from cibyl.utils.dicts import nsubset
 
 
-class TestKind(Enum):
+class TestKind(StrEnum):
     """Defines the different kind of test cases known to Cibyl.
     """
     UNKNOWN = 'UNKNOWN'
@@ -32,7 +31,7 @@ class TestKind(Enum):
     """Test represents the execution of a Tempest test case."""
 
 
-class TestStatus(Enum):
+class TestStatus(StrEnum):
     """Default possible test results.
     """
     UNKNOWN = 'UNKNOWN'

@@ -17,3 +17,4 @@ cached-property~=1.5.2
 networkx==2.5.1; python_version<='3.6'
 networkx~=2.8.4; python_version>'3.6'
 xsdata~=22.7
+StrEnum~=0.4.8
