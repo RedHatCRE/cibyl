@@ -197,7 +197,7 @@ class QueryOutputBuilderFactory:
     """Factory for :class:`QueryOutputBuilder`.
     """
 
-    def new(self):
+    def from_scratch(self) -> QueryOutputBuilder:
         """Creates a new instance without conditions or dependencies.
 
         :return: Then new instance.

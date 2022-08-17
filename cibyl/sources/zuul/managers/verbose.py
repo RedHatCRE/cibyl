@@ -32,7 +32,7 @@ class VerboseManager(SourceManager):
 
     @overrides
     def handle_tenants_query(self, **kwargs) -> QueryOutput:
-        model = self.tools.output.new()
+        model = self.tools.output.from_scratch()
 
         for tenant in perform_tenants_query(self.api, **kwargs):
             model.with_tenant(tenant)
@@ -41,7 +41,7 @@ class VerboseManager(SourceManager):
 
     @overrides
     def handle_projects_query(self, **kwargs) -> QueryOutput:
-        model = self.tools.output.new()
+        model = self.tools.output.from_scratch()
 
         if 'tenants' in kwargs:
             for tenant in perform_tenants_query(self.api, **kwargs):
@@ -54,7 +54,7 @@ class VerboseManager(SourceManager):
 
     @overrides
     def handle_pipelines_query(self, **kwargs) -> QueryOutput:
-        model = self.tools.output.new()
+        model = self.tools.output.from_scratch()
 
         if 'tenants' in kwargs:
             for tenant in perform_tenants_query(self.api, **kwargs):
@@ -74,7 +74,7 @@ class VerboseManager(SourceManager):
         def get_pipeline_jobs():
             return [j.name for j in pipeline.jobs().get()]
 
-        model = self.tools.output.new()
+        model = self.tools.output.from_scratch()
 
         if 'tenants' in kwargs:
             for tenant in perform_tenants_query(self.api, **kwargs):
