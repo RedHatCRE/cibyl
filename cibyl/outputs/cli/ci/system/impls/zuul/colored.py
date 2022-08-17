@@ -24,7 +24,7 @@ from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
-from cibyl.models.ci.zuul.test import Test, TestStatus, TestKind
+from cibyl.models.ci.zuul.test import Test, TestKind, TestStatus
 from cibyl.models.ci.zuul.test_suite import TestSuite
 from cibyl.outputs.cli.ci.system.common.builds import (get_duration_section,
                                                        get_status_section)
