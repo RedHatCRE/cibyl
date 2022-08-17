@@ -1,0 +1,45 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<result plugin="junit@1.54">
+  <suites>
+    <suite>
+      <file>file_name</file>
+      <name>name</name>
+      <duration>985.444</duration>
+      <time>985.444</time>
+      <nodeId>464</nodeId>
+      <enclosingBlocks>
+        <string>442</string>
+      </enclosingBlocks>
+      <enclosingBlockNames>
+        <string>Finally Steps</string>
+      </enclosingBlockNames>
+      <cases>
+        <case>
+          <duration>0.5</duration>
+          <className>class_test_1</className>
+          <testName>test_case1</testName>
+          <skipped>false</skipped>
+          <errorStackTrace>Some reason to fail</errorStackTrace>
+          <failedSince>0</failedSince>
+        </case>
+        <case>
+          <duration>0.001</duration>
+          <className>class_test_1</className>
+          <testName>test_case2</testName>
+          <skipped>false</skipped>
+          <failedSince>0</failedSince>
+        </case>
+        <case>
+          <duration>5</duration>
+          <className>class_test_1</className>
+          <testName>test_case3</testName>
+          <skipped>true</skipped>
+          <skippedMessage>Some reason to skip</skippedMessage>
+          <failedSince>0</failedSince>
+        </case>
+      </cases>
+    </suite>
+  </suites>
+  <duration>985.444</duration>
+  <keepLongStdio>false</keepLongStdio>
+</result>
