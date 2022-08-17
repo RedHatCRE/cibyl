@@ -16,6 +16,8 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
+from parameterized import parameterized
+
 from cibyl.cli.ranged_argument import Range
 from cibyl.models.ci.zuul.test import TestKind, TestStatus
 from cibyl.sources.zuul.transactions import TestResponse, TestsRequest
@@ -53,7 +55,8 @@ class TestTestsRequest(TestCase):
         self.assertEqual(1, len(result))
         self.assertEqual(test1, result[0].data)
 
-    def test_with_status(self):
+    @parameterized.expand(['SUCCESS', 'success'])
+    def test_with_status(self, status: str):
         """Checks that the request can filter tests by status.
         """
         test1 = Mock()
@@ -71,15 +74,13 @@ class TestTestsRequest(TestCase):
         build.tests = Mock()
         build.tests.return_value = [suite]
 
-        status = TestStatus.SUCCESS
-
         request = TestsRequest(build)
-        request.with_status(str(status))
+        request.with_status(status)
 
         result = list(request.get())
 
         self.assertEqual(1, len(result))
-        self.assertEqual(status, result[0].status)
+        self.assertEqual(TestStatus.SUCCESS, result[0].status)
 
     def test_with_duration(self):
         """Checks that the request can filter tests by duration.
