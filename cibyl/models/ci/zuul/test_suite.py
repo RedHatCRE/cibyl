@@ -93,9 +93,11 @@ class TestSuite(Model):
         :rtype: int
         """
         return len(
-            apply_filters(
-                self.tests,
-                lambda test: test.status == TestStatus.SUCCESS
+            list(
+                apply_filters(
+                    self.tests,
+                    lambda test: test.status == TestStatus.SUCCESS
+                )
             )
         )
 
@@ -106,9 +108,11 @@ class TestSuite(Model):
         :rtype: int
         """
         return len(
-            apply_filters(
-                self.tests,
-                lambda test: test.status == TestStatus.FAILURE
+            list(
+                apply_filters(
+                    self.tests,
+                    lambda test: test.status == TestStatus.FAILURE
+                )
             )
         )
 
@@ -119,9 +123,11 @@ class TestSuite(Model):
         :rtype: int
         """
         return len(
-            apply_filters(
-                self.tests,
-                lambda test: test.status == TestStatus.SKIPPED
+            list(
+                apply_filters(
+                    self.tests,
+                    lambda test: test.status == TestStatus.SKIPPED
+                )
             )
         )
 
