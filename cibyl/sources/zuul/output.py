@@ -184,6 +184,18 @@ class QueryOutputBuilder:
 
         return model
 
+    def with_test(self, test):
+        """Adds a test to the current model being built. If the test is
+        already present on the model, then this is ignored. If the test's
+        build is not on the model, then it is also added to it.
+
+        :param test: The test to add.
+        :type test: :class:`cibyl.sources.zuul.transactions.TestResponse`
+        :return: Model for this test.
+        :rtype: :class:`Test`
+        """
+        pass
+
     def assemble(self):
         """Generates the CI model.
 
