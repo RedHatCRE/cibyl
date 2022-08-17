@@ -24,7 +24,7 @@ from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
-from cibyl.models.ci.zuul.test import Test, TestStatus
+from cibyl.models.ci.zuul.test import Test, TestStatus, TestKind
 from cibyl.models.ci.zuul.test_suite import TestSuite
 from cibyl.outputs.cli.ci.system.common.builds import (get_duration_section,
                                                        get_status_section)
@@ -264,7 +264,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             if self.verbosity > 0:
                 result.add(self.palette.blue('Type: '), 1)
-                result[-1].append(test.kind.value)
+                result[-1].append(self._get_colored_test_kind(test.kind.value))
 
             result.add(self.palette.blue('Name: '), 1)
             result[-1].append(test.name.value)
@@ -281,6 +281,16 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                 result[-1].append(test.url.value)
 
             return result.build()
+
+        def _get_colored_test_kind(self, kind: str) -> str:
+            status_x_color_map = {
+                str(TestKind.TEMPEST): self.palette.green(kind)
+            }
+
+            return status_x_color_map.get(
+                kind,
+                lambda: self.palette.underline(kind)
+            )
 
         def _get_colored_test_result(self, result: str) -> str:
             status_x_color_map = {
