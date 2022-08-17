@@ -20,6 +20,7 @@ License:
 #    under the License.
 #
 """
+import re
 from abc import ABC
 from typing import Iterable
 
@@ -394,16 +395,17 @@ class TestsRequest(Request):
         self._filters.append(test)
         return self
 
-    def with_status(self, *status: TestStatus) -> 'TestsRequest':
+    def with_status(self, *pattern: str) -> 'TestsRequest':
         """Will limit request to tests on a certain status.
 
-        :param status: Desired status of the test cases.
+        :param pattern: Regex pattern for the desired test status.
         :return: The request's instance.
         """
 
         def test(response):
             return any(
-                response.status == patt for patt in status
+                matches_regex(patt, response.status, flags=re.I)
+                for patt in pattern
             )
 
         self._filters.append(test)

@@ -13,35 +13,34 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from enum import Enum
-
 from overrides import overrides
+from strenum import StrEnum
 
 from cibyl.models.ci.base.test import Test as BaseTest
 from cibyl.utils.dicts import nsubset
 
 
-class TestKind(Enum):
+class TestKind(StrEnum):
     """Defines the different kind of test cases known to Cibyl.
     """
-    UNKNOWN = 0
+    UNKNOWN = 'UNKNOWN'
     """Type is unknown, best effort will be tried."""
-    ANSIBLE = 1
+    ANSIBLE = 'ANSIBLE'
     """Test represents the execution of an Ansible task."""
-    TEMPEST = 2
+    TEMPEST = 'TEMPEST'
     """Test represents the execution of a Tempest test case."""
 
 
-class TestStatus(Enum):
+class TestStatus(StrEnum):
     """Default possible test results.
     """
-    UNKNOWN = 0
+    UNKNOWN = 'UNKNOWN'
     """Could not be determined the result of the test."""
-    SUCCESS = 1
+    SUCCESS = 'SUCCESS'
     """The test passed."""
-    FAILURE = 2
+    FAILURE = 'FAILURE'
     """Some condition in the test was not met."""
-    SKIPPED = 3
+    SKIPPED = 'SKIPPED'
     """The test was ignored."""
 
 
