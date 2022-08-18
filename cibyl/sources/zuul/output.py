@@ -235,15 +235,3 @@ class QueryOutputBuilder:
         :rtype: :class:`QueryOutput`
         """
         return self._tenants
-
-
-class QueryOutputBuilderFactory:
-    """Factory for :class:`QueryOutputBuilder`.
-    """
-
-    def from_scratch(self) -> QueryOutputBuilder:
-        """Creates a new instance without conditions or dependencies.
-
-        :return: Then new instance.
-        """
-        return QueryOutputBuilder()
