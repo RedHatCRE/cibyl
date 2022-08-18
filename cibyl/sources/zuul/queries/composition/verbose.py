@@ -17,6 +17,7 @@ from overrides import overrides
 
 from cibyl.sources.zuul.queries.builds import perform_builds_query
 from cibyl.sources.zuul.queries.composition import AggregatedQuery
+from cibyl.sources.zuul.queries.composition.quick import QuickQuery
 from cibyl.sources.zuul.queries.jobs import perform_jobs_query
 from cibyl.sources.zuul.queries.pipelines import perform_pipelines_query
 from cibyl.sources.zuul.queries.projects import perform_projects_query
@@ -26,28 +27,7 @@ from cibyl.sources.zuul.queries.variants import perform_variants_query
 from cibyl.sources.zuul.transactions import PipelineResponse as Pipeline
 
 
-class VerboseQuery(AggregatedQuery):
-    @overrides
-    def with_tenants_query(self, **kwargs) -> 'AggregatedQuery':
-        for tenant in perform_tenants_query(self.api, **kwargs):
-            self._result.with_tenant(tenant)
-
-        return self
-
-    @overrides
-    def with_projects_query(self, **kwargs) -> 'AggregatedQuery':
-        for project in perform_projects_query(self.api, **kwargs):
-            self._result.with_project(project)
-
-        return self
-
-    @overrides
-    def with_pipelines_query(self, **kwargs) -> 'AggregatedQuery':
-        for pipeline in perform_pipelines_query(self.api, **kwargs):
-            self._result.with_pipeline(pipeline)
-
-        return self
-
+class VerboseQuery(QuickQuery):
     @overrides
     def with_jobs_query(self, **kwargs) -> 'AggregatedQuery':
         def is_job_in(pl: Pipeline) -> bool:
@@ -66,30 +46,5 @@ class VerboseQuery(AggregatedQuery):
 
                 # Register job as a child of the pipeline
                 self._result.with_pipeline(pipeline).add_job(model)
-
-        return self
-
-    @overrides
-    def with_variants_query(self, **kwargs) -> 'AggregatedQuery':
-        for job in perform_jobs_query(self.api, **kwargs):
-            for variant in perform_variants_query(job, **kwargs):
-                self._result.with_variant(variant)
-
-        return self
-
-    @overrides
-    def with_builds_query(self, **kwargs) -> 'AggregatedQuery':
-        for job in perform_jobs_query(self.api, **kwargs):
-            for build in perform_builds_query(job, **kwargs):
-                self._result.with_build(build)
-
-        return self
-
-    @overrides
-    def with_tests_query(self, **kwargs) -> 'AggregatedQuery':
-        for job in perform_jobs_query(self.api, **kwargs):
-            for build in perform_builds_query(job, **kwargs):
-                for test in perform_tests_query(build, **kwargs):
-                    self._result.with_test(test)
 
         return self

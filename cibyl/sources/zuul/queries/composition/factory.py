@@ -14,9 +14,9 @@
 #    under the License.
 """
 from cibyl.sources.zuul.apis import ZuulAPI as Zuul
-from cibyl.sources.zuul.queries.composition.verbose import VerboseQuery
+from cibyl.sources.zuul.queries.composition.quick import QuickQuery
 
 
 class AggregatedQueryFactory:
     def from_kwargs(self, api: Zuul, **kwargs):
-        return VerboseQuery(api)
+        return QuickQuery(api)
