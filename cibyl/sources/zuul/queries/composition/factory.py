@@ -18,5 +18,15 @@ from cibyl.sources.zuul.queries.composition.quick import QuickQuery
 
 
 class AggregatedQueryFactory:
+    """Factory for :class:`AggregatedQuery`.
+    """
+
     def from_kwargs(self, api: Zuul, **kwargs):
+        """Infers the desired query type from the undefined arguments passed
+        here.
+
+        :param api: Low-Level API with which to interact with the Zuul host.
+        :param kwargs: Random set of arguments.
+        :return: The query instance.
+        """
         return QuickQuery(api)

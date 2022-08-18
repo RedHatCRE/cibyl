@@ -28,6 +28,9 @@ from cibyl.sources.zuul.transactions import PipelineResponse as Pipeline
 
 
 class VerboseQuery(QuickQuery):
+    """A kind of complex query that focuses on completeness over speed.
+    """
+
     @overrides
     def with_jobs_query(self, **kwargs) -> 'AggregatedQuery':
         def is_job_in(pl: Pipeline) -> bool:

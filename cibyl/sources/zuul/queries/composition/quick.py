@@ -27,6 +27,9 @@ from cibyl.sources.zuul.transactions import PipelineResponse as Pipeline
 
 
 class QuickQuery(AggregatedQuery):
+    """A kind of complex query that focuses on speed over completeness.
+    """
+
     @overrides
     def with_tenants_query(self, **kwargs) -> 'AggregatedQuery':
         for tenant in perform_tenants_query(self.api, **kwargs):
