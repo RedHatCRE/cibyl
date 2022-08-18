@@ -23,7 +23,6 @@ from cibyl.sources.zuul.queries.projects import perform_projects_query
 from cibyl.sources.zuul.queries.tenants import perform_tenants_query
 from cibyl.sources.zuul.queries.tests import perform_tests_query
 from cibyl.sources.zuul.queries.variants import perform_variants_query
-from cibyl.sources.zuul.transactions import PipelineResponse as Pipeline
 
 
 class QuickQuery(AggregatedQuery):
@@ -33,28 +32,28 @@ class QuickQuery(AggregatedQuery):
     @overrides
     def with_tenants_query(self, **kwargs) -> 'AggregatedQuery':
         for tenant in perform_tenants_query(self.api, **kwargs):
-            self._result.with_tenant(tenant)
+            self.tools.builder.with_tenant(tenant)
 
         return self
 
     @overrides
     def with_projects_query(self, **kwargs) -> 'AggregatedQuery':
         for project in perform_projects_query(self.api, **kwargs):
-            self._result.with_project(project)
+            self.tools.builder.with_project(project)
 
         return self
 
     @overrides
     def with_pipelines_query(self, **kwargs) -> 'AggregatedQuery':
         for pipeline in perform_pipelines_query(self.api, **kwargs):
-            self._result.with_pipeline(pipeline)
+            self.tools.builder.with_pipeline(pipeline)
 
         return self
 
     @overrides
     def with_jobs_query(self, **kwargs) -> 'AggregatedQuery':
         for job in perform_jobs_query(self.api, **kwargs):
-            self._result.with_job(job)
+            self.tools.builder.with_job(job)
 
         return self
 
@@ -62,7 +61,7 @@ class QuickQuery(AggregatedQuery):
     def with_variants_query(self, **kwargs) -> 'AggregatedQuery':
         for job in perform_jobs_query(self.api, **kwargs):
             for variant in perform_variants_query(job, **kwargs):
-                self._result.with_variant(variant)
+                self.tools.builder.with_variant(variant)
 
         return self
 
@@ -70,7 +69,7 @@ class QuickQuery(AggregatedQuery):
     def with_builds_query(self, **kwargs) -> 'AggregatedQuery':
         for job in perform_jobs_query(self.api, **kwargs):
             for build in perform_builds_query(job, **kwargs):
-                self._result.with_build(build)
+                self.tools.builder.with_build(build)
 
         return self
 
@@ -79,6 +78,6 @@ class QuickQuery(AggregatedQuery):
         for job in perform_jobs_query(self.api, **kwargs):
             for build in perform_builds_query(job, **kwargs):
                 for test in perform_tests_query(build, **kwargs):
-                    self._result.with_test(test)
+                    self.tools.builder.with_test(test)
 
         return self

@@ -14,9 +14,11 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
+from typing import NamedTuple
 
 from cibyl.sources.zuul.apis import ZuulAPI as Zuul
-from cibyl.sources.zuul.output import QueryOutput, QueryOutputBuilder
+from cibyl.sources.zuul.output import QueryOutput
+from cibyl.sources.zuul.output import QueryOutputBuilder as OutputBuilder
 
 
 class AggregatedQuery(ABC):
@@ -31,13 +33,20 @@ class AggregatedQuery(ABC):
     class.
     """
 
-    def __init__(self, api: Zuul):
+    class Tools(NamedTuple):
+        """Tools used by this to perform its task.
+        """
+        builder: OutputBuilder = OutputBuilder()
+        """Tools used to generate the output of this query."""
+
+    def __init__(self, api: Zuul, tools: Tools = Tools()):
         """Constructor.
 
         :param api: Low-Level API with which to communicate with the Zuul host.
+        :param tools: Tools used by this to perform its task.
         """
         self._api = api
-        self._result = QueryOutputBuilder()
+        self._tools = tools
 
     @property
     def api(self) -> Zuul:
@@ -45,6 +54,13 @@ class AggregatedQuery(ABC):
         :return: Low-Level API with which to communicate with the Zuul host.
         """
         return self._api
+
+    @property
+    def tools(self):
+        """
+        :return: Tools used by this to perform its task.
+        """
+        return self._tools
 
     @abstractmethod
     def with_tenants_query(self, **kwargs) -> 'AggregatedQuery':
@@ -113,4 +129,4 @@ class AggregatedQuery(ABC):
         """
         :return: Result of the complex query.
         """
-        return self._result.assemble()
+        return self.tools.builder.assemble()
