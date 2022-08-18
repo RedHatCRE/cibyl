@@ -473,7 +473,7 @@ accurate results", len(jobs_found))
             if "network_backend" in kwargs or spec:
                 job["network_backend"] = network.get("backend", "")
             ip_string = network.get("protocol", "")
-            if "network_backend" in kwargs or spec:
+            if "ip_version" in kwargs or spec:
                 job["ip_version"] = detect_job_info_regex(ip_string,
                                                           IP_PATTERN,
                                                           group_index=1,
