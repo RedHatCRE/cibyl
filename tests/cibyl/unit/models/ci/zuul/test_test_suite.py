@@ -143,3 +143,55 @@ class TestTestSuite(TestCase):
         suite = TestSuite(data)
 
         self.assertAlmostEqual(4.0, suite.total_time)
+
+    def test_adds_test(self):
+        """Checks that the suite can add a test unknown to it.
+        """
+        test = Mock()
+
+        data = TestSuite.Data()
+
+        suite = TestSuite(data)
+        suite.add_test(test)
+
+        self.assertEqual(1, len(suite.tests))
+        self.assertEqual(test, suite.tests[0])
+
+    def test_ignores_test(self):
+        """Checks that if a test is already part of the suite, it is not
+        added again.
+        """
+        test = Mock()
+
+        data = TestSuite.Data()
+        data.tests = [test]
+
+        suite = TestSuite(data)
+        suite.add_test(test)
+
+        self.assertEqual(1, len(suite.tests))
+        self.assertEqual(test, suite.tests[0])
+
+    def test_none_if_unknown_test(self):
+        """Checks that None is returned if the test is not on the suite.
+        """
+        suite = TestSuite()
+
+        self.assertIsNone(suite.get_test('some_test'))
+
+    def test_retrieves_test(self):
+        """Checks that the suite is capable of fetching a test inside of it
+        by name.
+        """
+        name = 'test'
+
+        test = Mock()
+        test.name = Mock()
+        test.name.value = name
+
+        data = TestSuite.Data()
+        data.tests = [test]
+
+        suite = TestSuite(data)
+
+        self.assertEqual(test, suite.get_test(name))

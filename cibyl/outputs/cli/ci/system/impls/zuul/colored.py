@@ -24,6 +24,8 @@ from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
+from cibyl.models.ci.zuul.test import Test, TestKind, TestStatus
+from cibyl.models.ci.zuul.test_suite import TestSuite
 from cibyl.outputs.cli.ci.system.common.builds import (get_duration_section,
                                                        get_status_section)
 from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
@@ -213,7 +215,98 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                 if build.duration.value:
                     result.add(get_duration_section(self.palette, build), 1)
 
+            if self.query >= QueryType.TESTS:
+                result.add(self.palette.blue('Test Suites: '), 1)
+
+                if build.suites:
+                    for suite in build.suites:
+                        result.add(self.print_suite(suite), 2)
+                else:
+                    msg = 'No tests in query.'
+                    result.add(self.palette.red(msg), 2)
+
             return result.build()
+
+        def print_suite(self, suite: TestSuite) -> str:
+            result = IndentedTextBuilder()
+
+            result.add(self.palette.blue('Test Suite: '), 0)
+
+            if suite.name.value:
+                result.add(self.palette.blue('Name: '), 1)
+                result[-1].append(suite.name.value)
+
+            result.add(self.palette.blue('Tests: '), 1)
+            result[-1].append(suite.test_count)
+
+            result.add(self.palette.blue('Succeeded: '), 1)
+            result[-1].append(suite.success_count)
+
+            result.add(self.palette.blue('Failed: '), 1)
+            result[-1].append(suite.failed_count)
+
+            result.add(self.palette.blue('Skipped: '), 1)
+            result[-1].append(suite.skipped_count)
+
+            if self.verbosity > 0:
+                if suite.url.value:
+                    result.add(self.palette.blue('URL: '), 1)
+                    result[-1].append(suite.url.value)
+
+            if suite.tests:
+                result.add(self.palette.blue('Tests: '), 1)
+
+                for test in suite.tests:
+                    result.add(self.print_test(test), 2)
+
+            return result.build()
+
+        def print_test(self, test: Test) -> str:
+            result = IndentedTextBuilder()
+
+            result.add(self.palette.blue('Test: '), 0)
+
+            if self.verbosity > 0:
+                result.add(self.palette.blue('Type: '), 1)
+                result[-1].append(self._get_colored_test_kind(test.kind.value))
+
+            result.add(self.palette.blue('Name: '), 1)
+            result[-1].append(test.name.value)
+
+            if self.verbosity > 0:
+                result.add(self.palette.blue('Duration: '), 1)
+                result[-1].append(test.duration.value)
+
+            result.add(self.palette.blue('Result: '), 1)
+            result[-1].append(self._get_colored_test_result(test.result.value))
+
+            if self.verbosity > 1:
+                result.add(self.palette.blue('URL: '), 1)
+                result[-1].append(test.url.value)
+
+            return result.build()
+
+        def _get_colored_test_kind(self, kind: str) -> str:
+            status_x_color_map = {
+                str(TestKind.TEMPEST): self.palette.green(kind)
+            }
+
+            return status_x_color_map.get(
+                kind,
+                lambda: self.palette.underline(kind)
+            )
+
+        def _get_colored_test_result(self, result: str) -> str:
+            status_x_color_map = {
+                str(TestStatus.SUCCESS): self.palette.green(result),
+                str(TestStatus.FAILURE): self.palette.red(result),
+                str(TestStatus.SKIPPED): self.palette.blue(result)
+            }
+
+            return status_x_color_map.get(
+                result,
+                lambda: self.palette.underline(result)
+            )
 
     @overrides
     def print_system(self, system: System) -> str:
