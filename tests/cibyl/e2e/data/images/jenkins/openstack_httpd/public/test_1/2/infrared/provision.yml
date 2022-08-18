@@ -1,0 +1,5 @@
+provision:
+  topology:
+    nodes:
+      compute.yml: 2
+      controller.yml: 3
