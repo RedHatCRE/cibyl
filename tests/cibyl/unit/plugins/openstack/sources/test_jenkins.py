@@ -143,8 +143,6 @@ class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
         ip_versions = ['4', '6', 'unknown']
         releases = ['17.3', '16', '']
         topologies = ["compute:2,controller:1", "compute:1,controller:2", ""]
-        nodes = [["compute-0", "compute-1", "controller-0"],
-                 ["compute-0", "controller-0", "controller-1"]]
 
         response = {'jobs': [{'_class': 'folder'}]}
         for job_name in job_names:
@@ -161,11 +159,8 @@ class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
 
         jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 3)
-        for job_name, ip, release, topology, node_list in zip(job_names,
-                                                              ip_versions,
-                                                              releases,
-                                                              topologies,
-                                                              nodes):
+        for job_name, ip, release, topology in zip(job_names, ip_versions,
+                                                   releases, topologies):
             job = jobs[job_name]
             deployment = job.deployment.value
             self.assertEqual(job.name.value, job_name)
@@ -391,6 +386,103 @@ tripleo_ironic_conductor.service loaded    active     running
             self.assertEqual(network.network_backend.value, "geneve")
             self.assertEqual(network.dvr.value, "False")
             self.assertEqual(network.tls_everywhere.value, "False")
+            self.assertEqual(deployment.infra_type.value, "ovb")
+            for component in topology.split(","):
+                role, amount = component.split(":")
+                for i in range(int(amount)):
+                    node_name = role+f"-{i}"
+                    node = Node(node_name, role)
+                    node_found = deployment.nodes[node_name]
+                    self.assertEqual(node_found.name, node.name)
+                    self.assertEqual(node_found.role, node.role)
+            services = deployment.services
+            self.assertTrue("tripleo_heat_api_cron" in services.value)
+            self.assertTrue("tripleo_heat_engine" in services.value)
+            self.assertTrue("tripleo_ironic_api" in services.value)
+            self.assertTrue("tripleo_ironic_conductor" in services.value)
+
+    def test_get_deployment_ip_version_artifacts(self):
+        """ Test that get_deployment reads properly the information obtained
+        from jenkins using artifacts.
+        """
+        job_names = ['test_17.3_job', 'test_16_job', 'test_job']
+        ip_versions = ['4', '6', 'unknown']
+        releases = ['17.3', '16', '']
+        topologies = ["compute:2,controller:3", "compute:1,controller:2",
+                      "compute:2,controller:2"]
+
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastCompletedBuild': {'description':
+                                                            logs_url}})
+        services = """
+tripleo_heat_api_cron.service loaded    active     running
+tripleo_heat_engine.service loaded    active     running
+tripleo_ironic_api.service loaded    active     running
+tripleo_ironic_conductor.service loaded    active     running
+        """
+        # ensure that all deployment properties are found in the artifact so
+        # that it does not fallback to reading values from job name
+        artifacts = [
+                get_yaml_from_topology_string(topologies[0]),
+                get_yaml_overcloud(ip_versions[0], releases[0],
+                                   "ceph", "geneve", False,
+                                   False, "path/to/ovb")]
+        # one call to get_packages_node and get_containers_node per node
+        artifacts.extend([JenkinsError()]*(5*2))
+        artifacts.extend([services])
+        artifacts.extend([
+                get_yaml_from_topology_string(topologies[1]),
+                get_yaml_overcloud(ip_versions[1], releases[1],
+                                   "ceph", "geneve", False,
+                                   False, "path/to/ovb")])
+        # one call to get_packages_node and get_containers_node per node
+        artifacts.extend([JenkinsError()]*(3*2))
+        artifacts.extend([services])
+
+        artifacts.extend([
+                get_yaml_from_topology_string(topologies[2]),
+                get_yaml_overcloud(ip_versions[2], releases[2],
+                                   "ceph", "geneve", False,
+                                   False, "path/to/ovb")])
+        # one call to get_packages_node and get_containers_node per node
+        artifacts.extend([JenkinsError()]*(4*2))
+        artifacts.extend([services])
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+
+        args = {
+            "services": Argument("services", str, "", value=[]),
+            "packages": Argument("packages", str, "", value=[]),
+            "containers": Argument("containers", str, "", value=[]),
+            "topology": Argument("topology", str, "", value=[]),
+            "release": Argument("release", str, "", value=[]),
+            "infra_type": Argument("infra_type", str, "", value=[]),
+            "nodes": Argument("nodes", str, "", value=[]),
+            "ip_version": Argument("ip_version", str, "", value=[]),
+            "cinder_backend": Argument("cinder_backend", str, "", value=[])
+        }
+        jobs = self.jenkins.get_deployment(**args)
+        self.assertEqual(len(jobs), 3)
+        for job_name, ip, release, topology in zip(job_names, ip_versions,
+                                                   releases, topologies):
+            job = jobs[job_name]
+            deployment = job.deployment.value
+            network = deployment.network.value
+            storage = deployment.storage.value
+            self.assertEqual(job.name.value, job_name)
+            self.assertEqual(job.url.value, "url")
+            self.assertEqual(len(job.builds.value), 0)
+            self.assertEqual(deployment.release.value, release)
+            self.assertEqual(network.ip_version.value, ip)
+            self.assertEqual(deployment.topology.value, topology)
+            self.assertEqual(storage.cinder_backend.value, "ceph")
+            self.assertEqual(network.network_backend.value, "")
+            self.assertEqual(network.dvr.value, "")
+            self.assertEqual(network.tls_everywhere.value, "")
             self.assertEqual(deployment.infra_type.value, "ovb")
             for component in topology.split(","):
                 role, amount = component.split(":")
