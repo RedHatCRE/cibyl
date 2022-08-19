@@ -32,7 +32,10 @@ class ModelMeta(type):
 
 
 class Model(metaclass=ModelMeta):
-    """Represents a base class inherited by CI and product models."""
+    """Represents a base class inherited by CI and product models.
+
+    @DynamicAttrs: Contains attributes added on runtime.
+    """
 
     def __init__(self, attributes):
         for attribute_name, attribute_dict in self.API.items():

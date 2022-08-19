@@ -59,6 +59,7 @@ class ColoredPrinter(Printer, ABC):
     """
 
     class Config(NamedTuple):
+        query: QueryType
         palette: ColorPalette
         verbosity: int
 
@@ -79,6 +80,7 @@ class ColoredPrinter(Printer, ABC):
     @property
     def config(self) -> Config:
         return ColoredPrinter.Config(
+            query=self.query,
             palette=self.palette,
             verbosity=self.verbosity
         )
@@ -94,6 +96,7 @@ class ColoredPrinter(Printer, ABC):
 class SerializedPrinter(Printer, ABC):
     @dataclass
     class Config:
+        query: QueryType
         verbosity: int
 
     def __init__(self,
@@ -118,5 +121,6 @@ class SerializedPrinter(Printer, ABC):
     @property
     def config(self):
         return SerializedPrinter.Config(
+            query=self.query,
             verbosity=self.verbosity
         )

@@ -19,8 +19,6 @@ from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
 from cibyl.models.model import Model
 from cibyl.outputs.cli.printer import ColoredPrinter
-from cibyl.plugins.openstack import Deployment
-from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
@@ -47,13 +45,13 @@ def has_plugin_section(model: Model) -> bool:
     return has_plugin_attribute
 
 
-def get_plugin_section(printer: ColoredPrinter, model: Model) -> str:
+def get_plugin_section(reference: ColoredPrinter, model: Model) -> str:
     """Gets the text describing the plugins that affect a model.
 
     ..  seealso::
         See :func:`has_plugin_section`.
 
-    :param printer: The printer the text will be based on. The output of
+    :param reference: The printer the text will be based on. The output of
         this function will follow the styling of this.
     :param model: The model to get the description for.
     :return: The description.
@@ -67,6 +65,7 @@ def get_plugin_section(printer: ColoredPrinter, model: Model) -> str:
 
     for plugin_attribute in model.plugin_attributes:
         # Plugins install some attributes as part of the model
+        plugin = model.plugin_attributes[plugin_attribute]
         attribute = getattr(model, plugin_attribute)
 
         # Check if the attribute is populated
@@ -86,16 +85,7 @@ def get_plugin_section(printer: ColoredPrinter, model: Model) -> str:
             continue
 
         for value in values:
-            if isinstance(value, Deployment):
-                os_printer = OSColoredPrinter(
-                    printer.query, printer.verbosity, printer.palette
-                )
-
-                text.add(os_printer.print_deployment(value), 0)
-            else:
-                LOG.warning(
-                    'Ignoring unknown plugin type: %s', type(value)
-                )
-                continue
+            printer = plugin['printer']
+            text.add(printer.as_text(value, config=reference.config), 0)
 
     return text.build()

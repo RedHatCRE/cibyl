@@ -22,6 +22,7 @@ from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.zuul.job import Job as ZuulJob
 from cibyl.plugins import PluginTemplate
 from cibyl.plugins.openstack.deployment import Deployment
+from cibyl.plugins.openstack.printers.router import PrinterRouter
 from cibyl.utils.dicts import subset
 
 PLUGIN_ARGUMENTS = ('release', 'spec', 'infra_type', 'nodes', 'controllers',
@@ -55,11 +56,15 @@ def get_query_openstack(**kwargs) -> QueryType:
 class Plugin(PluginTemplate):
     """Extend a CI model with Openstack specific models and methods."""
     plugin_attributes_to_add = {
-        'deployment': {'add_method': 'add_deployment'}
+        'deployment': {
+            'add_method': 'add_deployment',
+            'printer': PrinterRouter()
         }
+    }
 
     def extend_models(self):
         """Extend models' API with product specific information."""
+
         def get_deployment_api():
             return {
                 'attr_type': Deployment,
@@ -98,6 +103,7 @@ class Plugin(PluginTemplate):
         """Collect a list of functions from the plugin that will be used to
         extend Cibyl's cli with additional subcommands. All functions returned
         by this method must take an ArgumentParser object as an argument."""
+
         def add_spec_subcommand(parser):
             # subparser for spec
             spec_sp = parser.add_parser("spec", add_help=True)
@@ -105,4 +111,5 @@ class Plugin(PluginTemplate):
             spec_sp.add_argument("spec", nargs=1, metavar="job_name",
                                  func='get_deployment',
                                  action=CustomAction, help=help_msg)
+
         return [add_spec_subcommand]
