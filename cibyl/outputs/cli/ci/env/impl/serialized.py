@@ -16,7 +16,7 @@
 import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Callable, Union
+from typing import Callable, Union, NamedTuple
 
 from overrides import overrides
 
@@ -87,6 +87,10 @@ class JSONPrinter(SerializedDataPrinter):
     """Serializer that prints a CI hierarchy in JSON format.
     """
 
+    class Config(NamedTuple):
+        indentation: int
+        verbosity: int
+
     def __init__(self,
                  query: QueryType = QueryType.NONE,
                  verbosity: int = 0,
@@ -104,6 +108,13 @@ class JSONPrinter(SerializedDataPrinter):
         )
 
         self._indentation = indentation
+
+    @property
+    def config(self) -> Config:
+        return JSONPrinter.Config(
+            indentation=self.indentation,
+            verbosity=self.verbosity
+        )
 
     @property
     def indentation(self) -> int:

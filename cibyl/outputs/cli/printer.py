@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import ABC
+from typing import NamedTuple
 
 from cibyl.cli.query import QueryType
 from cibyl.utils.colors import ColorPalette, DefaultPalette
@@ -56,6 +57,10 @@ class ColoredPrinter(Printer, ABC):
     """Base class for output styles based around coloring.
     """
 
+    class Config(NamedTuple):
+        palette: ColorPalette
+        verbosity: int
+
     def __init__(self,
                  query: QueryType = QueryType.NONE,
                  verbosity: int = 0,
@@ -69,6 +74,13 @@ class ColoredPrinter(Printer, ABC):
         super().__init__(query, verbosity)
 
         self._palette = palette
+
+    @property
+    def config(self) -> Config:
+        return ColoredPrinter.Config(
+            palette=self.palette,
+            verbosity=self.verbosity
+        )
 
     @property
     def palette(self) -> ColorPalette:
