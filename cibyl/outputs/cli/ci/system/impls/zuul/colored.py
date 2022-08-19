@@ -17,6 +17,7 @@ import logging
 
 from overrides import overrides
 
+from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.build import Build
 from cibyl.models.ci.base.system import System
@@ -191,7 +192,10 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                 result[-1].append(value)
 
             if has_plugin_section(variant):
-                result.add(get_plugin_section(self, variant), 1)
+                result.add(
+                    text=get_plugin_section(OutputStyle.TEXT, variant, self),
+                    level=1
+                )
 
             return result.build()
 

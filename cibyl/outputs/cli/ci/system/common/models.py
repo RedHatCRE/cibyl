@@ -14,11 +14,13 @@
 #    under the License.
 """
 import logging
+from typing import Union
 
+from cibyl.cli.output import OutputStyle
 from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
 from cibyl.models.model import Model
-from cibyl.outputs.cli.printer import ColoredPrinter
+from cibyl.outputs.cli.printer import ColoredPrinter, SerializedPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
@@ -45,15 +47,20 @@ def has_plugin_section(model: Model) -> bool:
     return has_plugin_attribute
 
 
-def get_plugin_section(reference: ColoredPrinter, model: Model) -> str:
+def get_plugin_section(
+    style: OutputStyle,
+    model: Model,
+    reference: Union[ColoredPrinter, SerializedPrinter]
+) -> str:
     """Gets the text describing the plugins that affect a model.
 
     ..  seealso::
         See :func:`has_plugin_section`.
 
+    :param style: Desired format of output by the plugin.
+    :param model: The model to get the description for.
     :param reference: The printer the text will be based on. The output of
         this function will follow the styling of this.
-    :param model: The model to get the description for.
     :return: The description.
     :raises ValueError: If the model does not have enough data to build the
         section.
@@ -86,6 +93,12 @@ def get_plugin_section(reference: ColoredPrinter, model: Model) -> str:
 
         for value in values:
             printer = plugin['printer']
-            text.add(printer.as_text(value, config=reference.config), 0)
+
+            if style in (OutputStyle.TEXT, OutputStyle.COLORIZED):
+                text.add(printer.as_text(value, config=reference.config), 0)
+            elif style in (OutputStyle.JSON,):
+                text.add(printer.as_json(value, config=reference.config), 0)
+            else:
+                raise NotImplementedError(f"Unknown style: '{style}'.")
 
     return text.build()
