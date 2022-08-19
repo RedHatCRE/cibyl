@@ -14,17 +14,20 @@
 #    under the License.
 """
 from collections import UserDict
-from typing import List, MutableMapping
+from typing import List, MutableMapping, NamedTuple
 
 from overrides import overrides
 
-from cibyl.cli.query import QueryType, get_query_type
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
+from cibyl.sources.zuul.apis.factories import ZuulAPIFactory
 from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
+from cibyl.sources.zuul.arguments import ArgumentReview
 from cibyl.sources.zuul.output import QueryOutput
+from cibyl.sources.zuul.queries.composition.factory import \
+    AggregatedQueryFactory
 from cibyl.utils.dicts import subset
 
 
@@ -43,9 +46,19 @@ class Zuul(ServerSource):
             ['tenant_1', 'tenant_2']
         """
 
+    class Tools(NamedTuple):
+        """Tools this uses to perform its task.
+        """
+        api: ZuulAPIFactory = ZuulRESTFactory()
+        """Used to get the API this will use to interact with Zuul."""
+        arguments: ArgumentReview = ArgumentReview()
+        """Used to make sense out of the arguments coming from the user."""
+        query: AggregatedQueryFactory = AggregatedQueryFactory()
+        """Used to generate the manager that will perform the query."""
+
     def __init__(self, name, driver, url, cert=None,
                  fallbacks=None, tenants=None, enabled=True,
-                 api_factory=ZuulRESTFactory()):
+                 tools: Tools = Tools()):
         """Constructor.
 
         :param name: Name of the source.
@@ -61,10 +74,8 @@ class Zuul(ServerSource):
         :type fallbacks: :class:`Zuul.Fallbacks` or None
         :param tenants: List of tenants
         :type tenants: list
-        :param api_factory: Used to create the API this source will use to
-            interact with Zuul.
-        :type api_factory: :class:`
-            cibyl.sources.zuul.apis.factories.ZuulAPIFactory`
+        :param tools: Collection of tools this uses to do its task.
+        :type tools: :class:`Zuul.Tools`
         """
         # Handle optional parameters
         if not fallbacks:
@@ -80,7 +91,7 @@ class Zuul(ServerSource):
 
         self._fallbacks = fallbacks
         self._tenants = tenants
-        self._api_factory = api_factory
+        self._tools = tools
 
     @staticmethod
     def new_source(url, cert=None, **kwargs):
@@ -128,9 +139,16 @@ class Zuul(ServerSource):
 
         return Zuul(url=url, cert=cert, fallbacks=fallbacks, **kwargs)
 
+    @property
+    def tools(self):
+        """
+        :return: Collection of tools this uses to do its task.
+        """
+        return self._tools
+
     @overrides
     def setup(self):
-        self._api = self._api_factory.create(self.url, self.cert)
+        self._api = self.tools.api.create(self.url, self.cert)
 
     @overrides
     def teardown(self):
