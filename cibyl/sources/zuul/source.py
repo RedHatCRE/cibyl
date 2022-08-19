@@ -24,7 +24,6 @@ from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
 from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
-from cibyl.sources.zuul.managers.factory import SourceManagerFactory
 from cibyl.sources.zuul.output import QueryOutput
 from cibyl.utils.dicts import subset
 
@@ -46,8 +45,7 @@ class Zuul(ServerSource):
 
     def __init__(self, name, driver, url, cert=None,
                  fallbacks=None, tenants=None, enabled=True,
-                 api_factory=ZuulRESTFactory(),
-                 manager=SourceManagerFactory()):
+                 api_factory=ZuulRESTFactory()):
         """Constructor.
 
         :param name: Name of the source.
@@ -83,7 +81,6 @@ class Zuul(ServerSource):
         self._fallbacks = fallbacks
         self._tenants = tenants
         self._api_factory = api_factory
-        self._manager = manager
 
     @staticmethod
     def new_source(url, cert=None, **kwargs):
@@ -219,28 +216,4 @@ class Zuul(ServerSource):
         )
 
     def _perform_query(self, **kwargs) -> QueryOutput:
-        query = get_query_type(**kwargs)
-        manager = self._manager.from_kwargs(self._api, **kwargs)
-
-        if query == QueryType.TENANTS:
-            return manager.handle_tenants_query(**kwargs)
-
-        if query == QueryType.PROJECTS:
-            return manager.handle_projects_query(**kwargs)
-
-        if query == QueryType.PIPELINES:
-            return manager.handle_pipelines_query(**kwargs)
-
-        if query == QueryType.JOBS:
-            return manager.handle_jobs_query(**kwargs)
-
-        if query == QueryType.VARIANTS:
-            return manager.handle_variants_query(**kwargs)
-
-        if query == QueryType.BUILDS:
-            return manager.handle_builds_query(**kwargs)
-
-        if query == QueryType.TESTS:
-            return manager.handle_tests_query(**kwargs)
-
-        raise NotImplementedError(f'Unsupported query: {query}')
+        raise NotImplementedError()
