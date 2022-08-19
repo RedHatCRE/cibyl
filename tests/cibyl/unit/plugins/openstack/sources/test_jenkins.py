@@ -695,7 +695,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.jenkins.send_request = Mock(side_effect=[response])
 
         args = {
-            "release": Argument("release", str, "", value=["17.3"])
+            "release": Argument("release", str, "", value=["17"])
         }
         jobs = self.jenkins.get_deployment(**args)
         self.assertEqual(len(jobs), 1)
