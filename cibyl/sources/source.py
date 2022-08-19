@@ -16,7 +16,7 @@
 import logging
 from abc import abstractmethod
 from operator import itemgetter
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 import requests
 
@@ -77,7 +77,7 @@ class Source(AttrDict):
     def __init__(self,
                  name: str = Optional[str],
                  driver: str = Optional[str],
-                 **kwargs: Argument):
+                 **kwargs: Any):
         kwargs.setdefault('enabled', True)
         kwargs.setdefault('_setup', False)
         kwargs.setdefault('_down', False)

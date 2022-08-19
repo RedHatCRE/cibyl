@@ -24,6 +24,8 @@ from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.models.ci.zuul.test import Test, TestKind, TestStatus
 from cibyl.models.ci.zuul.test_suite import TestSuite
+from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
+from cibyl.sources.zuul.arguments import ArgumentReview
 from cibyl.sources.zuul.queries.composition.quick import QuickQuery
 from cibyl.sources.zuul.source import Zuul
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
@@ -51,8 +53,11 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Mock()
-        tools.query = factory
+        tools = Zuul.Tools(
+            api=ZuulRESTFactory(),
+            arguments=ArgumentReview(),
+            query=factory
+        )
 
         source = Zuul(
             name='test-source',
@@ -96,8 +101,11 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Mock()
-        tools.query = factory
+        tools = Zuul.Tools(
+            api=ZuulRESTFactory(),
+            arguments=ArgumentReview(),
+            query=factory
+        )
 
         source = Zuul(
             name='test-source',
@@ -155,8 +163,11 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Mock()
-        tools.query = factory
+        tools = Zuul.Tools(
+            api=ZuulRESTFactory(),
+            arguments=ArgumentReview(),
+            query=factory
+        )
 
         source = Zuul(
             name='test-source',
@@ -215,8 +226,11 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Mock()
-        tools.query = factory
+        tools = Zuul.Tools(
+            api=ZuulRESTFactory(),
+            arguments=ArgumentReview(),
+            query=factory
+        )
 
         source = Zuul(
             name='test-source',
@@ -280,8 +294,11 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Mock()
-        tools.query = factory
+        tools = Zuul.Tools(
+            api=ZuulRESTFactory(),
+            arguments=ArgumentReview(),
+            query=factory
+        )
 
         source = Zuul(
             name='test-source',
@@ -358,8 +375,11 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Mock()
-        tools.query = factory
+        tools = Zuul.Tools(
+            api=ZuulRESTFactory(),
+            arguments=ArgumentReview(),
+            query=factory
+        )
 
         source = Zuul(
             name='test-source',
@@ -455,8 +475,11 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Mock()
-        tools.query = factory
+        tools = Zuul.Tools(
+            api=ZuulRESTFactory(),
+            arguments=ArgumentReview(),
+            query=factory
+        )
 
         source = Zuul(
             name='test-source',
@@ -538,8 +561,11 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Mock()
-        tools.query = factory
+        tools = Zuul.Tools(
+            api=ZuulRESTFactory(),
+            arguments=ArgumentReview(),
+            query=factory
+        )
 
         source = Zuul(
             name='test-source',
@@ -567,91 +593,6 @@ class TestQuickQuery(TestCase):
             ),
             tenant2.name: Tenant(
                 name=tenant2.name
-            )
-        }
-
-        self.assertEqual(expected, models)
-
-    def test_jobs_fetches_pipelines(self):
-        """Checks that looking for jobs will also get you the pipelines
-        they belong to.
-        """
-        tenant = Mock()
-        project = Mock()
-        pipeline = Mock()
-        job = Mock()
-
-        tenant.name = 'tenant'
-        tenant.projects = Mock()
-        tenant.projects.return_value = [project]
-        tenant.jobs = Mock()
-        tenant.jobs.return_value = [job]
-
-        project.name = 'project'
-        project.url = 'http://localhost:8080/'
-        project.tenant = tenant
-        project.pipelines = Mock()
-        project.pipelines.return_value = [pipeline]
-
-        pipeline.name = 'pipeline'
-        pipeline.project = project
-        pipeline.jobs = Mock()
-        pipeline.jobs.return_value = [job]
-
-        job.tenant = tenant
-        job.name = 'job'
-        job.url = 'http://localhost:8080/'
-
-        api = Mock()
-        api.tenants = Mock()
-        api.tenants.return_value = [tenant]
-
-        query = QuickQuery(api)
-
-        factory = Mock()
-        factory.from_kwargs = Mock()
-        factory.from_kwargs.return_value = query
-
-        tools = Mock()
-        tools.query = factory
-
-        source = Zuul(
-            name='test-source',
-            driver='zuul',
-            url='http://localhost:8080/',
-            tools=tools
-        )
-
-        kwargs = {'jobs': Argument('jobs', str, '')}
-        result = source.get_jobs(**kwargs)
-
-        models = result.value
-        expected = {
-            tenant.name: Tenant(
-                name=tenant.name,
-                projects={
-                    project.name: Project(
-                        name=project.name,
-                        url=project.url,
-                        pipelines={
-                            pipeline.name: Pipeline(
-                                name=pipeline.name,
-                                jobs={
-                                    job.name: Job(
-                                        name=job.name,
-                                        url=job.url
-                                    )
-                                }
-                            )
-                        }
-                    )
-                },
-                jobs={
-                    job.name: Job(
-                        name=job.name,
-                        url=job.url
-                    )
-                }
             )
         }
 

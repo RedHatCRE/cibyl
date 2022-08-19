@@ -14,7 +14,7 @@
 #    under the License.
 """
 from collections import UserDict
-from typing import List, MutableMapping, NamedTuple
+from typing import List, MutableMapping, NamedTuple, Optional
 
 from overrides import overrides
 
@@ -49,16 +49,16 @@ class Zuul(ServerSource):
     class Tools(NamedTuple):
         """Tools this uses to perform its task.
         """
-        api: ZuulAPIFactory = ZuulRESTFactory()
+        api: ZuulAPIFactory
         """Used to get the API this will use to interact with Zuul."""
-        arguments: ArgumentReview = ArgumentReview()
+        arguments: ArgumentReview
         """Used to make sense out of the arguments coming from the user."""
-        query: AggregatedQueryFactory = AggregatedQueryFactory()
+        query: AggregatedQueryFactory
         """Used to generate the manager that will perform the query."""
 
     def __init__(self, name, driver, url, cert=None,
                  fallbacks=None, tenants=None, enabled=True,
-                 tools: Tools = Tools()):
+                 tools: Optional[Tools] = None):
         """Constructor.
 
         :param name: Name of the source.
@@ -75,11 +75,19 @@ class Zuul(ServerSource):
         :param tenants: List of tenants
         :type tenants: list
         :param tools: Collection of tools this uses to do its task.
+            'None' for defaults.
         :type tools: :class:`Zuul.Tools`
         """
         # Handle optional parameters
         if not fallbacks:
             fallbacks = Zuul.Fallbacks()
+
+        if not tools:
+            tools = Zuul.Tools(
+                api=ZuulRESTFactory(),
+                arguments=ArgumentReview(),
+                query=AggregatedQueryFactory()
+            )
 
         # URLs are built assuming no slash at the end of URL
         if url.endswith('/'):
@@ -234,4 +242,27 @@ class Zuul(ServerSource):
         )
 
     def _perform_query(self, **kwargs) -> QueryOutput:
-        raise NotImplementedError()
+        query = self.tools.query.from_kwargs(self._api, **kwargs)
+
+        if self.tools.arguments.is_tenants_query_requested(**kwargs):
+            query.with_tenants_query(**kwargs)
+
+        if self.tools.arguments.is_projects_query_requested(**kwargs):
+            query.with_projects_query(**kwargs)
+
+        if self.tools.arguments.is_pipelines_query_requested(**kwargs):
+            query.with_pipelines_query(**kwargs)
+
+        if self.tools.arguments.is_jobs_query_requested(**kwargs):
+            query.with_jobs_query(**kwargs)
+
+        if self.tools.arguments.is_variants_query_requested(**kwargs):
+            query.with_variants_query(**kwargs)
+
+        if self.tools.arguments.is_builds_query_requested(**kwargs):
+            query.with_builds_query(**kwargs)
+
+        if self.tools.arguments.is_tests_query_requested(**kwargs):
+            query.with_tests_query(**kwargs)
+
+        return query.get_result()
