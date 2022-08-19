@@ -188,7 +188,7 @@ class TestQuickQuery(TestCase):
     @patch(f'{pkg}.perform_tests_query')
     @patch(f'{pkg}.perform_builds_query')
     @patch(f'{pkg}.perform_jobs_query')
-    def test_gets_builds(self, jobs: Mock, builds: Mock, tests: Mock):
+    def test_gets_tests(self, jobs: Mock, builds: Mock, tests: Mock):
         """Checks that the simple queries are made in order to aggregate
         builds.
         """

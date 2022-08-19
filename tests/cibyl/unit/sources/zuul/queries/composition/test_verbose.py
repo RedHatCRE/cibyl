@@ -211,7 +211,7 @@ class TestVerboseQuery(TestCase):
     @patch(f'{pkg}.quick.perform_tests_query')
     @patch(f'{pkg}.quick.perform_builds_query')
     @patch(f'{pkg}.quick.perform_jobs_query')
-    def test_gets_builds(self, jobs: Mock, builds: Mock, tests: Mock):
+    def test_gets_tests(self, jobs: Mock, builds: Mock, tests: Mock):
         """Checks that the simple queries are made in order to aggregate
         builds.
         """
