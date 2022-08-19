@@ -76,7 +76,7 @@ Arguments Matrix
      - | The IP version used
        | by the deployment (4 or 6)
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
@@ -84,7 +84,7 @@ Arguments Matrix
      - | OpenStack Release
        | (OSP and RDO supported)
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
@@ -93,7 +93,7 @@ Arguments Matrix
        | OS is deployed (e.g. ovb,
        | baremetal, virthost)
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
@@ -101,14 +101,14 @@ Arguments Matrix
      - | The combination of node
        | types deployed
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
    * - --nodes
      - | List of nodes on the topology.
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
@@ -116,7 +116,7 @@ Arguments Matrix
      - | Number of controllers
        | (Can be also range: ">=3")
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
@@ -124,7 +124,7 @@ Arguments Matrix
      - | Number of computes
        | (Can be also range: ">=3")
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
@@ -132,7 +132,7 @@ Arguments Matrix
      - | Which ml2 driver does
        | the deployment use
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
@@ -140,7 +140,7 @@ Arguments Matrix
      - | What network protocol is
        | used (e.g. vxlan, vlan, ...)
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
@@ -148,7 +148,7 @@ Arguments Matrix
      - | What cinder backend is
        | used (vlan, Ceph, Netapp, nfs)
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:black_square_button:|
      - |:black_square_button:|
