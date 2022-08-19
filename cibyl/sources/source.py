@@ -49,7 +49,7 @@ def safe_request_generic(request, custom_error):
         except requests.exceptions.SSLError as ex:
             raise custom_error(
                 "Please set certificates in order to connect to the system \
-or add 'certs: False' to the configuration"
+or add 'cert: False' to the configuration"
             ) from ex
         except requests.exceptions.ConnectionError as ex:
             raise custom_error(
