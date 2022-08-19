@@ -16,6 +16,11 @@
 from abc import ABC, abstractmethod
 
 from cibyl.outputs.cli.printer import Printer
+from cibyl.plugins.openstack import Deployment
+from cibyl.plugins.openstack.container import Container
+from cibyl.plugins.openstack.node import Node
+from cibyl.plugins.openstack.package import Package
+from cibyl.plugins.openstack.service import Service
 
 
 class OSPrinter(Printer, ABC):
@@ -23,46 +28,41 @@ class OSPrinter(Printer, ABC):
     """
 
     @abstractmethod
-    def print_container(self, container):
-        """
-        :param container: The container.
-        :return: Textual representation of the provided model.
-        :rtype: str
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def print_deployment(self, deployment):
+    def print_deployment(self, deployment: Deployment) -> str:
         """
         :param deployment: The deployment.
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         raise NotImplementedError
 
     @abstractmethod
-    def print_node(self, node):
+    def print_node(self, node: Node) -> str:
         """
         :param node: The node.
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         raise NotImplementedError
 
     @abstractmethod
-    def print_package(self, package):
+    def print_container(self, container: Container) -> str:
+        """
+        :param container: The container.
+        :return: Textual representation of the provided model.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def print_package(self, package: Package) -> str:
         """
         :param package: The package.
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         raise NotImplementedError
 
     @abstractmethod
-    def print_service(self, service):
+    def print_service(self, service: Service) -> str:
         """
         :param service: The service.
         :return: Textual representation of the provided model.
-        :rtype: str
         """
         raise NotImplementedError
