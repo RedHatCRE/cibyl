@@ -14,7 +14,7 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 from cibyl.sources.zuul.apis import ZuulAPI as Zuul
 from cibyl.sources.zuul.output import QueryOutput
@@ -36,15 +36,21 @@ class AggregatedQuery(ABC):
     class Tools(NamedTuple):
         """Tools used by this to perform its task.
         """
-        builder: OutputBuilder = OutputBuilder()
+        builder: OutputBuilder
         """Tools used to generate the output of this query."""
 
-    def __init__(self, api: Zuul, tools: Tools = Tools()):
+    def __init__(self, api: Zuul, tools: Optional[Tools] = None):
         """Constructor.
 
         :param api: Low-Level API with which to communicate with the Zuul host.
         :param tools: Tools used by this to perform its task.
+            'None' for defaults.
         """
+        if not tools:
+            tools = AggregatedQuery.Tools(
+                builder=OutputBuilder()
+            )
+
         self._api = api
         self._tools = tools
 

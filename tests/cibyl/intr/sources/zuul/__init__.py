@@ -13,20 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.sources.zuul.apis import ZuulAPI as Zuul
-from cibyl.sources.zuul.queries.composition.verbose import VerboseQuery
-
-
-class AggregatedQueryFactory:
-    """Factory for :class:`AggregatedQuery`.
-    """
-
-    def from_kwargs(self, api: Zuul, **kwargs):
-        """Infers the desired query type from the undefined arguments passed
-        here.
-
-        :param api: Low-Level API with which to interact with the Zuul host.
-        :param kwargs: Random set of arguments.
-        :return: The query instance.
-        """
-        return VerboseQuery(api)
