@@ -16,7 +16,7 @@
 import logging
 from abc import abstractmethod
 from operator import itemgetter
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 import requests
 
