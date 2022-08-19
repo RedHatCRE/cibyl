@@ -14,7 +14,8 @@
 #    under the License.
 """
 from abc import ABC
-from typing import NamedTuple
+from dataclasses import dataclass
+from typing import Callable, NamedTuple
 
 from cibyl.cli.query import QueryType
 from cibyl.utils.colors import ColorPalette, DefaultPalette
@@ -88,3 +89,34 @@ class ColoredPrinter(Printer, ABC):
         :return: The palette currently in use.
         """
         return self._palette
+
+
+class SerializedPrinter(Printer, ABC):
+    @dataclass
+    class Config:
+        verbosity: int
+
+    def __init__(self,
+                 load_function: Callable[[str], dict],
+                 dump_function: Callable[[dict], str],
+                 query: QueryType = QueryType.NONE,
+                 verbosity: int = 0):
+        """Constructor. See parent for more information.
+
+        :param load_function: Function that transforms machine-readable text
+            into a Python structure. Used to unmarshall output of sub-parts
+            of the module.
+        :param dump_function: Function that transforms a Python structure into
+            machine-readable text. Used to marshall the data from the
+            hierarchy.
+        """
+        super().__init__(query, verbosity)
+
+        self._load = load_function
+        self._dump = dump_function
+
+    @property
+    def config(self):
+        return SerializedPrinter.Config(
+            verbosity=self.verbosity
+        )

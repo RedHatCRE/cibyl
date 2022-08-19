@@ -16,7 +16,8 @@
 import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Callable, Union, NamedTuple
+from dataclasses import dataclass
+from typing import Union
 
 from overrides import overrides
 
@@ -28,33 +29,15 @@ from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     JSONBaseSystemPrinter
 from cibyl.outputs.cli.ci.system.impls.jobs.serialized import \
     JSONJobsSystemPrinter
+from cibyl.outputs.cli.printer import SerializedPrinter
 
 LOG = logging.getLogger(__name__)
 
 
-class SerializedDataPrinter(CIPrinter, ABC):
+class CISerializedPrinter(SerializedPrinter, CIPrinter, ABC):
     """Base class for printers that print a CI hierarchy in a format
     readable for machines, like JSON or YAML.
     """
-
-    def __init__(self,
-                 load_function: Callable[[str], dict],
-                 dump_function: Callable[[dict], str],
-                 query: QueryType = QueryType.NONE,
-                 verbosity: int = 0):
-        """Constructor. See parent for more information.
-
-        :param load_function: Function that transforms machine-readable text
-            into a Python structure. Used to unmarshall output of sub-parts
-            of the module.
-        :param dump_function: Function that transforms a Python structure into
-            machine-readable text. Used to marshall the data from the
-            hierarchy.
-        """
-        super().__init__(query, verbosity)
-
-        self._load = load_function
-        self._dump = dump_function
 
     @overrides
     def print_environment(self, env: Environment) -> str:
@@ -83,13 +66,13 @@ class SerializedDataPrinter(CIPrinter, ABC):
         raise NotImplementedError
 
 
-class JSONPrinter(SerializedDataPrinter):
+class JSONPrinter(CISerializedPrinter):
     """Serializer that prints a CI hierarchy in JSON format.
     """
 
-    class Config(NamedTuple):
+    @dataclass
+    class Config(SerializedPrinter.Config):
         indentation: int
-        verbosity: int
 
     def __init__(self,
                  query: QueryType = QueryType.NONE,
