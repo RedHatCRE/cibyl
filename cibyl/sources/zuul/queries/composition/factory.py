@@ -14,7 +14,7 @@
 #    under the License.
 """
 from cibyl.sources.zuul.apis import ZuulAPI as Zuul
-from cibyl.sources.zuul.queries.composition.quick import QuickQuery
+from cibyl.sources.zuul.queries.composition.verbose import VerboseQuery
 
 
 class AggregatedQueryFactory:
@@ -29,4 +29,4 @@ class AggregatedQueryFactory:
         :param kwargs: Random set of arguments.
         :return: The query instance.
         """
-        return QuickQuery(api)
+        return VerboseQuery(api)
