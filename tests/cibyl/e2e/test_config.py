@@ -27,8 +27,7 @@ class TestConfig(TestCase):
         """
         with HTTPDContainer() as httpd:
             command = [
-                'cibyl',
-                '--config', f'{httpd.url}/jenkins.yaml',
+                'cibyl', '--config', f'{httpd.url}/jenkins.yaml',
                 '-f', 'text'
             ]
 

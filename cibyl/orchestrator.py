@@ -147,11 +147,11 @@ class Orchestrator:
     def load_features(self) -> list:
         """Read user-requested features and setup the right argument to query
         the information for them."""
-        user_features = self.parser.ci_args.get('features')
+        user_features = self.parser.app_args.get('features')
         if user_features is None:
             return []
         load_features()
-        if not user_features.value:
+        if not user_features:
             # throw error in case cibyl is called with --features argument but
             # without any specified feature
             features_string = get_string_all_features()
@@ -164,7 +164,7 @@ class Orchestrator:
                 msg += "plugin that provides the requested feature is added."
             raise InvalidArgument(msg)
         return [get_feature(feature_name)
-                for feature_name in user_features.value]
+                for feature_name in user_features]
 
     def run_features(self, system: System, features_to_run: list) -> None:
         """Run user-requested features, the output of each feature will be
@@ -278,12 +278,12 @@ class Orchestrator:
                 source_info = source_information_from_method(
                         source_method)
                 source_obj = get_source_instance_from_method(source_method)
-                source_obj.ensure_source_setup()
-                start_time = time.time()
-                LOG.info("Performing query on system %s", system.name)
-                LOG.debug("Running %s and speed index %d",
-                          source_info, speed_score)
                 try:
+                    source_obj.ensure_source_setup()
+                    start_time = time.time()
+                    LOG.info("Performing query on system %s", system.name)
+                    LOG.debug("Running %s and speed index %d",
+                              source_info, speed_score)
                     with StatusBar(f"Performing query ({system.name})"):
                         model_instances_dict = source_method(
                             **ci_args, **self.parser.app_args,
@@ -294,15 +294,15 @@ class Orchestrator:
                               source_info, system.name.value,
                               exception, exc_info=debug)
                     continue
+                end_time = time.time()
+                LOG.info("Took %.2fs to query system %s using %s",
+                         end_time-start_time, system.name.value,
+                         source_info)
                 if query_result is None:
                     query_result = model_instances_dict
                 else:
                     query_result = intersect_models(query_result,
                                                     model_instances_dict)
-                end_time = time.time()
-                LOG.info("Took %.2fs to query system %s using %s",
-                         end_time-start_time, system.name.value,
-                         source_info)
                 system.register_query()
                 # if one source has provided the information, there is
                 # no need to query the rest
@@ -372,9 +372,10 @@ class Orchestrator:
 
         The query is performed per system, while the results are published
         once per environment"""
+        command = self.parser.app_args.get('command')
         for env in self.environments:
             for system in env.systems:
-                if features:
+                if command == "features":
                     self.run_features(system, features)
                 else:
                     self.run_query(system)
@@ -383,6 +384,6 @@ class Orchestrator:
             self.publisher.publish(
                 environment=env,
                 style=output_style,
-                query=get_query_type(**self.parser.ci_args),
+                query=get_query_type(**self.parser.ci_args, command=command),
                 verbosity=self.parser.app_args.get('verbosity', 0),
                 args=self.parser.ci_args)

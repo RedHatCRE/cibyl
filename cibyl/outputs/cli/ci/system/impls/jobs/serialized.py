@@ -13,19 +13,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import json
 from abc import ABC
-from typing import Union
 
 from overrides import overrides
 
+from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.build import Build, Test
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.base.stage import Stage
 from cibyl.models.ci.base.system import System
+from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
+                                                       has_plugin_section)
 from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     SerializedBaseSystemPrinter
+from cibyl.outputs.cli.printer import JSONPrinter
 
 
 class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
@@ -36,15 +38,19 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
     @overrides
     def print_system(self, system: System) -> str:
         # Build on top of the base answer
-        result = self._load(super().print_system(system))
+        result = self.provider.load(super().print_system(system))
 
         if self.query != QueryType.NONE:
             result['jobs'] = []
 
             for job in system.jobs.values():
-                result['jobs'].append(self._load(self.print_job(job)))
+                result['jobs'].append(
+                    self.provider.load(
+                        self.print_job(job)
+                    )
+                )
 
-        return self._dump(result)
+        return self.provider.dump(result)
 
     def print_job(self, job: Job) -> str:
         """
@@ -56,15 +62,19 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
         }
 
         if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
-            return self._dump(result)
+            return self.provider.dump(result)
 
         if self.query >= QueryType.BUILDS:
             result['builds'] = []
 
             for build in job.builds.values():
-                result['builds'].append(self._load(self.print_build(build)))
+                result['builds'].append(
+                    self.provider.load(
+                        self.print_build(build)
+                    )
+                )
 
-        return self._dump(result)
+        return self.provider.dump(result)
 
     def print_build(self, build: Build) -> str:
         """
@@ -80,12 +90,20 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
         }
 
         for test in build.tests.values():
-            result['tests'].append(self._load(self.print_test(test)))
+            result['tests'].append(
+                self.provider.load(
+                    self.print_test(test)
+                )
+            )
 
         for stage in build.stages:
-            result['stages'].append(self._load(self.print_stage(stage)))
+            result['stages'].append(
+                self.provider.load(
+                    self.print_stage(stage)
+                )
+            )
 
-        return self._dump(result)
+        return self.provider.dump(result)
 
     def print_test(self, test: Test) -> str:
         """
@@ -99,7 +117,7 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
             'duration': test.duration.value
         }
 
-        return self._dump(result)
+        return self.provider.dump(result)
 
     def print_stage(self, stage: Stage) -> str:
         """
@@ -112,40 +130,26 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
             'duration': stage.duration.value
         }
 
-        return self._dump(result)
+        return self.provider.dump(result)
 
 
-class JSONJobsSystemPrinter(SerializedJobsSystemPrinter):
+class JSONJobsSystemPrinter(JSONPrinter, SerializedJobsSystemPrinter):
     """Printer that will output Jenkins systems in JSON format.
     """
 
-    def __init__(self,
-                 query: QueryType = QueryType.NONE,
-                 verbosity: int = 0,
-                 indentation: int = 4):
-        """Constructor. See parent for more information.
+    @overrides
+    def print_job(self, job: Job) -> str:
+        result = self.provider.load(super().print_job(job))
 
-        :param indentation: Number of spaces indenting each level of the
-            JSON output.
-        """
-        super().__init__(
-            load_function=self._from_json,
-            dump_function=self._to_json,
-            query=query,
-            verbosity=verbosity
-        )
+        if has_plugin_section(job):
+            section = self.provider.load(
+                get_plugin_section(
+                    style=OutputStyle.JSON,
+                    model=job,
+                    reference=self
+                )
+            )
 
-        self._indentation = indentation
+            result['plugins'] = section
 
-    @property
-    def indentation(self) -> int:
-        """
-        :return: Number of spaces preceding every level of the JSON output.
-        """
-        return self._indentation
-
-    def _from_json(self, obj: Union[str, bytes, bytearray]) -> dict:
-        return json.loads(obj)
-
-    def _to_json(self, obj: object) -> str:
-        return json.dumps(obj, indent=self._indentation)
+        return self.provider.dump(result)

@@ -33,11 +33,11 @@ Usage
 
 ``cibyl`` for listing environments and systems as specified in the configuration
 
-``cibyl --jobs`` will print all the jobs available in your CI system
+``cibyl query --jobs`` will print all the jobs available in your CI system
 
-``cibyl --jobs --system <SYSTEM NAME>`` will print all the jobs from one specific system
+``cibyl query --jobs --system <SYSTEM NAME>`` will print all the jobs from one specific system
 
-``cibyl --jobs --builds`` will print the jobs as well as the status of all the builds of that job
+``cibyl query --jobs --builds`` will print the jobs as well as the status of all the builds of that job
 
 Official Documentation
 **********************

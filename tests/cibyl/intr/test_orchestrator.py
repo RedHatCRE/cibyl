@@ -29,6 +29,7 @@ from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.sources.jenkins import Jenkins as OSPJenkins
 from cibyl.plugins.openstack.sources.zuul import Zuul as OSPZuul
+from cibyl.sources.elasticsearch.api import ElasticSearch
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.zuul.source import Zuul
 
@@ -80,8 +81,9 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: jenkins\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
-                        '--jobs', 'DFG-compute', '--spec']
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'query', '--jobs', 'DFG-compute',
+                        '--ip-version']
 
             main()
         jenkins_deployment.assert_called_once()
@@ -123,8 +125,9 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: jenkins\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
-                        '--last-build', '--spec', '4', '-f', 'text']
+            sys.argv = ['cibyl', '-p', 'openstack', '-f', 'text', '--config',
+                        config_file.name, 'query', '--last-build',
+                        '--ip-version', '4']
 
             main()
 
@@ -161,8 +164,9 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: jenkins\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
-                        '--jobs', 'DFG-compute', '--spec', '--tests']
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'query', '--jobs', 'DFG-compute',
+                        '--ip-version', '--tests']
 
             main()
         jenkins_deployment.assert_called_once()
@@ -194,8 +198,9 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: jenkins\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
-                        '--jobs', 'DFG-compute', '--spec', '--builds']
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'query', '--jobs', 'DFG-compute',
+                        '--ip-version', '--builds']
 
             main()
         jenkins_deployment.assert_called_once()
@@ -227,8 +232,9 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: jenkins\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
-                        '--jobs', 'DFG-compute', '--spec', '--tests',
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'query',
+                        '--jobs', 'DFG-compute', '--ip-version', '--tests',
                         '--builds']
 
             main()
@@ -263,8 +269,9 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: zuul\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
-                        '--jobs', 'DFG-compute', '--spec', '--tests']
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'query',
+                        '--jobs', 'DFG-compute', '--ip-version', '--tests']
 
             main()
         zuul_deployment.assert_called_once()
@@ -297,10 +304,110 @@ class TestOrchestrator(TestCase):
             config_file.write(b"          driver: zuul\n")
             config_file.write(b"          url: url\n")
             config_file.seek(0)
-            sys.argv = ['', '-p', 'openstack', '--config', config_file.name,
-                        '--jobs', 'DFG-compute', '--spec', '--builds']
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'query',
+                        '--jobs', 'DFG-compute', '--ip-version', '--builds']
 
             main()
         zuul_deployment.assert_called_once()
         zuul_builds.assert_called_once()
         zuul_setup_mock.assert_called_once()
+
+    @patch('cibyl.sources.source.get_source_method')
+    @patch.object(ElasticSearch, 'setup', side_effect=JenkinsError)
+    @patch('cibyl.orchestrator.get_source_instance_from_method')
+    @patch('cibyl.orchestrator.source_information_from_method',
+           return_value="")
+    @patch.object(Jenkins, 'get_builds', side_effect=JenkinsError)
+    def test_error_setup_caught(self, jenkins_builds, _, source_instance_mock,
+                                elasticsearch_setup, get_source_mock):
+        """Test that an error in the source setup is caught and the next
+        source is called."""
+        elk_source = ElasticSearch(name="elk", driver="elasticsearch",
+                                   url="url")
+        source_instance_mock.side_effect = [elk_source,
+                                            Jenkins(url="url")]
+        get_source_mock.return_value = [(elk_source.get_builds, 2),
+                                        (jenkins_builds, 1)]
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources:\n")
+            config_file.write(b"        jenkins:\n")
+            config_file.write(b"          driver: jenkins\n")
+            config_file.write(b"          url: url\n")
+            config_file.write(b"        elk:\n")
+            config_file.write(b"          driver: elasticsearch\n")
+            config_file.write(b"          url: url\n")
+            config_file.seek(0)
+            sys.argv = ['cibyl', '--config', config_file.name,
+                        'query', '--builds', 'DFG-compute']
+
+            main()
+        elasticsearch_setup.assert_called_once()
+        jenkins_builds.assert_called_once()
+
+    @patch('cibyl.orchestrator.get_source_instance_from_method')
+    @patch('cibyl.orchestrator.source_information_from_method',
+           return_value="")
+    @patch.object(OSPJenkins, 'get_deployment', side_effect=JenkinsError)
+    @patch('cibyl.plugins.get_classes_in', return_value=[OSPJenkins])
+    def test_spec_subcommand(self, _get_classes_mock, jenkins_deployment, _,
+                             source_instance_mock):
+        """Test that calling the spec subcommand passed the argument to the
+        source."""
+        source_instance_mock.return_value = Jenkins(url="url")
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources:\n")
+            config_file.write(b"        jenkins:\n")
+            config_file.write(b"          driver: jenkins\n")
+            config_file.write(b"          url: url\n")
+            config_file.seek(0)
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'spec', 'DFG-compute']
+            main()
+        jenkins_deployment.assert_called_once()
+        _, arguments = jenkins_deployment.call_args
+        self.assertIn("spec", arguments)
+        self.assertEqual(["DFG-compute"], arguments["spec"].value)
+
+    def test_spec_subcommand_no_args(self):
+        """Test that calling the spec subcommand without any argument fails."""
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources:\n")
+            config_file.write(b"        jenkins:\n")
+            config_file.write(b"          driver: jenkins\n")
+            config_file.write(b"          url: url\n")
+            config_file.seek(0)
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'spec']
+            with self.assertRaises(SystemExit):
+                main()
+
+    def test_spec_subcommand_many_args(self):
+        """Test that calling the spec subcommand with more than
+        one argument fails."""
+        with NamedTemporaryFile() as config_file:
+            config_file.write(b"environments:\n")
+            config_file.write(b"  env:\n")
+            config_file.write(b"    system:\n")
+            config_file.write(b"      system_type: jenkins\n")
+            config_file.write(b"      sources:\n")
+            config_file.write(b"        jenkins:\n")
+            config_file.write(b"          driver: jenkins\n")
+            config_file.write(b"          url: url\n")
+            config_file.seek(0)
+            sys.argv = ['cibyl', '-p', 'openstack', '--config',
+                        config_file.name, 'spec', 'job1', 'job2']
+            with self.assertRaises(SystemExit):
+                main()

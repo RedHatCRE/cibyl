@@ -14,7 +14,7 @@
 #    under the License.
 """
 from collections import UserDict
-from typing import List, MutableMapping
+from typing import List, MutableMapping, NamedTuple, Optional
 
 from overrides import overrides
 
@@ -22,8 +22,12 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
-from cibyl.sources.zuul.actions import handle_query
+from cibyl.sources.zuul.apis.factories import ZuulAPIFactory
 from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
+from cibyl.sources.zuul.arguments import ArgumentReview
+from cibyl.sources.zuul.output import QueryOutput
+from cibyl.sources.zuul.queries.composition.factory import \
+    AggregatedQueryFactory
 from cibyl.utils.dicts import subset
 
 
@@ -42,9 +46,19 @@ class Zuul(ServerSource):
             ['tenant_1', 'tenant_2']
         """
 
+    class Tools(NamedTuple):
+        """Tools this uses to perform its task.
+        """
+        api: ZuulAPIFactory
+        """Used to get the API this will use to interact with Zuul."""
+        arguments: ArgumentReview
+        """Used to make sense out of the arguments coming from the user."""
+        query: AggregatedQueryFactory
+        """Used to generate the manager that will perform the query."""
+
     def __init__(self, name, driver, url, cert=None,
                  fallbacks=None, tenants=None, enabled=True,
-                 api_factory=ZuulRESTFactory()):
+                 tools: Optional[Tools] = None):
         """Constructor.
 
         :param name: Name of the source.
@@ -60,14 +74,20 @@ class Zuul(ServerSource):
         :type fallbacks: :class:`Zuul.Fallbacks` or None
         :param tenants: List of tenants
         :type tenants: list
-        :param api_factory: Used to create the API this source will use to
-            interact with Zuul.
-        :type api_factory: :class:`
-            cibyl.sources.zuul.apis.factories.ZuulAPIFactory`
+        :param tools: Collection of tools this uses to do its task.
+            'None' for defaults.
+        :type tools: :class:`Zuul.Tools`
         """
         # Handle optional parameters
         if not fallbacks:
             fallbacks = Zuul.Fallbacks()
+
+        if not tools:
+            tools = Zuul.Tools(
+                api=ZuulRESTFactory(),
+                arguments=ArgumentReview(),
+                query=AggregatedQueryFactory()
+            )
 
         # URLs are built assuming no slash at the end of URL
         if url.endswith('/'):
@@ -79,7 +99,7 @@ class Zuul(ServerSource):
 
         self._fallbacks = fallbacks
         self._tenants = tenants
-        self._api_factory = api_factory
+        self._tools = tools
 
     @staticmethod
     def new_source(url, cert=None, **kwargs):
@@ -127,9 +147,16 @@ class Zuul(ServerSource):
 
         return Zuul(url=url, cert=cert, fallbacks=fallbacks, **kwargs)
 
+    @property
+    def tools(self):
+        """
+        :return: Collection of tools this uses to do its task.
+        """
+        return self._tools
+
     @overrides
     def setup(self):
-        self._api = self._api_factory.create(self.url, self.cert)
+        self._api = self.tools.api.create(self.url, self.cert)
 
     @overrides
     def teardown(self):
@@ -139,76 +166,65 @@ class Zuul(ServerSource):
     def get_tenants(self, **kwargs):
         """Retrieves tenants present on the host.
 
-       ..  seealso::
-            For kwargs keys: :func:`handle_query`
-
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return AttributeDictValue(
-            name='tenants',
-            attr_type=Tenant,
-            value=handle_query(
-                self._api,
-                defaults=self._fallbacks,
-                **kwargs
-            )
-        )
+        return self._handle_query(**kwargs)
 
     @speed_index({'base': 2})
     def get_projects(self, **kwargs):
         """Retrieves projects present on the host.
 
-        ..  seealso::
-            For kwargs keys: :func:`handle_query`
-
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self.get_tenants(**kwargs)
+        return self._handle_query(**kwargs)
 
     @speed_index({'base': 2})
     def get_pipelines(self, **kwargs):
         """Retrieves pipelines present on the host.
 
-        ..  seealso::
-            For kwargs keys: :func:`handle_query`
-
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self.get_projects(**kwargs)
+        return self._handle_query(**kwargs)
 
     @speed_index({'base': 3})
     def get_jobs(self, **kwargs):
         """Retrieves jobs present on the host.
 
-        ..  seealso::
-            For kwargs keys: :func:`handle_query`
-
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
         :return: Resulting CI model from the query, formatted as an
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self.get_tenants(**kwargs)
+        return self._handle_query(**kwargs)
 
     @speed_index({'base': 4})
     def get_builds(self, **kwargs):
         """Retrieves builds present on the host.
 
-        ..  seealso::
-            For kwargs keys: :func:`handle_query`
+        :param kwargs: All arguments from the command line.
+            These define the query to be performed.
+        :return: Resulting CI model from the query, formatted as an
+            attribute of type :class:`Tenant`.
+        :rtype: :class:`AttributeDictValue`
+        """
+        return self._handle_query(**kwargs)
+
+    @speed_index({'base': 5})
+    def get_tests(self, **kwargs):
+        """Retrieves tests present on the host.
 
         :param kwargs: All arguments from the command line.
             These define the query to be performed.
@@ -216,4 +232,37 @@ class Zuul(ServerSource):
             attribute of type :class:`Tenant`.
         :rtype: :class:`AttributeDictValue`
         """
-        return self.get_jobs(**kwargs)
+        return self._handle_query(**kwargs)
+
+    def _handle_query(self, **kwargs) -> AttributeDictValue:
+        return AttributeDictValue(
+            name='tenants',
+            attr_type=Tenant,
+            value=self._perform_query(defaults=self._fallbacks, **kwargs)
+        )
+
+    def _perform_query(self, **kwargs) -> QueryOutput:
+        query = self.tools.query.from_kwargs(self._api, **kwargs)
+
+        if self.tools.arguments.is_tenants_query_requested(**kwargs):
+            query.with_tenants_query(**kwargs)
+
+        if self.tools.arguments.is_projects_query_requested(**kwargs):
+            query.with_projects_query(**kwargs)
+
+        if self.tools.arguments.is_pipelines_query_requested(**kwargs):
+            query.with_pipelines_query(**kwargs)
+
+        if self.tools.arguments.is_jobs_query_requested(**kwargs):
+            query.with_jobs_query(**kwargs)
+
+        if self.tools.arguments.is_variants_query_requested(**kwargs):
+            query.with_variants_query(**kwargs)
+
+        if self.tools.arguments.is_builds_query_requested(**kwargs):
+            query.with_builds_query(**kwargs)
+
+        if self.tools.arguments.is_tests_query_requested(**kwargs):
+            query.with_tests_query(**kwargs)
+
+        return query.get_result()

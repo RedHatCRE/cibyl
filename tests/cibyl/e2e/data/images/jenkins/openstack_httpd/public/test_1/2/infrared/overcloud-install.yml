@@ -1,0 +1,16 @@
+install:
+  cleaning:
+    network: false
+  deployment:
+    files: null
+  network:
+    backend: geneve
+    dvr: false
+    ovn: true
+    ovs: false
+    protocol: ipv4
+  storage:
+    backend: nfs
+  tls:
+    everywhere: null
+  version: '17.1'

@@ -16,6 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+from cibyl.cli.output import OutputStyle
 from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
                                                        has_plugin_section)
 
@@ -68,4 +69,4 @@ class TestGetPluginSection(TestCase):
         model = Mock()
 
         with self.assertRaises(ValueError):
-            get_plugin_section(printer, model)
+            get_plugin_section(OutputStyle.COLORIZED, model, printer)

@@ -62,17 +62,48 @@ class DeploymentSummary:
     Every field left as 'None' indicates that no information related to it
     could be found. Interpret it as missing content.
     """
+
+    @dataclass
+    class Components:
+        """Holds information on each of the deployed components.
+        """
+
+        @dataclass
+        class Cinder:
+            """Information on the Cinder component.
+            """
+            backend: Optional[str] = None
+            """Name of the backend supporting cinder."""
+
+        @dataclass
+        class Neutron:
+            """Information on the Neutron component.
+            """
+            ip_version: Optional[str] = None
+            """TCP/IP protocol in use."""
+            backend: Optional[str] = None
+            """Name of the backend supporting neutron."""
+            ml2_driver: Optional[str] = None
+            """Comma delimited list with the name of the mechanism drivers."""
+            tls_everywhere: Optional[str] = None
+            """State (On / Off) of TLS-Everywhere."""
+
+        cinder: Cinder = field(
+            default_factory=lambda *_: DeploymentSummary.Components.Cinder()
+        )
+        """Section for the Cinder component."""
+        neutron: Neutron = field(
+            default_factory=lambda *_: DeploymentSummary.Components.Neutron()
+        )
+        """Section for the Neutron component."""
+
     release: Optional[str] = None
     """Name of the OpenStack release deployed."""
-    ip_version: Optional[str] = None
-    """Name of the IP protocol used on the deployment."""
     infra_type: Optional[str] = None
     """Infrastructure type of the cloud."""
     topology: Optional[Topology] = None
-    """Nodes on the deployment."""
-    cinder_backend: Optional[str] = None
-    """Backend supporting the cinder component."""
-    neutron_backend: Optional[str] = None
-    """Backend supporting the neutron component."""
-    tls_everywhere: Optional[str] = None
-    """State (On / Off) of TLS-Everywhere on the deployment."""
+    """Definition of the deployed network."""
+    components: Components = field(
+        default_factory=lambda *_: DeploymentSummary.Components()
+    )
+    """Section dedicated to each of the components that form the deployment."""

@@ -15,12 +15,14 @@
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Iterable
 
 from deprecation import deprecated
 
 from cibyl.exceptions.source import SourceException
 from cibyl.sources.zuul.apis.providers import JobsProvider, PipelinesProvider
-from cibyl.sources.zuul.apis.utils.builds import Artifact, ArtifactKind
+from cibyl.sources.zuul.utils.artifacts import Artifact, ArtifactKind
+from cibyl.sources.zuul.utils.tests.types import TestSuite
 from cibyl.utils.io import Closeable
 
 
@@ -143,10 +145,9 @@ class ZuulBuildAPI(Closeable, ABC):
         return self._build
 
     @abstractmethod
-    def tests(self):
+    def tests(self) -> Iterable[TestSuite]:
         """
         :return: The tests run by this build.
-        :rtype: list[:class:`ZuulTestAPI`]
         """
         raise NotImplementedError
 

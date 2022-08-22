@@ -17,10 +17,11 @@ from abc import ABC
 from enum import Enum
 from typing import Dict, Iterable, NamedTuple, Optional, Sequence
 
+from tripleo import __path__ as tripleo_package_path
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
 from tripleo.insights.topology import Node
-from tripleo.utils.fs import File
+from tripleo.utils.fs import File, cd_context_manager
 from tripleo.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
 from tripleo.utils.yaml import YAML
 
@@ -60,10 +61,14 @@ class FileInterpreter(ABC):
         if overrides is None:
             overrides = {}
 
-        validator = validator_factory.from_file(schema)
+        with cd_context_manager(tripleo_package_path[0]):
+            # the default schemas path are stored in a path relative to the
+            # root of the tripleo package. In case the working directory is
+            # different, we want them to be reachable
+            validator = validator_factory.from_file(schema)
 
-        validate_data(data)
-        validate_data(overrides)
+            validate_data(data)
+            validate_data(overrides)
 
         self._data = data
         self._overrides = overrides
@@ -97,7 +102,7 @@ class EnvironmentInterpreter(FileInterpreter):
     def __init__(
         self,
         data: YAML,
-        schema: File = File('tripleo/_data/schemas/environment.json'),
+        schema: File = File('_data/schemas/environment.json'),
         overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
@@ -141,7 +146,7 @@ class FeatureSetInterpreter(FileInterpreter):
     def __init__(
         self,
         data: YAML,
-        schema: File = File('tripleo/_data/schemas/featureset.json'),
+        schema: File = File('_data/schemas/featureset.json'),
         overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
@@ -253,7 +258,7 @@ class NodesInterpreter(FileInterpreter):
     def __init__(
         self,
         data: YAML,
-        schema: File = File('tripleo/_data/schemas/nodes.json'),
+        schema: File = File('_data/schemas/nodes.json'),
         overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
@@ -325,7 +330,7 @@ class ReleaseInterpreter(FileInterpreter):
     def __init__(
         self,
         data: YAML,
-        schema: File = File('tripleo/_data/schemas/release.json'),
+        schema: File = File('_data/schemas/release.json'),
         overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
@@ -388,7 +393,9 @@ class ScenarioInterpreter(FileInterpreter):
             """Defines all the fields related to the neutron component.
             """
             backend: str = 'NeutronNetworkType'
-            """Keys pointing to the tenant network type."""
+            """Key pointing to the tenant network type."""
+            ml2_driver: str = 'NeutronMechanismDrivers'
+            """Key pointing to the mechanism drivers for the tenant network."""
 
         parameters: str = 'parameter_defaults'
         """Level at which the parameters are defined."""
@@ -450,11 +457,13 @@ class ScenarioInterpreter(FileInterpreter):
         """Default backend supporting cinder."""
         neutron_backend: str = 'geneve'
         """Default backend supporting neutron."""
+        ml2_driver: str = 'ovn'
+        """Default ml2 driver."""
 
     def __init__(
         self,
         data: YAML,
-        schema: File = File('tripleo/_data/schemas/scenario.json'),
+        schema: File = File('_data/schemas/scenario.json'),
         overrides: Optional[Dict] = None,
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
@@ -546,6 +555,21 @@ class ScenarioInterpreter(FileInterpreter):
 
         if key not in self._parameters:
             # The backend is not defined on the file
+            return default
+
+        return self._parameters[key]
+
+    def get_ml2_driver(self) -> str:
+        """
+        :return: Comma delimited list with the names of the ml2 drivers
+            configured for Neutron. If none are defined, then this will fall
+            back to OVN.
+        """
+        key = self.keys.neutron.ml2_driver
+        default = self.defaults.ml2_driver
+
+        if key not in self._parameters:
+            # The drivers are not defined on the file
             return default
 
         return self._parameters[key]

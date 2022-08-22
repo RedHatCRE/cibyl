@@ -1,0 +1,5 @@
+test:
+  setup: rpm
+  tests:
+  - /path/to/suite/octavia.yml
+  - /path/to/suite/neutron.yml

@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  jenkins:
+    build:
+      context: .
+      args:
+        JENKINS_ENV: jenkins_openstack
+    networks:
+      testnet:
+        ipv4_address: 172.39.1.2
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      - JENKINS_ADMIN_ID=admin
+      - JENKINS_ADMIN_PASSWORD=passw
+  httpd:
+    build: openstack_httpd
+    networks:
+      testnet:
+        ipv4_address: 172.39.1.1
+    ports:
+      - "8000:80"
+networks:
+  testnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.39.0.0/16
+          gateway: 172.39.0.1

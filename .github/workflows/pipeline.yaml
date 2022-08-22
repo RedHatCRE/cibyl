@@ -13,7 +13,8 @@ jobs:
       matrix:
         python-version: ['3.6', '3.9']
     steps:
-      - uses: actions/checkout@v1
+      - name: "Checkout repo"
+        uses: actions/checkout@v1
       - name: "Setup Python"
         uses: actions/setup-python@v2
         with:
@@ -24,3 +25,5 @@ jobs:
           pip install tox
       - name: "Run tox"
         run: tox
+      - name: "Run e2e tests"
+        run: tox -e e2e

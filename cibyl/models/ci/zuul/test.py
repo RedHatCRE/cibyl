@@ -13,35 +13,37 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from enum import Enum
+from dataclasses import dataclass, field
+from typing import Optional
 
 from overrides import overrides
+from strenum import StrEnum
 
 from cibyl.models.ci.base.test import Test as BaseTest
 from cibyl.utils.dicts import nsubset
 
 
-class TestKind(Enum):
+class TestKind(StrEnum):
     """Defines the different kind of test cases known to Cibyl.
     """
-    UNKNOWN = 0
+    UNKNOWN = 'UNKNOWN'
     """Type is unknown, best effort will be tried."""
-    ANSIBLE = 1
+    ANSIBLE = 'ANSIBLE'
     """Test represents the execution of an Ansible task."""
-    TEMPEST = 2
+    TEMPEST = 'TEMPEST'
     """Test represents the execution of a Tempest test case."""
 
 
-class TestStatus(Enum):
+class TestStatus(StrEnum):
     """Default possible test results.
     """
-    UNKNOWN = 0
+    UNKNOWN = 'UNKNOWN'
     """Could not be determined the result of the test."""
-    SUCCESS = 1
+    SUCCESS = 'SUCCESS'
     """The test passed."""
-    FAILURE = 2
+    FAILURE = 'FAILURE'
     """Some condition in the test was not met."""
-    SKIPPED = 3
+    SKIPPED = 'SKIPPED'
     """The test was ignored."""
 
 
@@ -51,16 +53,17 @@ class Test(BaseTest):
     @DynamicAttrs: Contains attributes added on runtime.
     """
 
+    @dataclass
     class Data:
         """Holds the data that will define the model.
         """
-        name = 'UNDEFINED'
+        name: str = field(default='UNDEFINED')
         """Name of the test case."""
-        status = TestStatus.UNKNOWN
+        status: TestStatus = field(default=TestStatus.UNKNOWN)
         """Result of the test case."""
-        duration = None
+        duration: Optional[float] = field(default=None)
         """How long the test took to complete, in seconds."""
-        url = None
+        url: Optional[str] = field(default=None)
         """Page where more information about the test can be obtained."""
 
     API = {
@@ -88,7 +91,7 @@ class Test(BaseTest):
         """
         super().__init__(
             name=data.name,
-            result=data.status.name,
+            result=data.status,
             duration=data.duration,
             kind=kind,
             url=data.url,

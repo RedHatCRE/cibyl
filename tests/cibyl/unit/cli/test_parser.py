@@ -35,36 +35,32 @@ class TestParser(TestCase):
 
     def test_parser_plugin_argument(self):
         """Tests parser plugin argument"""
-        parsed_args = self.parser.argument_parser.parse_args(
+        parsed_args = self.parser.app_parser.parse_args(
             ['--plugin', 'openstack'])
         self.assertEqual(parsed_args.plugin, 'openstack')
 
     def test_parser_debug_argument(self):
         """Tests parser debug argument"""
-        parsed_args = self.parser.argument_parser.parse_args(
+        parsed_args = self.parser.app_parser.parse_args(
             ['--debug'])
         self.assertTrue(parsed_args.debug)
 
     def test_parser_config_argument(self):
         """Tests parser config argument"""
-        parsed_args = self.parser.argument_parser.parse_args(
+        parsed_args = self.parser.app_parser.parse_args(
             ['--config', '/some/path'])
         self.assertEqual(parsed_args.config_file_path, '/some/path')
 
     def test_parser_parse_args(self):
         """Testing parser extend method"""
-        self.parser.parse({})
-        self.assertEqual(self.parser.app_args, {'debug': False,
-                                                'plugin': 'openstack',
-                                                'output_style': 'colorized',
-                                                'verbosity': 0})
-        self.assertEqual(self.parser.ci_args, {})
 
         self.parser.extend(self.environment.arguments, 'Environment')
-        self.parser.parse(['--envs', 'env1', '--plugin', 'openshift'])
+        self.parser.add_subparsers()
+        self.parser.parse(['--plugin', 'openshift', 'query', '--envs', 'env1'])
         self.assertEqual(self.parser.app_args, {'plugin': 'openshift',
                                                 'verbosity': 0,
                                                 'output_style': 'colorized',
+                                                'command': 'query',
                                                 'debug': False})
         self.assertEqual(self.parser.ci_args,
                          {'envs': Argument(

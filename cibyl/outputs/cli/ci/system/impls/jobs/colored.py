@@ -15,6 +15,7 @@
 """
 from overrides import overrides
 
+from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.build import Build
 from cibyl.models.ci.base.job import Job
@@ -86,7 +87,7 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
                 printer.add(self.palette.red(msg), 1)
 
         if has_plugin_section(job):
-            printer.add(get_plugin_section(self, job), 1)
+            printer.add(get_plugin_section(OutputStyle.TEXT, job, self), 1)
 
         return printer.build()
 

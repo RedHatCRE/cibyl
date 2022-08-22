@@ -131,15 +131,21 @@ def filter_topology(model: Dict[str, str], operator: str, value: str,
     return False
 
 
-def matches_regex(pattern: str, string: str) -> bool:
+def matches_regex(pattern: str, string: str, flags: int = 0) -> bool:
     """Checks if a certain text is matched by a regex pattern.
+
+    Examples
+    --------
+    >>> matches_regex('success', 'SUCCESS', flags=re.I)
+    True
 
     :param pattern: The pattern to test.
     :param string: The text to test the pattern against.
+    :param flags: Modifiers for the matching operation.
     :return: True if the string matched the pattern, false if not.
     """
     try:
-        return bool(re.search(pattern, string))
+        return bool(re.search(pattern, string, flags))
     except sre_constants.error:
         return False  # Do not crash against invalid patterns
 

@@ -21,7 +21,7 @@ def perform_jobs_query(zuul, **kwargs):
 
     :param zuul: API to interact with Zuul with.
     :type zuul: :class:`cibyl.sources.zuul.apis.ZuulAPI`
-    :param kwargs: See :func:`handle_query`.
+    :param kwargs: Arguments coming from the CLI.
     :return: List of retrieved jobs.
     :rtype: list[:class:`cibyl.sources.zuul.transactions.JobResponse`]
     """
@@ -41,15 +41,3 @@ def perform_jobs_query(zuul, **kwargs):
         result += jobs.get()
 
     return result
-
-
-def perform_variants_query(job, **kwargs):
-    """Query for variants.
-
-    :param job: API to interact with the owner of the variants.
-    :type job: :class:`cibyl.sources.zuul.transactions.JobResponse`
-    :param kwargs: See :func:`handle_query`.
-    :return: List of retrieved variants.
-    :rtype: list[:class:`cibyl.sources.zuul.transactions.VariantResponse`]
-    """
-    return job.variants().get()

@@ -112,9 +112,10 @@ class VariantDeployment:
 
         result = []
 
-        for collection in topology.nodes:
-            for node in collection:
-                result.append(Node(name=node.name))
+        # Call to private function is allowed on named tuples
+        for role, nodes in topology.nodes._asdict().items():
+            for node in nodes:
+                result.append(Node(name=node.name, role=role))
 
         return result
 
@@ -130,28 +131,35 @@ class VariantDeployment:
         :return: Number of the IP version used by the cloud. 'None' if it is
             not defined.
         """
-        return self._summary.ip_version
+        return self._summary.components.neutron.ip_version
 
     def get_neutron_backend(self) -> Optional[str]:
         """
         :return: Name of the backend that supports the Neutron component.
             'None' if it is not defined.
         """
-        return self._summary.neutron_backend
+        return self._summary.components.neutron.backend
 
     def get_tls_everywhere(self) -> Optional[str]:
         """
         :return: State of TLS-Everywhere on the deployment. 'None' if it is
             not defined.
         """
-        return self._summary.tls_everywhere
+        return self._summary.components.neutron.tls_everywhere
+
+    def get_ml2_driver(self) -> Optional[str]:
+        """
+        :return: Comma delimited list with all the ml2 drivers in use.
+            'None' if it not defined.
+        """
+        return self._summary.components.neutron.ml2_driver
 
     def get_cinder_backend(self) -> Optional[str]:
         """
         :return: Name of the backend that supports the Cinder component.
             'None' if it is not defined.
         """
-        return self._summary.cinder_backend
+        return self._summary.components.cinder.backend
 
 
 class VariantDeploymentFactory:

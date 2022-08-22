@@ -16,7 +16,7 @@
 import logging
 from abc import abstractmethod
 from operator import itemgetter
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import requests
 
@@ -49,7 +49,7 @@ def safe_request_generic(request, custom_error):
         except requests.exceptions.SSLError as ex:
             raise custom_error(
                 "Please set certificates in order to connect to the system \
-or add 'certs: False' to the configuration"
+or add 'cert: False' to the configuration"
             ) from ex
         except requests.exceptions.ConnectionError as ex:
             raise custom_error(
@@ -77,7 +77,7 @@ class Source(AttrDict):
     def __init__(self,
                  name: str = Optional[str],
                  driver: str = Optional[str],
-                 **kwargs: Argument):
+                 **kwargs: Any):
         kwargs.setdefault('enabled', True)
         kwargs.setdefault('_setup', False)
         kwargs.setdefault('_down', False)

@@ -13,14 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Callable, Union
 
 from overrides import overrides
 
-from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.environment import Environment
 from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.outputs.cli.ci.env.printer import CIPrinter
@@ -28,33 +25,15 @@ from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     JSONBaseSystemPrinter
 from cibyl.outputs.cli.ci.system.impls.jobs.serialized import \
     JSONJobsSystemPrinter
+from cibyl.outputs.cli.printer import JSONPrinter, SerializedPrinter
 
 LOG = logging.getLogger(__name__)
 
 
-class SerializedDataPrinter(CIPrinter, ABC):
+class CISerializedPrinter(CIPrinter, SerializedPrinter, ABC):
     """Base class for printers that print a CI hierarchy in a format
     readable for machines, like JSON or YAML.
     """
-
-    def __init__(self,
-                 load_function: Callable[[str], dict],
-                 dump_function: Callable[[dict], str],
-                 query: QueryType = QueryType.NONE,
-                 verbosity: int = 0):
-        """Constructor. See parent for more information.
-
-        :param load_function: Function that transforms machine-readable text
-            into a Python structure. Used to unmarshall output of sub-parts
-            of the module.
-        :param dump_function: Function that transforms a Python structure into
-            machine-readable text. Used to marshall the data from the
-            hierarchy.
-        """
-        super().__init__(query, verbosity)
-
-        self._load = load_function
-        self._dump = dump_function
 
     @overrides
     def print_environment(self, env: Environment) -> str:
@@ -63,7 +42,7 @@ class SerializedDataPrinter(CIPrinter, ABC):
 
             for system in env.systems:
                 key = system.name.value
-                systems[key] = self._load(self.print_system(system))
+                systems[key] = self.provider.load(self.print_system(system))
 
             return systems
 
@@ -72,7 +51,7 @@ class SerializedDataPrinter(CIPrinter, ABC):
             'systems': get_systems()
         }
 
-        return self._dump(result)
+        return self.provider.dump(result)
 
     @abstractmethod
     def print_system(self, system: System) -> str:
@@ -83,34 +62,9 @@ class SerializedDataPrinter(CIPrinter, ABC):
         raise NotImplementedError
 
 
-class JSONPrinter(SerializedDataPrinter):
+class CIJSONPrinter(JSONPrinter, CISerializedPrinter):
     """Serializer that prints a CI hierarchy in JSON format.
     """
-
-    def __init__(self,
-                 query: QueryType = QueryType.NONE,
-                 verbosity: int = 0,
-                 indentation: int = 4):
-        """Constructor. See parent for more information.
-
-        :param indentation: Number of spaces indenting each level of the
-            JSON output.
-        """
-        super().__init__(
-            load_function=self._from_json,
-            dump_function=self._to_json,
-            query=query,
-            verbosity=verbosity
-        )
-
-        self._indentation = indentation
-
-    @property
-    def indentation(self) -> int:
-        """
-        :return: Number of spaces preceding every level of the JSON output.
-        """
-        return self._indentation
 
     @overrides
     def print_system(self, system: System) -> str:
@@ -118,7 +72,9 @@ class JSONPrinter(SerializedDataPrinter):
             # Check specialized printers
             if isinstance(system, JobsSystem):
                 return JSONJobsSystemPrinter(
-                    self.query, self.verbosity, self.indentation
+                    query=self.query,
+                    verbosity=self.verbosity,
+                    indentation=self.indentation
                 )
 
             LOG.warning(
@@ -128,13 +84,9 @@ class JSONPrinter(SerializedDataPrinter):
             )
 
             return JSONBaseSystemPrinter(
-                self.query, self.verbosity, self.indentation
+                query=self.query,
+                verbosity=self.verbosity,
+                indentation=self.indentation
             )
 
         return get_printer().print_system(system)
-
-    def _from_json(self, obj: Union[str, bytes, bytearray]) -> dict:
-        return json.loads(obj)
-
-    def _to_json(self, obj: object) -> str:
-        return json.dumps(obj, indent=self._indentation)

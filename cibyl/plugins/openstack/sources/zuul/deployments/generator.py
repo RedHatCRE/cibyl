@@ -74,7 +74,8 @@ class DeploymentGenerator:
             network=Network(
                 ip_version=self._get_ip_version(summary, **kwargs),
                 network_backend=self._get_neutron_backend(summary, **kwargs),
-                tls_everywhere=self._get_tls_everywhere(summary, **kwargs)
+                tls_everywhere=self._get_tls_everywhere(summary, **kwargs),
+                ml2_driver=self._get_ml2_driver(summary, **kwargs)
             ),
             storage=Storage(
                 cinder_backend=self._get_cinder_backend(summary, **kwargs)
@@ -174,6 +175,18 @@ class DeploymentGenerator:
             return None
 
         return summary.get_tls_everywhere()
+
+    def _get_ml2_driver(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
+
+        if not arguments.is_ml2_driver_requested(**kwargs):
+            return None
+
+        return summary.get_ml2_driver()
 
     def _get_cinder_backend(
         self,

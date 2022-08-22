@@ -14,6 +14,7 @@
 #    under the License.
 """
 from enum import IntEnum
+from typing import Optional
 
 from cibyl.utils.dicts import subset
 
@@ -33,11 +34,13 @@ class QueryType(IntEnum):
     """Retrieve data concerning pipelines and above."""
     JOBS = 5
     """Retrieve data concerning jobs and above."""
-    BUILDS = 6
+    VARIANTS = 6
+    """Retrieve data concerning job variants and above."""
+    BUILDS = 7
     """Retrieve data concerning builds and above."""
-    TESTS = 7
+    TESTS = 8
     """Retrieve data concerning tests and above."""
-    FEATURES_JOBS = 8
+    FEATURES_JOBS = 9
     """Retrieve data using features and jobs."""
 
 
@@ -46,16 +49,21 @@ class QuerySelector:
     both core argument and plugin provided ones."""
     query_selector_functions = []
 
-    def get_query_type_core(self, **kwargs) -> QueryType:
+    def get_query_type_core(self, command: Optional[str] = None,
+                            **kwargs) -> QueryType:
         """Deduces the type of query from a set of arguments related to cibyl
         core ci models.
 
+        :param command: Which cibyl subcommand was executed, it's used
+        essentially to detect whether the features subcommand was called
         :param kwargs: The arguments.
         :key tenants: Query targets tenants.
         :key projects: Query targets projects.
         :key pipelines: Query targets pipelines.
         :key jobs: Query targets jobs.
+        :key variants: Query targets job variants.
         :key builds: Query target builds.
+        :key tests: Query target tests.
         :return: The lowest query level possible. For example,
             if both 'tenants' and 'builds' are requested, this will choose
             'builds' over 'tenants'.
@@ -72,9 +80,12 @@ class QuerySelector:
         if 'pipelines' in kwargs:
             result = QueryType.PIPELINES
 
-        job_args = subset(kwargs, ["jobs", "variants", "job_url"])
+        job_args = subset(kwargs, ["jobs", "job_url"])
         if job_args:
             result = QueryType.JOBS
+
+        if 'variants' in kwargs:
+            result = QueryType.VARIANTS
 
         build_args = subset(kwargs, ["builds", "last_build", "build_status"])
         if build_args:
@@ -84,7 +95,7 @@ class QuerySelector:
         if test_args:
             result = QueryType.TESTS
 
-        if 'features' in kwargs:
+        if command == 'features':
             if job_args:
                 result = QueryType.FEATURES_JOBS
             else:
@@ -92,12 +103,17 @@ class QuerySelector:
 
         return result
 
-    def get_type_query(self, **kwargs) -> QueryType:
+    def get_type_query(self, command: Optional[str] = None,
+                       **kwargs) -> QueryType:
         """Deduce the type of query from the given arguments, taking into
         account arguments provided by the plugins, if present. It will return
         the largest query type provided by either the core types or the
-        plugins."""
-        core_query = self.get_query_type_core(**kwargs)
+        plugins.
+
+        :param command: Which cibyl subcommand was executed, it's used
+        essentially to detect whether the features subcommand was called
+        """
+        core_query = self.get_query_type_core(command=command, **kwargs)
         plugins_query = QueryType.NONE
         if self.query_selector_functions:
             plugins_query = max([get_query(**kwargs) for get_query in
@@ -105,9 +121,11 @@ class QuerySelector:
         return max(core_query, plugins_query)
 
 
-def get_query_type(**kwargs) -> QueryType:
+def get_query_type(command: Optional[str] = None, **kwargs) -> QueryType:
     """Deduces the type of query from a set of arguments.
 
+    :param command: Which cibyl subcommand was executed, it's used
+    essentially to detect whether the features subcommand was called
     :param kwargs: The arguments.
     :key tenants: Query targets tenants.
     :key projects: Query targets projects.
@@ -119,4 +137,4 @@ def get_query_type(**kwargs) -> QueryType:
         'builds' over 'tenants'.
     """
     query_selector = QuerySelector()
-    return query_selector.get_type_query(**kwargs)
+    return query_selector.get_type_query(command=command, **kwargs)
