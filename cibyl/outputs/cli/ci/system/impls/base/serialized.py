@@ -13,9 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import json
 from abc import ABC
-from typing import Callable, Union
+from typing import Callable
 
 from overrides import overrides
 
@@ -23,9 +22,10 @@ from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.system import System
 from cibyl.models.product.feature import Feature
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
+from cibyl.outputs.cli.printer import SerializedPrinter, JSONPrinter
 
 
-class SerializedBaseSystemPrinter(CISystemPrinter, ABC):
+class SerializedBaseSystemPrinter(CISystemPrinter, SerializedPrinter, ABC):
     """Default system printer for all serializer implementations.
     """
 
@@ -81,37 +81,6 @@ class SerializedBaseSystemPrinter(CISystemPrinter, ABC):
         return self._dump(result)
 
 
-class JSONBaseSystemPrinter(SerializedBaseSystemPrinter):
+class JSONBaseSystemPrinter(JSONPrinter, SerializedBaseSystemPrinter):
     """Basic system printer that will output a system's data in JSON format.
     """
-
-    def __init__(self,
-                 query: QueryType = QueryType.NONE,
-                 verbosity: int = 0,
-                 indentation: int = 4):
-        """Constructor. See parent for more information.
-
-        :param indentation: Number of spaces indenting each level of the
-            JSON output.
-        """
-        super().__init__(
-            load_function=self._from_json,
-            dump_function=self._to_json,
-            query=query,
-            verbosity=verbosity
-        )
-
-        self._indentation = indentation
-
-    @property
-    def indentation(self) -> int:
-        """
-        :return: Number of spaces preceding every level of the JSON output.
-        """
-        return self._indentation
-
-    def _from_json(self, obj: Union[str, bytes, bytearray]) -> dict:
-        return json.loads(obj)
-
-    def _to_json(self, obj: object) -> str:
-        return json.dumps(obj, indent=self._indentation)

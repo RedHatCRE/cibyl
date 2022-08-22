@@ -13,9 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import json
 from abc import ABC
-from typing import Union
 
 from overrides import overrides
 
@@ -26,6 +24,7 @@ from cibyl.models.ci.base.stage import Stage
 from cibyl.models.ci.base.system import System
 from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     SerializedBaseSystemPrinter
+from cibyl.outputs.cli.printer import JSONPrinter
 
 
 class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
@@ -115,37 +114,6 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self._dump(result)
 
 
-class JSONJobsSystemPrinter(SerializedJobsSystemPrinter):
+class JSONJobsSystemPrinter(JSONPrinter, SerializedJobsSystemPrinter):
     """Printer that will output Jenkins systems in JSON format.
     """
-
-    def __init__(self,
-                 query: QueryType = QueryType.NONE,
-                 verbosity: int = 0,
-                 indentation: int = 4):
-        """Constructor. See parent for more information.
-
-        :param indentation: Number of spaces indenting each level of the
-            JSON output.
-        """
-        super().__init__(
-            load_function=self._from_json,
-            dump_function=self._to_json,
-            query=query,
-            verbosity=verbosity
-        )
-
-        self._indentation = indentation
-
-    @property
-    def indentation(self) -> int:
-        """
-        :return: Number of spaces preceding every level of the JSON output.
-        """
-        return self._indentation
-
-    def _from_json(self, obj: Union[str, bytes, bytearray]) -> dict:
-        return json.loads(obj)
-
-    def _to_json(self, obj: object) -> str:
-        return json.dumps(obj, indent=self._indentation)

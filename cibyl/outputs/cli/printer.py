@@ -13,9 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import json
 from abc import ABC
 from dataclasses import dataclass
-from typing import Callable, NamedTuple
+from typing import Callable, NamedTuple, Union
 
 from cibyl.cli.query import QueryType
 from cibyl.utils.colors import ColorPalette, DefaultPalette
@@ -124,3 +125,48 @@ class SerializedPrinter(Printer, ABC):
             query=self.query,
             verbosity=self.verbosity
         )
+
+
+class JSONPrinter(SerializedPrinter):
+    @dataclass
+    class Config(SerializedPrinter.Config):
+        indentation: int
+
+    def __init__(self,
+                 query: QueryType = QueryType.NONE,
+                 verbosity: int = 0,
+                 indentation: int = 4):
+        """Constructor. See parent for more information.
+
+        :param indentation: Number of spaces indenting each level of the
+            JSON output.
+        """
+        super().__init__(
+            load_function=self._from_json,
+            dump_function=self._to_json,
+            query=query,
+            verbosity=verbosity
+        )
+
+        self._indentation = indentation
+
+    @property
+    def config(self) -> Config:
+        return JSONPrinter.Config(
+            query=self.query,
+            indentation=self.indentation,
+            verbosity=self.verbosity
+        )
+
+    @property
+    def indentation(self) -> int:
+        """
+        :return: Number of spaces preceding every level of the JSON output.
+        """
+        return self._indentation
+
+    def _from_json(self, obj: Union[str, bytes, bytearray]) -> dict:
+        return json.loads(obj)
+
+    def _to_json(self, obj: object) -> str:
+        return json.dumps(obj, indent=self._indentation)
