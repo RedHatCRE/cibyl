@@ -162,7 +162,7 @@ class Jenkins(SourceExtension):
     # deployment properties that have no cli argument and will not be used to
     # filter jobs, just for the spec
     spec_params = ["cleaning_network", "security_group", "overcloud_templates",
-                   "test_collection"]
+                   "test_collection", "tls_everywhere"]
     possible_attributes = deployment_attr+spec_params
 
     def add_job_info_from_name(self, job: JenkinsJob, **kwargs) -> None:
@@ -471,7 +471,9 @@ accurate results", len(jobs_found))
                 job["release"] = overcloud.get("version", "")
             deployment = overcloud.get('deployment', {})
             if "infra_type" in kwargs or spec:
-                infra = os.path.split(deployment.get('files', ""))[1]
+                infra = deployment.get('files', "")
+                if infra is not None:
+                    infra = os.path.split(infra)[1]
                 job["infra_type"] = infra
             storage = overcloud.get("storage", {})
             if "cinder_backend" in kwargs or spec:
@@ -489,7 +491,11 @@ accurate results", len(jobs_found))
                 job["dvr"] = str(network.get("dvr", ""))
             if "tls_everywhere" in kwargs or spec:
                 tls = overcloud.get("tls", {})
-                job["tls_everywhere"] = str(tls.get("everywhere", ""))
+                tls_value = tls.get("everywhere", "")
+                if tls_value is not None:
+                    # tls everywhere is encoded a a bool in the artifacts, we
+                    # want to store it as a string
+                    job["tls_everywhere"] = str(tls_value)
             if "ml2_driver" in kwargs or spec:
                 job["ml2_driver"] = "ovn"
                 if network.get("ovs"):
