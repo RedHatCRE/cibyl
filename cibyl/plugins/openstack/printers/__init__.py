@@ -36,6 +36,14 @@ class OSPrinter(Printer, ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def print_test_collection(self, collection) -> str:
+        """
+        :param collection: The collection.
+        :return: Textual representation of the provided model.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def print_node(self, node: Node) -> str:
         """
         :param node: The node.

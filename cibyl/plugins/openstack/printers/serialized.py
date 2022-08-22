@@ -33,29 +33,107 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
 
     @overrides
     def print_deployment(self, deployment: Deployment) -> str:
+        network = deployment.network.value
+        storage = deployment.storage.value
+        ironic = deployment.ironic.value
+
         result = {
             'release': deployment.release.value,
             'infra_type': deployment.infra_type.value,
-            'topology': deployment.topology.value
+            'topology': deployment.topology.value,
+            'network': {
+                'ip_version': network.ip_version.value,
+                'network_backend': network.network_backend.value,
+                'ml2_driver': network.ml2_driver.value,
+                'security_group': network.security_group.value,
+                "dvr": network.dvr.value,
+                'tls_everywhere': network.tls_everywhere.value
+            },
+            'storage': {
+                'cinder_backend': storage.cinder_backend.value
+            },
+            'ironic': {
+                'ironic_inspector': ironic.ironic_inspector.value,
+                'cleaning_network': ironic.cleaning_network.value
+            },
+            'overcloud_templates': list(deployment.overcloud_templates.value),
+            'test_collection': self.provider.load(
+                self.print_test_collection(
+                    deployment.test_collection.value
+                )
+            ),
+            'nodes': [
+                self.provider.load(self.print_node(node))
+                for node in deployment.nodes.values()
+            ],
+            'services': [
+                self.provider.load(self.print_service(service))
+                for service in deployment.services.values()
+            ],
+            'stages': [
+                {
+                    'name': stage.name.value,
+                    'status': stage.status.value,
+                    'duration': stage.duration.value
+                }
+                for stage in deployment.stages
+            ]
+        }
+
+        return self.provider.dump(result)
+
+    @overrides
+    def print_test_collection(self, collection) -> str:
+        result = {
+            'tests': list(collection.tests.value),
+            'setup': collection.setup.value
         }
 
         return self.provider.dump(result)
 
     @overrides
     def print_node(self, node: Node) -> str:
-        pass
+        result = {
+            'role': node.role,
+            'containers': [
+                self.provider.load(self.print_container(container))
+                for container in node.containers.values()
+            ],
+            'packages': [
+                self.provider.load(self.print_package(package))
+                for package in node.packages.values()
+            ]
+        }
+
+        return self.provider.dump(result)
 
     @overrides
     def print_container(self, container: Container) -> str:
-        pass
+        result = {
+            'name': container.name,
+            'image': container.image,
+            'package': container.package
+        }
+
+        return self.provider.dump(result)
 
     @overrides
     def print_package(self, package: Package) -> str:
-        pass
+        result = {
+            'name': package.name,
+            'origin': package.origin
+        }
+
+        return self.provider.dump(result)
 
     @overrides
     def print_service(self, service: Service) -> str:
-        pass
+        result = {
+            'name': service.name.value,
+            'configuration': service.configuration.value.items()
+        }
+
+        return self.provider.dump(result)
 
 
 class OSJSONPrinter(JSONPrinter, OSSerializedPrinter):
