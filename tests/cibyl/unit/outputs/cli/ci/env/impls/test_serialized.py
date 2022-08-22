@@ -17,11 +17,11 @@ import json
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.outputs.cli.ci.env.impl.serialized import JSONPrinter
+from cibyl.outputs.cli.ci.env.impl.serialized import CIJSONPrinter
 
 
-class TestJSONPrinter(TestCase):
-    """Tests for :class:`JSONPrinter`.
+class TestCIJSONPrinter(TestCase):
+    """Tests for :class:`CIJSONPrinter`.
     """
 
     def test_simple_environment(self):
@@ -33,7 +33,7 @@ class TestJSONPrinter(TestCase):
         env.name.value = name
         env.systems = []
 
-        printer = JSONPrinter()
+        printer = CIJSONPrinter()
 
         result = json.loads(printer.print_environment(env))
 

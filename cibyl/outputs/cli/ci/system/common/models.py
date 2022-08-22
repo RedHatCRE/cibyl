@@ -14,13 +14,13 @@
 #    under the License.
 """
 import logging
+from typing import Union
 
+from cibyl.cli.output import OutputStyle
 from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
 from cibyl.models.model import Model
-from cibyl.outputs.cli.printer import ColoredPrinter
-from cibyl.plugins.openstack import Deployment
-from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
+from cibyl.outputs.cli.printer import ColoredPrinter, JSONPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
@@ -47,15 +47,20 @@ def has_plugin_section(model: Model) -> bool:
     return has_plugin_attribute
 
 
-def get_plugin_section(printer: ColoredPrinter, model: Model) -> str:
+def get_plugin_section(
+    style: OutputStyle,
+    model: Model,
+    reference: Union[ColoredPrinter, JSONPrinter]
+) -> str:
     """Gets the text describing the plugins that affect a model.
 
     ..  seealso::
         See :func:`has_plugin_section`.
 
-    :param printer: The printer the text will be based on. The output of
-        this function will follow the styling of this.
+    :param style: Desired format of output by the plugin.
     :param model: The model to get the description for.
+    :param reference: The printer the text will be based on. The output of
+        this function will follow the styling of this.
     :return: The description.
     :raises ValueError: If the model does not have enough data to build the
         section.
@@ -63,10 +68,9 @@ def get_plugin_section(printer: ColoredPrinter, model: Model) -> str:
     if not has_plugin_section(model):
         raise ValueError('Job is missing plugin attributes.')
 
-    text = IndentedTextBuilder()
-
     for plugin_attribute in model.plugin_attributes:
         # Plugins install some attributes as part of the model
+        plugin = model.plugin_attributes[plugin_attribute]
         attribute = getattr(model, plugin_attribute)
 
         # Check if the attribute is populated
@@ -85,17 +89,27 @@ def get_plugin_section(printer: ColoredPrinter, model: Model) -> str:
             )
             continue
 
-        for value in values:
-            if isinstance(value, Deployment):
-                os_printer = OSColoredPrinter(
-                    printer.query, printer.verbosity, printer.palette
-                )
+        printer = plugin['printer']
 
-                text.add(os_printer.print_deployment(value), 0)
-            else:
-                LOG.warning(
-                    'Ignoring unknown plugin type: %s', type(value)
-                )
-                continue
+        if style in (OutputStyle.TEXT, OutputStyle.COLORIZED):
+            result = IndentedTextBuilder()
 
-    return text.build()
+            for value in values:
+                data = printer.as_text(value, config=reference.config)
+
+                result.add(f"{data}", 0)
+
+            return result.build()
+
+        if style in (OutputStyle.JSON,):
+            result = IndentedTextBuilder()
+            result.add('{', 0)
+
+            for value in values:
+                data = printer.as_json(value, config=reference.config)
+                result.add(f"\"{plugin['name']}\": {data}", 1)
+
+            result.add('}', 0)
+            return result.build()
+
+        raise NotImplementedError(f"Unknown style: '{style}'.")

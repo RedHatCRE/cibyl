@@ -19,6 +19,8 @@ from abc import ABC, abstractmethod
 from typing import Callable, List
 
 from cibyl.exceptions.plugin import MissingPlugin
+from cibyl.models.model import Model
+from cibyl.outputs.cli.printer import ColoredPrinter, JSONPrinter
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source_factory import SourceFactory
 from cibyl.utils.files import FileSearch
@@ -109,4 +111,32 @@ class PluginTemplate(ABC):
     @abstractmethod
     def extend_query_types(self) -> None:
         """Register the plugin function to deduce the type of query."""
+        raise NotImplementedError
+
+
+class PluginPrinterTemplate(ABC):
+    """Abstract class to define the output formats a plugin should support."""
+
+    def as_text(self, model: Model, config: ColoredPrinter.Config) -> str:
+        """Makes the plugin give a plain/custom textual representation on
+        the provided model. It is up to the plugin to check the model's type
+        and decide on more specific actions from it.
+
+        :param model: The model to print.
+        :param config: Configuration to follow.
+        :return: Textural representation of the model.
+        :raises NotImplementedError: If the model type is not supported.
+        """
+        raise NotImplementedError
+
+    def as_json(self, model: Model, config: JSONPrinter.Config) -> str:
+        """Makes the plugin give a json representation on the provided model.
+        It is up to the plugin to check the model's type and decide on more
+        specific actions from it.
+
+        :param model: The model to print.
+        :param config: Configuration to follow.
+        :return: JSON representation of the model.
+        :raises NotImplementedError: If the model type is not supported.
+        """
         raise NotImplementedError
