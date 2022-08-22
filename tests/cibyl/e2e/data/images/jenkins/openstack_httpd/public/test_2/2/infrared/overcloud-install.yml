@@ -1,0 +1,15 @@
+install:
+  cleaning:
+    network: true
+  deployment:
+    files: ovb
+  ironic_inspector: true
+  network:
+    ovn: false
+    ovs: true
+    protocol: ipv6
+  storage:
+    backend: swift
+  tls:
+    everywhere: true
+  version: '16.2'

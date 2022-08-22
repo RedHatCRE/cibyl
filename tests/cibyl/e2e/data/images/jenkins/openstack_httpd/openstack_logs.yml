@@ -1,0 +1,27 @@
+test_1:
+  "2":
+    test_suites:
+        - "octavia"
+        - "neutron"
+    setup: "rpm"
+    overcloud:
+      release: "17.1"
+      ip: "4"
+      network_backend: "geneve"
+      dvr: false
+      ml2_driver: "ovn"
+      cinder_backend: "nfs"
+    topology: "compute:2,controller:3"
+test_2:
+  "2":
+    overcloud:
+      release: "16.2"
+      cinder_backend: "swift"
+      ip: "6"
+      tls_everywhere: true
+      infra_type: "ovb"
+      ml2_driver: "ovs"
+      ironic_inspector: true
+      cleaning_network: true
+
+test_3: # job with no builds

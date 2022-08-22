@@ -409,3 +409,275 @@ class TestFeatures(EndToEndTest):
                 '\r' + (' ' * len(status_bar_text)) + '\r',
                 self.stdout
             )
+
+
+class TestJenkinsOpenstack(EndToEndTest):
+    """Tests queries regarding the Jenkins core source.
+    """
+    compose_file = 'docker-compose_jenkins_openstack.yml'
+    jenkins = JenkinsContainer(compose_file=compose_file)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.jenkins.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.jenkins.stop()
+
+    def test_get_ip_version(self):
+        """Checks that jobs are retrieved with the "--ip-version" flag.
+        """
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'query', '--ip-version'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_1', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Network: ', 4)
+        expected.add('IP version: 4', 5)
+        expected.add('Job: test_2', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Network: ', 4)
+        expected.add('IP version: 6', 5)
+        expected.add('Job: test_3', 2)
+        expected.add('No openstack information associated with this job', 4)
+        expected.add('Job: test_4', 2)
+        expected.add('No openstack information associated with this job', 4)
+        expected.add('Total jobs found in query: 4', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_get_network_backend(self):
+        """Checks that jobs are retrieved with the "--network-backend" flag.
+        """
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'query', '--network-backend'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_1', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Network: ', 4)
+        expected.add('Network backend: geneve', 5)
+        expected.add('Job: test_2', 2)
+        expected.add('No openstack information associated with this job', 4)
+        expected.add('Job: test_3', 2)
+        expected.add('No openstack information associated with this job', 4)
+        expected.add('Job: test_4', 2)
+        expected.add('No openstack information associated with this job', 4)
+        expected.add('Total jobs found in query: 4', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_get_cinder_backend(self):
+        """Checks that jobs are retrieved with the "--network-backend" flag.
+        """
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'query', '--cinder-backend'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_1', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Storage: ', 4)
+        expected.add('Cinder backend: nfs', 5)
+        expected.add('Job: test_2', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Storage: ', 4)
+        expected.add('Cinder backend: swift', 5)
+        expected.add('Job: test_3', 2)
+        expected.add('No openstack information associated with this job', 4)
+        expected.add('Job: test_4', 2)
+        expected.add('No openstack information associated with this job', 4)
+        expected.add('Total jobs found in query: 4', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_get_ml2_driver(self):
+        """Checks that jobs are retrieved with the "--ml2-driver" flag.
+        """
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'query', '--ml2-driver'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_1', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Network: ', 4)
+        expected.add('ML2 driver: ovn', 5)
+        expected.add('Job: test_2', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Network: ', 4)
+        expected.add('ML2 driver: ovs', 5)
+        expected.add('Job: test_3', 2)
+        expected.add('No openstack information associated with this job', 4)
+        expected.add('Job: test_4', 2)
+        expected.add('No openstack information associated with this job', 4)
+        expected.add('Total jobs found in query: 4', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_filter_ip_version(self):
+        """Checks that jobs are filtered with the "--ip-version" flag.
+        """
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'query', '--ip-version', '6'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_2', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Network: ', 4)
+        expected.add('IP version: 6', 5)
+        expected.add('Total jobs found in query: 1', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_filter_controller(self):
+        """Checks that jobs are filtered with the "--controllers" flag.
+        """
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'query', '--controllers', '<6', '>2'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_1', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Nodes: ', 4)
+        expected.add('- compute-0', 5)
+        expected.add('- compute-1', 5)
+        expected.add('- controller-0', 5)
+        expected.add('- controller-1', 5)
+        expected.add('- controller-2', 5)
+        expected.add('Total jobs found in query: 1', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_filter_test_setup(self):
+        """Checks that jobs are filtered with the "--test-setup" flag.
+        """
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'query', '--test-setup', 'rpm'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_1', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Testing information: ', 4)
+        expected.add('Setup: rpm', 5)
+        expected.add('Total jobs found in query: 1', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_filter_test_release(self):
+        """Checks that jobs are filtered with the "--release" flag.
+        """
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'query', '--release', '17'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_1', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Release: 17.1', 4)
+        expected.add('Total jobs found in query: 1', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_filter_ip_show_tests(self):
+        """Check the jobs are filtered by ip-version and tests are correctly
+        retrieved."""
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'query', '--ip-version', '6', '--last-build',
+            '--tests'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_2', 2)
+        expected.add('Build: 2', 3)
+        expected.add('Status: SUCCESS', 4)
+        expected.add('Test: test_case1', 4)
+        expected.add('Result: FAILED', 5)
+        expected.add('Class name: class_test_1', 5)
+        expected.add('Test: test_case2', 4)
+        expected.add('Result: PASSED', 5)
+        expected.add('Class name: class_test_1', 5)
+        expected.add('Test: test_case3', 4)
+        expected.add('Result: SKIPPED', 5)
+        expected.add('Class name: class_test_1', 5)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Network: ', 4)
+        expected.add('IP version: 6', 5)
+        expected.add('Total jobs found in query: 1', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_filter_ip_show_last_build(self):
+        """Check the jobs are filtered by ip-version and builds are correctly
+        retrieved."""
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'query', '--ip-version', '6', '--last-build'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_2', 2)
+        expected.add('Build: 2', 3)
+        expected.add('Status: SUCCESS', 4)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Network: ', 4)
+        expected.add('IP version: 6', 5)
+        expected.add('Total jobs found in query: 1', 2)
+
+        self.assertIn(expected.build(), self.stdout)

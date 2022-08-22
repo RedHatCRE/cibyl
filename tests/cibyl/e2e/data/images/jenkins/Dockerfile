@@ -1,8 +1,5 @@
 FROM jenkins/jenkins:lts-jdk11
 
-# specify which pre-built jenkins environment to use, default is none, meaning
-# an empty jenkins instance
-ARG JENKINS_ENV="none"
 
 # Define environmental conditions
 ENV JAVA_OPTS \
@@ -20,6 +17,8 @@ RUN jenkins-plugin-cli --plugins configuration-as-code junit
 # Load Jenkin's configuration
 COPY ./setup.yaml /var/jenkins_home/casc.yaml
 
-RUN echo "->>>> $JENKINS_ENV"
+# specify which pre-built jenkins environment to use, default is none, meaning
+# an empty jenkins instance
+ARG JENKINS_ENV="none"
 # copy pre-configured set of pipelines and builds
 COPY --chown=jenkins:jenkins ./jenkins_envs/$JENKINS_ENV/jobs /var/jenkins_home/jobs

@@ -56,7 +56,7 @@ def get_yaml_from_topology_string(topology):
     return yaml.dump(provision)
 
 
-def get_yaml_tests(test_suites, setup=None):
+def get_yaml_tests(test_suites=None, setup=None):
     """Provide a yaml representation for the parameters obtained from an
     infrared test.yml file.
 
@@ -66,15 +66,17 @@ def get_yaml_tests(test_suites, setup=None):
     :type setup: str
     """
     test_dict = {'tests': []}
-    for suite in test_suites:
-        test_dict['tests'].append(f"/path/to/suite/{suite}.yml")
+    if test_suites:
+        for suite in test_suites:
+            test_dict['tests'].append(f"/path/to/suite/{suite}.yml")
     if setup:
         test_dict['setup'] = setup
     return yaml.dump({'test': test_dict})
 
 
-def get_yaml_overcloud(ip, release, cinder_backend, network_backend, dvr,
-                       tls_everywhere, infra_type, ml2_driver=None,
+def get_yaml_overcloud(ip=None, release=None, cinder_backend=None,
+                       network_backend=None, dvr=None,
+                       tls_everywhere=None, infra_type=None, ml2_driver=None,
                        ironic_inspector=None, cleaning_network=None,
                        security_group=None, overcloud_templates=None):
     """Provide a yaml representation for the paremeters obtained from an
@@ -103,7 +105,13 @@ def get_yaml_overcloud(ip, release, cinder_backend, network_backend, dvr,
     if cinder_backend:
         storage = {"backend": cinder_backend}
         overcloud["storage"] = storage
-    network = {"backend": network_backend, "protocol": ip, "dvr": dvr}
+    network = {}
+    if network_backend:
+        network["backend"] = network_backend
+    if ip:
+        network["protocol"] = ip
+    if dvr is not None:
+        network["dvr"] = dvr
     if ml2_driver == "ovn":
         network["ovn"] = True
         network["ovs"] = False
