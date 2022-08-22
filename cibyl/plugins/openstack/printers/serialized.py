@@ -24,6 +24,7 @@ from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.printers import OSPrinter
 from cibyl.plugins.openstack.service import Service
+from cibyl.plugins.openstack.test_collection import TestCollection
 
 
 class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
@@ -56,12 +57,16 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
                 'ironic_inspector': ironic.ironic_inspector.value,
                 'cleaning_network': ironic.cleaning_network.value
             },
-            'overcloud_templates': list(deployment.overcloud_templates.value),
-            'test_collection': self.provider.load(
-                self.print_test_collection(
-                    deployment.test_collection.value
+            'overcloud_templates':
+                list(deployment.overcloud_templates.value)
+                if deployment.overcloud_templates.value else [],
+            'test_collection':
+                self.provider.load(
+                    self.print_test_collection(
+                        deployment.test_collection.value
+                    )
                 )
-            ),
+                if deployment.test_collection.value else {},
             'nodes': [
                 self.provider.load(self.print_node(node))
                 for node in deployment.nodes.values()
@@ -83,9 +88,11 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
         return self.provider.dump(result)
 
     @overrides
-    def print_test_collection(self, collection) -> str:
+    def print_test_collection(self, collection: TestCollection) -> str:
         result = {
-            'tests': list(collection.tests.value),
+            'tests':
+                list(collection.tests.value)
+                if collection.tests.value else [],
             'setup': collection.setup.value
         }
 

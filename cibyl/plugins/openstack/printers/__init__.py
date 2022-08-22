@@ -21,6 +21,7 @@ from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.package import Package
 from cibyl.plugins.openstack.service import Service
+from cibyl.plugins.openstack.test_collection import TestCollection
 
 
 class OSPrinter(Printer, ABC):
@@ -36,7 +37,7 @@ class OSPrinter(Printer, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def print_test_collection(self, collection) -> str:
+    def print_test_collection(self, collection: TestCollection) -> str:
         """
         :param collection: The collection.
         :return: Textual representation of the provided model.
