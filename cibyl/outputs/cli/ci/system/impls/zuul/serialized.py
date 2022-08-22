@@ -27,8 +27,8 @@ from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.models.ci.zuul.test import Test
 from cibyl.models.ci.zuul.test_suite import TestSuite
-from cibyl.outputs.cli.ci.system.common.models import has_plugin_section, \
-    get_plugin_section
+from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
+                                                       has_plugin_section)
 from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     SerializedBaseSystemPrinter
 from cibyl.outputs.cli.printer import JSONPrinter
