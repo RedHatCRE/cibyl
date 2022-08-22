@@ -107,23 +107,36 @@ class SerializedPrinter(Printer, ABC):
         verbosity: int
         """Verbosity level of the output."""
 
+    @dataclass
+    class SerializationProvider:
+        """Implementation of the marshaller / unmarshaller that the printer
+        uses to go from models to text and back again.
+
+        The provider must be able to go from data to the desired output
+        format and back from that again. The printer unmarshalls pieces of
+        the generated output in order to update it with more data.
+        """
+        load: Callable[[str], dict]
+        """Transforms machine-readable text into a python structure."""
+        dump: Callable[[dict], str]
+        """Transforms a python structure into machine-readable text."""
+
     def __init__(self,
-                 load_function: Callable[[str], dict],
-                 dump_function: Callable[[dict], str],
+                 provider: SerializationProvider,
                  query: QueryType = QueryType.NONE,
                  verbosity: int = 0):
         """Constructor. See parent for more information.
 
-        :param load_function: Function that transforms machine-readable text
-            into a Python structure. Used to unmarshall pieces of the output
-            text back into models.
-        :param dump_function: Function that transforms a Python structure into
-            machine-readable text. Used to marshall models into text.
+        :param provider: Implementation of the serializer this uses to
+        generate the output. This argument defines the format that the
+        resulting text follows. For example, these could be implemented
+        in JSON format for that output style to be supported. The printer
+        remains generic enough so that only these functions decide
+        how things are returned like.
         """
         super().__init__(query, verbosity)
 
-        self._load = load_function
-        self._dump = dump_function
+        self._provider = provider
 
     @property
     def config(self) -> Config:
@@ -134,6 +147,13 @@ class SerializedPrinter(Printer, ABC):
             query=self.query,
             verbosity=self.verbosity
         )
+
+    @property
+    def provider(self):
+        """
+        :return: Serializing functions this uses to generate its output.
+        """
+        return self._provider
 
 
 class JSONPrinter(SerializedPrinter):
@@ -157,8 +177,10 @@ class JSONPrinter(SerializedPrinter):
             JSON output.
         """
         super().__init__(
-            load_function=self._from_json,
-            dump_function=self._to_json,
+            provider=SerializedPrinter.SerializationProvider(
+                load=lambda obj: json.loads(obj),
+                dump=lambda obj: json.dumps(obj, indent=self.indentation)
+            ),
             query=query,
             verbosity=verbosity
         )
@@ -182,9 +204,3 @@ class JSONPrinter(SerializedPrinter):
         :return: Number of spaces preceding every level of the JSON output.
         """
         return self._indentation
-
-    def _from_json(self, obj: str) -> dict:
-        return json.loads(obj)
-
-    def _to_json(self, obj: dict) -> str:
-        return json.dumps(obj, indent=self._indentation)

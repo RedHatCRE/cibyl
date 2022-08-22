@@ -14,7 +14,6 @@
 #    under the License.
 """
 from abc import ABC
-from typing import Callable
 
 from overrides import overrides
 
@@ -41,12 +40,12 @@ class SerializedBaseSystemPrinter(CISystemPrinter, SerializedPrinter, ABC):
 
             for feature in system.features.values():
                 result['features'].append(
-                    self._load(
+                    self.provider.load(
                         self.print_feature(feature)
                     )
                 )
 
-        return self._dump(result)
+        return self.provider.dump(result)
 
     def print_feature(self, feature: Feature) -> str:
         """Print a feature present in a system.
@@ -59,7 +58,7 @@ class SerializedBaseSystemPrinter(CISystemPrinter, SerializedPrinter, ABC):
             'present': feature.present.value
         }
 
-        return self._dump(result)
+        return self.provider.dump(result)
 
 
 class JSONBaseSystemPrinter(JSONPrinter, SerializedBaseSystemPrinter):

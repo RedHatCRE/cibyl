@@ -42,7 +42,7 @@ class CISerializedPrinter(CIPrinter, SerializedPrinter, ABC):
 
             for system in env.systems:
                 key = system.name.value
-                systems[key] = self._load(self.print_system(system))
+                systems[key] = self.provider.load(self.print_system(system))
 
             return systems
 
@@ -51,7 +51,7 @@ class CISerializedPrinter(CIPrinter, SerializedPrinter, ABC):
             'systems': get_systems()
         }
 
-        return self._dump(result)
+        return self.provider.dump(result)
 
     @abstractmethod
     def print_system(self, system: System) -> str:
