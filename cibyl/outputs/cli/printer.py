@@ -95,10 +95,17 @@ class ColoredPrinter(Printer, ABC):
 
 
 class SerializedPrinter(Printer, ABC):
+    """Base class for output styles based around serializing data.
+    """
+
     @dataclass
     class Config:
+        """Parameters that define the behaviour of the printer.
+        """
         query: QueryType
+        """The type of query is gets to print."""
         verbosity: int
+        """Verbosity level of the output."""
 
     def __init__(self,
                  load_function: Callable[[str], dict],
@@ -108,11 +115,10 @@ class SerializedPrinter(Printer, ABC):
         """Constructor. See parent for more information.
 
         :param load_function: Function that transforms machine-readable text
-            into a Python structure. Used to unmarshall output of sub-parts
-            of the module.
+            into a Python structure. Used to unmarshall pieces of the output
+            text back into models.
         :param dump_function: Function that transforms a Python structure into
-            machine-readable text. Used to marshall the data from the
-            hierarchy.
+            machine-readable text. Used to marshall models into text.
         """
         super().__init__(query, verbosity)
 
@@ -120,7 +126,10 @@ class SerializedPrinter(Printer, ABC):
         self._dump = dump_function
 
     @property
-    def config(self):
+    def config(self) -> Config:
+        """
+        :return: Configuration for this printer.
+        """
         return SerializedPrinter.Config(
             query=self.query,
             verbosity=self.verbosity
@@ -128,9 +137,15 @@ class SerializedPrinter(Printer, ABC):
 
 
 class JSONPrinter(SerializedPrinter):
+    """Base class for printers that serialize data into JSON format.
+    """
+
     @dataclass
     class Config(SerializedPrinter.Config):
+        """Parameters that define the behaviour of the printer.
+        """
         indentation: int
+        """Number of spaces that indent each level of the JSON text."""
 
     def __init__(self,
                  query: QueryType = QueryType.NONE,
@@ -138,7 +153,7 @@ class JSONPrinter(SerializedPrinter):
                  indentation: int = 4):
         """Constructor. See parent for more information.
 
-        :param indentation: Number of spaces indenting each level of the
+        :param indentation: Number of spaces that indent each level of the
             JSON output.
         """
         super().__init__(
@@ -152,6 +167,9 @@ class JSONPrinter(SerializedPrinter):
 
     @property
     def config(self) -> Config:
+        """
+        :return: Configuration for this printer.
+        """
         return JSONPrinter.Config(
             query=self.query,
             indentation=self.indentation,
@@ -165,8 +183,8 @@ class JSONPrinter(SerializedPrinter):
         """
         return self._indentation
 
-    def _from_json(self, obj: Union[str, bytes, bytearray]) -> dict:
+    def _from_json(self, obj: str) -> dict:
         return json.loads(obj)
 
-    def _to_json(self, obj: object) -> str:
+    def _to_json(self, obj: dict) -> str:
         return json.dumps(obj, indent=self._indentation)
