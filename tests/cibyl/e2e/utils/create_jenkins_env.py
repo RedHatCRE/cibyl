@@ -182,7 +182,7 @@ def create_build(builds_folder, build, build_info, job):
     build_folder = os.path.join(builds_folder, build)
     os.makedirs(build_folder, exist_ok=True)
     result = build_info.get("result", "SUCCESS")
-    build_description = build_info.get("descrition", "custom description")
+    build_description = build_info.get("description", "custom description")
     is_success = (result == "SUCCESS")
     with open(f"{build_folder}/log", "w") as fw:
         fw.write("Started by user unknown or anonymous\n")

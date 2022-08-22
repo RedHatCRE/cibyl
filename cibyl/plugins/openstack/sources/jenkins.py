@@ -46,7 +46,7 @@ from cibyl.utils.filtering import (CINDER_BACKEND_PATTERN, DEPLOYMENT_PATTERN,
                                    SERVICES_PATTERN, TOPOLOGY_PATTERN,
                                    apply_filters, filter_topology,
                                    satisfy_case_insensitive_match,
-                                   satisfy_exact_match)
+                                   satisfy_exact_match, satisfy_regex_match)
 
 # shorthand for the type that will hold the job information obtained from the
 # Jenkins API response
@@ -312,6 +312,13 @@ accurate results", len(jobs_found))
                                        user_input=input_attr,
                                        field_to_check=attribute,
                                        default_user_value=['True']))
+                continue
+            if attribute in ('release') and input_attr:
+                for pattern_str in input_attr.value:
+                    pattern = re.compile(pattern_str)
+                    checks_to_apply.append(partial(satisfy_regex_match,
+                                                   pattern=pattern,
+                                                   field_to_check=attribute))
                 continue
             if attribute == 'test_setup' and input_attr:
                 checks_to_apply.append(partial(filter_test_collection,
