@@ -16,7 +16,7 @@
 from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.env.impl.colored import CIColoredPrinter
-from cibyl.outputs.cli.ci.env.impl.serialized import JSONPrinter
+from cibyl.outputs.cli.ci.env.impl.serialized import CIJSONPrinter
 from cibyl.outputs.cli.ci.env.printer import CIPrinter
 from cibyl.utils.colors import ClearText
 
@@ -51,7 +51,7 @@ class CIPrinterFactory:
             )
 
         if style == OutputStyle.JSON:
-            return JSONPrinter(
+            return CIJSONPrinter(
                 query=query,
                 verbosity=verbosity
             )

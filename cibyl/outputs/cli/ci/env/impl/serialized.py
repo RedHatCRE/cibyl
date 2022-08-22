@@ -66,7 +66,7 @@ class CISerializedPrinter(SerializedPrinter, CIPrinter, ABC):
         raise NotImplementedError
 
 
-class JSONPrinter(CISerializedPrinter):
+class CIJSONPrinter(CISerializedPrinter):
     """Serializer that prints a CI hierarchy in JSON format.
     """
 
@@ -94,7 +94,7 @@ class JSONPrinter(CISerializedPrinter):
 
     @property
     def config(self) -> Config:
-        return JSONPrinter.Config(
+        return CIJSONPrinter.Config(
             indentation=self.indentation,
             verbosity=self.verbosity
         )

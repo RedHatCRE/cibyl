@@ -14,7 +14,7 @@
 #    under the License.
 """
 from cibyl.models.model import Model
-from cibyl.outputs.cli.ci.env.impl.serialized import JSONPrinter
+from cibyl.outputs.cli.ci.env.impl.serialized import CIJSONPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.plugins import PluginPrinterTemplate
 from cibyl.plugins.openstack import Deployment
@@ -35,7 +35,7 @@ class PrinterRouter(PluginPrinterTemplate):
 
         raise NotImplementedError(f"Unknown model: '{type(model).__name__}'.")
 
-    def as_json(self, model: Model, config: JSONPrinter.Config) -> str:
+    def as_json(self, model: Model, config: CIJSONPrinter.Config) -> str:
         if isinstance(model, Deployment):
             printer = OSJSONPrinter(
                 query=config.query,

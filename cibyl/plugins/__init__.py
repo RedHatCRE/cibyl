@@ -20,7 +20,7 @@ from typing import Callable, List
 
 from cibyl.exceptions.plugin import MissingPlugin
 from cibyl.models.model import Model
-from cibyl.outputs.cli.ci.env.impl.serialized import JSONPrinter
+from cibyl.outputs.cli.ci.env.impl.serialized import CIJSONPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source_factory import SourceFactory
@@ -119,5 +119,5 @@ class PluginPrinterTemplate(ABC):
     def as_text(self, model: Model, config: ColoredPrinter.Config) -> str:
         raise NotImplementedError
 
-    def as_json(self, model: Model, config: JSONPrinter.Config) -> str:
+    def as_json(self, model: Model, config: CIJSONPrinter.Config) -> str:
         raise NotImplementedError
