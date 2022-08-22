@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from overrides import overrides
+
 from cibyl.models.model import Model
 from cibyl.outputs.cli.ci.env.impl.serialized import CIJSONPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
@@ -23,6 +25,11 @@ from cibyl.plugins.openstack.printers.serialized import OSJSONPrinter
 
 
 class PrinterRouter(PluginPrinterTemplate):
+    """Takes care of redirecting the printing petition to the appropriate
+    printer on this plugin.
+    """
+
+    @overrides
     def as_text(self, model: Model, config: ColoredPrinter.Config) -> str:
         if isinstance(model, Deployment):
             printer = OSColoredPrinter(
@@ -35,6 +42,7 @@ class PrinterRouter(PluginPrinterTemplate):
 
         raise NotImplementedError(f"Unknown model: '{type(model).__name__}'.")
 
+    @overrides
     def as_json(self, model: Model, config: CIJSONPrinter.Config) -> str:
         if isinstance(model, Deployment):
             printer = OSJSONPrinter(

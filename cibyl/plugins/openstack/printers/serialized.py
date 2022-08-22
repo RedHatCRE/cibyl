@@ -13,13 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-import json
 from abc import ABC
-from typing import Callable, Union
 
 from overrides import overrides
 
-from cibyl.cli.query import QueryType
+from cibyl.outputs.cli.printer import JSONPrinter, SerializedPrinter
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
@@ -28,18 +26,10 @@ from cibyl.plugins.openstack.printers import OSPrinter
 from cibyl.plugins.openstack.service import Service
 
 
-class OSSerializedPrinter(OSPrinter, ABC):
-    def __init__(
-        self,
-        load_function: Callable[[str], dict],
-        dump_function: Callable[[dict], str],
-        query: QueryType = QueryType.NONE,
-        verbosity: int = 0
-    ):
-        super().__init__(query, verbosity)
-
-        self._load = load_function
-        self._dump = dump_function
+class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
+    """Provides a machine-readable representation of the plugin's models for
+    easy readability from a machine.
+    """
 
     @overrides
     def print_deployment(self, deployment: Deployment) -> str:
@@ -49,7 +39,7 @@ class OSSerializedPrinter(OSPrinter, ABC):
             'topology': deployment.topology.value
         }
 
-        return self._dump(result)
+        return self.provider.dump(result)
 
     @overrides
     def print_node(self, node: Node) -> str:
@@ -68,36 +58,6 @@ class OSSerializedPrinter(OSPrinter, ABC):
         pass
 
 
-class OSJSONPrinter(OSSerializedPrinter):
-    def __init__(
-        self,
-        query: QueryType = QueryType.NONE,
-        verbosity: int = 0,
-        indentation: int = 4
-    ):
-        """Constructor. See parent for more information.
-
-        :param indentation: Number of spaces indenting each level of the
-            JSON output.
-        """
-        super().__init__(
-            load_function=self._from_json,
-            dump_function=self._to_json,
-            query=query,
-            verbosity=verbosity
-        )
-
-        self._indentation = indentation
-
-    @property
-    def indentation(self) -> int:
-        """
-        :return: Number of spaces preceding every level of the JSON output.
-        """
-        return self._indentation
-
-    def _from_json(self, obj: Union[str, bytes, bytearray]) -> dict:
-        return json.loads(obj)
-
-    def _to_json(self, obj: object) -> str:
-        return json.dumps(obj, indent=self._indentation)
+class OSJSONPrinter(JSONPrinter, OSSerializedPrinter):
+    """Provides a representation of the plugin's models in JSON format.
+    """

@@ -60,9 +60,14 @@ class ColoredPrinter(Printer, ABC):
     """
 
     class Config(NamedTuple):
+        """Parameters that define the behaviour of the printer.
+        """
         query: QueryType
+        """The type of query is gets to print."""
         palette: ColorPalette
+        """Colors this will paint the output with."""
         verbosity: int
+        """Verbosity level of the output."""
 
     def __init__(self,
                  query: QueryType = QueryType.NONE,
@@ -80,6 +85,9 @@ class ColoredPrinter(Printer, ABC):
 
     @property
     def config(self) -> Config:
+        """
+        :return: Configuration for this printer.
+        """
         return ColoredPrinter.Config(
             query=self.query,
             palette=self.palette,
