@@ -23,8 +23,8 @@ from cibyl.models.ci.base.build import Build, Test
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.base.stage import Stage
 from cibyl.models.ci.base.system import System
-from cibyl.outputs.cli.ci.system.common.models import has_plugin_section, \
-    get_plugin_section
+from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
+                                                       has_plugin_section)
 from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     SerializedBaseSystemPrinter
 from cibyl.outputs.cli.printer import JSONPrinter

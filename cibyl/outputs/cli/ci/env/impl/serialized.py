@@ -25,7 +25,7 @@ from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     JSONBaseSystemPrinter
 from cibyl.outputs.cli.ci.system.impls.jobs.serialized import \
     JSONJobsSystemPrinter
-from cibyl.outputs.cli.printer import SerializedPrinter, JSONPrinter
+from cibyl.outputs.cli.printer import JSONPrinter, SerializedPrinter
 
 LOG = logging.getLogger(__name__)
 

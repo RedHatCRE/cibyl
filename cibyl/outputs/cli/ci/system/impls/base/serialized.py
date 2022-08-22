@@ -21,7 +21,7 @@ from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.system import System
 from cibyl.models.product.feature import Feature
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
-from cibyl.outputs.cli.printer import SerializedPrinter, JSONPrinter
+from cibyl.outputs.cli.printer import JSONPrinter, SerializedPrinter
 
 
 class SerializedBaseSystemPrinter(CISystemPrinter, SerializedPrinter, ABC):

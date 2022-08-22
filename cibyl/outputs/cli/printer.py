@@ -16,7 +16,7 @@
 import json
 from abc import ABC
 from dataclasses import dataclass
-from typing import Callable, NamedTuple, Union
+from typing import Callable, NamedTuple
 
 from cibyl.cli.query import QueryType
 from cibyl.utils.colors import ColorPalette, DefaultPalette
