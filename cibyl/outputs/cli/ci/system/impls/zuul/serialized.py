@@ -35,6 +35,10 @@ from cibyl.outputs.cli.printer import JSONPrinter
 
 
 class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter, ABC):
+    """Base printer for all machine-readable printers dedicated to output
+    Zuul systems.
+    """
+
     @overrides
     def print_system(self, system: System) -> str:
         result = self.provider.load(super().print_system(system))
@@ -52,6 +56,10 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self.provider.dump(result)
 
     def print_tenant(self, tenant: Tenant) -> str:
+        """
+        :param tenant: The tenant.
+        :return: Textual representation of the provided model.
+        """
         result = {
             'name': tenant.name.value,
             'projects': [],
@@ -75,6 +83,10 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self.provider.dump(result)
 
     def print_project(self, project: Project) -> str:
+        """
+        :param project: The project.
+        :return: Textual representation of the provided model.
+        """
         result = {
             'name': project.name.value,
             'url': project.url.value,
@@ -91,6 +103,10 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self.provider.dump(result)
 
     def print_pipeline(self, pipeline: Pipeline) -> str:
+        """
+        :param pipeline: The pipeline.
+        :return: Textual representation of the provided model.
+        """
         result = {
             'name': pipeline.name.value,
             'jobs': []
@@ -106,6 +122,10 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self.provider.dump(result)
 
     def print_job(self, job: Job) -> str:
+        """
+        :param job: The job.
+        :return: Textual representation of the provided model.
+        """
         result = {
             'name': job.name.value,
             'url': job.url.value,
@@ -130,6 +150,10 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self.provider.dump(result)
 
     def print_variant(self, variant: Job.Variant) -> str:
+        """
+        :param variant: The variant.
+        :return: Textual representation of the provided model.
+        """
         result = {
             'parent': variant.parent.value,
             'description': variant.description.value,
@@ -140,6 +164,10 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self.provider.dump(result)
 
     def print_build(self, build: Build) -> str:
+        """
+        :param build: The build.
+        :return: Textual representation of the provided model.
+        """
         result = {
             'uuid': build.build_id.value,
             'project': build.project.value,
@@ -159,6 +187,10 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self.provider.dump(result)
 
     def print_suite(self, suite: TestSuite) -> str:
+        """
+        :param suite: The suite.
+        :return: Textual representation of the provided model.
+        """
         result = {
             'name': suite.name.value,
             'url': suite.url.value,
@@ -179,6 +211,10 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self.provider.dump(result)
 
     def print_test(self, test: Test) -> str:
+        """
+        :param test: The test.
+        :return: Textual representation of the provided model.
+        """
         result = {
             'name': test.name.value,
             'type': test.kind.value,
@@ -191,6 +227,9 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter, ABC):
 
 
 class JSONZuulSystemPrinter(JSONPrinter, SerializedZuulSystemPrinter):
+    """Printer that will output Zuul system in JSON format.
+    """
+
     @overrides
     def print_variant(self, variant: Job.Variant) -> str:
         result = self.provider.load(super().print_variant(variant))
