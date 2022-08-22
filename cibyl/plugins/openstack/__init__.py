@@ -57,8 +57,9 @@ class Plugin(PluginTemplate):
     """Extend a CI model with Openstack specific models and methods."""
     plugin_attributes_to_add = {
         'deployment': {
-            'add_method': 'add_deployment',
-            'printer': PrinterRouter()
+            'name': 'OpenStack',
+            'printer': PrinterRouter(),
+            'add_method': 'add_deployment'
         }
     }
 

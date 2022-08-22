@@ -68,8 +68,6 @@ def get_plugin_section(
     if not has_plugin_section(model):
         raise ValueError('Job is missing plugin attributes.')
 
-    text = IndentedTextBuilder()
-
     for plugin_attribute in model.plugin_attributes:
         # Plugins install some attributes as part of the model
         plugin = model.plugin_attributes[plugin_attribute]
@@ -91,14 +89,28 @@ def get_plugin_section(
             )
             continue
 
-        for value in values:
-            printer = plugin['printer']
+        printer = plugin['printer']
 
-            if style in (OutputStyle.TEXT, OutputStyle.COLORIZED):
-                text.add(printer.as_text(value, config=reference.config), 0)
-            elif style in (OutputStyle.JSON,):
-                text.add(printer.as_json(value, config=reference.config), 0)
-            else:
-                raise NotImplementedError(f"Unknown style: '{style}'.")
+        if style in (OutputStyle.TEXT, OutputStyle.COLORIZED):
+            result = IndentedTextBuilder()
 
-    return text.build()
+            for value in values:
+                data = printer.as_text(value, config=reference.config)
+
+                result.add(reference.palette.blue(f"{plugin['name']}: "), 0)
+                result.add(f"{data}", 1)
+
+            return result.build()
+
+        if style in (OutputStyle.JSON,):
+            result = IndentedTextBuilder()
+            result.add('{', 0)
+
+            for value in values:
+                data = printer.as_json(value, config=reference.config)
+                result.add(f"\"{plugin['name']}\": {data}", 1)
+
+            result.add('}', 0)
+            return result.build()
+
+        raise NotImplementedError(f"Unknown style: '{style}'.")
