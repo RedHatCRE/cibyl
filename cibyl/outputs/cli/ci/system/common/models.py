@@ -97,8 +97,7 @@ def get_plugin_section(
             for value in values:
                 data = printer.as_text(value, config=reference.config)
 
-                result.add(reference.palette.blue(f"{plugin['name']}: "), 0)
-                result.add(f"{data}", 1)
+                result.add(f"{data}", 0)
 
             return result.build()
 
