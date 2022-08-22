@@ -72,7 +72,9 @@ class CIJSONPrinter(JSONPrinter, CISerializedPrinter):
             # Check specialized printers
             if isinstance(system, JobsSystem):
                 return JSONJobsSystemPrinter(
-                    self.query, self.verbosity, self.indentation
+                    query=self.query,
+                    verbosity=self.verbosity,
+                    indentation=self.indentation
                 )
 
             LOG.warning(
@@ -82,7 +84,9 @@ class CIJSONPrinter(JSONPrinter, CISerializedPrinter):
             )
 
             return JSONBaseSystemPrinter(
-                self.query, self.verbosity, self.indentation
+                query=self.query,
+                verbosity=self.verbosity,
+                indentation=self.indentation
             )
 
         return get_printer().print_system(system)

@@ -17,11 +17,14 @@ from abc import ABC
 
 from overrides import overrides
 
+from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.build import Build, Test
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.base.stage import Stage
 from cibyl.models.ci.base.system import System
+from cibyl.outputs.cli.ci.system.common.models import has_plugin_section, \
+    get_plugin_section
 from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     SerializedBaseSystemPrinter
 from cibyl.outputs.cli.printer import JSONPrinter
@@ -117,3 +120,20 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter, ABC):
 class JSONJobsSystemPrinter(JSONPrinter, SerializedJobsSystemPrinter):
     """Printer that will output Jenkins systems in JSON format.
     """
+
+    @overrides
+    def print_job(self, job: Job) -> str:
+        result = self._load(super().print_job(job))
+
+        if has_plugin_section(job):
+            section = self._load(
+                get_plugin_section(
+                    style=OutputStyle.JSON,
+                    model=job,
+                    reference=self
+                )
+            )
+
+            result['plugins'] = section
+
+        return self._dump(result)

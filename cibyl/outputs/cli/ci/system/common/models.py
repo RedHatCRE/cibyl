@@ -20,7 +20,7 @@ from cibyl.cli.output import OutputStyle
 from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
 from cibyl.models.model import Model
-from cibyl.outputs.cli.printer import ColoredPrinter, SerializedPrinter
+from cibyl.outputs.cli.printer import ColoredPrinter, JSONPrinter
 from cibyl.utils.strings import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ def has_plugin_section(model: Model) -> bool:
 def get_plugin_section(
     style: OutputStyle,
     model: Model,
-    reference: Union[ColoredPrinter, SerializedPrinter]
+    reference: Union[ColoredPrinter, JSONPrinter]
 ) -> str:
     """Gets the text describing the plugins that affect a model.
 
