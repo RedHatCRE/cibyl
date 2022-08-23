@@ -1635,8 +1635,9 @@ tripleo_ironic_conductor.service loaded    active     running
         artifacts = [
                 get_yaml_from_topology_string(topology),
                 get_yaml_overcloud(ip_version, release,
-                                   "ceph", "geneve", False,
-                                   False, "path/to/ovb",
+                                   "ceph", "geneve", dvr=False,
+                                   tls_everywhere=False,
+                                   infra_type="path/to/ovb",
                                    ironic_inspector=False, ml2_driver="ovs",
                                    cleaning_network=True,
                                    security_group="openvswitch",
