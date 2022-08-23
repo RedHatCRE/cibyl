@@ -17,6 +17,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Iterable, Optional, Sequence
 
+from cached_property import cached_property
 from overrides import overrides
 
 from tripleo.insights.exceptions import DownloadError, InvalidURL
@@ -199,22 +200,33 @@ class GitDownloaderFetcher:
     URL.
     """
     DEFAULT_CLONE_PATH = Dir('~/.cre', resolve_home)
-    """Default directory where repositories are cloned into if required."""
+    """Default directory from which the working directory will hang from."""
 
-    def __init__(self, clone_path: Dir = DEFAULT_CLONE_PATH):
+    def __init__(self, working_dir: Optional[Dir] = None):
         """
-        :param clone_path: Directory where cloned repositories will hang
-            from if required.
+        :param working_dir: Directory passed to downloaders to clone
+            repositories into among others. 'None' to let this generate one
+            from the default clone path.
         """
-        self._clone_path = clone_path
+        if not working_dir:
+            clone_path = GitDownloaderFetcher.DEFAULT_CLONE_PATH
+            working_dir = clone_path.cd(self._uuid)
+
+        self._working_dir = working_dir
 
     @property
-    def clone_path(self) -> Dir:
+    def working_dir(self) -> Dir:
         """
-        :return: Directory where cloned repositories will hang from if
-            required.
+        :return: Directory given to downloaders to store things in.
         """
-        return self._clone_path
+        return self._working_dir
+
+    @cached_property
+    def _uuid(self) -> str:
+        """
+        :return: Unique identifier assigned to this instance.
+        """
+        return get_new_uuid()
 
     def get_downloaders_for(
         self,
@@ -247,7 +259,7 @@ class GitDownloaderFetcher:
         return GitCLIDownloader(
             repository=url,
             branch=branch,
-            working_dir=self.clone_path.cd(get_new_uuid())
+            working_dir=self.working_dir
         )
 
     def _get_new_github_downloader(
