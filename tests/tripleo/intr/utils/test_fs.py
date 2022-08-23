@@ -115,6 +115,19 @@ class TestDir(TestCase):
 
             self.assertTrue(directory.exists())
 
+    def test_rm(self):
+        """Checks that it is possible to delete the folder and everything
+        inside.
+        """
+        with TemporaryDirectory() as folder:
+            directory = Dir(folder)
+
+            self.assertTrue(directory.exists())
+
+            directory.rm()
+
+            self.assertFalse(directory.exists())
+
     def test_as_path(self):
         """Checks that the type can be converted into a path.
         """
