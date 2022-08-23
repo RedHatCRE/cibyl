@@ -626,6 +626,24 @@ class TestJenkinsOpenstack(EndToEndTest):
 
         self.assertIn(expected.build(), self.stdout)
 
+    def test_filter_test_topology(self):
+        """Checks that jobs are filtered with the "--topology" flag.
+        """
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'query', '--topology', 'compute:2'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_1', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Topology: compute:2,controller:3', 4)
+        expected.add('Total jobs found in query: 1', 2)
+
     def test_filter_ip_show_tests(self):
         """Check the jobs are filtered by ip-version and tests are correctly
         retrieved."""
