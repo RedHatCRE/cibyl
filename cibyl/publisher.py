@@ -14,13 +14,21 @@
 #    under the License.
 """
 import logging
+from enum import Enum
 
 from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.environment import Environment
 from cibyl.outputs.cli.ci.env.factory import CIPrinterFactory
+from cibyl.utils.fs import File
+from cibyl.utils.paths import resolve_home
 
 LOG = logging.getLogger(__name__)
+
+
+class PublisherTarget(Enum):
+    TERMINAL = 0
+    FILE = 1
 
 
 class Publisher:
@@ -31,13 +39,25 @@ class Publisher:
 
     def publish(self,
                 environment: Environment,
-                target: str = "terminal",
+                target: PublisherTarget = PublisherTarget.TERMINAL,
                 style: OutputStyle = OutputStyle.TEXT,
                 query: QueryType = QueryType.NONE,
-                verbosity: int = 0) -> None:
+                verbosity: int = 0, **kwargs) -> None:
         """Publishes the data of the given environments to the
         chosen destination.
         """
-        if target == "terminal":
-            printer = CIPrinterFactory.from_style(style, query, verbosity)
-            print(printer.print_environment(environment))
+        printer = CIPrinterFactory.from_style(style, query, verbosity)
+        output = printer.print_environment(environment)
+
+        if target == PublisherTarget.TERMINAL:
+            LOG.info("Writing output into console...")
+            print(output)
+            return
+
+        if target == PublisherTarget.FILE:
+            file = File(kwargs['output_path'], resolve_home)
+            LOG.info("Writing output to: '%s'...", file)
+            file.append(output)
+            return
+
+        raise NotImplementedError(f"Unhandled target: '{target}'.")

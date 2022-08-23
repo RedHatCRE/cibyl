@@ -127,3 +127,19 @@ class File(FSPath):
     @overrides
     def exists(self) -> bool:
         return self.as_path().is_file()
+
+    def create(self) -> None:
+        self.write('')
+
+    def delete(self) -> None:
+        self.as_path().unlink(missing_ok=True)
+
+    def append(self, text: str) -> None:
+        self._write(text, 'a')
+
+    def write(self, text: str) -> None:
+        self._write(text, 'w')
+
+    def _write(self, text: str, mode: str) -> None:
+        with open(self, mode) as buffer:
+            buffer.write(text)

@@ -24,6 +24,7 @@ import networkx as nx
 
 import cibyl.exceptions.config as conf_exc
 from cibyl.cli.argument import Argument
+from cibyl.cli.output import OutputStyle
 from cibyl.cli.parser import Parser
 from cibyl.cli.query import get_query_type
 from cibyl.cli.validator import Validator
@@ -37,12 +38,14 @@ from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.system_factory import SystemType
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.models.product.feature import Feature
-from cibyl.publisher import Publisher
+from cibyl.publisher import Publisher, PublisherTarget
 from cibyl.sources.source import (Source, get_source_instance_from_method,
                                   select_source_method,
                                   source_information_from_method)
 from cibyl.sources.source_factory import SourceFactory
 from cibyl.utils.dicts import intersect_models
+from cibyl.utils.fs import File
+from cibyl.utils.paths import resolve_home
 from cibyl.utils.status_bar import StatusBar
 
 LOG = logging.getLogger(__name__)
@@ -72,9 +75,9 @@ class Orchestrator:
     def get_source(self, source_name: str, source_data: dict) -> Source:
         try:
             return SourceFactory.create_source(
-                    source_data.get('driver'),
-                    source_name,
-                    **source_data)
+                source_data.get('driver'),
+                source_name,
+                **source_data)
         except AttributeError as exception:
             raise conf_exc.InvalidSourceConfiguration(
                 source_name, source_data) from exception
@@ -194,7 +197,7 @@ class Orchestrator:
                         features_combination = feature_info
                     else:
                         features_combination = intersect_models(
-                                features_combination, feature_info)
+                            features_combination, feature_info)
 
         if "jobs" in self.parser.ci_args:
             # add the combined result for all features requested, e.g.
@@ -276,7 +279,7 @@ class Orchestrator:
                 continue
             for source_method, speed_score in source_methods:
                 source_info = source_information_from_method(
-                        source_method)
+                    source_method)
                 source_obj = get_source_instance_from_method(source_method)
                 try:
                     source_obj.ensure_source_setup()
@@ -296,7 +299,7 @@ class Orchestrator:
                     continue
                 end_time = time.time()
                 LOG.info("Took %.2fs to query system %s using %s",
-                         end_time-start_time, system.name.value,
+                         end_time - start_time, system.name.value,
                          source_info)
                 if query_result is None:
                     query_result = model_instances_dict
@@ -332,7 +335,7 @@ class Orchestrator:
             arguments = attr_dict.get('arguments')
             class_type = attr_dict.get('attr_type')
             has_api = class_type not in [str, list, dict, int] and \
-                hasattr(class_type, 'API')
+                      hasattr(class_type, 'API')
             if has_api:
                 # API entry is related to a model that has an API
                 new_group_name = class_type.__name__
@@ -341,7 +344,7 @@ class Orchestrator:
                     # add the arguments found in the current entry, but
                     # group them to the model they relate to
                     self.parser.extend(arguments, new_group_name,
-                                       level=level+1,
+                                       level=level + 1,
                                        parent_queries=parent_queries)
 
                     # generate a set of all query method associated with
@@ -357,7 +360,7 @@ class Orchestrator:
                 # explore the API of the model found, even if there are no
                 # arguments
                 self.extend_parser(class_type.API, new_group_name,
-                                   level=level+1,
+                                   level=level + 1,
                                    parent_queries=next_parent_queries)
             elif arguments:
                 # if the API entry has arguments but is not related to any
@@ -365,15 +368,16 @@ class Orchestrator:
                 self.parser.extend(arguments, group_name, level=level,
                                    parent_queries=parent_queries)
 
-    def query_and_publish(self, output_style: str = "colorized",
+    def query_and_publish(self, output_path: Optional[str] = None,
+                          output_style: OutputStyle = OutputStyle.COLORIZED,
                           features: Optional[list] = None) -> None:
         """Iterate over the environments and their systems and publish
         the results of the queries.
 
         The query is performed per system, while the results are published
         once per environment"""
-        command = self.parser.app_args.get('command')
-        for env in self.environments:
+
+        def query():
             for system in env.systems:
                 if command == "features":
                     self.run_features(system, features)
@@ -381,8 +385,27 @@ class Orchestrator:
                     self.run_query(system)
                 for source in system.sources:
                     source.ensure_teardown()
+
+        def publish():
+            target = PublisherTarget.TERMINAL
+            kwargs = {}
+
+            if output_path:
+                target = PublisherTarget.FILE
+                kwargs['output_path'] = output_path
+
+                # Overwrite is it already exists
+                file = File(output_path, resolve_home)
+                file.delete()
+                file.create()
+
             self.publisher.publish(
-                environment=env,
-                style=output_style,
+                environment=env, target=target, style=output_style,
                 query=get_query_type(**self.parser.ci_args, command=command),
-                verbosity=self.parser.app_args.get('verbosity', 0))
+                verbosity=self.parser.app_args.get('verbosity', 0), **kwargs)
+
+        command = self.parser.app_args.get('command')
+
+        for env in self.environments:
+            query()
+            publish()

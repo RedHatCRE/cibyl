@@ -121,8 +121,11 @@ def main() -> None:
         orchestrator.parser.parse()
         orchestrator.validate_environments()
         features = orchestrator.load_features()
-        orchestrator.query_and_publish(arguments["output_style"],
-                                       features=features)
+        orchestrator.query_and_publish(
+            output_path=arguments["output_file_path"],
+            output_style=arguments["output_style"],
+            features=features
+        )
     except CibylException as ex:
         if arguments.get('help', False):
             # if the user wants to see the --help, we should show it even if
