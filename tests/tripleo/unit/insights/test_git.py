@@ -81,7 +81,11 @@ class TestGitCLIDownloader(TestCase):
         working_dir.is_empty = Mock()
         working_dir.is_empty.return_value = False
 
+        remote = Mock()
+        remote.urls = [url]
+
         repo = Mock()
+        repo.remotes = [remote]
         repo.checkout = Mock()
         repo.get_as_text = Mock()
         repo.get_as_text.return_value = contents

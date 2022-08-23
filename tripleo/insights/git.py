@@ -22,7 +22,7 @@ from overrides import overrides
 
 from tripleo.insights.exceptions import DownloadError, InvalidURL
 from tripleo.utils.fs import Dir
-from tripleo.utils.git import Git
+from tripleo.utils.git import Git, GitError
 from tripleo.utils.git import Repository as GitRepo
 from tripleo.utils.git.gitpython import GitPython
 from tripleo.utils.git.utils import get_repository_fullname
@@ -130,17 +130,50 @@ class GitCLIDownloader(GitDownloader):
         return repo.get_as_text(file)
 
     def _get_repo(self) -> GitRepo:
-        # Check if working directory is ready
+        def restart() -> GitRepo:
+            """Deletes the working directory and tries to get the repository
+            again.
+
+            :return: An open handler to the repository.
+            """
+            self.working_dir.rm()
+            return self._get_repo()
+
+        def urls() -> Iterable[URL]:
+            """
+            :return: All URLs from all remotes of the repository.
+            """
+            result = []
+
+            for remote in repo.remotes:
+                result += remote.urls
+
+            return result
+
+        # Get the directory ready
         if not self.working_dir.exists():
             self.working_dir.mkdir(recursive=True)
 
-        # Check if the repository is present on the filesystem
+        # Is there something there already?
         if self.working_dir.is_empty():
-            # Download it then
+            # Download the repository then
             return self.api.clone(self.repository, self.working_dir)
 
-        # Being it already here, let's try to reuse it
-        return self.api.open(self.working_dir)
+        # Something is in here already, let's see...
+        try:
+            # Is it a git repository?
+            repo = self.api.open(self.working_dir)
+
+            # Is it the repository we are working with?
+            if self.repository not in urls():
+                # I cannot use this then
+                restart()
+
+            # Everything looks good, let's use this
+            return repo
+        except GitError:
+            # It is not a git repository, I cannot work with this
+            restart()
 
 
 class GitHubDownloader(GitDownloader):
