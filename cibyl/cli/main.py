@@ -38,7 +38,8 @@ def raw_parsing(arguments: List[str]) -> dict:
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
             "logging": logging.INFO, "plugins": [],
-            "debug": False, "output_style": "colorized"}
+            "debug": False, "output_file_path": None,
+            "output_style": "colorized"}
     for i, item in enumerate(arguments[1:]):
         if item in ('-c', '--config'):
             args['config_file_path'] = arguments[i + 2]
@@ -60,6 +61,8 @@ def raw_parsing(arguments: List[str]) -> dict:
                     break
                 plugins.append(argument)
             args["plugins"] = plugins
+        elif item in ('-o', '--output'):
+            args["output_file_path"] = arguments[i + 2]
         elif item in ('-f', '--output-format'):
             args["output_style"] = arguments[i + 2]
 
@@ -118,8 +121,11 @@ def main() -> None:
         orchestrator.parser.parse()
         orchestrator.validate_environments()
         features = orchestrator.load_features()
-        orchestrator.query_and_publish(arguments["output_style"],
-                                       features=features)
+        orchestrator.query_and_publish(
+            output_path=arguments["output_file_path"],
+            output_style=arguments["output_style"],
+            features=features
+        )
     except CibylException as ex:
         if arguments.get('help', False):
             # if the user wants to see the --help, we should show it even if
