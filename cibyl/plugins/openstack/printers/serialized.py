@@ -58,7 +58,7 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
                 'cleaning_network': ironic.cleaning_network.value
             } if ironic else {},
             'overcloud_templates':
-                [deployment.overcloud_templates.value]
+                list(deployment.overcloud_templates.value)
                 if deployment.overcloud_templates.value else [],
             'test_collection':
                 self.provider.load(
@@ -91,7 +91,7 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
     def print_test_collection(self, collection: TestCollection) -> str:
         result = {
             'tests':
-                [collection.tests.value]
+                list(collection.tests.value)
                 if collection.tests.value else [],
             'setup': collection.setup.value
         }
