@@ -136,6 +136,11 @@ class GitCLIDownloader(GitDownloader):
 
             :return: An open handler to the repository.
             """
+            LOG.info(
+                "Removing folder at: '%s' and fetching repo again...",
+                self.working_dir
+            )
+
             self.working_dir.rm()
             return self._get_repo()
 
@@ -166,13 +171,15 @@ class GitCLIDownloader(GitDownloader):
 
             # Is it the repository we are working with?
             if self.repository not in urls():
-                # I cannot use this then
+                # I cannot use this
+                LOG.warning("Unknown repository at: '%s'.", self.working_dir)
                 restart()
 
             # Everything looks good, let's use this
             return repo
         except GitError:
             # It is not a git repository, I cannot work with this
+            LOG.warning("Could not open repo at: '%s'.", self.working_dir)
             restart()
 
 
