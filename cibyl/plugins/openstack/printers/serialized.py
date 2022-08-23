@@ -49,14 +49,14 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
                 'security_group': network.security_group.value,
                 "dvr": network.dvr.value,
                 'tls_everywhere': network.tls_everywhere.value
-            },
+            } if network else {},
             'storage': {
                 'cinder_backend': storage.cinder_backend.value
-            },
+            } if storage else {},
             'ironic': {
                 'ironic_inspector': ironic.ironic_inspector.value,
                 'cleaning_network': ironic.cleaning_network.value
-            },
+            } if ironic else {},
             'overcloud_templates':
                 list(deployment.overcloud_templates.value)
                 if deployment.overcloud_templates.value else [],
@@ -101,7 +101,7 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
     @overrides
     def print_node(self, node: Node) -> str:
         result = {
-            'role': node.role,
+            'role': node.role.value,
             'containers': [
                 self.provider.load(self.print_container(container))
                 for container in node.containers.values()
@@ -117,9 +117,9 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
     @overrides
     def print_container(self, container: Container) -> str:
         result = {
-            'name': container.name,
-            'image': container.image,
-            'package': container.package
+            'name': container.name.value,
+            'image': container.image.value,
+            'package': container.package.value
         }
 
         return self.provider.dump(result)
@@ -127,8 +127,8 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
     @overrides
     def print_package(self, package: Package) -> str:
         result = {
-            'name': package.name,
-            'origin': package.origin
+            'name': package.name.value,
+            'origin': package.origin.value
         }
 
         return self.provider.dump(result)
@@ -137,7 +137,7 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
     def print_service(self, service: Service) -> str:
         result = {
             'name': service.name.value,
-            'configuration': service.configuration.value.items()
+            'configuration': service.configuration.value
         }
 
         return self.provider.dump(result)

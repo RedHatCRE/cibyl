@@ -20,11 +20,14 @@ from overrides import overrides
 
 from cibyl.models.ci.base.environment import Environment
 from cibyl.models.ci.base.system import JobsSystem, System
+from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.outputs.cli.ci.env.printer import CIPrinter
 from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     JSONBaseSystemPrinter
 from cibyl.outputs.cli.ci.system.impls.jobs.serialized import \
     JSONJobsSystemPrinter
+from cibyl.outputs.cli.ci.system.impls.zuul.serialized import \
+    JSONZuulSystemPrinter
 from cibyl.outputs.cli.printer import JSONPrinter, SerializedPrinter
 
 LOG = logging.getLogger(__name__)
@@ -72,6 +75,13 @@ class CIJSONPrinter(JSONPrinter, CISerializedPrinter):
             # Check specialized printers
             if isinstance(system, JobsSystem):
                 return JSONJobsSystemPrinter(
+                    query=self.query,
+                    verbosity=self.verbosity,
+                    indentation=self.indentation
+                )
+
+            if isinstance(system, ZuulSystem):
+                return JSONZuulSystemPrinter(
                     query=self.query,
                     verbosity=self.verbosity,
                     indentation=self.indentation
