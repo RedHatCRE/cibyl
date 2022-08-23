@@ -15,17 +15,49 @@
 """
 import logging
 import os
+from typing import Iterable
 
-from git import InvalidGitRepositoryError, NoSuchPathError, Repo
+from git import InvalidGitRepositoryError, NoSuchPathError
+from git import Remote as RemoteAPI
+from git import Repo as RepoAPI
 from overrides import overrides
 
 from tripleo.utils.fs import Dir, File
 from tripleo.utils.git import Git as IGit
 from tripleo.utils.git import GitError
+from tripleo.utils.git import Remote as IRemote
 from tripleo.utils.git import Repository as IRepository
 from tripleo.utils.urls import URL
 
 LOG = logging.getLogger(__name__)
+
+
+class Remote(IRemote):
+    """Implementation of a Git CLI interface with the use of the GitPython
+    library.
+    """
+
+    def __init__(self, handler: RemoteAPI):
+        """Constructor.
+
+        :param handler: An API to interact with the remote.
+        """
+        self._handler = handler
+
+    @property
+    def handler(self) -> RemoteAPI:
+        """
+        :return: API used to interact with the remote.
+        """
+        return self._handler
+
+    @property
+    def name(self) -> str:
+        return self.handler.name
+
+    @property
+    def urls(self) -> Iterable[URL]:
+        return [URL(url) for url in self.handler.urls]
 
 
 class Repository(IRepository):
@@ -33,7 +65,7 @@ class Repository(IRepository):
     library.
     """
 
-    def __init__(self, handler: Repo):
+    def __init__(self, handler: RepoAPI):
         """Constructor.
 
         :param handler: An open session to the repository.
@@ -47,7 +79,7 @@ class Repository(IRepository):
         self.close()
 
     @property
-    def handler(self) -> Repo:
+    def handler(self) -> RepoAPI:
         """
         :return: Session used to interact with the repository.
         """
@@ -56,6 +88,10 @@ class Repository(IRepository):
     @property
     def branch(self) -> str:
         return self.handler.active_branch.name
+
+    @property
+    def remotes(self) -> Iterable[Remote]:
+        return [Remote(remote) for remote in self.handler.remotes]
 
     @overrides
     def checkout(self, branch: str) -> None:
@@ -102,7 +138,7 @@ class GitPython(IGit):
     def open(self, working_dir: Dir) -> Repository:
         try:
             LOG.info("Opening repository at: '%s'.", working_dir)
-            repo = Repo(working_dir.as_path())
+            repo = RepoAPI(working_dir.as_path())
             return Repository(repo)
         except InvalidGitRepositoryError as ex:
             msg = f"Failed to open repository at: '{working_dir}'."
@@ -114,5 +150,5 @@ class GitPython(IGit):
     @overrides
     def clone(self, url: URL, working_dir: Dir) -> Repository:
         LOG.info("Cloning repository: '%s' into: '%s'.", url, working_dir)
-        repo = Repo.clone_from(url, working_dir.as_path())
+        repo = RepoAPI.clone_from(url, working_dir.as_path())
         return Repository(repo)
