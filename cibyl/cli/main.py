@@ -38,7 +38,8 @@ def raw_parsing(arguments: List[str]) -> dict:
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
             "logging": logging.INFO, "plugins": [],
-            "debug": False, "output_style": "colorized"}
+            "debug": False, "output_file_path": None,
+            "output_style": "colorized"}
     for i, item in enumerate(arguments[1:]):
         if item in ('-c', '--config'):
             args['config_file_path'] = arguments[i + 2]
@@ -60,6 +61,8 @@ def raw_parsing(arguments: List[str]) -> dict:
                     break
                 plugins.append(argument)
             args["plugins"] = plugins
+        elif item in ('-o', '--output'):
+            args["output_file_path"] = arguments[i + 2]
         elif item in ('-f', '--output-format'):
             args["output_style"] = arguments[i + 2]
 
