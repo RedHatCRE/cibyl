@@ -18,7 +18,7 @@ from unittest.mock import Mock, patch
 
 from cibyl.cli.output import OutputStyle
 from cibyl.models.ci.base.environment import Environment
-from cibyl.publisher import Publisher
+from cibyl.publisher import Publisher, PublisherTarget
 
 
 class TestOrchestrator(TestCase):
@@ -44,7 +44,7 @@ class TestOrchestrator(TestCase):
 
         self.publisher.publish(
             environment=self.environment,
-            target="terminal",
+            target=PublisherTarget.TERMINAL,
             style=style
         )
 
