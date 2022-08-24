@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import shutil
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from os import PathLike, chdir, getcwd
@@ -125,6 +126,12 @@ class Dir(FSPath):
             exist. Can only happen if 'recursive" is False.
         """
         self.as_path().mkdir(parents=recursive, exist_ok=True)
+
+    def rm(self) -> None:
+        """Deletes the directory and all its contents. Does nothing if the
+        directory does not exist.
+        """
+        shutil.rmtree(self)
 
 
 class File(FSPath):
