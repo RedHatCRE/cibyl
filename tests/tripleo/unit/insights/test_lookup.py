@@ -26,11 +26,13 @@ class TestScenarioFactory(TestCase):
     def test_error_if_no_scenario(self):
         """Checks that an error is thrown if the featureset has no scenario.
         """
+        cache = Mock()
+
         featureset = Mock()
         featureset.get_scenario = Mock()
         featureset.get_scenario.return_value = None
 
-        factory = ScenarioFactory()
+        factory = ScenarioFactory(cache=cache)
 
         with self.assertRaises(ValueError):
             factory.from_interpreters(
