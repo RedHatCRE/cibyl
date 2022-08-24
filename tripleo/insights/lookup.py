@@ -156,7 +156,8 @@ class DeploymentLookUp:
             def loader(resource: Resource) -> YAML:
                 return self.tools.downloader.download_as_yaml(
                     repo=resource.repo,
-                    file=resource.file
+                    file=resource.file,
+                    branch=resource.branch
                 )
 
             cache = Cache[Resource, YAML](
