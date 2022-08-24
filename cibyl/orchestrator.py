@@ -38,7 +38,7 @@ from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.system_factory import SystemType
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.models.product.feature import Feature
-from cibyl.publisher import Publisher, PublisherTarget
+from cibyl.publisher import PublisherFactory, PublisherTarget
 from cibyl.sources.source import (Source, get_source_instance_from_method,
                                   select_source_method,
                                   source_information_from_method)
@@ -68,7 +68,6 @@ class Orchestrator:
         """Orchestrator constructor method"""
         self.parser = Parser()
         self.config = AppConfig()
-        self.publisher = Publisher()
         if not environments:
             self.environments = []
 
@@ -375,7 +374,15 @@ class Orchestrator:
         the results of the queries.
 
         The query is performed per system, while the results are published
-        once per environment"""
+        once per environment if the output format is text or colorized, but are
+        published at the end of all queries for json format.
+
+        :param output_path: Path to write the output to (if not defined print
+        to stdout)
+        :param output_style: Style to print the output with
+        :param features: List of features to query for, it will be None for the
+        'query' subcommand
+        """
 
         def query():
             for system in env.systems:
@@ -386,18 +393,11 @@ class Orchestrator:
                 for source in system.sources:
                     source.ensure_teardown()
 
-        def publish():
-            self.publisher.publish(
-                environment=env, target=target, style=output_style,
-                query=query_type,
-                verbosity=self.parser.app_args.get('verbosity', 0),
-                **kwargs)
-
         command = self.parser.app_args.get('command')
         query_type = get_query_type(**self.parser.ci_args, command=command)
-        kwargs = {}
 
         target = PublisherTarget.TERMINAL
+        file = None
         if output_path:
             target = PublisherTarget.FILE
 
@@ -405,8 +405,15 @@ class Orchestrator:
             file = File(output_path, resolve_home)
             file.delete()
             file.create()
-            kwargs['output_path'] = file
+
+        publisher = PublisherFactory.create_publisher(
+                target=target,
+                style=output_style,
+                query=query_type,
+                verbosity=self.parser.app_args.get('verbosity', 0),
+                output_file=file)
 
         for env in self.environments:
             query()
-            publish()
+            publisher.publish(environment=env)
+        publisher.finish_publishing()
