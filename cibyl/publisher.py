@@ -20,8 +20,6 @@ from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.environment import Environment
 from cibyl.outputs.cli.ci.env.factory import CIPrinterFactory
-from cibyl.utils.fs import File
-from cibyl.utils.paths import resolve_home
 
 LOG = logging.getLogger(__name__)
 
@@ -55,9 +53,11 @@ class Publisher:
             return
 
         if target == PublisherTarget.FILE:
-            file = File(kwargs['output_path'], resolve_home)
+            file = kwargs['output_path']
             LOG.info("Writing output to: '%s'...", file)
-            file.append(output)
+            # add newline to the end out the output that is not added by the
+            # printers
+            file.append(output+'\n')
             return
 
         raise NotImplementedError(f"Unhandled target: '{target}'.")
