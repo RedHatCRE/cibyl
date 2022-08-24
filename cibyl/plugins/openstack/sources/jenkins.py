@@ -313,7 +313,7 @@ accurate results", len(jobs_found))
                                        field_to_check=attribute,
                                        default_user_value=['True']))
                 continue
-            if attribute in ('release') and input_attr:
+            if attribute in ('release', 'topology') and input_attr:
                 for pattern_str in input_attr.value:
                     pattern = re.compile(pattern_str)
                     checks_to_apply.append(partial(satisfy_regex_match,
