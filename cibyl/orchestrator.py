@@ -387,24 +387,25 @@ class Orchestrator:
                     source.ensure_teardown()
 
         def publish():
-            target = PublisherTarget.TERMINAL
-            kwargs = {}
-
-            if output_path:
-                target = PublisherTarget.FILE
-                kwargs['output_path'] = output_path
-
-                # Overwrite is it already exists
-                file = File(output_path, resolve_home)
-                file.delete()
-                file.create()
-
             self.publisher.publish(
                 environment=env, target=target, style=output_style,
-                query=get_query_type(**self.parser.ci_args, command=command),
-                verbosity=self.parser.app_args.get('verbosity', 0), **kwargs)
+                query=query_type,
+                verbosity=self.parser.app_args.get('verbosity', 0),
+                **kwargs)
 
         command = self.parser.app_args.get('command')
+        query_type = get_query_type(**self.parser.ci_args, command=command)
+        kwargs = {}
+
+        target = PublisherTarget.TERMINAL
+        if output_path:
+            target = PublisherTarget.FILE
+
+            # Overwrite file if it already exists
+            file = File(output_path, resolve_home)
+            file.delete()
+            file.create()
+            kwargs['output_path'] = file
 
         for env in self.environments:
             query()
