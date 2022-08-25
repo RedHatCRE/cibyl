@@ -193,7 +193,7 @@ class ZuulVariantAPI(Closeable, ABC):
     def parent(self):
         """
         :return: Name of the parent job for this variant.
-        :rtype: str
+        :rtype: str or None
         """
         return self.raw['parent']
 
