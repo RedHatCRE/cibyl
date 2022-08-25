@@ -20,8 +20,8 @@ from parameterized import parameterized
 
 from cibyl.cli.ranged_argument import Range
 from cibyl.models.ci.zuul.test import TestKind, TestStatus
-from cibyl.sources.zuul.transactions import TestResponse, TestsRequest, \
-    VariantResponse
+from cibyl.sources.zuul.transactions import (TestResponse, TestsRequest,
+                                             VariantResponse)
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
 from cibyl.sources.zuul.utils.tests.types import Test, TestResult
 
