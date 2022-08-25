@@ -229,9 +229,13 @@ class ZuulVariantAPI(Closeable, ABC):
     def context(self):
         """
         :return: The source context of the variant.
-        :rtype: :class:`ZuulVariantAPI.Context`
+        :rtype: :class:`ZuulVariantAPI.Context` or None
         """
         context = self.raw['source_context']
+
+        # Very unlikely, but some jobs may not have a definition
+        if not context:
+            return None
 
         return ZuulVariantAPI.Context(
             project=context['project'],
