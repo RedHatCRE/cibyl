@@ -204,6 +204,49 @@ class TestZuulVariantRESTClient(TestCase):
             variant.variables(recursive=True)
         )
 
+    def test_context(self):
+        """Checks that the API fetches the source context for the variant.
+        """
+        session = Mock()
+        job = Mock()
+        variant = {
+            'source_context': {
+                'project': 'project',
+                'branch': 'master',
+                'path': 'some/path'
+            }
+        }
+
+        client = ZuulVariantRESTClient(
+            session=session,
+            job=job,
+            variant=variant
+        )
+
+        result = client.context
+
+        self.assertEqual(variant['source_context']['project'], result.project)
+        self.assertEqual(variant['source_context']['branch'], result.branch)
+        self.assertEqual(variant['source_context']['path'], result.path)
+
+    def test_null_context(self):
+        """Checks that 'None' is returned if the variant has no source
+        context.
+        """
+        session = Mock()
+        job = Mock()
+        variant = {
+            'source_context': None
+        }
+
+        client = ZuulVariantRESTClient(
+            session=session,
+            job=job,
+            variant=variant
+        )
+
+        self.assertIsNone(client.context)
+
     class TestZuulJobRESTClient(TestCase):
         """Tests for :class:`ZuulJobRESTClient`.
         """

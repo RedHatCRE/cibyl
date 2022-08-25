@@ -642,12 +642,42 @@ class VariantResponse:
         return JobResponse(self._variant.job)
 
     @property
+    def parent(self):
+        """
+        :return: Name of the variant's parent job.
+        :rtype str
+        """
+        return self._variant.parent
+
+    @property
     def name(self):
         """
         :return: The variants name. Most likely, it will match its job's name.
         :rtype: str
         """
         return self._variant.name
+
+    @property
+    def description(self):
+        """
+        :return: Deeper information on this variant's purpose.
+        :rtype: str
+        """
+        return self._variant.description
+
+    @property
+    def branches(self):
+        """
+        :return: Collection of branch names / regex patterns that indicate the
+            branches the variant triggers on.
+        :rtype: list[str]
+        """
+        result = self._variant.branches
+
+        if not result:
+            result = [self._variant.context.branch]
+
+        return result
 
     @property
     def data(self):

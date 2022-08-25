@@ -190,6 +190,14 @@ class ZuulVariantAPI(Closeable, ABC):
         return self._job
 
     @property
+    def parent(self):
+        """
+        :return: Name of the parent job for this variant.
+        :rtype: str
+        """
+        return self.raw['parent']
+
+    @property
     def name(self):
         """
         :return: The name of the variant.
@@ -198,20 +206,36 @@ class ZuulVariantAPI(Closeable, ABC):
         return self.raw['name']
 
     @property
-    def parent(self):
+    def description(self):
         """
-        :return: Name of the parent job of this variant.
+        :return: Explains what makes this variant special.
         :rtype: str
         """
-        return self.raw['parent']
+        return self.raw['description']
+
+    @property
+    def branches(self):
+        """
+        :return: Regular expressions which describe the branches the job
+            runs on. For untrusted jobs, this collection being empty means
+            that the job will trigger on the branch from its definition. On
+            config jobs, it being empty means that the job will trigger on
+            all branches.
+        :rtype: list[str]
+        """
+        return self.raw['branches']
 
     @property
     def context(self):
         """
         :return: The source context of the variant.
-        :rtype: :class:`ZuulVariantAPI.Context`
+        :rtype: :class:`ZuulVariantAPI.Context` or None
         """
         context = self.raw['source_context']
+
+        # Very unlikely, but some jobs may not have a definition
+        if not context:
+            return None
 
         return ZuulVariantAPI.Context(
             project=context['project'],

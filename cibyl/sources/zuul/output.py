@@ -147,7 +147,13 @@ class QueryOutputBuilder:
         job = self.with_job(variant.job)
 
         # Generate the variant's model
-        model = Job.Variant.from_data(variant.data)
+        model = Job.Variant(
+            parent=variant.parent,
+            name=variant.name,
+            description=variant.description,
+            branches=variant.branches,
+            variables=variant.variables(recursive=True)
+        )
 
         # Register the variant
         job.add_variant(model)
