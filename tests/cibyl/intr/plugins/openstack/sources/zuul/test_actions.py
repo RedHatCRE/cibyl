@@ -54,18 +54,14 @@ class TestDeploymentQuery(TestCase):
 
         variant1 = Mock()
         variant1.job = job
-        variant1.data = {
-            'name': 'variant1'
-        }
+        variant1.name = 'variant1'
         variant1.variables.return_value = {
             'rhos_release_version': '1.2'
         }
 
         variant2 = Mock()
         variant2.job = job
-        variant2.data = {
-            'name': 'variant2'
-        }
+        variant2.name = 'variant2'
         variant2.variables.return_value = {
             'rhos_release_version': '2.0'
         }
@@ -88,4 +84,4 @@ class TestDeploymentQuery(TestCase):
 
         # Check the that variant in the first release is the one returned
         self.assertEqual(1, len(result_variants))
-        self.assertEqual(variant1.data['name'], result_variants[0].name.value)
+        self.assertEqual(variant1.name, result_variants[0].name.value)
