@@ -80,3 +80,24 @@ class TestRawParsing(TestCase):
         self.assertEqual(args['logging'], logging.DEBUG)
         self.assertEqual(args['plugins'], ['plugin1', 'plugin2'])
         self.assertEqual(args['output_style'], OutputStyle.from_key('text'))
+
+    def test_parser_plugin_argument_with_query(self):
+        """Tests parser plugin argument with subcommands."""
+        parse_args = ['cibyl', '--plugin', 'openstack', 'unknown', 'query',
+                      '--jobs']
+        args = raw_parsing(parse_args)
+        self.assertEqual(args['plugins'], ['openstack', 'unknown'])
+
+    def test_parser_plugin_argument_with_features(self):
+        """Tests parser plugin argument with subcommands."""
+        parse_args = ['cibyl', '--plugin', 'openstack', 'unknown', 'features']
+
+        args = raw_parsing(parse_args)
+        self.assertEqual(args['plugins'], ['openstack', 'unknown'])
+
+    def test_parser_plugin_argument_with_spec(self):
+        """Tests parser plugin argument with subcommands."""
+        parse_args = ['cibyl', '--plugin', 'openstack', 'unknown', 'spec']
+
+        args = raw_parsing(parse_args)
+        self.assertEqual(args['plugins'], ['openstack', 'unknown'])
