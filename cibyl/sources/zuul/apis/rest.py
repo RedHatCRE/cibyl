@@ -106,46 +106,6 @@ class ZuulVariantRESTClient(ZuulVariantAPI):
             self.job == other.job and \
             self.raw == other.raw
 
-    @overrides
-    def variables(self, recursive=False):
-        def get_own_variables():
-            result.update(self.raw['variables'])
-
-        def get_parent_variables():
-            if not recursive:
-                return
-
-            if not self.parent:
-                return
-
-            parent = ZuulJobRESTClient(
-                self._session,
-                self._job.tenant,
-                {
-                    'name': self.parent
-                }
-            )
-
-            # There is weird error where sometimes a job exists,
-            # but Zuul fails to get any data on it, failing with a
-            # 500 error. For such cases, this needs to be aware of
-            # it and continue with the data it could collect.
-
-            try:
-                for variant in parent.variants():
-                    result.update(variant.variables(recursive))
-            except ZuulAPIError as ex:
-                LOG.debug("Failed to get variables for variant: '%s'. "
-                          "Reason: '%s'.", parent.name, ex.message)
-
-        result = {}
-
-        # Own variables will overwrite parent ones.
-        get_parent_variables()
-        get_own_variables()
-
-        return result
-
     def close(self):
         self._session.close()
 

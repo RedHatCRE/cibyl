@@ -244,24 +244,21 @@ class ZuulVariantAPI(Closeable, ABC):
         )
 
     @property
+    def variables(self):
+        """Gets the variables that specialize this variant.
+
+        :return: Dictionary with the variant's variables.
+        :rtype: dict[str, Any]
+        """
+        return self.raw['variables']
+
+    @property
     def raw(self):
         """
         :return: All the data known of this variant, unprocessed.
         :rtype: dict[str, Any]
         """
         return self._variant
-
-    @abstractmethod
-    def variables(self, recursive=False):
-        """Gets the variables that specialize this variant.
-
-        :param recursive: Whether to gather the variables of the variant's
-            parents as well.
-        :type recursive: bool
-        :return: Dictionary with the variant's variables.
-        :rtype: dict[str, Any]
-        """
-        raise NotImplementedError
 
 
 class ZuulJobAPI(Closeable, ABC):

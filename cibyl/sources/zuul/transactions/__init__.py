@@ -694,7 +694,7 @@ class VariantResponse:
         :return: Variables of this variant.
         :rtype: dict[str, Any]
         """
-        return self._variant.variables(recursive)
+        return self._variant.variables
 
 
 class BuildResponse:
