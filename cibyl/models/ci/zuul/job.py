@@ -88,26 +88,6 @@ class Job(BaseJob):
                 }
             )
 
-        @staticmethod
-        def from_data(data):
-            """Builds a variant from the data fetched from the input.
-
-            ..  seealso::
-                :meth:`Job.Variant.__init__` for expected data.
-
-            :param data: Random set of data.
-            :type data: dict[str, Any]
-            :return: The variant instance.
-            :rtype: :class:`Job.Variant`
-            """
-            return Job.Variant(
-                parent=data.get('parent', 'Unknown'),
-                name=data.get('name', 'Unknown'),
-                description=data.get('description'),
-                branches=data.get('branches'),
-                variables=data.get('variables')
-            )
-
         def __eq__(self, other):
             if not isinstance(other, Job.Variant):
                 return False
