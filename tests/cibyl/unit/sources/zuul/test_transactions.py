@@ -20,7 +20,8 @@ from parameterized import parameterized
 
 from cibyl.cli.ranged_argument import Range
 from cibyl.models.ci.zuul.test import TestKind, TestStatus
-from cibyl.sources.zuul.transactions import TestResponse, TestsRequest
+from cibyl.sources.zuul.transactions import TestResponse, TestsRequest, \
+    VariantResponse
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
 from cibyl.sources.zuul.utils.tests.types import Test, TestResult
 
@@ -109,6 +110,37 @@ class TestTestsRequest(TestCase):
 
         self.assertEqual(1, len(result))
         self.assertEqual(test1.name, result[0].name)
+
+
+class TestVariantResponse(TestCase):
+    """Tests for :class:`VariantResponse`.
+    """
+
+    def test_explicit_branches(self):
+        """Checks that when the variant has explicit branches assigned to
+        it, those are the ones returned.
+        """
+        api = Mock()
+        api.branches = ['explicit']
+
+        variant = VariantResponse(variant=api)
+
+        self.assertEqual(api.branches, variant.branches)
+
+    def test_implicit_branches(self):
+        """Checks that when the variant has no explicit branches assigned to
+        it, the branch is implicitly extracted from its definition then.
+        """
+        context = Mock()
+        context.branch = 'implicit'
+
+        api = Mock()
+        api.branches = []
+        api.context = context
+
+        variant = VariantResponse(variant=api)
+
+        self.assertEqual([context.branch], variant.branches)
 
 
 class TestTestResponse(TestCase):
