@@ -19,10 +19,9 @@ from typing import Iterable, NamedTuple
 from overrides import overrides
 from requests import Session
 
-from cibyl.sources.zuul.apis import (ZuulAPI, ZuulAPIError, ZuulBuildAPI,
-                                     ZuulJobAPI, ZuulPipelineAPI,
-                                     ZuulProjectAPI, ZuulTenantAPI,
-                                     ZuulVariantAPI)
+from cibyl.sources.zuul.apis import (ZuulAPI, ZuulBuildAPI, ZuulJobAPI,
+                                     ZuulPipelineAPI, ZuulProjectAPI,
+                                     ZuulTenantAPI, ZuulVariantAPI)
 from cibyl.sources.zuul.apis.http import ZuulHTTPBuildAPI, ZuulSession
 from cibyl.sources.zuul.utils.tests.finder import TestFinder
 from cibyl.sources.zuul.utils.tests.tempest.finder import TempestTestFinder

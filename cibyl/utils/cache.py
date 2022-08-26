@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import TypeVar, Generic, MutableMapping, Optional
+from typing import Generic, MutableMapping, Optional, TypeVar
 
 K = TypeVar('K')
 """Type of keys used by the cache."""
