@@ -22,15 +22,22 @@ License:
 """
 import re
 from abc import ABC
-from typing import Iterable
+from typing import Iterable, Sequence
+
+from cached_property import cached_property
 
 from cibyl.cli.ranged_argument import RANGE_OPERATORS, Range
+from cibyl.exceptions import CibylException
 from cibyl.models.ci.zuul.test import TestKind, TestStatus
 from cibyl.sources.zuul.apis import ZuulBuildAPI
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
 from cibyl.sources.zuul.utils.tests.types import Test, TestResult, TestSuite
 from cibyl.utils.filtering import apply_filters, matches_regex
 from cibyl.utils.urls import URL
+
+
+class TransactionError(CibylException):
+    pass
 
 
 class Request(ABC):
@@ -641,13 +648,36 @@ class VariantResponse:
         """
         return JobResponse(self._variant.job)
 
-    @property
+    @cached_property
     def parent(self):
         """
         :return: Name of the variant's parent job.
-        :rtype str
+        :rtype :class:`VariantResponse` or None
         """
-        return self._variant.parent
+        parent = self._variant.parent
+
+        if not parent:
+            return None
+
+        request = self.job.tenant.jobs()
+        request.with_name(f'^{parent}$')
+
+        jobs = request.get()
+
+        if len(jobs) == 0:
+            raise TransactionError
+
+        if len(jobs) > 1:
+            raise TransactionError
+
+        job = jobs[0]
+
+        for variant in job.variants().get():
+            for branch in variant.branches:
+                if any(matches_regex(branch, mine) for mine in self.branches):
+                    return variant
+
+        return None
 
     @property
     def name(self):
@@ -687,6 +717,19 @@ class VariantResponse:
         """
         return self._variant.raw
 
+    @cached_property
+    def _hierarchy(self) -> Sequence['VariantResponse']:
+        result = []
+
+        variant = self
+        while variant.parent:
+            result.append(variant)
+            variant = variant.parent
+
+        result.append(variant)
+
+        return result
+
     def variables(self, recursive=False):
         """
         :param recursive: Whether to gather the variables of parent as well.
@@ -694,7 +737,13 @@ class VariantResponse:
         :return: Variables of this variant.
         :rtype: dict[str, Any]
         """
-        return self._variant.variables
+        result = {}
+        hierarchy = reversed(self._hierarchy) if recursive else [self]
+
+        for level in hierarchy:
+            result.update(level._variant.variables)
+
+        return result
 
 
 class BuildResponse:
