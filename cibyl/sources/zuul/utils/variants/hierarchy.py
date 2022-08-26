@@ -57,21 +57,8 @@ class JobFinder:
 
 class VariantFinder:
     class Search:
-        @dataclass
-        class Tools:
-            jobs: JobFinder = field(
-                default_factory=lambda: JobFinder()
-            )
-
-        def __init__(self, tools: Optional[Tools] = None):
-            if tools is None:
-                tools = VariantFinder.Search.Tools()
-
+        def __init__(self, tools: 'VariantFinder.Tools'):
             self._tools = tools
-
-        @property
-        def tools(self):
-            return self._tools
 
         def parent_of(self, variant: Variant) -> Optional[Variant]:
             parent = variant.parent
@@ -91,48 +78,81 @@ class VariantFinder:
                 f"Could not find parent variant for: '{variant.name}'."
             )
 
+        @property
+        def tools(self) -> 'VariantFinder.Tools':
+            return self._tools
+
+    @dataclass
+    class Tools:
+        jobs: JobFinder = field(
+            default_factory=lambda: JobFinder()
+        )
+
+    def __init__(self, tools: Optional[Tools] = None):
+        if tools is None:
+            tools = VariantFinder.Tools()
+
+        self._tools = tools
+
+    @property
+    def tools(self):
+        return self._tools
+
     def find(self) -> Search:
-        return VariantFinder.Search()
+        return VariantFinder.Search(
+            tools=self.tools
+        )
 
 
 class HierarchyCrawler:
     class Iterator:
-        @dataclass
-        class Tools:
-            variants: VariantFinder = field(
-                default_factory=lambda: VariantFinder()
-            )
-
-        def __init__(
-            self,
-            start: Variant,
-            tools: Optional[Tools] = None
-        ):
-            if tools is None:
-                tools = HierarchyCrawler.Iterator.Tools()
-
-            self._step = start
+        def __init__(self, start: Variant, tools: 'HierarchyCrawler.Tools'):
+            self._step = None
+            self._start = start
             self._tools = tools
 
         def __next__(self) -> Variant:
-            parent = self.tools.variants.find().parent_of(self._step)
+            next_step = self._get_next_step()
 
-            if not parent:
+            if not next_step:
                 raise StopIteration
 
-            self._step = parent
-            return parent
+            self._step = next_step
+            return self._step
+
+        def _get_next_step(self) -> Variant:
+            if self._step is None:
+                return self._start
+
+            return self.tools.variants.find().parent_of(self._step)
 
         @property
         def tools(self):
             return self._tools
 
-    def __init__(self, variant: Variant):
+    @dataclass
+    class Tools:
+        variants: VariantFinder = field(
+            default_factory=lambda: VariantFinder()
+        )
+
+    def __init__(self, variant: Variant, tools: Optional[Tools] = None):
+        if tools is None:
+            tools = HierarchyCrawler.Tools()
+
         self._variant = variant
+        self._tools = tools
 
     def __iter__(self) -> Iterator:
-        return HierarchyCrawler.Iterator(start=self.variant)
+        return HierarchyCrawler.Iterator(
+            start=self.variant,
+            tools=self.tools
+        )
 
     @property
     def variant(self):
         return self._variant
+
+    @property
+    def tools(self):
+        return self._tools
