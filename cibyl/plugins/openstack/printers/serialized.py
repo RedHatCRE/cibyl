@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import ABC
+from typing import Union
 
 from overrides import overrides
 
@@ -58,7 +59,9 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
                 'cleaning_network': ironic.cleaning_network.value
             } if ironic else {},
             'overcloud_templates':
-                list(deployment.overcloud_templates.value)
+                self._print_overcloud_templates(
+                    deployment.overcloud_templates.value
+                )
                 if deployment.overcloud_templates.value else [],
             'test_collection':
                 self.provider.load(
@@ -89,9 +92,16 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
 
     @overrides
     def print_test_collection(self, collection: TestCollection) -> str:
+        if isinstance(collection, str):
+            # sometime the test collection is stored as a string indicating
+            # that no test information was available (usually N/A), so in those
+            # cases we'll replace the collection with an empty one
+            collection = TestCollection()
+
         result = {
             'tests':
-                list(collection.tests.value)
+                # sort list of tests so it's consistently displayed
+                sorted(list(collection.tests.value))
                 if collection.tests.value else [],
             'setup': collection.setup.value
         }
@@ -119,7 +129,10 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
         result = {
             'name': container.name.value,
             'image': container.image.value,
-            'package': container.package.value
+            'packages': [
+                self.provider.load(self.print_package(package))
+                for package in container.packages.values()
+            ]
         }
 
         return self.provider.dump(result)
@@ -141,6 +154,14 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
         }
 
         return self.provider.dump(result)
+
+    def _print_overcloud_templates(self, templates: Union[str, set]) -> list:
+        if isinstance(templates, str):
+            # sometime the test collection is stored as a string indicating
+            # that no test information was available (usually N/A), so in those
+            # cases we'll replace the collection with an empty one
+            return []
+        return list(templates)
 
 
 class OSJSONPrinter(JSONPrinter, OSSerializedPrinter):
