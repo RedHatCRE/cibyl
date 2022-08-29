@@ -32,9 +32,12 @@ class VariableSearch:
 
     @dataclass
     class Tools:
+        """Tools this class uses to do its job.
+        """
         variables: RecursiveVariableSearchFactory = field(
             default_factory=lambda: RecursiveVariableSearchFactory()
         )
+        """Gets all the variables that affect a certain variant."""
 
     def __init__(
         self,
@@ -49,6 +52,8 @@ class VariableSearch:
             As an example, given a list of two names for a variable: ['val1',
             'val2'], 'val1' will always be preferred over 'val2', falling back
             to the later one only if the first does not exist.
+        :param tools: Tools this uses to do its job. 'None' to let this
+            generate its own.
         """
         if tools is None:
             tools = VariableSearch.Tools()
@@ -65,7 +70,10 @@ class VariableSearch:
         return self._search_terms
 
     @property
-    def tools(self):
+    def tools(self) -> Tools:
+        """
+        :return: Tools this uses to do its job.
+        """
         return self._tools
 
     def search(self, variant: VariantResponse) -> Optional[Tuple[str, Any]]:

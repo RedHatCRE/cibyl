@@ -192,7 +192,8 @@ class ZuulVariantAPI(Closeable, ABC):
     @property
     def parent(self):
         """
-        :return: Name of the parent job for this variant.
+        :return: Name of the parent job for this variant. 'None' if it does
+            not have one.
         :rtype: str or None
         """
         return self.raw['parent']
@@ -255,7 +256,7 @@ class ZuulVariantAPI(Closeable, ABC):
     @property
     def raw(self):
         """
-        :return: All the data known of this variant, unprocessed.
+        :return: All the data on this variant, unprocessed.
         :rtype: dict[str, Any]
         """
         return self._variant

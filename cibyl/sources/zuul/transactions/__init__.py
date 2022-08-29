@@ -25,17 +25,12 @@ from abc import ABC
 from typing import Iterable
 
 from cibyl.cli.ranged_argument import RANGE_OPERATORS, Range
-from cibyl.exceptions import CibylException
 from cibyl.models.ci.zuul.test import TestKind, TestStatus
 from cibyl.sources.zuul.apis import ZuulBuildAPI
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
 from cibyl.sources.zuul.utils.tests.types import Test, TestResult, TestSuite
 from cibyl.utils.filtering import apply_filters, matches_regex
 from cibyl.utils.urls import URL
-
-
-class TransactionError(CibylException):
-    pass
 
 
 class Request(ABC):
@@ -649,7 +644,8 @@ class VariantResponse:
     @property
     def parent(self):
         """
-        :return:
+        :return: Name of the parent job for this variant. 'None' if it does
+            not have one.
         :rtype: str or None
         """
         return self._variant.parent
@@ -687,7 +683,7 @@ class VariantResponse:
     @property
     def variables(self):
         """
-        :return:
+        :return: Variables that specialize this variant.
         :rtype: dict[str, Any]
         """
         return self._variant.variables
@@ -695,7 +691,7 @@ class VariantResponse:
     @property
     def data(self):
         """
-        :return: Raw data of this variant
+        :return: Raw data of this variant.
         :rtype: dict[str, Any]
         """
         return self._variant.raw

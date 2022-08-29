@@ -39,12 +39,18 @@ class QueryOutputBuilder:
 
     @dataclass
     class Tools:
+        """Tools this uses to do its task.
+        """
         variables: RecursiveVariableSearchFactory = field(
             default_factory=lambda: RecursiveVariableSearchFactory()
         )
+        """Gets all the variables that affect a certain variant."""
 
     def __init__(self, tools: Optional[Tools] = None):
         """Constructor.
+
+        :param tools: Tools this uses to do its task. 'None' to let it
+            generate its own.
         """
         if tools is None:
             tools = QueryOutputBuilder.Tools()
@@ -53,7 +59,10 @@ class QueryOutputBuilder:
         self._tools = tools
 
     @property
-    def tools(self):
+    def tools(self) -> Tools:
+        """
+        :return: Tools this uses to do its task.
+        """
         return self._tools
 
     def with_tenant(self, tenant):
