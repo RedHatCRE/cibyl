@@ -95,10 +95,14 @@ class ReleaseSearch(VariableSearch):
     )
     """Default variables known to hold the job's release."""
 
-    def __init__(self, search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS):
+    def __init__(
+        self,
+        search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS,
+        tools: Optional[VariableSearch.Tools] = None
+    ):
         """Constructor. See parent for more information.
         """
-        super().__init__(search_terms)
+        super().__init__(search_terms, tools)
 
     @overrides
     def search(self, variant: VariantResponse) -> Optional[Tuple[str, str]]:
@@ -122,10 +126,14 @@ class ReleaseNameSearch(VariableSearch):
     DEFAULT_SEARCH_TERMS = ('release',)
     """Default variables known to hold the job's release name."""
 
-    def __init__(self, search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS):
+    def __init__(
+        self,
+        search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS,
+        tools: Optional[VariableSearch.Tools] = None
+    ):
         """Constructor. See parent for more information.
         """
-        super().__init__(search_terms)
+        super().__init__(search_terms, tools)
 
     @overrides
     def search(self, variant: VariantResponse) -> Optional[Tuple[str, str]]:
@@ -142,10 +150,14 @@ class FeatureSetSearch(VariableSearch):
     DEFAULT_SEARCH_TERMS = ('featureset',)
     """Default variables known to hold the job's featureset."""
 
-    def __init__(self, search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS):
+    def __init__(
+        self,
+        search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS,
+        tools: Optional[VariableSearch.Tools] = None
+    ):
         """Constructor. See parent for more information.
         """
-        super().__init__(search_terms)
+        super().__init__(search_terms, tools)
 
     @overrides
     def search(self, variant: VariantResponse) -> Optional[Tuple[str, str]]:
@@ -161,10 +173,14 @@ class FeatureSetOverridesSearch(VariableSearch):
     DEFAULT_SEARCH_TERMS = ('featureset_override',)
     """Default variables known to hold the job's featureset overrides."""
 
-    def __init__(self, search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS):
+    def __init__(
+        self,
+        search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS,
+        tools: Optional[VariableSearch.Tools] = None
+    ):
         """Constructor. See parent for more information.
         """
-        super().__init__(search_terms)
+        super().__init__(search_terms, tools)
 
     @overrides
     def search(self, variant: VariantResponse) -> Optional[Tuple[str, dict]]:
@@ -178,10 +194,14 @@ class NodesSearch(VariableSearch):
     """
     DEFAULT_SEARCH_TERMS = ('nodes',)
 
-    def __init__(self, search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS):
+    def __init__(
+        self,
+        search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS,
+        tools: Optional[VariableSearch.Tools] = None
+    ):
         """Constructor. See parent for more information.
         """
-        super().__init__(search_terms)
+        super().__init__(search_terms, tools)
 
     @overrides
     def search(self, variant: VariantResponse) -> Optional[Tuple[str, str]]:
@@ -196,10 +216,14 @@ class InfraTypeSearch(VariableSearch):
     """
     DEFAULT_SEARCH_TERMS = ('environment_type',)
 
-    def __init__(self, search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS):
+    def __init__(
+        self,
+        search_terms: Iterable[str] = DEFAULT_SEARCH_TERMS,
+        tools: Optional[VariableSearch.Tools] = None
+    ):
         """Constructor. See parent for more information.
         """
-        super().__init__(search_terms)
+        super().__init__(search_terms, tools)
 
     @overrides
     def search(self, variant: VariantResponse) -> Optional[Tuple[str, str]]:
