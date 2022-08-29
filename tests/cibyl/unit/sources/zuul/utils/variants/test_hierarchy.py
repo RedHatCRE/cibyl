@@ -17,7 +17,8 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.sources.zuul.utils.variants.hierarchy import JobFinder, SearchError, \
-    VariantFinder, HierarchyCrawler, HierarchyCrawlerFactory, HierarchyBuilder
+    VariantFinder, HierarchyCrawler, HierarchyCrawlerFactory, HierarchyBuilder, \
+    RecursiveVariableSearch
 
 
 class TestJobFinder(TestCase):
@@ -257,3 +258,56 @@ class TestHierarchyBuilder(TestCase):
             ],
             builder.from_variant(variant).build()
         )
+
+        tools.crawlers.from_variant.assert_called_once_with(variant)
+
+
+class TestRecursiveVariableSearch(TestCase):
+    """Tests for :class:`RecursiveVariableSearch`.
+    """
+
+    def test_search(self):
+        """Checks that it is able to build the variable map going down a
+        variant's hierarchy.
+        """
+
+        grandparent = Mock()
+        grandparent.variables = {
+            'var1': 'val1'
+        }
+
+        parent = Mock()
+        parent.variables = {
+            'var2': 'val2'
+        }
+
+        variant = Mock()
+        variant.variables = {
+            'var2': 'val3'
+        }
+
+        sequence = [variant, parent, grandparent]
+
+        hierarchy = Mock()
+        hierarchy.from_variant = Mock()
+        hierarchy.from_variant.return_value = Mock()
+        hierarchy.from_variant.return_value.build = Mock()
+        hierarchy.from_variant.return_value.build.return_value = sequence
+
+        tools = Mock()
+        tools.hierarchy = hierarchy
+
+        search = RecursiveVariableSearch(
+            variant=variant,
+            tools=tools
+        )
+
+        self.assertEqual(
+            {
+                'var1': 'val1',
+                'var2': 'val3'
+            },
+            search.search()
+        )
+
+        hierarchy.from_variant.assert_called_once_with(variant)

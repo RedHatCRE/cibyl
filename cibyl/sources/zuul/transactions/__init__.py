@@ -22,9 +22,7 @@ License:
 """
 import re
 from abc import ABC
-from typing import Iterable, Sequence
-
-from cached_property import cached_property
+from typing import Iterable
 
 from cibyl.cli.ranged_argument import RANGE_OPERATORS, Range
 from cibyl.exceptions import CibylException
@@ -648,46 +646,13 @@ class VariantResponse:
         """
         return JobResponse(self._variant.job)
 
-    @cached_property
+    @property
     def parent(self):
         """
-        :return: The variant this one inherits from. 'None' if the variant
-            has no parent.
-        :rtype :class:`VariantResponse` or None
-        :raises TransactionError: If the parent could not be found.
+        :return:
+        :rtype: str or None
         """
-        parent = self._variant.parent
-
-        # Is this a base job?
-        if not parent:
-            return None
-
-        # The job must be somewhere on this tenant
-        request = self.job.tenant.jobs()
-        request.with_name(f'^{parent}$')
-
-        jobs = request.get()
-
-        # The parent does not exist
-        if len(jobs) == 0:
-            raise TransactionError(f"No job with name: '{parent}'")
-
-        # Job names should be unique. On any case, let's make sure
-        if len(jobs) > 1:
-            raise TransactionError(f"More than one job with name: '{parent}'.")
-
-        job = jobs[0]
-
-        # Search for the parent variant
-        for variant in job.variants().get():
-            for branch in variant.branches:
-                # It will be the first one to provide for the variant's branch
-                if any(matches_regex(branch, mine) for mine in self.branches):
-                    return variant
-
-        raise TransactionError(
-            f"Could not find parent variant for: '{self.name}'."
-        )
+        return self._variant.parent
 
     @property
     def name(self):
@@ -720,52 +685,20 @@ class VariantResponse:
         return result
 
     @property
+    def variables(self):
+        """
+        :return:
+        :rtype: dict[str, Any]
+        """
+        return self._variant.variables
+
+    @property
     def data(self):
         """
         :return: Raw data of this variant
         :rtype: dict[str, Any]
         """
         return self._variant.raw
-
-    @cached_property
-    def hierarchy(self) -> Sequence['VariantResponse']:
-        """
-        :return: Sequence of inheritance for this variant, ordered from
-            this variant to the base one. It is returned as a sequence to
-            allow for its reversal.
-        """
-        result = []
-
-        # Recursively climb to the base variant, building the hierarchy
-        variant = self
-        while variant.parent:
-            result.append(variant)
-            variant = variant.parent
-
-        # Add the base variant as well
-        result.append(variant)
-
-        return result
-
-    def variables(self, recursive=False):
-        """
-        :param recursive: True to include all variables that affect this
-            variant, False to just return the ones it defines.
-        :type recursive: bool
-        :return: The variant's variables.
-        :rtype: dict[str, Any]
-        """
-        result = {}
-
-        # The hierarchy is reversed so that the lower levels override the
-        # ones from the top. Ex: base -> linters -> tox-linters...
-        hierarchy = reversed(self.hierarchy) if recursive else [self]
-
-        # Build the variant's variables
-        for level in hierarchy:
-            result.update(level._variant.variables)
-
-        return result
 
 
 class BuildResponse:

@@ -14,11 +14,14 @@
 #    under the License.
 """
 import logging
+from dataclasses import dataclass, field
 from typing import Any, Iterable, Optional, Tuple
 
 from overrides import overrides
 
 from cibyl.sources.zuul.transactions import VariantResponse
+from cibyl.sources.zuul.utils.variants.hierarchy import \
+    RecursiveVariableSearchFactory
 
 LOG = logging.getLogger(__name__)
 
@@ -27,7 +30,17 @@ class VariableSearch:
     """Utility meant to make finding a variable in a Zuul job easier.
     """
 
-    def __init__(self, search_terms: Iterable[str]):
+    @dataclass
+    class Tools:
+        variables: RecursiveVariableSearchFactory = field(
+            default_factory=lambda: RecursiveVariableSearchFactory()
+        )
+
+    def __init__(
+        self,
+        search_terms: Iterable[str],
+        tools: Optional[Tools] = None
+    ):
         """Constructor.
 
         :param search_terms: List containing the possible names of the job
@@ -37,7 +50,11 @@ class VariableSearch:
             'val2'], 'val1' will always be preferred over 'val2', falling back
             to the later one only if the first does not exist.
         """
+        if tools is None:
+            tools = VariableSearch.Tools()
+
         self._search_terms = search_terms
+        self._tools = tools
 
     @property
     def search_terms(self) -> Iterable[str]:
@@ -47,6 +64,10 @@ class VariableSearch:
         """
         return self._search_terms
 
+    @property
+    def tools(self):
+        return self._tools
+
     def search(self, variant: VariantResponse) -> Optional[Tuple[str, Any]]:
         """Search the target variable among the ones defined on the
         provided variant.
@@ -55,7 +76,7 @@ class VariableSearch:
         :return: The name of the found variable next to its value. None if
             the variable was not found.
         """
-        variables = variant.variables(recursive=True)
+        variables = self.tools.variables.from_variant(variant).search()
 
         for search_term in self.search_terms:
             if search_term in variables:

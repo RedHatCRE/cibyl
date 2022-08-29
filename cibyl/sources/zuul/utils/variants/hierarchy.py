@@ -14,12 +14,14 @@
 #    under the License.
 """
 from dataclasses import dataclass, field
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Dict, Any
 
 from cibyl.sources.zuul.transactions import JobResponse as Job
 from cibyl.sources.zuul.transactions import TenantResponse as Tenant
 from cibyl.sources.zuul.transactions import VariantResponse as Variant
 from cibyl.utils.filtering import matches_regex
+
+Variables = Dict[str, Any]
 
 
 class SearchError(Exception):
@@ -211,3 +213,42 @@ class HierarchyBuilder:
             variant=variant,
             tools=self.tools
         )
+
+
+class RecursiveVariableSearch:
+    @dataclass
+    class Tools:
+        hierarchy: HierarchyBuilder = field(
+            default_factory=lambda: HierarchyBuilder()
+        )
+
+    def __init__(self, variant: Variant, tools: Optional[Tools] = None):
+        if tools is None:
+            tools = RecursiveVariableSearch.Tools()
+
+        self._variant = variant
+        self._tools = tools
+
+    @property
+    def variant(self):
+        return self._variant
+
+    @property
+    def tools(self):
+        return self._tools
+
+    def search(self) -> Variables:
+        result = {}
+
+        hierarchy = self.tools.hierarchy.from_variant(self.variant).build()
+        hierarchy = reversed(hierarchy)
+
+        for level in hierarchy:
+            result.update(level.variables)
+
+        return result
+
+
+class RecursiveVariableSearchFactory:
+    def from_variant(self, variant: Variant) -> RecursiveVariableSearch:
+        return RecursiveVariableSearch(variant)

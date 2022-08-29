@@ -13,7 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Dict
+from dataclasses import dataclass, field
+from typing import Dict, Optional
 
 from cibyl.models.ci.zuul.build import Build
 from cibyl.models.ci.zuul.job import Job
@@ -22,6 +23,8 @@ from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.models.ci.zuul.test import Test
 from cibyl.models.ci.zuul.test_suite import TestSuite
+from cibyl.sources.zuul.utils.variants.hierarchy import \
+    RecursiveVariableSearchFactory
 
 
 class QueryOutput(Dict[str, Tenant]):
@@ -34,10 +37,24 @@ class QueryOutputBuilder:
     Zuul host.
     """
 
-    def __init__(self):
+    @dataclass
+    class Tools:
+        variables: RecursiveVariableSearchFactory = field(
+            default_factory=lambda: RecursiveVariableSearchFactory()
+        )
+
+    def __init__(self, tools: Optional[Tools] = None):
         """Constructor.
         """
+        if tools is None:
+            tools = QueryOutputBuilder.Tools()
+
         self._tenants = {}
+        self._tools = tools
+
+    @property
+    def tools(self):
+        return self._tools
 
     def with_tenant(self, tenant):
         """Adds a tenant to the current model being built. If the tenant is
@@ -152,7 +169,7 @@ class QueryOutputBuilder:
             name=variant.name,
             description=variant.description,
             branches=variant.branches,
-            variables=variant.variables(recursive=True)
+            variables=self.tools.variables.from_variant(variant).search()
         )
 
         # Register the variant
