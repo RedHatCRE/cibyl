@@ -193,7 +193,7 @@ class ElasticSearch(SourceExtension):
 
             results = self.__query_get_hits(
                 query=query_body,
-                index='logstash_jenkins'
+                index='logstash_jenkins_jobs_cibyl'
             )
             for result in results:
                 hits_info[
