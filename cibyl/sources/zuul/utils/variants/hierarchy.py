@@ -14,7 +14,7 @@
 #    under the License.
 """
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Sequence
 
 from cibyl.sources.zuul.transactions import JobResponse as Job
 from cibyl.sources.zuul.transactions import TenantResponse as Tenant
@@ -50,6 +50,10 @@ class JobFinder:
                 )
 
             return result[0]
+
+        @property
+        def job(self) -> str:
+            return self._job
 
     def find(self, job: str) -> Search:
         return JobFinder.Search(job)
@@ -127,7 +131,11 @@ class HierarchyCrawler:
             return self.tools.variants.find().parent_of(self._step)
 
         @property
-        def tools(self):
+        def start(self) -> Variant:
+            return self._start
+
+        @property
+        def tools(self) -> 'HierarchyCrawler.Tools':
             return self._tools
 
     @dataclass
@@ -156,3 +164,50 @@ class HierarchyCrawler:
     @property
     def tools(self):
         return self._tools
+
+
+class HierarchyCrawlerFactory:
+    def from_variant(self, variant: Variant) -> HierarchyCrawler:
+        return HierarchyCrawler(variant)
+
+
+class HierarchyBuilder:
+    class VariantTask:
+        def __init__(self, variant: Variant, tools: 'HierarchyBuilder.Tools'):
+            self._variant = variant
+            self._tools = tools
+
+        def build(self) -> Sequence[Variant]:
+            crawler = self.tools.crawlers.from_variant(self.variant)
+
+            return [*crawler]
+
+        @property
+        def variant(self) -> Variant:
+            return self._variant
+
+        @property
+        def tools(self) -> 'HierarchyBuilder.Tools':
+            return self._tools
+
+    @dataclass
+    class Tools:
+        crawlers: HierarchyCrawlerFactory = field(
+            default_factory=lambda: HierarchyCrawlerFactory()
+        )
+
+    def __init__(self, tools: Optional[Tools] = None):
+        if tools is None:
+            tools = HierarchyBuilder.Tools()
+
+        self._tools = tools
+
+    @property
+    def tools(self):
+        return self._tools
+
+    def from_variant(self, variant: Variant) -> VariantTask:
+        return HierarchyBuilder.VariantTask(
+            variant=variant,
+            tools=self.tools
+        )

@@ -17,7 +17,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.sources.zuul.utils.variants.hierarchy import JobFinder, SearchError, \
-    VariantFinder, HierarchyCrawler
+    VariantFinder, HierarchyCrawler, HierarchyCrawlerFactory, HierarchyBuilder
 
 
 class TestJobFinder(TestCase):
@@ -206,3 +206,54 @@ class TestHierarchyCrawler(TestCase):
 
         with self.assertRaises(StopIteration):
             next(iterator)
+
+
+class TestHierarchyCrawlerFactory(TestCase):
+    """Tests for :class:`HierarchyCrawlerFactory`.
+    """
+
+    def test_from_variant(self):
+        """Tests that the factory can build an instance from a variant.
+        """
+        variant = Mock()
+
+        factory = HierarchyCrawlerFactory()
+
+        result = factory.from_variant(variant)
+
+        self.assertEqual(variant, result.variant)
+
+
+class TestHierarchyBuilder(TestCase):
+    """Tests for :class:`HierarchyBuilder`.
+    """
+
+    def test_from_variant(self):
+        """Checks that it is able to generate the hierarchy starting from a
+        random variant.
+        """
+        grandparent = Mock()
+        parent = Mock()
+        variant = Mock()
+
+        crawler = Mock()
+        crawler.__iter__ = Mock()
+        crawler.__iter__.return_value = iter([variant, parent, grandparent])
+
+        tools = Mock()
+        tools.crawlers = Mock()
+        tools.crawlers.from_variant = Mock()
+        tools.crawlers.from_variant.return_value = crawler
+
+        builder = HierarchyBuilder(
+            tools=tools
+        )
+
+        self.assertEqual(
+            [
+                variant,
+                parent,
+                grandparent
+            ],
+            builder.from_variant(variant).build()
+        )
