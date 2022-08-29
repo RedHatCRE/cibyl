@@ -14,7 +14,7 @@
 #    under the License.
 """
 from dataclasses import dataclass, field
-from typing import Optional, Sequence, Dict, Any
+from typing import Any, Dict, Optional, Sequence
 
 from cibyl.sources.zuul.transactions import JobResponse as Job
 from cibyl.sources.zuul.transactions import TenantResponse as Tenant

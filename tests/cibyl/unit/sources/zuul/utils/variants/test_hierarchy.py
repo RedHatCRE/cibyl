@@ -16,9 +16,9 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.sources.zuul.utils.variants.hierarchy import JobFinder, SearchError, \
-    VariantFinder, HierarchyCrawler, HierarchyCrawlerFactory, HierarchyBuilder, \
-    RecursiveVariableSearch
+from cibyl.sources.zuul.utils.variants.hierarchy import (
+    HierarchyBuilder, HierarchyCrawler, HierarchyCrawlerFactory, JobFinder,
+    RecursiveVariableSearch, SearchError, VariantFinder)
 
 
 class TestJobFinder(TestCase):
