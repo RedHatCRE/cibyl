@@ -15,6 +15,7 @@
 """
 import logging
 from dataclasses import dataclass
+from typing import NamedTuple, Optional
 
 from tripleo.insights.git import GitDownload
 from tripleo.insights.interpreters import (EnvironmentInterpreter,
@@ -25,8 +26,22 @@ from tripleo.insights.interpreters import (EnvironmentInterpreter,
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
 from tripleo.insights.tripleo import THTBranchCreator, THTPathCreator
 from tripleo.insights.validation import OutlineValidator
+from tripleo.utils.cache import Cache
+from tripleo.utils.urls import URL
+from tripleo.utils.yaml import YAML
 
 LOG = logging.getLogger(__name__)
+
+
+class Resource(NamedTuple):
+    """Defines a resource that contributes to outlining the deployment.
+    """
+    repo: URL
+    """Repository where the resource is at."""
+    file: str
+    """Relative path to the repository's root pointing to the resource file."""
+    branch: Optional[str] = None
+    """Branch where the file is at. 'None' for default branch of repository."""
 
 
 class ScenarioFactory:
@@ -42,18 +57,28 @@ class ScenarioFactory:
         path_creator = THTPathCreator()
         """Used to generate path to the scenario file."""
 
-        downloader = GitDownload()
-        """Used to download the scenario file."""
-
-    def __init__(self, tools: Tools = Tools()):
+    def __init__(
+        self,
+        cache: Cache[Resource, YAML],
+        tools: Tools = Tools()
+    ):
         """Constructor.
 
+        :param cache: Storage for resources this reads from.
         :param tools: Tools used by the class to perform its task.
         """
+        self._cache = cache
         self._tools = tools
 
     @property
-    def tools(self):
+    def cache(self) -> Cache[Resource, YAML]:
+        """
+        :return: Storage where resources this depends on are saved at.
+        """
+        return self._cache
+
+    @property
+    def tools(self) -> Tools:
         """
         :return: Tools used by the class to perform its task.
         """
@@ -86,10 +111,12 @@ class ScenarioFactory:
             )
 
         return ScenarioInterpreter(
-            self.tools.downloader.download_as_yaml(
-                repo=outline.heat,
-                branch=branch_creator.create_release_branch(release),
-                file=path_creator.create_scenario_path(scenario)
+            self.cache.get(
+                Resource(
+                    repo=outline.heat,
+                    file=path_creator.create_scenario_path(scenario),
+                    branch=branch_creator.create_release_branch(release)
+                )
             ),
             overrides=outline.overrides
         )
@@ -111,18 +138,59 @@ class DeploymentLookUp:
         downloader: GitDownload = GitDownload()
         """Tool used to download files from Git repositories."""
 
-        scenario_factory: ScenarioFactory = ScenarioFactory()
-        """Used to created the scenario interpreter."""
-
-    def __init__(self, tools: Tools = Tools()):
+    def __init__(
+        self,
+        cache: Optional[Cache[Resource, YAML]] = None,
+        scenarios: Optional[ScenarioFactory] = None,
+        tools: Tools = Tools()
+    ):
         """Constructor.
 
+        :param cache: Storage where resources this uses are contained in.
+            'None' to allow this to create its own.
+        :param scenarios: Utility used to create scenario interpreters from
+            complex inputs. 'None' to allow this to create its own.
         :param tools: The tools this will use to do its task.
         """
+        if cache is None:
+            def loader(resource: Resource) -> YAML:
+                return self.tools.downloader.download_as_yaml(
+                    repo=resource.repo,
+                    file=resource.file,
+                    branch=resource.branch
+                )
+
+            cache = Cache[Resource, YAML](
+                loader=loader,
+                storage=None  # Let the cache set up its own container
+            )
+
+        if scenarios is None:
+            scenarios = ScenarioFactory(
+                cache=cache  # Reuse the same cache for all interpreters
+            )
+
+        self._cache = cache
+        self._scenarios = scenarios
         self._tools = tools
 
     @property
-    def tools(self):
+    def cache(self) -> Cache[Resource, YAML]:
+        """
+        :return: Storage where resources this depends on are saved at.
+        """
+        return self._cache
+
+    @property
+    def scenarios(self) -> ScenarioFactory:
+        """
+        :return: Utility used to create scenario interpreters from complex
+            inputs.
+        """
+        return self._scenarios
+
+    @property
+    def tools(self) -> Tools:
         """
         :return: The tools this will use to do its task.
         """
@@ -152,33 +220,41 @@ class DeploymentLookUp:
         outline: DeploymentOutline
     ) -> DeploymentSummary:
         environment = EnvironmentInterpreter(
-            self.tools.downloader.download_as_yaml(
-                repo=outline.quickstart,
-                file=outline.environment
+            self.cache.get(
+                Resource(
+                    repo=outline.quickstart,
+                    file=outline.environment
+                )
             ),
             overrides=outline.overrides
         )
 
         featureset = FeatureSetInterpreter(
-            self.tools.downloader.download_as_yaml(
-                repo=outline.quickstart,
-                file=outline.featureset
+            self.cache.get(
+                Resource(
+                    repo=outline.quickstart,
+                    file=outline.featureset
+                )
             ),
             overrides=outline.overrides
         )
 
         nodes = NodesInterpreter(
-            self.tools.downloader.download_as_yaml(
-                repo=outline.quickstart,
-                file=outline.nodes
+            self.cache.get(
+                Resource(
+                    repo=outline.quickstart,
+                    file=outline.nodes
+                )
             ),
             overrides=outline.overrides
         )
 
         release = ReleaseInterpreter(
-            self.tools.downloader.download_as_yaml(
-                repo=outline.quickstart,
-                file=outline.release
+            self.cache.get(
+                Resource(
+                    repo=outline.quickstart,
+                    file=outline.release
+                )
             ),
             overrides=outline.overrides
         )
@@ -201,7 +277,7 @@ class DeploymentLookUp:
 
         # Take care of the scenario file too
         if featureset.get_scenario():
-            scenario = self.tools.scenario_factory.from_interpreters(
+            scenario = self.scenarios.from_interpreters(
                 outline, featureset, release
             )
 

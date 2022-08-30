@@ -642,6 +642,15 @@ class VariantResponse:
         return JobResponse(self._variant.job)
 
     @property
+    def parent(self):
+        """
+        :return: Name of the parent job for this variant. 'None' if it does
+            not have one.
+        :rtype: str or None
+        """
+        return self._variant.parent
+
+    @property
     def name(self):
         """
         :return: The variants name. Most likely, it will match its job's name.
@@ -650,21 +659,42 @@ class VariantResponse:
         return self._variant.name
 
     @property
+    def description(self):
+        """
+        :return: Deeper information on this variant's purpose.
+        :rtype: str
+        """
+        return self._variant.description
+
+    @property
+    def branches(self):
+        """
+        :return: Collection of branch names / regex patterns that indicate the
+            branches the variant triggers on.
+        :rtype: list[str]
+        """
+        result = self._variant.branches
+
+        if not result:
+            result = [self._variant.context.branch]
+
+        return result
+
+    @property
+    def variables(self):
+        """
+        :return: Variables that specialize this variant.
+        :rtype: dict[str, Any]
+        """
+        return self._variant.variables
+
+    @property
     def data(self):
         """
-        :return: Raw data of this variant
+        :return: Raw data of this variant.
         :rtype: dict[str, Any]
         """
         return self._variant.raw
-
-    def variables(self, recursive=False):
-        """
-        :param recursive: Whether to gather the variables of parent as well.
-        :type recursive: bool
-        :return: Variables of this variant.
-        :rtype: dict[str, Any]
-        """
-        return self._variant.variables(recursive)
 
 
 class BuildResponse:

@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import ABC
+from typing import Union
 
 from overrides import overrides
 
@@ -49,16 +50,18 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
                 'security_group': network.security_group.value,
                 "dvr": network.dvr.value,
                 'tls_everywhere': network.tls_everywhere.value
-            },
+            } if network else {},
             'storage': {
                 'cinder_backend': storage.cinder_backend.value
-            },
+            } if storage else {},
             'ironic': {
                 'ironic_inspector': ironic.ironic_inspector.value,
                 'cleaning_network': ironic.cleaning_network.value
-            },
+            } if ironic else {},
             'overcloud_templates':
-                list(deployment.overcloud_templates.value)
+                self._print_overcloud_templates(
+                    deployment.overcloud_templates.value
+                )
                 if deployment.overcloud_templates.value else [],
             'test_collection':
                 self.provider.load(
@@ -89,9 +92,16 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
 
     @overrides
     def print_test_collection(self, collection: TestCollection) -> str:
+        if isinstance(collection, str):
+            # sometime the test collection is stored as a string indicating
+            # that no test information was available (usually N/A), so in those
+            # cases we'll replace the collection with an empty one
+            collection = TestCollection()
+
         result = {
             'tests':
-                list(collection.tests.value)
+                # sort list of tests so it's consistently displayed
+                sorted(list(collection.tests.value))
                 if collection.tests.value else [],
             'setup': collection.setup.value
         }
@@ -101,7 +111,7 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
     @overrides
     def print_node(self, node: Node) -> str:
         result = {
-            'role': node.role,
+            'role': node.role.value,
             'containers': [
                 self.provider.load(self.print_container(container))
                 for container in node.containers.values()
@@ -117,9 +127,12 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
     @overrides
     def print_container(self, container: Container) -> str:
         result = {
-            'name': container.name,
-            'image': container.image,
-            'package': container.package
+            'name': container.name.value,
+            'image': container.image.value,
+            'packages': [
+                self.provider.load(self.print_package(package))
+                for package in container.packages.values()
+            ]
         }
 
         return self.provider.dump(result)
@@ -127,8 +140,8 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
     @overrides
     def print_package(self, package: Package) -> str:
         result = {
-            'name': package.name,
-            'origin': package.origin
+            'name': package.name.value,
+            'origin': package.origin.value
         }
 
         return self.provider.dump(result)
@@ -137,10 +150,18 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
     def print_service(self, service: Service) -> str:
         result = {
             'name': service.name.value,
-            'configuration': service.configuration.value.items()
+            'configuration': service.configuration.value
         }
 
         return self.provider.dump(result)
+
+    def _print_overcloud_templates(self, templates: Union[str, set]) -> list:
+        if isinstance(templates, str):
+            # sometime the test collection is stored as a string indicating
+            # that no test information was available (usually N/A), so in those
+            # cases we'll replace the collection with an empty one
+            return []
+        return list(templates)
 
 
 class OSJSONPrinter(JSONPrinter, OSSerializedPrinter):

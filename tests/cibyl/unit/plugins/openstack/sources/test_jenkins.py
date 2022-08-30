@@ -690,6 +690,36 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(network.ip_version.value, "")
         self.assertEqual(deployment.topology.value, topology_value)
 
+    def test_get_deployment_filter_topology_regex(self):
+        """Test that get_deployment filters by topology."""
+        job_names = ['test_17.3_ipv4_job_2comp_1cont',
+                     'test_16_ipv6_job_1comp_2cont', 'test_job']
+        topology_value = "compute:2,controller:1"
+        response = {'jobs': [{'_class': 'folder'}]}
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastBuild': None})
+
+        self.jenkins.send_request = Mock(side_effect=[response])
+        args = {
+            "topology": Argument("topology", str, "",
+                                 value=["comp", "controller:1"])
+        }
+
+        jobs = self.jenkins.get_deployment(**args)
+        self.assertEqual(len(jobs), 1)
+        job_name = 'test_17.3_ipv4_job_2comp_1cont'
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        network = deployment.network.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "")
+        self.assertEqual(network.ip_version.value, "")
+        self.assertEqual(deployment.topology.value, topology_value)
+
     def test_get_deployment_filter_release(self):
         """Test that get_deployment filters by release."""
         job_names = ['test_17.3_ipv4_job_2comp_1cont',
@@ -1635,8 +1665,9 @@ tripleo_ironic_conductor.service loaded    active     running
         artifacts = [
                 get_yaml_from_topology_string(topology),
                 get_yaml_overcloud(ip_version, release,
-                                   "ceph", "geneve", False,
-                                   False, "path/to/ovb",
+                                   "ceph", "geneve", dvr=False,
+                                   tls_everywhere=False,
+                                   infra_type="path/to/ovb",
                                    ironic_inspector=False, ml2_driver="ovs",
                                    cleaning_network=True,
                                    security_group="openvswitch",

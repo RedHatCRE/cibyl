@@ -24,6 +24,7 @@ import networkx as nx
 
 import cibyl.exceptions.config as conf_exc
 from cibyl.cli.argument import Argument
+from cibyl.cli.output import OutputStyle
 from cibyl.cli.parser import Parser
 from cibyl.cli.query import get_query_type
 from cibyl.cli.validator import Validator
@@ -37,12 +38,14 @@ from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.system_factory import SystemType
 from cibyl.models.ci.zuul.system import ZuulSystem
 from cibyl.models.product.feature import Feature
-from cibyl.publisher import Publisher
+from cibyl.publisher import PublisherFactory, PublisherTarget
 from cibyl.sources.source import (Source, get_source_instance_from_method,
                                   select_source_method,
                                   source_information_from_method)
 from cibyl.sources.source_factory import SourceFactory
 from cibyl.utils.dicts import intersect_models
+from cibyl.utils.fs import File
+from cibyl.utils.paths import resolve_home
 from cibyl.utils.status_bar import StatusBar
 
 LOG = logging.getLogger(__name__)
@@ -65,7 +68,6 @@ class Orchestrator:
         """Orchestrator constructor method"""
         self.parser = Parser()
         self.config = AppConfig()
-        self.publisher = Publisher()
         if not environments:
             self.environments = []
 
@@ -365,15 +367,24 @@ class Orchestrator:
                 self.parser.extend(arguments, group_name, level=level,
                                    parent_queries=parent_queries)
 
-    def query_and_publish(self, output_style: str = "colorized",
+    def query_and_publish(self, output_path: Optional[str] = None,
+                          output_style: OutputStyle = OutputStyle.COLORIZED,
                           features: Optional[list] = None) -> None:
         """Iterate over the environments and their systems and publish
         the results of the queries.
 
         The query is performed per system, while the results are published
-        once per environment"""
-        command = self.parser.app_args.get('command')
-        for env in self.environments:
+        once per environment if the output format is text or colorized, but are
+        published at the end of all queries for json format.
+
+        :param output_path: Path to write the output to (if not defined print
+        to stdout)
+        :param output_style: Style to print the output with
+        :param features: List of features to query for, it will be None for the
+        'query' subcommand
+        """
+
+        def query():
             for system in env.systems:
                 if command == "features":
                     self.run_features(system, features)
@@ -381,9 +392,29 @@ class Orchestrator:
                     self.run_query(system)
                 for source in system.sources:
                     source.ensure_teardown()
-            self.publisher.publish(
-                environment=env,
+
+        command = self.parser.app_args.get('command')
+        query_type = get_query_type(**self.parser.ci_args, command=command)
+
+        target = PublisherTarget.TERMINAL
+        file = None
+        if output_path:
+            target = PublisherTarget.FILE
+
+            # Overwrite file if it already exists
+            file = File(output_path, resolve_home)
+            file.delete()
+            file.create()
+
+        publisher = PublisherFactory.create_publisher(
+                target=target,
                 style=output_style,
-                query=get_query_type(**self.parser.ci_args, command=command),
+                query=query_type,
                 verbosity=self.parser.app_args.get('verbosity', 0),
+                output_file=file,
                 args=self.parser.ci_args)
+
+        for env in self.environments:
+            query()
+            publisher.publish(environment=env)
+        publisher.finish_publishing()

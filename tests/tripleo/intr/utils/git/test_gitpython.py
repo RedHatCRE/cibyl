@@ -58,3 +58,23 @@ class TestGitPython(TestCase):
 
                 with git.clone(cibyl, directory) as repo:
                     self.assertEqual(target.read(), repo.get_as_text(file))
+
+    def test_get_remotes(self):
+        """Checks that it is possible to access information on the
+        repository's remotes from the API.
+        """
+        cibyl = URL('https://github.com/rhos-infra/cibyl.git')
+
+        with TemporaryDirectory() as folder:
+            git = GitPython()
+            directory = Dir(folder)
+
+            with git.clone(cibyl, directory) as repo:
+                remotes = list(repo.remotes)
+
+                self.assertEqual(1, len(remotes))
+
+                origin = remotes[0]
+
+                self.assertEqual('origin', origin.name)
+                self.assertEqual([cibyl], origin.urls)

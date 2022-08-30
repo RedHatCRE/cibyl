@@ -29,6 +29,29 @@ from cibyl.utils.logger import configure_logging
 LOG = logging.getLogger(__name__)
 
 
+def get_plugins_from_arguments(arguments: List[str], index: int) -> List[str]:
+    """Get the list of plugins from the arguments list. This requires iterating
+    through the argument list until another argument (starting with a '-') or
+    a subcommand (query, features, spec) is found.
+
+    :param arguments: A list of strings representing the arguments and their
+                      values, defaults to None
+    :param index: Index of the arguments list to start looking at
+    :returns: List of plugin names found in argument list
+    """
+    # list of all possible subcommands, needed so a command like
+    # cibyl -p plugin1 query --jobs does not mistake the query subcommand with
+    # a plugin name
+    subcommands_list = ["query", "spec", "features"]
+    plugins = []
+    for argument in arguments[(index + 2):]:
+        if argument.startswith("-") or argument in subcommands_list:
+            break
+        plugins.append(argument)
+
+    return plugins
+
+
 def raw_parsing(arguments: List[str]) -> dict:
     """Returns config file path if one was passed with --config argument
 
@@ -38,7 +61,8 @@ def raw_parsing(arguments: List[str]) -> dict:
     args = {'config_file_path': None, 'help': False,
             "log_file": "cibyl_output.log", "log_mode": "both",
             "logging": logging.INFO, "plugins": [],
-            "debug": False, "output_style": "colorized"}
+            "debug": False, "output_file_path": None,
+            "output_style": "colorized"}
     for i, item in enumerate(arguments[1:]):
         if item in ('-c', '--config'):
             args['config_file_path'] = arguments[i + 2]
@@ -54,12 +78,9 @@ def raw_parsing(arguments: List[str]) -> dict:
             # exception traceback is clearer
             args["debug"] = True
         elif item in ('-p', '--plugin'):
-            plugins = []
-            for argument in arguments[(i + 2):]:
-                if argument.startswith("-"):
-                    break
-                plugins.append(argument)
-            args["plugins"] = plugins
+            args["plugins"] = get_plugins_from_arguments(arguments, i)
+        elif item in ('-o', '--output'):
+            args["output_file_path"] = arguments[i + 2]
         elif item in ('-f', '--output-format'):
             args["output_style"] = arguments[i + 2]
 
@@ -118,8 +139,11 @@ def main() -> None:
         orchestrator.parser.parse()
         orchestrator.validate_environments()
         features = orchestrator.load_features()
-        orchestrator.query_and_publish(arguments["output_style"],
-                                       features=features)
+        orchestrator.query_and_publish(
+            output_path=arguments["output_file_path"],
+            output_style=arguments["output_style"],
+            features=features
+        )
     except CibylException as ex:
         if arguments.get('help', False):
             # if the user wants to see the --help, we should show it even if

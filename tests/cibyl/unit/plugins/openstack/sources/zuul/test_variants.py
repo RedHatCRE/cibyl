@@ -30,17 +30,29 @@ class TestVariableSearch(TestCase):
         value = 'val1'
         variable = 'var1'
 
-        variant = Mock()
-        variant.variables = Mock()
-        variant.variables.return_value = {
+        variables = {
             variable: value
         }
 
-        finder = VariableSearch([variable])
+        variant = Mock()
+
+        search = Mock()
+        search.from_variant = Mock()
+        search.from_variant.return_value = Mock()
+        search.from_variant.return_value.search = Mock()
+        search.from_variant.return_value.search.return_value = variables
+
+        tools = Mock()
+        tools.variables = search
+
+        finder = VariableSearch(
+            search_terms=[variable],
+            tools=tools
+        )
 
         self.assertEqual((variable, value), finder.search(variant))
 
-        variant.variables.assert_called_once_with(recursive=True)
+        search.from_variant.assert_called_once_with(variant)
 
     def test_search_term_priority(self):
         """Checks that the earlier search term on the list will have higher
@@ -52,28 +64,53 @@ class TestVariableSearch(TestCase):
         variable1 = 'term1'
         variable2 = 'term2'
 
-        variant = Mock()
-        variant.variables = Mock()
-        variant.variables.return_value = {
+        variables = {
             variable1: value1,
-            variable2: value2,
+            variable2: value2
         }
 
-        finder = VariableSearch(search_terms=[variable1, variable2])
+        variant = Mock()
+
+        search = Mock()
+        search.from_variant = Mock()
+        search.from_variant.return_value = Mock()
+        search.from_variant.return_value.search = Mock()
+        search.from_variant.return_value.search.return_value = variables
+
+        tools = Mock()
+        tools.variables = search
+
+        finder = VariableSearch(
+            search_terms=[variable1, variable2],
+            tools=tools
+        )
 
         self.assertEqual((variable1, value1), finder.search(variant))
+
+        search.from_variant.assert_called_once_with(variant)
 
     def test_not_found_result(self):
         """Checks the returned value if the search terms were not found.
         """
         variant = Mock()
-        variant.variables = Mock()
-        variant.variables.return_value = {
-        }
 
-        finder = VariableSearch(search_terms=[])
+        search = Mock()
+        search.from_variant = Mock()
+        search.from_variant.return_value = Mock()
+        search.from_variant.return_value.search = Mock()
+        search.from_variant.return_value.search.return_value = {}
+
+        tools = Mock()
+        tools.variables = search
+
+        finder = VariableSearch(
+            search_terms=[],
+            tools=tools
+        )
 
         self.assertEqual(None, finder.search(variant))
+
+        search.from_variant.assert_called_once_with(variant)
 
 
 class TestReleaseSearch(TestCase):
@@ -84,13 +121,24 @@ class TestReleaseSearch(TestCase):
         """Checks the returned value if the search terms were not found.
         """
         variant = Mock()
-        variant.variables = Mock()
-        variant.variables.return_value = {
-        }
 
-        finder = ReleaseSearch(search_terms=[])
+        search = Mock()
+        search.from_variant = Mock()
+        search.from_variant.return_value = Mock()
+        search.from_variant.return_value.search = Mock()
+        search.from_variant.return_value.search.return_value = []
+
+        tools = Mock()
+        tools.variables = search
+
+        finder = ReleaseSearch(
+            search_terms=[],
+            tools=tools
+        )
 
         self.assertEqual(None, finder.search(variant))
+
+        search.from_variant.assert_called_once_with(variant)
 
     def test_transforms_release_into_string(self):
         """Checks that if the release is not provided as a string, this will
@@ -99,12 +147,26 @@ class TestReleaseSearch(TestCase):
         release = 1
         variable = 'release'
 
-        variant = Mock()
-        variant.variables = Mock()
-        variant.variables.return_value = {
+        variables = {
             variable: release
         }
 
-        search = ReleaseSearch(search_terms=[variable])
+        variant = Mock()
 
-        self.assertEqual((variable, '1'), search.search(variant))
+        search = Mock()
+        search.from_variant = Mock()
+        search.from_variant.return_value = Mock()
+        search.from_variant.return_value.search = Mock()
+        search.from_variant.return_value.search.return_value = variables
+
+        tools = Mock()
+        tools.variables = search
+
+        finder = ReleaseSearch(
+            search_terms=[variable],
+            tools=tools
+        )
+
+        self.assertEqual((variable, '1'), finder.search(variant))
+
+        search.from_variant.assert_called_once_with(variant)

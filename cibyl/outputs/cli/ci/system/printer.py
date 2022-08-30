@@ -16,6 +16,7 @@
 from abc import ABC, abstractmethod
 
 from cibyl.models.ci.base.system import System
+from cibyl.models.product.feature import Feature
 from cibyl.outputs.cli.printer import Printer
 
 
@@ -27,6 +28,15 @@ class CISystemPrinter(Printer, ABC):
     def print_system(self, system: System) -> str:
         """
         :param system: The system.
+        :return: Textual representation of the provided model.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def print_feature(self, feature: Feature) -> str:
+        """Print a feature present in a system.
+
+        :param feature: The feature.
         :return: Textual representation of the provided model.
         """
         raise NotImplementedError

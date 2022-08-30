@@ -17,11 +17,12 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Iterable, Optional, Sequence
 
+from cached_property import cached_property
 from overrides import overrides
 
 from tripleo.insights.exceptions import DownloadError, InvalidURL
 from tripleo.utils.fs import Dir
-from tripleo.utils.git import Git
+from tripleo.utils.git import Git, GitError
 from tripleo.utils.git import Repository as GitRepo
 from tripleo.utils.git.gitpython import GitPython
 from tripleo.utils.git.utils import get_repository_fullname
@@ -129,17 +130,57 @@ class GitCLIDownloader(GitDownloader):
         return repo.get_as_text(file)
 
     def _get_repo(self) -> GitRepo:
-        # Check if working directory is ready
+        def restart() -> GitRepo:
+            """Deletes the working directory and tries to get the repository
+            again.
+
+            :return: An open handler to the repository.
+            """
+            LOG.info(
+                "Removing folder at: '%s' and fetching repo again...",
+                self.working_dir
+            )
+
+            self.working_dir.rm()
+            return self._get_repo()
+
+        def urls() -> Iterable[URL]:
+            """
+            :return: All URLs from all remotes of the repository.
+            """
+            result = []
+
+            for remote in repo.remotes:
+                result += remote.urls
+
+            return result
+
+        # Get the directory ready
         if not self.working_dir.exists():
             self.working_dir.mkdir(recursive=True)
 
-        # Check if the repository is present on the filesystem
+        # Is there something there already?
         if self.working_dir.is_empty():
-            # Download it then
+            # Download the repository then
             return self.api.clone(self.repository, self.working_dir)
 
-        # Being it already here, let's try to reuse it
-        return self.api.open(self.working_dir)
+        # Something is in here already, let's see...
+        try:
+            # Is it a git repository?
+            repo = self.api.open(self.working_dir)
+
+            # Is it the repository we are working with?
+            if self.repository not in urls():
+                # I cannot use this
+                LOG.warning("Unknown repository at: '%s'.", self.working_dir)
+                restart()
+
+            # Everything looks good, let's use this
+            return repo
+        except GitError:
+            # It is not a git repository, I cannot work with this
+            LOG.warning("Could not open repo at: '%s'.", self.working_dir)
+            restart()
 
 
 class GitHubDownloader(GitDownloader):
@@ -199,22 +240,33 @@ class GitDownloaderFetcher:
     URL.
     """
     DEFAULT_CLONE_PATH = Dir('~/.cre', resolve_home)
-    """Default directory where repositories are cloned into if required."""
+    """Default directory from which the working directory will hang from."""
 
-    def __init__(self, clone_path: Dir = DEFAULT_CLONE_PATH):
+    def __init__(self, working_dir: Optional[Dir] = None):
         """
-        :param clone_path: Directory where cloned repositories will hang
-            from if required.
+        :param working_dir: Directory passed to downloaders to clone
+            repositories into among others. 'None' to let this generate one
+            from the default clone path.
         """
-        self._clone_path = clone_path
+        if not working_dir:
+            clone_path = GitDownloaderFetcher.DEFAULT_CLONE_PATH
+            working_dir = clone_path.cd(self._uuid)
+
+        self._working_dir = working_dir
 
     @property
-    def clone_path(self) -> Dir:
+    def working_dir(self) -> Dir:
         """
-        :return: Directory where cloned repositories will hang from if
-            required.
+        :return: Directory given to downloaders to store things in.
         """
-        return self._clone_path
+        return self._working_dir
+
+    @cached_property
+    def _uuid(self) -> str:
+        """
+        :return: Unique identifier assigned to this instance.
+        """
+        return get_new_uuid()
 
     def get_downloaders_for(
         self,
@@ -247,7 +299,7 @@ class GitDownloaderFetcher:
         return GitCLIDownloader(
             repository=url,
             branch=branch,
-            working_dir=self.clone_path.cd(get_new_uuid())
+            working_dir=self.working_dir
         )
 
     def _get_new_github_downloader(

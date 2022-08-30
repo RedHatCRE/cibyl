@@ -91,6 +91,10 @@ class Parser:
             choices=("terminal", "file", "both"),
             help='Where to write the output, default is both')
         app_args_group.add_argument(
+            '--output', '-o', dest='output_file_path',
+            help='Write output into <OUTPUT_FILE_PATH>.'
+        )
+        app_args_group.add_argument(
             '--output-format', '-f', choices=("text", "colorized", "json"),
             dest="output_style", default="colorized",
             help="Sets the output format."

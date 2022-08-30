@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
+from typing import Iterable
 
 from tripleo.utils.fs import Dir
 from tripleo.utils.io import Closeable
@@ -25,6 +26,27 @@ class GitError(Exception):
     """
 
 
+class Remote(ABC):
+    """Interface that defines interactions with a Git remote.
+    """
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """
+        :return: Name of the remote.
+        """
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def urls(self) -> Iterable[URL]:
+        """
+        :return: URLs the remote pulls from/pushes to.
+        """
+        raise NotImplementedError
+
+
 class Repository(Closeable, ABC):
     """Interface that defines interactions with a Git repository.
     """
@@ -34,6 +56,14 @@ class Repository(Closeable, ABC):
     def branch(self) -> str:
         """
         :return: The active branch on the repository.
+        """
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def remotes(self) -> Iterable[Remote]:
+        """
+        :return: Collection of remotes the repository works with.
         """
         raise NotImplementedError
 

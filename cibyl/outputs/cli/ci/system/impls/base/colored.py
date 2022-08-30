@@ -71,12 +71,8 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
 
         return printer.build()
 
+    @overrides
     def print_feature(self, feature: Feature) -> str:
-        """Print a feature present in a system.
-        :param feature: The feature.
-        :type feature: :class:`cibyl.models.ci.base.feature.Feature`
-        :return: Textual representation of the provided model.
-        """
         printer = IndentedTextBuilder()
         name = feature.name.value
         present = feature.present.value

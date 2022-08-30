@@ -278,11 +278,11 @@ class TestQuickQuery(TestCase):
         job.variants.return_value = [variant]
 
         variant.job = job
-        variant.raw = {
-            'parent': 'job',
-            'name': 'variant',
-            'description': 'desc'
-        }
+        variant.parent = None
+        variant.name = 'variant'
+        variant.description = 'desc'
+        variant.branches = ['branch']
+        variant.variables = {}
 
         api = Mock()
         api.tenants = Mock()
@@ -324,9 +324,11 @@ class TestQuickQuery(TestCase):
                         url=job.url,
                         variants=[
                             Job.Variant(
-                                parent=variant.raw['parent'],
-                                name=variant.raw['name'],
-                                description=variant.raw['description']
+                                parent=variant.parent,
+                                name=variant.name,
+                                description=variant.description,
+                                branches=variant.branches,
+                                variables=variant.variables
                             )
                         ]
                     )

@@ -412,7 +412,8 @@ class TestFeatures(EndToEndTest):
 
 
 class TestJenkinsOpenstack(EndToEndTest):
-    """Tests queries regarding the Jenkins core source.
+    """Tests queries regarding the Jenkins source extension in the Openstack
+    plugin.
     """
     compose_file = 'docker-compose_jenkins_openstack.yml'
     jenkins = JenkinsContainer(compose_file=compose_file)
@@ -626,6 +627,24 @@ class TestJenkinsOpenstack(EndToEndTest):
 
         self.assertIn(expected.build(), self.stdout)
 
+    def test_filter_test_topology(self):
+        """Checks that jobs are filtered with the "--topology" flag.
+        """
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'query', '--topology', 'compute:2'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_1', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Topology: compute:2,controller:3', 4)
+        expected.add('Total jobs found in query: 1', 2)
+
     def test_filter_ip_show_tests(self):
         """Check the jobs are filtered by ip-version and tests are correctly
         retrieved."""
@@ -681,3 +700,206 @@ class TestJenkinsOpenstack(EndToEndTest):
         expected.add('Total jobs found in query: 1', 2)
 
         self.assertIn(expected.build(), self.stdout)
+
+
+class TestJenkinsOpenstackSpec(EndToEndTest):
+    """Tests queries regarding the Jenkins source extension in the Openstack
+    plugin.
+    """
+    compose_file = 'docker-compose_jenkins_openstack.yml'
+    jenkins = JenkinsContainer(compose_file=compose_file)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.jenkins.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.jenkins.stop()
+
+    def test_get_spec(self):
+        """Check the spec jobs is correctly retrieved."""
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'spec', 'test_1'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_1', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Release: 17.1', 4)
+        expected.add('Topology: compute:2,controller:3', 4)
+        expected.add('Network: ', 4)
+        expected.add('IP version: 4', 5)
+        expected.add('Network backend: geneve', 5)
+        expected.add('ML2 driver: ovn', 5)
+        expected.add('Security group mechanism: native ovn', 5)
+        expected.add('DVR: False', 5)
+        expected.add('Storage: ', 4)
+        expected.add('Cinder backend: nfs', 5)
+        expected.add('Ironic: ', 4)
+        expected.add('Ironic inspector: False', 5)
+        expected.add('Cleaning network: False', 5)
+        expected.add('Testing information: ', 4)
+        expected.add('Test suites: ', 5)
+        expected.add('- neutron', 6)
+        expected.add('- octavia', 6)
+        expected.add('Setup: rpm', 5)
+        expected.add('Total jobs found in query: 1', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_get_spec_job_2(self):
+        """Check the spec jobs is correctly retrieved."""
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'spec', 'test_2'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_2', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Release: 16.2', 4)
+        expected.add('Infra type: ovb', 4)
+        expected.add('Network: ', 4)
+        expected.add('IP version: 6', 5)
+        expected.add('ML2 driver: ovs', 5)
+        expected.add('Security group mechanism: iptables hybrid', 5)
+        expected.add('TLS everywhere: True', 5)
+        expected.add('Storage: ', 4)
+        expected.add('Cinder backend: swift', 5)
+        expected.add('Ironic: ', 4)
+        expected.add('Ironic inspector: True', 5)
+        expected.add('Cleaning network: True', 5)
+        expected.add('Total jobs found in query: 1', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_get_spec_job_3(self):
+        """Check the spec jobs is correctly retrieved."""
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'spec', 'test_3'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_3', 2)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('No openstack information associated with this job', 4)
+        expected.add('Total jobs found in query: 1', 2)
+
+    def test_get_spec_verbose(self):
+        """Check the spec jobs is correctly retrieved and all fields are
+        printed with verbose output."""
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack', '-vv',
+            '-f', 'text', 'spec', 'test_1'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_1', 2)
+        expected.add('URL: http://localhost:8080/job/test_1/', 3)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Release: 17.1', 4)
+        expected.add('Infra type: N/A', 4)
+        expected.add('Topology: compute:2,controller:3', 4)
+        expected.add('Network: ', 4)
+        expected.add('IP version: 4', 5)
+        expected.add('Network backend: geneve', 5)
+        expected.add('ML2 driver: ovn', 5)
+        expected.add('Security group mechanism: native ovn', 5)
+        expected.add('DVR: False', 5)
+        expected.add('TLS everywhere: N/A', 5)
+        expected.add('Storage: ', 4)
+        expected.add('Cinder backend: nfs', 5)
+        expected.add('Ironic: ', 4)
+        expected.add('Ironic inspector: False', 5)
+        expected.add('Cleaning network: False', 5)
+        expected.add('Overcloud templates: N/A', 4)
+        expected.add('Testing information: ', 4)
+        expected.add('Test suites: ', 5)
+        expected.add('- neutron', 6)
+        expected.add('- octavia', 6)
+        expected.add('Setup: rpm', 5)
+        expected.add('Total jobs found in query: 1', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_get_spec_verbose_job_2(self):
+        """Check the spec jobs is correctly retrieved and all fields are
+        printed with verbose output."""
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack', '-vv',
+            '-f', 'text', 'spec', 'test_2'
+        ]
+
+        main()
+
+        expected = IndentedTextBuilder()
+        expected.add('Job: test_2', 2)
+        expected.add('URL: http://localhost:8080/job/test_2/', 3)
+        expected.add('Openstack deployment: ', 3)
+        expected.add('Release: 16.2', 4)
+        expected.add('Infra type: ovb', 4)
+        expected.add('Topology: N/A', 4)
+        expected.add('Network: ', 4)
+        expected.add('IP version: 6', 5)
+        expected.add('Network backend: N/A', 5)
+        expected.add('ML2 driver: ovs', 5)
+        expected.add('Security group mechanism: iptables hybrid', 5)
+        expected.add('DVR: N/A', 5)
+        expected.add('TLS everywhere: True', 5)
+        expected.add('Storage: ', 4)
+        expected.add('Cinder backend: swift', 5)
+        expected.add('Ironic: ', 4)
+        expected.add('Ironic inspector: True', 5)
+        expected.add('Cleaning network: True', 5)
+        expected.add('Overcloud templates: N/A', 4)
+        expected.add('Testing information: N/A', 4)
+        expected.add('Total jobs found in query: 1', 2)
+
+        self.assertIn(expected.build(), self.stdout)
+
+    def test_get_spec_non_existing_job(self):
+        """Check the spec command fails if requesting a job that does not
+        exists."""
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'spec', 'non_existing_job'
+        ]
+
+        main()
+        self.assertIn("No query performed", self.stdout)
+
+    def test_get_spec_multiple_jobs(self):
+        """Check the spec command fails if requesting the spec for many
+        jobs."""
+        sys.argv = [
+            'cibyl',
+            '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+            '-p', 'openstack',
+            '-f', 'text', 'spec', 'test'
+        ]
+
+        main()
+        self.assertIn("No query performed", self.stdout)

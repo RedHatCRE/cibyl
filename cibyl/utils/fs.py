@@ -127,3 +127,39 @@ class File(FSPath):
     @overrides
     def exists(self) -> bool:
         return self.as_path().is_file()
+
+    def create(self) -> None:
+        """Creates the file at this path.
+        """
+        self.write('')
+
+    def delete(self) -> None:
+        """Deletes the file at this path. Will do nothing if the file does
+        not exist.
+        """
+        self.as_path().unlink(missing_ok=True)
+
+    def append(self, text: str) -> None:
+        """Appends some text at the end of the file.
+
+        :param text: Text to append.
+        """
+        self._write(text, 'a')
+
+    def write(self, text: str) -> None:
+        """Overwrites contents of the file with the given text.
+
+        :param text: Text to write.
+        """
+        self._write(text, 'w')
+
+    def _write(self, text: str, mode: str) -> None:
+        """Writes some text into the file. This makes no checks to verify
+        that the file exists and is accessible beforehand, it is up to the
+        caller to ensure this.
+
+        :param text: Text to write.
+        :param mode: Mode to write on, just like in builtin 'open'.
+        """
+        with open(self, mode) as buffer:
+            buffer.write(text)

@@ -14,6 +14,7 @@
 #    under the License.
 """
 import sys
+from unittest import skip
 
 from cibyl.cli.main import main
 from cibyl.utils.strings import IndentedTextBuilder
@@ -201,6 +202,7 @@ class TestQueryLevel(EndToEndTest):
             self.stdout
         )
 
+    @skip(reason='Need to make job "base" part of the tenant')
     def test_get_job_variants(self):
         """Checks retrieved variants by "--jobs --variants" flag.
         """

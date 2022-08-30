@@ -74,135 +74,48 @@ class TestZuulVariantRESTClient(TestCase):
     """Tests for :class:`ZuulVariantRESTClient`.
     """
 
-    def test_fetch_variables_non_recursive(self):
-        """Checks that the variables from the variant can be retrieved.
+    def test_context(self):
+        """Checks that the API fetches the source context for the variant.
         """
-        variables = {
-            'var1': 'val1'
-        }
-
-        data = {
-            'variables': variables
-        }
-
-        variant = ZuulVariantRESTClient(Mock(), Mock(), data)
-
-        self.assertEqual(variables, variant.variables(recursive=False))
-
-    def test_fetch_variables_recursive(self):
-        """Checks that the variables from the variant's parents can also be
-        aggregated to the variant's variables.
-        """
-        parent_vars = {
-            'var1': 'val1'
-        }
-
-        child_vars = {
-            'var2': 'val2'
-        }
-
-        parent = {
-            'parent': None,
-            'variables': parent_vars
-        }
-
-        child = {
-            'parent': 'parent',
-            'variables': child_vars
-        }
-
         session = Mock()
-        session.get.return_value = [parent]
+        job = Mock()
+        variant = {
+            'source_context': {
+                'project': 'project',
+                'branch': 'master',
+                'path': 'some/path'
+            }
+        }
 
-        variant = ZuulVariantRESTClient(session, Mock(), child)
-
-        self.assertEqual(
-            {**parent_vars, **child_vars},
-            variant.variables(recursive=True)
+        client = ZuulVariantRESTClient(
+            session=session,
+            job=job,
+            variant=variant
         )
 
-    def test_child_overwrites_parent(self):
-        """Checks that if a variable from a parent appears on a child again,
-        the value from the child is chosen.
+        result = client.context
+
+        self.assertEqual(variant['source_context']['project'], result.project)
+        self.assertEqual(variant['source_context']['branch'], result.branch)
+        self.assertEqual(variant['source_context']['path'], result.path)
+
+    def test_null_context(self):
+        """Checks that 'None' is returned if the variant has no source
+        context.
         """
-        parent_vars = {
-            'var1': 'val1'
-        }
-
-        child_vars = {
-            'var1': 'val2'
-        }
-
-        parent = {
-            'name': 'parent',
-            'parent': None,
-            'variables': parent_vars
-        }
-
-        child = {
-            'parent': parent['name'],
-            'variables': child_vars
-        }
-
         session = Mock()
-        session.get.return_value = [parent]
-
-        variant = ZuulVariantRESTClient(session, Mock(), child)
-
-        self.assertEqual(child_vars, variant.variables(recursive=True))
-
-    def test_parent_overwrites_grandparent(self):
-        """Checks that if a variable from a grandparent appears on a lower
-        level again, the value from the lower level is chosen.
-        """
-
-        def get(url):
-            if grandparent['name'] in url:
-                return [grandparent]
-
-            if parent['name'] in url:
-                return [parent]
-
-            raise NotImplementedError
-
-        grandparent_vars = {
-            'var1': 'val1'
+        job = Mock()
+        variant = {
+            'source_context': None
         }
 
-        parent_vars = {
-            'var1': 'val2'
-        }
-
-        child_vars = {
-            'var2': 'val3'
-        }
-
-        grandparent = {
-            'name': 'grandparent',
-            'parent': None,
-            'variables': grandparent_vars
-        }
-
-        parent = {
-            'name': 'parent',
-            'parent': grandparent['name'],
-            'variables': parent_vars
-        }
-
-        child = {
-            'parent': parent['name'],
-            'variables': child_vars
-        }
-
-        session = Mock()
-        session.get.side_effect = get
-
-        variant = ZuulVariantRESTClient(session, Mock(), child)
-
-        self.assertEqual(
-            {**parent_vars, **child_vars},
-            variant.variables(recursive=True)
+        client = ZuulVariantRESTClient(
+            session=session,
+            job=job,
+            variant=variant
         )
+
+        self.assertIsNone(client.context)
 
     class TestZuulJobRESTClient(TestCase):
         """Tests for :class:`ZuulJobRESTClient`.

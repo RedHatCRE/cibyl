@@ -66,9 +66,10 @@ class OSColoredPrinter(OSPrinter):
             printer[-1].append(network.ip_version)
 
         if network.network_backend.value:
-            is_empty_network = False
-            printer.add(self.palette.blue('Network backend: '), 2)
-            printer[-1].append(network.network_backend)
+            if network.network_backend.value != "N/A" or self.verbosity > 0:
+                is_empty_network = False
+                printer.add(self.palette.blue('Network backend: '), 2)
+                printer[-1].append(network.network_backend)
 
         if network.ml2_driver.value:
             if network.ml2_driver.value != "N/A" or self.verbosity > 0:
@@ -156,19 +157,22 @@ class OSColoredPrinter(OSPrinter):
         is_empty_deployment = True
 
         if deployment.release.value:
-            is_empty_deployment = False
-            printer.add(self.palette.blue('Release: '), 1)
-            printer[-1].append(deployment.release.value)
+            if self.verbosity > 0 or deployment.release.value != "N/A":
+                is_empty_deployment = False
+                printer.add(self.palette.blue('Release: '), 1)
+                printer[-1].append(deployment.release.value)
 
         if deployment.infra_type.value:
-            is_empty_deployment = False
-            printer.add(self.palette.blue('Infra type: '), 1)
-            printer[-1].append(deployment.infra_type)
+            if self.verbosity > 0 or deployment.infra_type.value != "N/A":
+                is_empty_deployment = False
+                printer.add(self.palette.blue('Infra type: '), 1)
+                printer[-1].append(deployment.infra_type)
 
         if deployment.topology.value:
-            is_empty_deployment = False
-            printer.add(self.palette.blue('Topology: '), 1)
-            printer[-1].append(deployment.topology)
+            if self.verbosity > 0 or deployment.topology.value != "N/A":
+                is_empty_deployment = False
+                printer.add(self.palette.blue('Topology: '), 1)
+                printer[-1].append(deployment.topology)
 
         is_empty_network = True
         if deployment.network.value:
@@ -193,7 +197,8 @@ class OSColoredPrinter(OSPrinter):
                 if isinstance(deployment.overcloud_templates.value, str):
                     printer[-1].append(deployment.overcloud_templates.value)
                 else:
-                    for template in deployment.overcloud_templates.value:
+                    templates = deployment.overcloud_templates.value
+                    for template in sorted(templates):
                         printer.add(self.palette.blue('- '), 2)
                         printer[-1].append(template)
 
@@ -205,8 +210,16 @@ class OSColoredPrinter(OSPrinter):
                     printer.add(self.palette.blue('Testing information: '), 1)
                     printer[-1].append(deployment.test_collection.value)
                 else:
-                    printer.add(self.print_test_collection(
-                                    deployment.test_collection.value), 1)
+                    testing_string = self.print_test_collection(
+                            deployment.test_collection.value)
+                    if testing_string:
+                        printer.add(testing_string, 1)
+                    elif self.verbosity > 0:
+                        # if testing collection was empty but verbose output
+                        # was request, we still want to print the field
+                        printer.add(self.palette.blue('Testing information: '),
+                                    1)
+                        printer[-1].append('N/A')
 
         is_empty_deployment &= (is_empty_network and is_empty_storage and
                                 is_empty_ironic)
@@ -240,17 +253,23 @@ class OSColoredPrinter(OSPrinter):
         :param test_collection: The test collection used in the deployment
         :type test_collection: :class:`TestCollection`
         """
+        has_testing_info = False
         printer = IndentedTextBuilder()
         printer.add(self.palette.blue('Testing information: '), 0)
         if test_collection.tests.value:
+            has_testing_info = True
             printer.add(self.palette.blue('Test suites: '), 1)
-            for test in test_collection.tests.value:
+            for test in sorted(test_collection.tests.value):
                 printer.add(self.palette.blue('- '), 2)
                 printer[-1].append(test)
 
         if test_collection.setup.value:
+            has_testing_info = True
             printer.add(self.palette.blue('Setup: '), 1)
             printer[-1].append(test_collection.setup.value)
+        if not has_testing_info:
+            # if the test_collection object had nothing, remove the header
+            printer.pop()
         return printer.build()
 
     def print_node(self, node):

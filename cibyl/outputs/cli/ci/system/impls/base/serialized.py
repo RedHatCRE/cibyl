@@ -47,12 +47,8 @@ class SerializedBaseSystemPrinter(CISystemPrinter, SerializedPrinter, ABC):
 
         return self.provider.dump(result)
 
+    @overrides
     def print_feature(self, feature: Feature) -> str:
-        """Print a feature present in a system.
-
-        :param feature: The feature.
-        :return: Textual representation of the provided model.
-        """
         result = {
             'name': feature.name.value,
             'present': feature.present.value
