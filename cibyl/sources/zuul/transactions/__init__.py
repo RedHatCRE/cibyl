@@ -644,8 +644,9 @@ class VariantResponse:
     @property
     def parent(self):
         """
-        :return: Name of the variant's parent job.
-        :rtype str
+        :return: Name of the parent job for this variant. 'None' if it does
+            not have one.
+        :rtype: str or None
         """
         return self._variant.parent
 
@@ -680,21 +681,20 @@ class VariantResponse:
         return result
 
     @property
+    def variables(self):
+        """
+        :return: Variables that specialize this variant.
+        :rtype: dict[str, Any]
+        """
+        return self._variant.variables
+
+    @property
     def data(self):
         """
-        :return: Raw data of this variant
+        :return: Raw data of this variant.
         :rtype: dict[str, Any]
         """
         return self._variant.raw
-
-    def variables(self, recursive=False):
-        """
-        :param recursive: Whether to gather the variables of parent as well.
-        :type recursive: bool
-        :return: Variables of this variant.
-        :rtype: dict[str, Any]
-        """
-        return self._variant.variables(recursive)
 
 
 class BuildResponse:

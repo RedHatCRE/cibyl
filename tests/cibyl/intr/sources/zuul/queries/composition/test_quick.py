@@ -278,12 +278,11 @@ class TestQuickQuery(TestCase):
         job.variants.return_value = [variant]
 
         variant.job = job
-        variant.parent = 'job'
+        variant.parent = None
         variant.name = 'variant'
         variant.description = 'desc'
         variant.branches = ['branch']
-        variant.variables = Mock()
-        variant.variables.return_value = {}
+        variant.variables = {}
 
         api = Mock()
         api.tenants = Mock()
@@ -329,7 +328,7 @@ class TestQuickQuery(TestCase):
                                 name=variant.name,
                                 description=variant.description,
                                 branches=variant.branches,
-                                variables=variant.variables.return_value
+                                variables=variant.variables
                             )
                         ]
                     )

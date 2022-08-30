@@ -46,23 +46,35 @@ class TestDeploymentQuery(TestCase):
         }
 
         tenant = Mock()
-        tenant.name = 'tenant'
-
         job = Mock()
+        variant1 = Mock()
+        variant2 = Mock()
+
+        tenant.name = 'tenant'
+        tenant.jobs = Mock()
+        tenant.jobs.return_value = Mock()
+        tenant.jobs.return_value.get = Mock()
+        tenant.jobs.return_value.get.return_value = [job]
+
         job.tenant = tenant
         job.name = 'name'
+        job.variants.return_value = Mock()
+        job.variants.return_value.get = Mock()
+        job.variants.return_value.get.return_value = [variant1, variant2]
 
-        variant1 = Mock()
         variant1.job = job
+        variant1.parent = None
         variant1.name = 'variant1'
-        variant1.variables.return_value = {
+        variant1.branches = ['master']
+        variant1.variables = {
             'rhos_release_version': '1.2'
         }
 
-        variant2 = Mock()
         variant2.job = job
+        variant2.parent = None
         variant2.name = 'variant2'
-        variant2.variables.return_value = {
+        variant2.branches = ['other']
+        variant2.variables = {
             'rhos_release_version': '2.0'
         }
 
