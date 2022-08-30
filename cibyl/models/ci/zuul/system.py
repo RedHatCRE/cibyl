@@ -34,7 +34,11 @@ class ZuulSystem(System):
                     Argument(name='--tenants', arg_type=str,
                              nargs='*',
                              description='System tenants',
-                             func='get_tenants')
+                             func='get_tenants'),
+                    Argument(name='--mode', arg_type=str, nargs='*',
+                             choices=('normal', 'verbose'),
+                             default='normal',
+                             description='Zuul visualization mode')
                 ]
             }
         }

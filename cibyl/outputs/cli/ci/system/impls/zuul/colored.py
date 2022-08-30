@@ -55,48 +55,62 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         def print_project(self, project: Project) -> str:
             result = IndentedTextBuilder()
 
-            result.add(self.palette.blue('Project: '), 0)
-            result[-1].append(project.name)
+            indentation = 0
 
-            if self.verbosity > 0:
-                result.add(self.palette.blue('URL: '), 1)
-                result[-1].append(project.url)
+            if 'projects' in self.args:
+                result.add(self.palette.blue('Project: '), indentation)
+                result[-1].append(project.name)
+
+                indentation += 1
+
+                if self.verbosity > 0:
+                    result.add(self.palette.blue('URL: '), indentation)
+                    result[-1].append(project.url)
 
             if self.query >= QueryType.PIPELINES:
                 if project.pipelines.value:
                     for pipeline in project.pipelines.values():
-                        result.add(self.print_pipeline(project, pipeline), 1)
+                        result.add(self.print_pipeline(project, pipeline), indentation)
 
-                    msg = "Total pipelines found in query for project '"
-                    result.add(self.palette.blue(msg), 1)
-                    result[-1].append(self.palette.underline(project.name))
-                    result[-1].append(self.palette.blue("': "))
-                    result[-1].append(len(project.pipelines))
+                    if 'pipelines' in self.args:
+                        msg = "Total pipelines found in query for project '"
+                        result.add(self.palette.blue(msg), indentation)
+                        result[-1].append(self.palette.underline(project.name))
+                        result[-1].append(self.palette.blue("': "))
+                        result[-1].append(len(project.pipelines))
                 else:
-                    msg = 'No pipelines found in query.'
-                    result.add(self.palette.red(msg), 1)
+                    if 'pipelines' in self.args:
+                        msg = 'No pipelines found in query.'
+                        result.add(self.palette.red(msg), indentation)
 
             return result.build()
 
         def print_pipeline(self, project: Project, pipeline: Pipeline) -> str:
             result = IndentedTextBuilder()
 
-            result.add(self.palette.blue('Pipeline: '), 0)
-            result[-1].append(pipeline.name)
+            indentation = 0
+
+            if 'pipelines' in self.args:
+                result.add(self.palette.blue('Pipeline: '), indentation)
+                result[-1].append(pipeline.name)
+
+                indentation += 1
 
             if self.query >= QueryType.JOBS:
                 if pipeline.jobs.value:
                     for job in pipeline.jobs.values():
-                        result.add(self.print_job(project, pipeline, job), 1)
+                        result.add(self.print_job(project, pipeline, job), indentation)
 
-                    msg = "Total jobs found in query for pipeline '"
-                    result.add(self.palette.blue(msg), 1)
-                    result[-1].append(self.palette.underline(pipeline.name))
-                    result[-1].append(self.palette.blue("': "))
-                    result[-1].append(len(pipeline.jobs))
+                    if 'pipelines' in self.args:
+                        msg = "Total jobs found in query for pipeline '"
+                        result.add(self.palette.blue(msg), indentation)
+                        result[-1].append(self.palette.underline(pipeline.name))
+                        result[-1].append(self.palette.blue("': "))
+                        result[-1].append(len(pipeline.jobs))
                 else:
-                    msg = 'No jobs found in query.'
-                    result.add(self.palette.red(msg), 1)
+                    if 'pipelines' in self.args:
+                        msg = 'No jobs found in query.'
+                        result.add(self.palette.red(msg), indentation)
 
             return result.build()
 
@@ -104,8 +118,9 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                       job: Job) -> str:
             result = IndentedTextBuilder()
 
-            result.add(self.palette.blue('Job: '), 0)
-            result[-1].append(job.name.value)
+            if 'jobs' in self.args:
+                result.add(self.palette.blue('Job: '), 0)
+                result[-1].append(job.name.value)
 
             if self.query >= QueryType.BUILDS:
                 builds = apply_filters(
@@ -113,6 +128,9 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                     lambda bld: bld.project.value != project.name.value,
                     lambda bld: bld.pipeline.value != pipeline.name.value
                 )
+
+                if 'builds' not in self.args:
+                    return result.build()
 
                 if builds:
                     for build in builds:
@@ -356,63 +374,79 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         def print_projects() -> None:
             def create_printer() -> ColoredZuulSystemPrinter.ProjectCascade:
                 return ColoredZuulSystemPrinter.ProjectCascade(
-                    self.query, self.verbosity, self.palette
+                    self.query, self.verbosity, self.palette, args=self.args
                 )
 
             # Avoid header if there are no project
-            result.add(self.palette.blue('Projects: '), 1)
+            if 'projects' in self.args:
+                result.add(self.palette.blue('Projects: '), 1)
 
             if tenant.projects.value:
                 for project in tenant.projects.values():
                     result.add(create_printer().print_project(project), 2)
 
-                result.add(
-                    self.palette.blue(
-                        "Total projects found in query for tenant '"
-                    ), 1
-                )
-                result[-1].append(self.palette.underline(tenant.name))
-                result[-1].append(self.palette.blue("': "))
-                result[-1].append(len(tenant.projects))
+                if 'projects' in self.args:
+                    result.add(
+                        self.palette.blue(
+                            "Total projects found in query for tenant '"
+                        ), 1
+                    )
+                    result[-1].append(self.palette.underline(tenant.name))
+                    result[-1].append(self.palette.blue("': "))
+                    result[-1].append(len(tenant.projects))
             else:
-                msg = 'No projects found in query.'
-                result.add(self.palette.red(msg), 2)
+                if 'projects' in self.args:
+                    msg = 'No projects found in query.'
+                    result.add(self.palette.red(msg), 2)
 
         def print_jobs() -> None:
             def create_printer() -> ColoredZuulSystemPrinter.JobCascade:
                 return ColoredZuulSystemPrinter.JobCascade(
-                    self.query, self.verbosity, self.palette
+                    self.query, self.verbosity, self.palette, args=self.args
                 )
 
             # Avoid header if there are no jobs
-            result.add(self.palette.blue('Jobs: '), 1)
+            if 'jobs' in self.args:
+                result.add(self.palette.blue('Jobs: '), 1)
 
             if tenant.jobs.value:
                 for job in sort(tenant.jobs.values(), self._job_sorter):
                     result.add(create_printer().print_job(job), 2)
 
-                result.add(
-                    self.palette.blue(
-                        "Total jobs found in query for tenant '"
-                    ), 1
-                )
+                if 'jobs' in self.args:
+                    result.add(
+                        self.palette.blue(
+                            "Total jobs found in query for tenant '"
+                        ), 1
+                    )
 
-                result[-1].append(self.palette.underline(tenant.name))
-                result[-1].append(self.palette.blue("': "))
-                result[-1].append(len(tenant.jobs))
+                    result[-1].append(self.palette.underline(tenant.name))
+                    result[-1].append(self.palette.blue("': "))
+                    result[-1].append(len(tenant.jobs))
             else:
-                msg = 'No jobs found in query.'
-                result.add(self.palette.red(msg), 2)
+                if 'jobs' in self.args:
+                    msg = 'No jobs found in query.'
+                    result.add(self.palette.red(msg), 2)
 
         result = IndentedTextBuilder()
 
-        result.add(self.palette.blue('Tenant: '), 0)
-        result[-1].append(tenant.name)
+        if 'tenants' in self.args:
+            result.add(self.palette.blue('Tenant: '), 0)
+            result[-1].append(tenant.name)
 
-        if self.query >= QueryType.PROJECTS:
+        if self.needs_projects():
             print_projects()
-
-            if self.query >= QueryType.JOBS:
-                print_jobs()
+        else:
+            print_jobs()
 
         return result.build()
+
+    def needs_projects(self) -> bool:
+        if self.query >= QueryType.BUILDS:
+            return False
+
+        if 'projects' in self.args or\
+           'pipelines' in self.args:
+            return True
+
+        return False

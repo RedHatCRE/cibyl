@@ -123,15 +123,6 @@ class Job(BaseJob):
 
     API = {
         **subset(BaseJob.API, ['name', 'url', 'builds']),
-        'output_mode': {
-            'arguments': [
-                Argument(
-                    name='--complete', arg_type=bool, nargs=0,
-                    description='Shows the projects and pipelines hierarchy '
-                                'for the jobs'
-                ),
-            ],
-        },
         'variants': {
             'attr_type': Variant,
             'attribute_value_class': AttributeListValue,
