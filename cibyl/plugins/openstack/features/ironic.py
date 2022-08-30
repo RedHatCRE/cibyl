@@ -35,5 +35,5 @@ class Inspector(OpenstackFeatureTemplate, FeatureDefinition):
         the feature."""
         inspector_arg = Argument("ironic_inspector", arg_type=str,
                                  description="Ironic Inspector",
-                                 func="get_deployment")
+                                 func="get_deployment", value="True")
         return {'ironic_inspector': inspector_arg}
