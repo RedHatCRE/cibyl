@@ -16,16 +16,20 @@
 import logging
 import os
 from collections import UserDict
-from typing import Callable
+from typing import Callable, Optional
 
 import rfc3987
+from jsonschema.exceptions import ValidationError
 
 import cibyl.exceptions.config as conf_exc
 from cibyl.cli.interactions import ask_yes_no_question
 from cibyl.exceptions.cli import AbortedByUserError
+from cibyl.exceptions.config import SchemaError
 from cibyl.models.ci.system_factory import SystemType
 from cibyl.utils import yaml
 from cibyl.utils.files import get_first_available_file, is_file_available
+from cibyl.utils.fs import File
+from cibyl.utils.json import Draft7ValidatorFactory
 from cibyl.utils.net import DownloadError, download_file
 
 LOG = logging.getLogger(__name__)
@@ -49,15 +53,7 @@ class Config(UserDict):
     from an external yaml file. No post-processing is performed on the read
     data, as this class acts as a direct interface between the system's file
     and the app.
-
-    :param data: configuration data
     """
-    def __init__(self, data: dict = None):
-        """Config Constructor"""
-        if data:
-            self.data = data
-        else:
-            self.data = {}
 
     def load_from_path(self, path: str) -> None:
         """Loads the content of a configuration file/object and creates
@@ -71,9 +67,14 @@ class Config(UserDict):
 class AppConfig(Config):
     """Representation of a Cybil's configuration file"""
 
-    def __init__(self, data: dict = None):
-        """AppConfig Constructor"""
-        Config.__init__(self, data=data)
+    def __init__(
+        self,
+        data: Optional[dict] = None,
+        schema: File = File('_data/schemas/config.json')
+    ):
+        super().__init__(data)
+
+        self._schema = schema
 
     @property
     def environments(self) -> dict:
@@ -103,6 +104,10 @@ class AppConfig(Config):
         :raise MissingSystems: If a specific environment section is empty
         :raise MissingEnvironments: If no environments specified
         """
+        self._verify_by_hand()
+        self._verify_by_schema()
+
+    def _verify_by_hand(self) -> None:
         self._verify_environments()
         self._verify_systems()
 
@@ -144,6 +149,15 @@ class AppConfig(Config):
         """
         if 'sources' not in system_data:
             raise conf_exc.MissingSystemSources(system_name)
+
+    def _verify_by_schema(self):
+        validators = Draft7ValidatorFactory()
+        validator = validators.from_file(self._schema)
+
+        try:
+            validator.validate(self.data)
+        except ValidationError as ex:
+            raise SchemaError(error=ex.message)
 
 
 class ConfigFactory:
