@@ -20,6 +20,7 @@ from unittest.mock import MagicMock, Mock
 
 from cibyl.cli.argument import Argument
 from cibyl.models.ci.base.job import Job
+from cibyl.plugins.openstack.sources import jenkins_job_builder
 from cibyl.plugins.openstack.sources.jenkins_job_builder import \
     JenkinsJobBuilder
 from tests.cibyl.utils import OpenstackPluginWithJobSystem
@@ -45,7 +46,7 @@ tolology_content = [
 ]
 
 # add everything relevant manually from the results of
-# grep network-protocol * -rn  | awk '{ print $2 " " $3;}' | sort -u
+# grep network-protocol * -rn  | awk '{ $1=""; print $0; }' | sort -u
 ipv_content = [
     # ------------------------  ip-version
     {
@@ -83,31 +84,71 @@ ipv_content = [
         "kwargs": {
             'ip_version': Argument("ip_version", str, "", value=[])},
         "res": "6"},
+]
 
+# add everything relevant manually from the results of
+# grep send_results_to_umb * -rn  | awk '{ $1=""; print $0; }' | sort -u
+release_content = [
+    # ------------------------  release
+    {
+        "str": "<pattern>rhos-10.0-patches</pattern>",  # noqa: E501
+        "kwargs": {
+            'release': Argument("release", str, "", value=[])},
+        "res": "10.0"},
+    {
+        "str": "<pattern>rhos-16.1-trunk-patches|rhos-16.1-patches|rhos-16.1-trunk-patches</pattern>",  # noqa: E501
+        "kwargs": {
+            'release': Argument("release", str, "", value=[])},
+        "res": "16.1"},
+    {
+        "str": "RefSpecName = &quot;+refs/heads/rhos-10.0-patches:refs/remotes/origin/rhos-10.0-patches&quot;",  # noqa: E501
+        "kwargs": {
+            'release': Argument("release", str, "", value=[])},
+        "res": "10.0"},
+    {
+        "str": "RefSpecName = &quot;+refs/heads/rhos-10.0-patches:refs/remotes/origin/rhos-10.0-patches&quot;",  # noqa: E501
+        "kwargs": {
+            'release': Argument("release", str, "", value=[10.0])},
+        "res": "10.0"},
+    {
+        "str": "RefSpecName = &quot;+refs/heads/rhos-10.0-patches:refs/remotes/origin/rhos-10.0-patches&quot;",  # noqa: E501
+        "kwargs": {
+            'release': Argument("release", str, "", value=[17.0])},
+        "res": None},
 ]
 
 
 class TestJJBSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
     def setUp(self):
         job_name = "job1"
-        self.path = "path1"
         self.jjb = JenkinsJobBuilder()
         self.jjb.get_jobs_from_repo = Mock(
             side_effect=[{job_name: Job(name=job_name)}])
         self.jjb.repos = [{'url': 'url', 'dest': 'dest', 'cloned': True}]
-        self.jjb._xml_files = MagicMock()[self.path]
+        self.jjb._xml_files = MagicMock()
 
         logging.disable(logging.CRITICAL)
 
     def test_get_topology(self):
         for el in tolology_content:
-            self.jjb._parse_xml = Mock(side_effect=[StringIO(el['str'])])
-            self.assertEqual(self.jjb._get_topology(self.path, **el['kwargs']),
-                             el['res'])
+            jenkins_job_builder.parse_xml = Mock(
+                side_effect=[StringIO(el['str'])])
+            self.assertEqual(
+                self.jjb._get_topology("path.xml", **el['kwargs']),
+                el['res'])
 
     def test_get_ipv(self):
         for el in ipv_content:
-            self.jjb._parse_xml = Mock(side_effect=[StringIO(el['str'])])
+            jenkins_job_builder.parse_xml = Mock(
+                side_effect=[StringIO(el['str'])])
             self.assertEqual(
-                self.jjb._get_ip_version(self.path, **el['kwargs']),
+                self.jjb._get_ip_version("path.xml", **el['kwargs']),
+                el['res'])
+
+    def test_get_release(self):
+        for el in release_content:
+            jenkins_job_builder.parse_xml = Mock(
+                side_effect=[StringIO(el['str'])])
+            self.assertEqual(
+                self.jjb._get_release("path.xml", **el['kwargs']),
                 el['res'])
