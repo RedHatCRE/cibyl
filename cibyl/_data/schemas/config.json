@@ -1,0 +1,158 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "environments": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "type": "object",
+          "additionalProperties": false,
+          "patternProperties": {
+            "^.*$": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "system_type": {
+                  "type": "string",
+                  "enum": [
+                    "jenkins",
+                    "zuul"
+                  ]
+                },
+                "sources": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "patternProperties": {
+                    "^.*$": {
+                      "type": "object",
+                      "oneOf": [
+                        {
+                          "$ref": "#/$defs/jenkins"
+                        },
+                        {
+                          "$ref": "#/$defs/jjb"
+                        },
+                        {
+                          "$ref": "#/$defs/es"
+                        },
+                        {
+                          "$ref": "#/$defs/zuul"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "plugins": {
+      "type": "array",
+      "additionalItems": false,
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "environments"
+  ],
+  "$defs": {
+    "jenkins": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "driver": {
+          "type": "string",
+          "const": "jenkins"
+        },
+        "url": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "cert": {
+          "type": "boolean"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "jjb": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "driver": {
+          "type": "string",
+          "const": "jjb"
+        },
+        "repos": {
+          "type": "array",
+          "additionalItems": false,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "es": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "driver": {
+          "type": "string",
+          "const": "elasticsearch"
+        },
+        "url": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "zuul": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "driver": {
+          "type": "string",
+          "const": "zuul"
+        },
+        "url": {
+          "type": "string"
+        },
+        "tenants": {
+          "type": "array",
+          "additionalItems": false,
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
