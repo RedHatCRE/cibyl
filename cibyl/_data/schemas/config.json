@@ -29,6 +29,9 @@
                     "zuul"
                   ]
                 },
+                "jobs_scope": {
+                  "type": "string"
+                },
                 "sources": {
                   "type": "object",
                   "additionalProperties": false,
@@ -91,7 +94,14 @@
           "type": "string"
         },
         "cert": {
-          "type": "boolean"
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            }
+          ]
         },
         "enabled": {
           "type": "boolean"

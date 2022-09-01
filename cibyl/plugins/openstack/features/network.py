@@ -89,5 +89,5 @@ class DVR(OpenstackFeatureTemplate, FeatureDefinition):
         the feature."""
         dvr_arg = Argument("dvr", arg_type=str,
                            description="DVR enabled",
-                           func="get_deployment")
+                           func="get_deployment", value="True")
         return {'dvr': dvr_arg}
