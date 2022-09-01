@@ -12,10 +12,16 @@
           "type": "object",
           "additionalProperties": false,
           "patternProperties": {
-            "^.*$": {
+            "^enabled$": {
+              "type": "boolean"
+            },
+            "^(?!enabled).*$": {
               "type": "object",
               "additionalProperties": false,
               "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
                 "system_type": {
                   "type": "string",
                   "enum": [
@@ -173,6 +179,9 @@
         },
         "token": {
           "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
         },
         "repos": {
           "type": "array",
