@@ -90,7 +90,11 @@
         "enabled": {
           "type": "boolean"
         }
-      }
+      },
+      "required": [
+        "driver",
+        "url"
+      ]
     },
     "jjb": {
       "type": "object",
@@ -116,7 +120,11 @@
         "enabled": {
           "type": "boolean"
         }
-      }
+      },
+      "required": [
+        "driver",
+        "repos"
+      ]
     },
     "es": {
       "type": "object",
@@ -132,7 +140,11 @@
         "enabled": {
           "type": "boolean"
         }
-      }
+      },
+      "required": [
+        "driver",
+        "url"
+      ]
     },
     "zuul": {
       "type": "object",
@@ -155,7 +167,11 @@
         "enabled": {
           "type": "boolean"
         }
-      }
+      },
+      "required": [
+        "driver",
+        "url"
+      ]
     },
     "zuul.d": {
       "type": "object",
@@ -174,6 +190,9 @@
         "token": {
           "type": "string"
         },
+        "enabled": {
+          "type": "boolean"
+        },
         "repos": {
           "type": "array",
           "additionalItems": false,
@@ -187,7 +206,11 @@
             }
           }
         }
-      }
+      },
+      "required": [
+        "driver",
+        "repos"
+      ]
     }
   }
 }
