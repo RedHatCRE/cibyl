@@ -18,12 +18,11 @@ import os
 from collections import UserDict
 from typing import Callable, Optional
 
-from cibyl import __path__ as pwd
-
 import rfc3987
 from jsonschema.exceptions import ValidationError
 
 import cibyl.exceptions.config as conf_exc
+from cibyl import __path__ as pwd
 from cibyl.cli.interactions import ask_yes_no_question
 from cibyl.exceptions.cli import AbortedByUserError
 from cibyl.exceptions.config import SchemaError

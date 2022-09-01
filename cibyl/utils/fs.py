@@ -15,9 +15,9 @@
 """
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
-from os import PathLike, getcwd, chdir
+from os import PathLike, chdir, getcwd
 from pathlib import Path
-from typing import Union, Generator
+from typing import Generator, Union
 
 from overrides import overrides
 
