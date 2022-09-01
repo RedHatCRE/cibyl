@@ -53,6 +53,8 @@ class SourceFactory:
             source_class = ElasticSearch
         elif source.__name__ == 'Zuul':
             source_class = Zuul
+        elif source.__name__ == 'JenkinsJobBuilder':
+            source_class = JenkinsJobBuilder
         elif source.__name__ == 'ServerSource':
             source_class = ServerSource
         else:
