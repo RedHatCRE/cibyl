@@ -14,7 +14,7 @@
 #    under the License.
 """
 import sys
-from unittest import TestCase, skip
+from unittest import TestCase
 
 from cibyl.cli.main import main
 from tests.cibyl.e2e.containers.httpd import HTTPDContainer
