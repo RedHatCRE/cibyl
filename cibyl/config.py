@@ -18,6 +18,8 @@ import os
 from collections import UserDict
 from typing import Callable, Optional
 
+from cibyl import __path__ as pwd
+
 import rfc3987
 from jsonschema.exceptions import ValidationError
 
@@ -28,7 +30,7 @@ from cibyl.exceptions.config import SchemaError
 from cibyl.models.ci.system_factory import SystemType
 from cibyl.utils import yaml
 from cibyl.utils.files import get_first_available_file, is_file_available
-from cibyl.utils.fs import File
+from cibyl.utils.fs import File, cd_context_manager
 from cibyl.utils.json import Draft7ValidatorFactory
 from cibyl.utils.net import DownloadError, download_file
 
@@ -151,13 +153,14 @@ class AppConfig(Config):
             raise conf_exc.MissingSystemSources(system_name)
 
     def _verify_by_schema(self):
-        validators = Draft7ValidatorFactory()
-        validator = validators.from_file(self._schema)
+        with cd_context_manager(pwd[0]):
+            validators = Draft7ValidatorFactory()
+            validator = validators.from_file(self._schema)
 
-        try:
-            validator.validate(self.data)
-        except ValidationError as ex:
-            raise SchemaError(error=ex.message)
+            try:
+                validator.validate(self.data)
+            except ValidationError as ex:
+                raise SchemaError(error=ex.message)
 
 
 class ConfigFactory:
@@ -236,8 +239,8 @@ class ConfigFactory:
 
     @staticmethod
     def from_url(
-            url: str, dest: str = DEFAULT_USER_PATH,
-            overwrite_call: Callable[[], bool] = _ask_user_for_overwrite
+        url: str, dest: str = DEFAULT_USER_PATH,
+        overwrite_call: Callable[[], bool] = _ask_user_for_overwrite
     ) -> dict:
         """Builds a configuration from a definition located on a remote
         host. The definition is accessed and downloaded into the provided path.

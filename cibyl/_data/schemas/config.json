@@ -41,6 +41,9 @@
                         },
                         {
                           "$ref": "#/$defs/zuul"
+                        },
+                        {
+                          "$ref": "#/$defs/zuul.d"
                         }
                       ]
                     }
@@ -95,7 +98,7 @@
       "properties": {
         "driver": {
           "type": "string",
-          "const": "jjb"
+          "const": "jenkins_job_builder"
         },
         "repos": {
           "type": "array",
@@ -151,6 +154,38 @@
         },
         "enabled": {
           "type": "boolean"
+        }
+      }
+    },
+    "zuul.d": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "driver": {
+          "type": "string",
+          "const": "zuul.d"
+        },
+        "remote": {
+          "type": "boolean"
+        },
+        "username": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "repos": {
+          "type": "array",
+          "additionalItems": false,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            }
+          }
         }
       }
     }

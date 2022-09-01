@@ -14,15 +14,28 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
-from os import PathLike
+from contextlib import contextmanager
+from os import PathLike, getcwd, chdir
 from pathlib import Path
-from typing import Union
+from typing import Union, Generator
 
 from overrides import overrides
 
 from tripleo.utils.paths import Preprocessor
 
 RawPath = Union[bytes, str, PathLike, Path]
+
+
+@contextmanager
+def cd_context_manager(path: RawPath) -> Generator:
+    """Simple context manager that changes the working directory and restores
+    the previous one on exit"""
+    old_dir = getcwd()
+    chdir(path)
+    try:
+        yield
+    finally:
+        chdir(old_dir)
 
 
 class FSPath(str, ABC):
