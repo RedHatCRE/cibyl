@@ -139,7 +139,8 @@ class AppConfig(Config):
             except AttributeError:
                 raise conf_exc.MissingSystems(env_name)
             for system_name, single_system in systems_dict.items():
-                self._verify_sources(system_name, single_system)
+                if isinstance(single_system, dict):
+                    self._verify_sources(system_name, single_system)
 
     def _verify_sources(self, system_name: str, system_data: dict) -> None:
         """Checks whether a given system includes definition of sources.
