@@ -175,3 +175,13 @@ Configure systems by including them under the relevant environment name
         <ENVIRONMENT_NAME>:
             <SYSTEM_NAME>\n\n{CHECK_DOCS_MSG}"""
         super().__init__(self.message)
+
+
+class SchemaError(CibylException):
+    def __init__(self, error: str):
+        super().__init__(
+            message=f'Configuration file found to be invalid due to error:\n'
+                    f'\t- {error}\n'
+                    f'\n'
+                    f'{CHECK_DOCS_MSG}'
+        )
