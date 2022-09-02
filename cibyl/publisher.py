@@ -43,14 +43,14 @@ class Publisher(ABC):
                  style: OutputStyle = OutputStyle.TEXT,
                  query: QueryType = QueryType.NONE,
                  verbosity: int = 0, output_file: Optional[File] = None,
-                 args: dict=None):
+                 args: dict = None):
         self.target = target
         self.style = style
         self.query = query
         self.verbosity = verbosity
         self.output_file = output_file
         self.printer = CIPrinterFactory.from_style(self.style, self.query,
-                                                   self.verbosity)
+                                                   self.verbosity, args=args)
 
     @abstractmethod
     def publish(self, environment: Environment) -> None:
@@ -140,10 +140,12 @@ class PublisherFactory:
                          style: OutputStyle = OutputStyle.TEXT,
                          query: QueryType = QueryType.NONE,
                          verbosity: int = 0,
-                         output_file: Optional[File] = None) -> PUBLISHER_TYPE:
+                         output_file: Optional[File] = None,
+                         args: dict = None) -> PUBLISHER_TYPE:
         if style in (OutputStyle.JSON,):
             return JSONPublisher(target=target, style=style, query=query,
                                  verbosity=verbosity, output_file=output_file)
         else:
             return PrintPublisher(target=target, style=style, query=query,
-                                  verbosity=verbosity, output_file=output_file)
+                                  verbosity=verbosity, output_file=output_file,
+                                  args=args)

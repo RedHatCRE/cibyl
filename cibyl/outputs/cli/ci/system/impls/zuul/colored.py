@@ -134,7 +134,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
                 if builds:
                     for build in builds:
-                        msg = self.print_build(project, pipeline, job, build)
+                        msg = self.print_build(build)
                         result.add(msg, 1)
                 else:
                     msg = 'No builds in query.'
@@ -142,8 +142,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             return result.build()
 
-        def print_build(self, project: Project, pipeline: Pipeline, job: Job,
-                        build: Build) -> str:
+        def print_build(self, build: Build) -> str:
             result = IndentedTextBuilder()
 
             result.add(self.palette.blue('Build: '), 1)
@@ -434,18 +433,23 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result.add(self.palette.blue('Tenant: '), 0)
             result[-1].append(tenant.name)
 
-        if self.needs_projects():
+        if self.wants_projects():
             print_projects()
+            if 'mode' in self.args and \
+               self.args['mode'].value[0] == 'verbose':
+                print_jobs()
         else:
             print_jobs()
 
         return result.build()
 
-    def needs_projects(self) -> bool:
+    def wants_projects(self) -> bool:
+        """Determine if it has to print the project hierarchy or not
+        """
         if self.query >= QueryType.BUILDS:
             return False
 
-        if 'projects' in self.args or\
+        if 'projects' in self.args or \
            'pipelines' in self.args:
             return True
 
