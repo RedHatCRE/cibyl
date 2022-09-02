@@ -36,5 +36,5 @@ class TLSEverywhere(OpenstackFeatureTemplate, FeatureDefinition):
         the feature."""
         tls_everywhere_arg = Argument("tls_everywhere", arg_type=str,
                                       description="TLS Everywhere",
-                                      func="get_deployment")
+                                      func="get_deployment", value="True")
         return {'tls_everywhere': tls_everywhere_arg}

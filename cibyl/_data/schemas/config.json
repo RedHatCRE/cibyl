@@ -1,0 +1,232 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "environments": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "type": "object",
+          "additionalProperties": false,
+          "patternProperties": {
+            "^enabled$": {
+              "type": "boolean"
+            },
+            "^(?!enabled).*$": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "system_type": {
+                  "type": "string",
+                  "enum": [
+                    "jenkins",
+                    "zuul"
+                  ]
+                },
+                "jobs_scope": {
+                  "type": "string"
+                },
+                "sources": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "patternProperties": {
+                    "^.*$": {
+                      "type": "object",
+                      "oneOf": [
+                        {
+                          "$ref": "#/$defs/jenkins"
+                        },
+                        {
+                          "$ref": "#/$defs/jjb"
+                        },
+                        {
+                          "$ref": "#/$defs/es"
+                        },
+                        {
+                          "$ref": "#/$defs/zuul"
+                        },
+                        {
+                          "$ref": "#/$defs/zuul.d"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "plugins": {
+      "type": "array",
+      "additionalItems": false,
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "environments"
+  ],
+  "$defs": {
+    "jenkins": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "driver": {
+          "type": "string",
+          "const": "jenkins"
+        },
+        "url": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "cert": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "driver",
+        "url"
+      ]
+    },
+    "jjb": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "driver": {
+          "type": "string",
+          "const": "jenkins_job_builder"
+        },
+        "repos": {
+          "type": "array",
+          "additionalItems": false,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "driver",
+        "repos"
+      ]
+    },
+    "es": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "driver": {
+          "type": "string",
+          "const": "elasticsearch"
+        },
+        "url": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "driver",
+        "url"
+      ]
+    },
+    "zuul": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "driver": {
+          "type": "string",
+          "const": "zuul"
+        },
+        "url": {
+          "type": "string"
+        },
+        "tenants": {
+          "type": "array",
+          "additionalItems": false,
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "driver",
+        "url"
+      ]
+    },
+    "zuul.d": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "driver": {
+          "type": "string",
+          "const": "zuul.d"
+        },
+        "remote": {
+          "type": "boolean"
+        },
+        "username": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "repos": {
+          "type": "array",
+          "additionalItems": false,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "driver",
+        "repos"
+      ]
+    }
+  }
+}
