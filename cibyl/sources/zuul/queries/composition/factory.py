@@ -14,6 +14,7 @@
 #    under the License.
 """
 from cibyl.sources.zuul.apis import ZuulAPI as Zuul
+from cibyl.sources.zuul.queries.composition.quick import QuickQuery
 from cibyl.sources.zuul.queries.composition.verbose import VerboseQuery
 
 
@@ -29,4 +30,7 @@ class AggregatedQueryFactory:
         :param kwargs: Random set of arguments.
         :return: The query instance.
         """
-        return VerboseQuery(api)
+        if 'look_for_pipelines' in kwargs:
+            return VerboseQuery(api)
+
+        return QuickQuery(api)
