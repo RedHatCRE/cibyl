@@ -70,7 +70,10 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             if self.query >= QueryType.PIPELINES:
                 if project.pipelines.value:
                     for pipeline in project.pipelines.values():
-                        result.add(self.print_pipeline(project, pipeline), indentation)
+                        result.add(
+                            self.print_pipeline(project, pipeline),
+                            indentation
+                        )
 
                     if 'pipelines' in self.args:
                         msg = "Total pipelines found in query for project '"
@@ -99,14 +102,22 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             if self.query >= QueryType.JOBS:
                 if pipeline.jobs.value:
                     for job in pipeline.jobs.values():
-                        result.add(self.print_job(project, pipeline, job), indentation)
+                        result.add(
+                            self.print_job(project, pipeline, job),
+                            indentation
+                        )
 
                     if 'pipelines' in self.args:
                         msg = "Total jobs found in query for pipeline '"
-                        result.add(self.palette.blue(msg), indentation)
-                        result[-1].append(self.palette.underline(pipeline.name))
-                        result[-1].append(self.palette.blue("': "))
-                        result[-1].append(len(pipeline.jobs))
+
+                        line = result.add(
+                            self.palette.blue(msg),
+                            indentation
+                        )[-1]
+
+                        line.append(self.palette.underline(pipeline.name))
+                        line.append(self.palette.blue("': "))
+                        line.append(len(pipeline.jobs))
                 else:
                     if 'pipelines' in self.args:
                         msg = 'No jobs found in query.'
