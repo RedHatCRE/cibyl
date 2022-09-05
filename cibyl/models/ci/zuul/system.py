@@ -27,14 +27,27 @@ class ZuulSystem(System):
     API = deepcopy(System.API)
     API.update(
         {
+            'modes': {
+                'attr_type': str,
+                'arguments': [
+                    Argument(
+                        name='--mode', arg_type=str, nargs=1,
+                        choices=('normal', 'verbose'),
+                        default='normal',
+                        description='Decides on contents of output'
+                    )
+                ]
+            },
             'tenants': {
                 'attr_type': Tenant,
                 'attribute_value_class': AttributeDictValue,
                 'arguments': [
-                    Argument(name='--tenants', arg_type=str,
-                             nargs='*',
-                             description='System tenants',
-                             func='get_tenants')
+                    Argument(
+                        name='--tenants', arg_type=str,
+                        nargs='*',
+                        description='System tenants',
+                        func='get_tenants'
+                    )
                 ]
             }
         }
