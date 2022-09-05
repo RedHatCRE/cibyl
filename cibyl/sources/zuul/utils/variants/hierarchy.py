@@ -128,7 +128,12 @@ class VariantFinder:
             for candidate in job.variants().get():
                 for condition in candidate.branches:
                     for branch in variant.branches:
+                        # See if parent pattern matches with my branch
                         if matches_regex(condition, branch):
+                            return candidate
+
+                        # See if my pattern matches with my parent's branch
+                        if matches_regex(branch, condition):
                             return candidate
 
             raise SearchError(
