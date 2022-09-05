@@ -13,8 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
+
 from cibyl.sources.zuul.apis import ZuulAPI as Zuul
+from cibyl.sources.zuul.output import QueryOutputMode
+from cibyl.sources.zuul.queries.composition.quick import QuickQuery
 from cibyl.sources.zuul.queries.composition.verbose import VerboseQuery
+
+LOG = logging.getLogger(__name__)
 
 
 class AggregatedQueryFactory:
@@ -29,4 +35,21 @@ class AggregatedQueryFactory:
         :param kwargs: Random set of arguments.
         :return: The query instance.
         """
-        return VerboseQuery(api)
+        arg = kwargs.get('mode')
+
+        if not arg:
+            msg = "'mode' argument is missing. Defaulting to quick query..."
+            LOG.warning(msg)
+            return QuickQuery(api)
+
+        mode = QueryOutputMode.from_key(arg)
+
+        if mode == QueryOutputMode.NORMAL:
+            return QuickQuery(api)
+
+        if mode == QueryOutputMode.VERBOSE:
+            return VerboseQuery(api)
+
+        msg = "Unknown query mode: '%s'. Defaulting to quick query..."
+        LOG.warning(msg, arg)
+        return QuickQuery(api)

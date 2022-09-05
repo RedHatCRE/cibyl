@@ -16,7 +16,31 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.sources.zuul.output import QueryOutputBuilder
+from cibyl.sources.zuul.output import QueryOutputBuilder, QueryOutputMode
+
+
+class TestQueryOutputMode(TestCase):
+    """Tests for :class:`QueryOutputMode`.
+    """
+
+    def test_from_key(self):
+        """Test that the correct modes are returned for the indicated keys.
+        """
+        self.assertEqual(
+            QueryOutputMode.NORMAL,
+            QueryOutputMode.from_key('normal')
+        )
+
+        self.assertEqual(
+            QueryOutputMode.VERBOSE,
+            QueryOutputMode.from_key('verbose')
+        )
+
+    def test_error_if_unknown(self):
+        """Checks that an error is thrown if the key cannot be parsed.
+        """
+        with self.assertRaises(NotImplementedError):
+            QueryOutputMode.from_key('unknown')
 
 
 class TestQueryOutputBuilder(TestCase):

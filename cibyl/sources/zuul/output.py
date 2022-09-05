@@ -14,6 +14,7 @@
 #    under the License.
 """
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Dict, Optional
 
 from cibyl.models.ci.zuul.build import Build
@@ -30,6 +31,42 @@ from cibyl.sources.zuul.utils.variants.hierarchy import \
 class QueryOutput(Dict[str, Tenant]):
     """The hierarchy of models that form a response for a Zuul query.
     """
+
+
+class QueryOutputMode(Enum):
+    """Decides the style on which the query's output should be generated.
+    """
+    NORMAL = 0
+    """Chooses speed over completeness. This mode will focus on getting the
+    bare minimum information to satisfy the query. Each element is treated
+    independently and listed on its own.
+    """
+    VERBOSE = 1
+    """Chooses completeness over speed. This mode will focus on getting as
+    much information from the host as it can, no matter how long that can
+    take. Elements are related to each other and listed as dependencies.
+    For example, this mode will join pipelines and jobs together to
+    indicate which of them each pipeline triggers."""
+
+    @staticmethod
+    def from_key(key: str) -> "QueryOutputMode":
+        """Parses a key into a :class:`QueryOutputMode`.
+
+        Map of known keys:
+            * 'normal' -> QueryOutputMode.NORMAL
+            * 'verbose' -> QueryOutputMode.VERBOSE
+
+        :param: key: The key to get the mode for.
+        :return: The correspondent mode.
+        :raise NotImplementedError: If no mode is found for the given key.
+        """
+        if key == 'normal':
+            return QueryOutputMode.NORMAL
+
+        if key == 'verbose':
+            return QueryOutputMode.VERBOSE
+
+        raise NotImplementedError(f"Unknown key: '{key}'.")
 
 
 class QueryOutputBuilder:
