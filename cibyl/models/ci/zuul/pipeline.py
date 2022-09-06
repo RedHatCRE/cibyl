@@ -36,6 +36,14 @@ class Pipeline(Model):
                     arg_type=str, nargs='*',
                     description='Jobs belonging to pipeline',
                     func='get_jobs'
+                ),
+                Argument(
+                    name='--fetch-pipelines',
+                    arg_type=str, nargs=0,
+                    description='Show the job below the pipelines that '
+                                'trigger it. '
+                                'Warning, this operation may take long to '
+                                'perform.'
                 )
             ]
         }
