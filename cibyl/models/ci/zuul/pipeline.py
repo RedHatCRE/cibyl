@@ -38,7 +38,7 @@ class Pipeline(Model):
                     func='get_jobs'
                 ),
                 Argument(
-                    name='--look-for-pipelines',
+                    name='--fetch-pipelines',
                     arg_type=str, nargs=0,
                     description='Show the job below the pipelines that '
                                 'trigger it. '

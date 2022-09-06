@@ -30,7 +30,7 @@ class AggregatedQueryFactory:
         :param kwargs: Random set of arguments.
         :return: The query instance.
         """
-        if 'look_for_pipelines' in kwargs:
+        if 'fetch_pipelines' in kwargs:
             return VerboseQuery(api)
 
         return QuickQuery(api)

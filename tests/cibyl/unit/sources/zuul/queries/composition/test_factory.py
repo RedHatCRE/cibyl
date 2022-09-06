@@ -34,7 +34,7 @@ class TestAggregatedQueryFactory(TestCase):
         self.assertIsInstance(
             factory.from_kwargs(
                 api=Mock(),
-                **{'look_for_pipelines': None}
+                **{'fetch_pipelines': None}
             ),
             VerboseQuery
         )
