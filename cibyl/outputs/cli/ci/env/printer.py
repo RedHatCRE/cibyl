@@ -16,10 +16,9 @@
 from abc import ABC, abstractmethod
 
 from cibyl.models.ci.base.environment import Environment
-from cibyl.outputs.cli.printer import Printer
 
 
-class CIPrinter(Printer, ABC):
+class CIPrinter(ABC):
     """Interface for printers of a CI model hierarchy.
     """
 

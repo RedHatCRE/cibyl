@@ -70,7 +70,6 @@ class ColoredBaseSystemPrinter(ColoredPrinter, CISystemPrinter):
 
         return printer.build()
 
-    @overrides
     def print_feature(self, feature: Feature) -> str:
         printer = IndentedTextBuilder()
         name = feature.name.value

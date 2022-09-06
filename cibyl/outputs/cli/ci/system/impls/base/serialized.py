@@ -47,7 +47,6 @@ class SerializedBaseSystemPrinter(CISystemPrinter, SerializedPrinter, ABC):
 
         return self.provider.dump(result)
 
-    @overrides
     def print_feature(self, feature: Feature) -> str:
         result = {
             'name': feature.name.value,
