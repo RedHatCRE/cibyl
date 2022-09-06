@@ -15,9 +15,11 @@
 """
 import logging
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from overrides import overrides
 
+from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.environment import Environment
 from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.zuul.system import ZuulSystem
@@ -28,12 +30,16 @@ from cibyl.outputs.cli.ci.system.impls.jobs.serialized import \
     JSONJobsSystemPrinter
 from cibyl.outputs.cli.ci.system.impls.zuul.serialized import \
     JSONZuulSystemPrinter
-from cibyl.outputs.cli.printer import JSONPrinter, SerializedPrinter
+from cibyl.outputs.cli.printer import JSON, PROV, SerializedPrinter
 
 LOG = logging.getLogger(__name__)
 
 
-class CISerializedPrinter(CIPrinter, SerializedPrinter, ABC):
+class CISerializedPrinter(
+    SerializedPrinter[PROV],
+    CIPrinter,
+    ABC
+):
     """Base class for printers that print a CI hierarchy in a format
     readable for machines, like JSON or YAML.
     """
@@ -45,7 +51,9 @@ class CISerializedPrinter(CIPrinter, SerializedPrinter, ABC):
 
             for system in env.systems:
                 key = system.name.value
-                systems[key] = self.provider.load(self.print_system(system))
+                systems[key] = self.provider.fn.load(
+                    self.print_system(system)
+                )
 
             return systems
 
@@ -54,7 +62,7 @@ class CISerializedPrinter(CIPrinter, SerializedPrinter, ABC):
             'systems': get_systems()
         }
 
-        return self.provider.dump(result)
+        return self.provider.fn.dump(result)
 
     @abstractmethod
     def print_system(self, system: System) -> str:
@@ -65,9 +73,20 @@ class CISerializedPrinter(CIPrinter, SerializedPrinter, ABC):
         raise NotImplementedError
 
 
-class CIJSONPrinter(JSONPrinter, CISerializedPrinter):
+class CIJSONPrinter(CISerializedPrinter[JSON]):
     """Serializer that prints a CI hierarchy in JSON format.
     """
+
+    def __init__(
+        self,
+        provider: Optional[JSON] = None,
+        query: QueryType = QueryType.NONE,
+        verbosity: int = 0
+    ):
+        if provider is None:
+            provider = JSON()
+
+        super().__init__(provider, query, verbosity)
 
     @overrides
     def print_system(self, system: System) -> str:
@@ -75,16 +94,16 @@ class CIJSONPrinter(JSONPrinter, CISerializedPrinter):
             # Check specialized printers
             if isinstance(system, JobsSystem):
                 return JSONJobsSystemPrinter(
+                    provider=self.provider,
                     query=self.query,
-                    verbosity=self.verbosity,
-                    indentation=self.indentation
+                    verbosity=self.verbosity
                 )
 
             if isinstance(system, ZuulSystem):
                 return JSONZuulSystemPrinter(
+                    provider=self.provider,
                     query=self.query,
-                    verbosity=self.verbosity,
-                    indentation=self.indentation
+                    verbosity=self.verbosity
                 )
 
             LOG.warning(
@@ -94,9 +113,9 @@ class CIJSONPrinter(JSONPrinter, CISerializedPrinter):
             )
 
             return JSONBaseSystemPrinter(
+                provider=self.provider,
                 query=self.query,
-                verbosity=self.verbosity,
-                indentation=self.indentation
+                verbosity=self.verbosity
             )
 
         return get_printer().print_system(system)

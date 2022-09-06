@@ -111,11 +111,11 @@ class SerializationProvider:
         """Transforms a python structure into machine-readable text."""
 
     def __init__(self, functions: Functions):
-        self._functions = functions
+        self._fn = functions
 
     @property
-    def functions(self) -> Functions:
-        return self._functions
+    def fn(self) -> Functions:
+        return self._fn
 
 
 PROV = TypeVar('PROV', bound=SerializationProvider)

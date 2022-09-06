@@ -13,42 +13,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.system.common.stages import print_stage
+from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.plugins.openstack.ironic import Ironic
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.printers import OSPrinter
 from cibyl.plugins.openstack.storage import Storage
-from cibyl.utils.colors import DefaultPalette
 from cibyl.utils.strings import IndentedTextBuilder
 
 
-class OSColoredPrinter(OSPrinter):
+class OSColoredPrinter(ColoredPrinter, OSPrinter):
     """Provides a human-readable representation of OS models decorated with
     coloring for easier readability.
     """
-
-    def __init__(self,
-                 query=QueryType.NONE, verbosity=0,
-                 palette=DefaultPalette()):
-        """Constructor.
-
-        See parents for more information.
-
-        :param palette: Palette of colors to be used.
-        :type palette: :class:`cibyl.utils.colors.ColorPalette`
-        """
-        super().__init__(query, verbosity)
-
-        self._palette = palette
-
-    @property
-    def palette(self):
-        """
-        :return: The palette currently in use.
-        :rtype: :class:`cibyl.utils.colors.ColorPalette`
-        """
-        return self._palette
 
     def _print_deployment_network_section(self, network: Network,
                                           printer: IndentedTextBuilder):
@@ -134,14 +111,14 @@ class OSColoredPrinter(OSPrinter):
 
         if ironic.ironic_inspector.value:
             if ironic.ironic_inspector.value != "N/A" or \
-               self.verbosity > 0:
+                self.verbosity > 0:
                 is_empty_ironic = False
                 printer.add(self.palette.blue('Ironic inspector: '), 2)
                 printer[-1].append(ironic.ironic_inspector)
 
         if ironic.cleaning_network.value:
             if ironic.cleaning_network.value != "N/A" or \
-               self.verbosity > 0:
+                self.verbosity > 0:
                 is_empty_ironic = False
                 printer.add(self.palette.blue('Cleaning network: '), 2)
                 printer[-1].append(ironic.cleaning_network)
@@ -191,7 +168,7 @@ class OSColoredPrinter(OSPrinter):
                                                                     printer)
         if deployment.overcloud_templates.value:
             if deployment.overcloud_templates.value != "N/A" or \
-               self.verbosity > 0:
+                self.verbosity > 0:
                 is_empty_deployment = False
                 printer.add(self.palette.blue('Overcloud templates: '), 1)
                 if isinstance(deployment.overcloud_templates.value, str):
@@ -204,14 +181,14 @@ class OSColoredPrinter(OSPrinter):
 
         if deployment.test_collection.value:
             if deployment.test_collection.value != "N/A" or \
-               self.verbosity > 0:
+                self.verbosity > 0:
                 is_empty_deployment = False
                 if isinstance(deployment.test_collection.value, str):
                     printer.add(self.palette.blue('Testing information: '), 1)
                     printer[-1].append(deployment.test_collection.value)
                 else:
                     testing_string = self.print_test_collection(
-                            deployment.test_collection.value)
+                        deployment.test_collection.value)
                     if testing_string:
                         printer.add(testing_string, 1)
                     elif self.verbosity > 0:

@@ -14,11 +14,12 @@
 #    under the License.
 """
 from abc import ABC
-from typing import Union
+from typing import Optional, Union
 
 from overrides import overrides
 
-from cibyl.outputs.cli.printer import JSONPrinter, SerializedPrinter
+from cibyl.cli.query import QueryType
+from cibyl.outputs.cli.printer import JSON, PROV, SerializedPrinter
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
@@ -28,7 +29,7 @@ from cibyl.plugins.openstack.service import Service
 from cibyl.plugins.openstack.test_collection import TestCollection
 
 
-class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
+class OSSerializedPrinter(SerializedPrinter[PROV], OSPrinter, ABC):
     """Provides a machine-readable representation of the plugin's models for
     easy readability from a machine.
     """
@@ -64,18 +65,18 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
                 )
                 if deployment.overcloud_templates.value else [],
             'test_collection':
-                self.provider.load(
+                self.provider.fn.load(
                     self.print_test_collection(
                         deployment.test_collection.value
                     )
                 )
                 if deployment.test_collection.value else {},
             'nodes': [
-                self.provider.load(self.print_node(node))
+                self.provider.fn.load(self.print_node(node))
                 for node in deployment.nodes.values()
             ],
             'services': [
-                self.provider.load(self.print_service(service))
+                self.provider.fn.load(self.print_service(service))
                 for service in deployment.services.values()
             ],
             'stages': [
@@ -88,7 +89,7 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
             ]
         }
 
-        return self.provider.dump(result)
+        return self.provider.fn.dump(result)
 
     @overrides
     def print_test_collection(self, collection: TestCollection) -> str:
@@ -99,30 +100,30 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
             collection = TestCollection()
 
         result = {
+            # sort list of tests so it's consistently displayed
             'tests':
-                # sort list of tests so it's consistently displayed
                 sorted(list(collection.tests.value))
                 if collection.tests.value else [],
             'setup': collection.setup.value
         }
 
-        return self.provider.dump(result)
+        return self.provider.fn.dump(result)
 
     @overrides
     def print_node(self, node: Node) -> str:
         result = {
             'role': node.role.value,
             'containers': [
-                self.provider.load(self.print_container(container))
+                self.provider.fn.load(self.print_container(container))
                 for container in node.containers.values()
             ],
             'packages': [
-                self.provider.load(self.print_package(package))
+                self.provider.fn.load(self.print_package(package))
                 for package in node.packages.values()
             ]
         }
 
-        return self.provider.dump(result)
+        return self.provider.fn.dump(result)
 
     @overrides
     def print_container(self, container: Container) -> str:
@@ -130,12 +131,12 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
             'name': container.name.value,
             'image': container.image.value,
             'packages': [
-                self.provider.load(self.print_package(package))
+                self.provider.fn.load(self.print_package(package))
                 for package in container.packages.values()
             ]
         }
 
-        return self.provider.dump(result)
+        return self.provider.fn.dump(result)
 
     @overrides
     def print_package(self, package: Package) -> str:
@@ -144,7 +145,7 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
             'origin': package.origin.value
         }
 
-        return self.provider.dump(result)
+        return self.provider.fn.dump(result)
 
     @overrides
     def print_service(self, service: Service) -> str:
@@ -153,17 +154,28 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
             'configuration': service.configuration.value
         }
 
-        return self.provider.dump(result)
+        return self.provider.fn.dump(result)
 
     def _print_overcloud_templates(self, templates: Union[str, set]) -> list:
         if isinstance(templates, str):
-            # sometime the test collection is stored as a string indicating
+            # sometimes the test collection is stored as a string indicating
             # that no test information was available (usually N/A), so in those
             # cases we'll replace the collection with an empty one
             return []
         return list(templates)
 
 
-class OSJSONPrinter(JSONPrinter, OSSerializedPrinter):
+class OSJSONPrinter(OSSerializedPrinter[JSON]):
     """Provides a representation of the plugin's models in JSON format.
     """
+
+    def __init__(
+        self,
+        provider: Optional[JSON],
+        query: QueryType = QueryType.NONE,
+        verbosity: int = 0
+    ):
+        if provider is None:
+            provider = JSON()
+
+        super().__init__(provider, query, verbosity)
