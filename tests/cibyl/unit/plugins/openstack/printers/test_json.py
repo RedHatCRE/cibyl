@@ -15,7 +15,6 @@
 """
 import json
 from unittest import TestCase
-from unittest.mock import Mock
 
 from cibyl.models.ci.base.stage import Stage
 from cibyl.outputs.cli.printer import JSON

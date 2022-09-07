@@ -16,7 +16,6 @@
 from overrides import overrides
 
 from cibyl.models.model import Model
-from cibyl.outputs.cli.ci.env.impl.serialized import CIJSONPrinter
 from cibyl.outputs.cli.printer import JSON, ColoredPrinter, SerializedPrinter
 from cibyl.plugins import PluginPrinterTemplate
 from cibyl.plugins.openstack import Deployment

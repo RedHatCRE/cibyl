@@ -111,14 +111,14 @@ class OSColoredPrinter(ColoredPrinter, OSPrinter):
 
         if ironic.ironic_inspector.value:
             if ironic.ironic_inspector.value != "N/A" or \
-                self.verbosity > 0:
+               self.verbosity > 0:
                 is_empty_ironic = False
                 printer.add(self.palette.blue('Ironic inspector: '), 2)
                 printer[-1].append(ironic.ironic_inspector)
 
         if ironic.cleaning_network.value:
             if ironic.cleaning_network.value != "N/A" or \
-                self.verbosity > 0:
+               self.verbosity > 0:
                 is_empty_ironic = False
                 printer.add(self.palette.blue('Cleaning network: '), 2)
                 printer[-1].append(ironic.cleaning_network)
@@ -168,7 +168,7 @@ class OSColoredPrinter(ColoredPrinter, OSPrinter):
                                                                     printer)
         if deployment.overcloud_templates.value:
             if deployment.overcloud_templates.value != "N/A" or \
-                self.verbosity > 0:
+               self.verbosity > 0:
                 is_empty_deployment = False
                 printer.add(self.palette.blue('Overcloud templates: '), 1)
                 if isinstance(deployment.overcloud_templates.value, str):
@@ -181,7 +181,7 @@ class OSColoredPrinter(ColoredPrinter, OSPrinter):
 
         if deployment.test_collection.value:
             if deployment.test_collection.value != "N/A" or \
-                self.verbosity > 0:
+               self.verbosity > 0:
                 is_empty_deployment = False
                 if isinstance(deployment.test_collection.value, str):
                     printer.add(self.palette.blue('Testing information: '), 1)
