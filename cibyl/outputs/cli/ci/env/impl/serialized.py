@@ -83,6 +83,11 @@ class CIJSONPrinter(CISerializedPrinter[JSON]):
         query: QueryType = QueryType.NONE,
         verbosity: int = 0
     ):
+        """Constructor. See parent for more information.
+
+        :param provider: Implementation of a JSON marshaller / unmarshaller.
+            Leave as 'None' to let this build it own.
+        """
         if provider is None:
             provider = JSON()
 
