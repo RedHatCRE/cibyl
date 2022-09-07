@@ -19,7 +19,7 @@ from typing import Optional, Union
 from overrides import overrides
 
 from cibyl.cli.query import QueryType
-from cibyl.outputs.cli.printer import JSON, PROV, SerializedPrinter
+from cibyl.outputs.cli.printer import JSON, PROV, STDJSON, SerializedPrinter
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
@@ -176,6 +176,6 @@ class OSJSONPrinter(OSSerializedPrinter[JSON]):
         verbosity: int = 0
     ):
         if provider is None:
-            provider = JSON()
+            provider = STDJSON()
 
         super().__init__(provider, query, verbosity)

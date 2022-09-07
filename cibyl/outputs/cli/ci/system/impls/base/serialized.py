@@ -22,7 +22,7 @@ from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.system import System
 from cibyl.models.product.feature import Feature
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
-from cibyl.outputs.cli.printer import JSON, PROV, SerializedPrinter
+from cibyl.outputs.cli.printer import JSON, PROV, STDJSON, SerializedPrinter
 
 
 class SerializedBaseSystemPrinter(
@@ -77,6 +77,6 @@ class JSONBaseSystemPrinter(SerializedBaseSystemPrinter[JSON]):
             Leave as 'None' to let this build it own.
         """
         if provider is None:
-            provider = JSON()
+            provider = STDJSON()
 
         super().__init__(provider, query, verbosity)

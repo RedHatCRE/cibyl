@@ -28,7 +28,7 @@ from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
                                                        has_plugin_section)
 from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     SerializedBaseSystemPrinter
-from cibyl.outputs.cli.printer import JSON, PROV
+from cibyl.outputs.cli.printer import JSON, PROV, STDJSON
 
 
 class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
@@ -150,7 +150,7 @@ class JSONJobsSystemPrinter(SerializedJobsSystemPrinter[JSON]):
             Leave as 'None' to let this build it own.
         """
         if provider is None:
-            provider = JSON()
+            provider = STDJSON()
 
         super().__init__(provider, query, verbosity)
 

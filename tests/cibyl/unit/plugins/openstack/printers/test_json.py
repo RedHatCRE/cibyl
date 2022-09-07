@@ -17,7 +17,7 @@ import json
 from unittest import TestCase
 
 from cibyl.models.ci.base.stage import Stage
-from cibyl.outputs.cli.printer import JSON
+from cibyl.outputs.cli.printer import STDJSON
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.ironic import Ironic
@@ -35,7 +35,7 @@ class TestOSJSONPrinter(TestCase):
     """
     def setUp(self):
         self.indentation = 2
-        self.provider = JSON(indentation=self.indentation)
+        self.provider = STDJSON(indentation=self.indentation)
         self.printer = OSJSONPrinter(provider=self.provider, verbosity=1)
 
     def test_print_deployment(self):

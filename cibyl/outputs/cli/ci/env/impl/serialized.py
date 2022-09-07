@@ -30,7 +30,7 @@ from cibyl.outputs.cli.ci.system.impls.jobs.serialized import \
     JSONJobsSystemPrinter
 from cibyl.outputs.cli.ci.system.impls.zuul.serialized import \
     JSONZuulSystemPrinter
-from cibyl.outputs.cli.printer import JSON, PROV, SerializedPrinter
+from cibyl.outputs.cli.printer import JSON, PROV, STDJSON, SerializedPrinter
 
 LOG = logging.getLogger(__name__)
 
@@ -89,7 +89,7 @@ class CIJSONPrinter(CISerializedPrinter[JSON]):
             Leave as 'None' to let this build it own.
         """
         if provider is None:
-            provider = JSON()
+            provider = STDJSON()
 
         super().__init__(provider, query, verbosity)
 

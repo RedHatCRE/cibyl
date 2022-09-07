@@ -14,9 +14,11 @@
 #    under the License.
 """
 import json
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable, Generic, NamedTuple, TypeVar
+
+from overrides import overrides
 
 from cibyl.cli.query import QueryType
 from cibyl.utils.colors import ColorPalette, DefaultPalette
@@ -125,7 +127,14 @@ class SerializationProvider:
 PROV = TypeVar('PROV', bound=SerializationProvider)
 
 
-class JSON(SerializationProvider):
+class JSON(SerializationProvider, ABC):
+    @property
+    @abstractmethod
+    def indentation(self) -> int:
+        raise NotImplementedError
+
+
+class STDJSON(JSON):
     def __init__(self, indentation: int = 2):
         super().__init__(
             functions=SerializationProvider.Functions(
@@ -137,6 +146,7 @@ class JSON(SerializationProvider):
         self._indentation = indentation
 
     @property
+    @overrides
     def indentation(self) -> int:
         return self._indentation
 
