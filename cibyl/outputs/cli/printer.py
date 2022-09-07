@@ -105,37 +105,72 @@ class ColoredPrinter(Printer, ABC):
 
 
 class SerializationProvider:
+    """Implementation of the marshaller / unmarshaller that a printer
+    uses to go from models to text and back again.
+    """
+
     @dataclass
     class Functions:
+        """Collections of functions that provide the marshall / unmarshall
+        capability.
+        """
         load: Callable[[str], dict]
         """Transforms machine-readable text into a python structure."""
         dump: Callable[[dict], str]
         """Transforms a python structure into machine-readable text."""
 
     def __init__(self, functions: Functions):
+        """Constructor.
+
+        :param functions: Implementation of the marshaller / unmarshaller.
+        """
         self._functions = functions
 
     @property
     def load(self) -> Callable[[str], dict]:
+        """
+        :return: Function that transforms machine-readable text into a
+            python structure.
+        """
         return self._functions.load
 
     @property
     def dump(self) -> Callable[[dict], str]:
+        """
+        :return: Functions that transforms a python structure into
+            machine-readable text.
+        """
         return self._functions.dump
 
 
 PROV = TypeVar('PROV', bound=SerializationProvider)
+"""Generic type for providers that are used by the serialization printer."""
 
 
 class JSON(SerializationProvider, ABC):
+    """Base type for any implementation of a JSON marshaller / unmarshaller.
+    """
+
     @property
     @abstractmethod
     def indentation(self) -> int:
+        """
+        :return: Number of spaces preceding every level of the JSON output.
+        """
         raise NotImplementedError
 
 
 class STDJSON(JSON):
+    """Implementation of a JSON provider based on the 'json' module from
+    the standard library.
+    """
+
     def __init__(self, indentation: int = 2):
+        """Constructor. See parent for more information.
+
+        :param indentation: Number of spaces preceding every level of the JSON
+            output.
+        """
         super().__init__(
             functions=SerializationProvider.Functions(
                 load=lambda obj: json.loads(obj),

@@ -146,7 +146,7 @@ class PluginPrinterTemplate(ABC):
         specific actions from it.
 
         :param model: The model to print.
-        :param provider:
+        :param provider: JSON implementation the printer gets to use.
         :param config: Configuration to follow.
         :return: JSON representation of the model.
         :raises NotImplementedError: If the model type is not supported.

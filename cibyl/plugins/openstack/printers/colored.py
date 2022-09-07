@@ -188,7 +188,7 @@ class OSColoredPrinter(ColoredPrinter, OSPrinter):
                     printer[-1].append(deployment.test_collection.value)
                 else:
                     testing_string = self.print_test_collection(
-                        deployment.test_collection.value)
+                            deployment.test_collection.value)
                     if testing_string:
                         printer.add(testing_string, 1)
                     elif self.verbosity > 0:
