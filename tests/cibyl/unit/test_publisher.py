@@ -62,7 +62,8 @@ class TestJSONPublisher(TestCase):
         self.printer = Mock()
         self.publisher.printer = self.printer
         self.publisher.printer.print_environment = Mock()
-        self.publisher.printer.indentation = 0
+        self.publisher.printer.provider = Mock()
+        self.publisher.printer.provider.indentation = 0
         self.publisher.printer.print_environment.return_value = self.text
         self.environment = Environment(self.env_name)
 

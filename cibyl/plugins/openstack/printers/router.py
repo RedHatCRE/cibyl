@@ -16,8 +16,7 @@
 from overrides import overrides
 
 from cibyl.models.model import Model
-from cibyl.outputs.cli.ci.env.impl.serialized import CIJSONPrinter
-from cibyl.outputs.cli.printer import ColoredPrinter
+from cibyl.outputs.cli.printer import JSON, ColoredPrinter, SerializedPrinter
 from cibyl.plugins import PluginPrinterTemplate
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.printers.colored import OSColoredPrinter
@@ -30,7 +29,11 @@ class PrinterRouter(PluginPrinterTemplate):
     """
 
     @overrides
-    def as_text(self, model: Model, config: ColoredPrinter.Config) -> str:
+    def as_text(
+        self,
+        model: Model,
+        config: ColoredPrinter.Config
+    ) -> str:
         if isinstance(model, Deployment):
             printer = OSColoredPrinter(
                 query=config.query,
@@ -43,12 +46,17 @@ class PrinterRouter(PluginPrinterTemplate):
         raise NotImplementedError(f"Unknown model: '{type(model).__name__}'.")
 
     @overrides
-    def as_json(self, model: Model, config: CIJSONPrinter.Config) -> str:
+    def as_json(
+        self,
+        model: Model,
+        provider: JSON,
+        config: SerializedPrinter.Config
+    ) -> str:
         if isinstance(model, Deployment):
             printer = OSJSONPrinter(
+                provider=provider,
                 query=config.query,
-                verbosity=config.verbosity,
-                indentation=config.indentation
+                verbosity=config.verbosity
             )
 
             return printer.print_deployment(model)

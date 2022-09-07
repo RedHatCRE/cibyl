@@ -15,7 +15,6 @@
 """
 from abc import ABC, abstractmethod
 
-from cibyl.outputs.cli.printer import Printer
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
@@ -24,7 +23,7 @@ from cibyl.plugins.openstack.service import Service
 from cibyl.plugins.openstack.test_collection import TestCollection
 
 
-class OSPrinter(Printer, ABC):
+class OSPrinter(ABC):
     """Base class for all printers for a OS model tree.
     """
 

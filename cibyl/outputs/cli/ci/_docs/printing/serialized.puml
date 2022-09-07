@@ -1,0 +1,52 @@
+@startuml
+hide empty field
+hide empty  method
+
+interface CIPrinter
+interface CISystemPrinter
+
+!define PROV SerializationProvider
+
+abstract class Printer
+abstract class SerializedPrinter<? extends PROV>
+abstract class CISerializedPrinter<? extends PROV>
+
+abstract class SerializedBaseSystemPrinter<? extends PROV>
+abstract class SerializedJobsSystemPrinter<? extends PROV>
+abstract class SerializedZuulSystemPrinter<? extends PROV>
+
+abstract class JSON
+
+class CIJSONPrinter<? extends JSON>
+
+class SerializationProvider
+class STDJSON
+
+class JSONBaseSystemPrinter<? extends JSON>
+class JSONJobsSystemPrinter<? extends JSON>
+class JSONZuulSystemPrinter<? extends JSON>
+
+Printer <|-- SerializedPrinter
+
+SerializedPrinter <|-- CISerializedPrinter
+
+SerializationProvider <.left. SerializedPrinter
+SerializationProvider <|-right- JSON
+
+JSON <|-right- STDJSON
+
+CIPrinter <|.left. CISerializedPrinter
+
+CISerializedPrinter <|-- CIJSONPrinter
+
+CISystemPrinter <-up- CIJSONPrinter
+
+CISystemPrinter <|.. SerializedBaseSystemPrinter
+CISystemPrinter <|.. SerializedJobsSystemPrinter
+CISystemPrinter <|.. SerializedZuulSystemPrinter
+
+SerializedBaseSystemPrinter <|-- JSONBaseSystemPrinter
+SerializedJobsSystemPrinter <|-- JSONJobsSystemPrinter
+SerializedZuulSystemPrinter <|-- JSONZuulSystemPrinter
+
+@enduml

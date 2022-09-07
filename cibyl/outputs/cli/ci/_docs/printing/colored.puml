@@ -1,0 +1,31 @@
+@startuml
+hide empty field
+hide empty  method
+
+interface CIPrinter
+interface CISystemPrinter
+
+abstract class Printer
+abstract class ColoredPrinter
+
+class CIColoredPrinter
+
+class ColoredBaseSystemPrinter
+class ColoredJobsSystemPrinter
+class ColoredZuulSystemPrinter
+
+Printer <|-- ColoredPrinter
+
+ColoredPrinter <|-- CIColoredPrinter
+
+CIColoredPrinter ..|> CIPrinter
+CIColoredPrinter --> CISystemPrinter
+
+CISystemPrinter <|.. ColoredBaseSystemPrinter
+CISystemPrinter <|.. ColoredJobsSystemPrinter
+CISystemPrinter <|.. ColoredZuulSystemPrinter
+
+ColoredBaseSystemPrinter <|-- ColoredJobsSystemPrinter
+ColoredBaseSystemPrinter <|-- ColoredZuulSystemPrinter
+
+@enduml

@@ -14,9 +14,11 @@
 #    under the License.
 """
 import json
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, NamedTuple
+from typing import Callable, Generic, NamedTuple, TypeVar
+
+from overrides import overrides
 
 from cibyl.cli.query import QueryType
 from cibyl.utils.colors import ColorPalette, DefaultPalette
@@ -102,7 +104,89 @@ class ColoredPrinter(Printer, ABC):
         return self._palette
 
 
-class SerializedPrinter(Printer, ABC):
+class SerializationProvider:
+    """Implementation of the marshaller / unmarshaller that a printer
+    uses to go from models to text and back again.
+    """
+
+    @dataclass
+    class Functions:
+        """Collections of functions that provide the marshall / unmarshall
+        capability.
+        """
+        load: Callable[[str], dict]
+        """Transforms machine-readable text into a python structure."""
+        dump: Callable[[dict], str]
+        """Transforms a python structure into machine-readable text."""
+
+    def __init__(self, functions: Functions):
+        """Constructor.
+
+        :param functions: Implementation of the marshaller / unmarshaller.
+        """
+        self._functions = functions
+
+    @property
+    def load(self) -> Callable[[str], dict]:
+        """
+        :return: Function that transforms machine-readable text into a
+            python structure.
+        """
+        return self._functions.load
+
+    @property
+    def dump(self) -> Callable[[dict], str]:
+        """
+        :return: Functions that transforms a python structure into
+            machine-readable text.
+        """
+        return self._functions.dump
+
+
+PROV = TypeVar('PROV', bound=SerializationProvider)
+"""Generic type for providers that are used by the serialization printer."""
+
+
+class JSON(SerializationProvider, ABC):
+    """Base type for any implementation of a JSON marshaller / unmarshaller.
+    """
+
+    @property
+    @abstractmethod
+    def indentation(self) -> int:
+        """
+        :return: Number of spaces preceding every level of the JSON output.
+        """
+        raise NotImplementedError
+
+
+class STDJSON(JSON):
+    """Implementation of a JSON provider based on the 'json' module from
+    the standard library.
+    """
+
+    def __init__(self, indentation: int = 2):
+        """Constructor. See parent for more information.
+
+        :param indentation: Number of spaces preceding every level of the JSON
+            output.
+        """
+        super().__init__(
+            functions=SerializationProvider.Functions(
+                load=lambda obj: json.loads(obj),
+                dump=lambda obj: json.dumps(obj, indent=self.indentation)
+            )
+        )
+
+        self._indentation = indentation
+
+    @property
+    @overrides
+    def indentation(self) -> int:
+        return self._indentation
+
+
+class SerializedPrinter(Generic[PROV], Printer, ABC):
     """Base class for output styles based around serializing data.
     """
 
@@ -115,22 +199,8 @@ class SerializedPrinter(Printer, ABC):
         verbosity: int
         """Verbosity level of the output."""
 
-    @dataclass
-    class SerializationProvider:
-        """Implementation of the marshaller / unmarshaller that the printer
-        uses to go from models to text and back again.
-
-        The provider must be able to go from data to the desired output
-        format and back from that again. The printer unmarshalls pieces of
-        the generated output in order to update it with more data.
-        """
-        load: Callable[[str], dict]
-        """Transforms machine-readable text into a python structure."""
-        dump: Callable[[dict], str]
-        """Transforms a python structure into machine-readable text."""
-
     def __init__(self,
-                 provider: SerializationProvider,
+                 provider: PROV,
                  query: QueryType = QueryType.NONE,
                  verbosity: int = 0):
         """Constructor. See parent for more information.
@@ -157,58 +227,8 @@ class SerializedPrinter(Printer, ABC):
         )
 
     @property
-    def provider(self):
+    def provider(self) -> PROV:
         """
         :return: Serializing functions this uses to generate its output.
         """
         return self._provider
-
-
-class JSONPrinter(SerializedPrinter):
-    """Base class for printers that serialize data into JSON format.
-    """
-
-    @dataclass
-    class Config(SerializedPrinter.Config):
-        """Parameters that define the behaviour of the printer.
-        """
-        indentation: int
-        """Number of spaces that indent each level of the JSON text."""
-
-    def __init__(self,
-                 query: QueryType = QueryType.NONE,
-                 verbosity: int = 0,
-                 indentation: int = 4):
-        """Constructor. See parent for more information.
-
-        :param indentation: Number of spaces that indent each level of the
-            JSON output.
-        """
-        super().__init__(
-            provider=SerializedPrinter.SerializationProvider(
-                load=lambda obj: json.loads(obj),
-                dump=lambda obj: json.dumps(obj, indent=self.indentation)
-            ),
-            query=query,
-            verbosity=verbosity
-        )
-
-        self._indentation = indentation
-
-    @property
-    def config(self) -> Config:
-        """
-        :return: Configuration for this printer.
-        """
-        return JSONPrinter.Config(
-            query=self.query,
-            indentation=self.indentation,
-            verbosity=self.verbosity
-        )
-
-    @property
-    def indentation(self) -> int:
-        """
-        :return: Number of spaces preceding every level of the JSON output.
-        """
-        return self._indentation

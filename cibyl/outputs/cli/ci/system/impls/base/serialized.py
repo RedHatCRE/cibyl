@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import ABC
+from typing import Optional
 
 from overrides import overrides
 
@@ -21,10 +22,14 @@ from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.system import System
 from cibyl.models.product.feature import Feature
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
-from cibyl.outputs.cli.printer import JSONPrinter, SerializedPrinter
+from cibyl.outputs.cli.printer import JSON, PROV, STDJSON, SerializedPrinter
 
 
-class SerializedBaseSystemPrinter(CISystemPrinter, SerializedPrinter, ABC):
+class SerializedBaseSystemPrinter(
+    SerializedPrinter[PROV],
+    CISystemPrinter,
+    ABC
+):
     """Default system printer for all serializer implementations.
     """
 
@@ -47,7 +52,6 @@ class SerializedBaseSystemPrinter(CISystemPrinter, SerializedPrinter, ABC):
 
         return self.provider.dump(result)
 
-    @overrides
     def print_feature(self, feature: Feature) -> str:
         result = {
             'name': feature.name.value,
@@ -57,6 +61,22 @@ class SerializedBaseSystemPrinter(CISystemPrinter, SerializedPrinter, ABC):
         return self.provider.dump(result)
 
 
-class JSONBaseSystemPrinter(JSONPrinter, SerializedBaseSystemPrinter):
+class JSONBaseSystemPrinter(SerializedBaseSystemPrinter[JSON]):
     """Basic system printer that will output a system's data in JSON format.
     """
+
+    def __init__(
+        self,
+        provider: Optional[JSON] = None,
+        query: QueryType = QueryType.NONE,
+        verbosity: int = 0
+    ):
+        """Constructor. See parent for more information.
+
+        :param provider: Implementation of a JSON marshaller / unmarshaller.
+            Leave as 'None' to let this build its own.
+        """
+        if provider is None:
+            provider = STDJSON()
+
+        super().__init__(provider, query, verbosity)

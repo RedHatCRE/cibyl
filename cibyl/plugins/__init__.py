@@ -20,7 +20,7 @@ from typing import Callable, List
 
 from cibyl.exceptions.plugin import MissingPlugin
 from cibyl.models.model import Model
-from cibyl.outputs.cli.printer import ColoredPrinter, JSONPrinter
+from cibyl.outputs.cli.printer import JSON, ColoredPrinter, SerializedPrinter
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source_factory import SourceFactory
 from cibyl.utils.files import FileSearch
@@ -117,7 +117,12 @@ class PluginTemplate(ABC):
 class PluginPrinterTemplate(ABC):
     """Abstract class to define the output formats a plugin should support."""
 
-    def as_text(self, model: Model, config: ColoredPrinter.Config) -> str:
+    @abstractmethod
+    def as_text(
+        self,
+        model: Model,
+        config: ColoredPrinter.Config
+    ) -> str:
         """Makes the plugin give a plain/custom textual representation on
         the provided model. It is up to the plugin to check the model's type
         and decide on more specific actions from it.
@@ -129,12 +134,19 @@ class PluginPrinterTemplate(ABC):
         """
         raise NotImplementedError
 
-    def as_json(self, model: Model, config: JSONPrinter.Config) -> str:
+    @abstractmethod
+    def as_json(
+        self,
+        model: Model,
+        provider: JSON,
+        config: SerializedPrinter.Config
+    ) -> str:
         """Makes the plugin give a json representation on the provided model.
         It is up to the plugin to check the model's type and decide on more
         specific actions from it.
 
         :param model: The model to print.
+        :param provider: JSON implementation the printer gets to use.
         :param config: Configuration to follow.
         :return: JSON representation of the model.
         :raises NotImplementedError: If the model type is not supported.
