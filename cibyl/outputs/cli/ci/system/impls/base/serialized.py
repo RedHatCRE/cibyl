@@ -74,7 +74,7 @@ class JSONBaseSystemPrinter(SerializedBaseSystemPrinter[JSON]):
         """Constructor. See parent for more information.
 
         :param provider: Implementation of a JSON marshaller / unmarshaller.
-            Leave as 'None' to let this build it own.
+            Leave as 'None' to let this build its own.
         """
         if provider is None:
             provider = STDJSON()

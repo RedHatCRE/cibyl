@@ -51,9 +51,7 @@ class CISerializedPrinter(
 
             for system in env.systems:
                 key = system.name.value
-                systems[key] = self.provider.load(
-                    self.print_system(system)
-                )
+                systems[key] = self.provider.load(self.print_system(system))
 
             return systems
 
@@ -86,7 +84,7 @@ class CIJSONPrinter(CISerializedPrinter[JSON]):
         """Constructor. See parent for more information.
 
         :param provider: Implementation of a JSON marshaller / unmarshaller.
-            Leave as 'None' to let this build it own.
+            Leave as 'None' to let this build its own.
         """
         if provider is None:
             provider = STDJSON()
