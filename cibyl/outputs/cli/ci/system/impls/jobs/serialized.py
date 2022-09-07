@@ -39,19 +39,19 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
     @overrides
     def print_system(self, system: System) -> str:
         # Build on top of the base answer
-        result = self.provider.fn.load(super().print_system(system))
+        result = self.provider.load(super().print_system(system))
 
         if self.query != QueryType.NONE:
             result['jobs'] = []
 
             for job in system.jobs.values():
                 result['jobs'].append(
-                    self.provider.fn.load(
+                    self.provider.load(
                         self.print_job(job)
                     )
                 )
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_job(self, job: Job) -> str:
         """
@@ -63,19 +63,19 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
         }
 
         if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
-            return self.provider.fn.dump(result)
+            return self.provider.dump(result)
 
         if self.query >= QueryType.BUILDS:
             result['builds'] = []
 
             for build in job.builds.values():
                 result['builds'].append(
-                    self.provider.fn.load(
+                    self.provider.load(
                         self.print_build(build)
                     )
                 )
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_build(self, build: Build) -> str:
         """
@@ -92,19 +92,19 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
 
         for test in build.tests.values():
             result['tests'].append(
-                self.provider.fn.load(
+                self.provider.load(
                     self.print_test(test)
                 )
             )
 
         for stage in build.stages:
             result['stages'].append(
-                self.provider.fn.load(
+                self.provider.load(
                     self.print_stage(stage)
                 )
             )
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_test(self, test: Test) -> str:
         """
@@ -118,7 +118,7 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
             'duration': test.duration.value
         }
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_stage(self, stage: Stage) -> str:
         """
@@ -131,7 +131,7 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
             'duration': stage.duration.value
         }
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
 
 class JSONJobsSystemPrinter(SerializedJobsSystemPrinter[JSON]):
@@ -156,10 +156,10 @@ class JSONJobsSystemPrinter(SerializedJobsSystemPrinter[JSON]):
 
     @overrides
     def print_job(self, job: Job) -> str:
-        result = self.provider.fn.load(super().print_job(job))
+        result = self.provider.load(super().print_job(job))
 
         if has_plugin_section(job):
-            section = self.provider.fn.load(
+            section = self.provider.load(
                 get_plugin_section(
                     style=OutputStyle.JSON,
                     model=job,
@@ -169,4 +169,4 @@ class JSONJobsSystemPrinter(SerializedJobsSystemPrinter[JSON]):
 
             result['plugins'] = section
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)

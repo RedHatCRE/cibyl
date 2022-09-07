@@ -45,12 +45,12 @@ class SerializedBaseSystemPrinter(
 
             for feature in system.features.values():
                 result['features'].append(
-                    self.provider.fn.load(
+                    self.provider.load(
                         self.print_feature(feature)
                     )
                 )
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_feature(self, feature: Feature) -> str:
         result = {
@@ -58,7 +58,7 @@ class SerializedBaseSystemPrinter(
             'present': feature.present.value
         }
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
 
 class JSONBaseSystemPrinter(SerializedBaseSystemPrinter[JSON]):

@@ -65,18 +65,18 @@ class OSSerializedPrinter(SerializedPrinter[PROV], OSPrinter, ABC):
                 )
                 if deployment.overcloud_templates.value else [],
             'test_collection':
-                self.provider.fn.load(
+                self.provider.load(
                     self.print_test_collection(
                         deployment.test_collection.value
                     )
                 )
                 if deployment.test_collection.value else {},
             'nodes': [
-                self.provider.fn.load(self.print_node(node))
+                self.provider.load(self.print_node(node))
                 for node in deployment.nodes.values()
             ],
             'services': [
-                self.provider.fn.load(self.print_service(service))
+                self.provider.load(self.print_service(service))
                 for service in deployment.services.values()
             ],
             'stages': [
@@ -89,7 +89,7 @@ class OSSerializedPrinter(SerializedPrinter[PROV], OSPrinter, ABC):
             ]
         }
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     @overrides
     def print_test_collection(self, collection: TestCollection) -> str:
@@ -107,23 +107,23 @@ class OSSerializedPrinter(SerializedPrinter[PROV], OSPrinter, ABC):
             'setup': collection.setup.value
         }
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     @overrides
     def print_node(self, node: Node) -> str:
         result = {
             'role': node.role.value,
             'containers': [
-                self.provider.fn.load(self.print_container(container))
+                self.provider.load(self.print_container(container))
                 for container in node.containers.values()
             ],
             'packages': [
-                self.provider.fn.load(self.print_package(package))
+                self.provider.load(self.print_package(package))
                 for package in node.packages.values()
             ]
         }
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     @overrides
     def print_container(self, container: Container) -> str:
@@ -131,12 +131,12 @@ class OSSerializedPrinter(SerializedPrinter[PROV], OSPrinter, ABC):
             'name': container.name.value,
             'image': container.image.value,
             'packages': [
-                self.provider.fn.load(self.print_package(package))
+                self.provider.load(self.print_package(package))
                 for package in container.packages.values()
             ]
         }
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     @overrides
     def print_package(self, package: Package) -> str:
@@ -145,7 +145,7 @@ class OSSerializedPrinter(SerializedPrinter[PROV], OSPrinter, ABC):
             'origin': package.origin.value
         }
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     @overrides
     def print_service(self, service: Service) -> str:
@@ -154,7 +154,7 @@ class OSSerializedPrinter(SerializedPrinter[PROV], OSPrinter, ABC):
             'configuration': service.configuration.value
         }
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def _print_overcloud_templates(self, templates: Union[str, set]) -> list:
         if isinstance(templates, str):

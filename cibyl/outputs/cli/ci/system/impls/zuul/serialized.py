@@ -42,19 +42,19 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
 
     @overrides
     def print_system(self, system: System) -> str:
-        result = self.provider.fn.load(super().print_system(system))
+        result = self.provider.load(super().print_system(system))
 
         if self.query >= QueryType.TENANTS:
             result['tenants'] = []
 
             for tenant in system.tenants.values():
                 result['tenants'].append(
-                    self.provider.fn.load(
+                    self.provider.load(
                         self.print_tenant(tenant)
                     )
                 )
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_tenant(self, tenant: Tenant) -> str:
         """
@@ -69,19 +69,19 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
 
         for project in tenant.projects.values():
             result['projects'].append(
-                self.provider.fn.load(
+                self.provider.load(
                     self.print_project(project)
                 )
             )
 
         for job in tenant.jobs.values():
             result['jobs'].append(
-                self.provider.fn.load(
+                self.provider.load(
                     self.print_job(job)
                 )
             )
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_project(self, project: Project) -> str:
         """
@@ -96,12 +96,12 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
 
         for pipeline in project.pipelines.values():
             result['pipelines'].append(
-                self.provider.fn.load(
+                self.provider.load(
                     self.print_pipeline(pipeline)
                 )
             )
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_pipeline(self, pipeline: Pipeline) -> str:
         """
@@ -120,7 +120,7 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
                 }
             )
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_job(self, job: Job) -> str:
         """
@@ -136,19 +136,19 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
 
         for variant in job.variants:
             result['variants'].append(
-                self.provider.fn.load(
+                self.provider.load(
                     self.print_variant(variant)
                 )
             )
 
         for build in job.builds.values():
             result['builds'].append(
-                self.provider.fn.load(
+                self.provider.load(
                     self.print_build(build)
                 )
             )
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_variant(self, variant: Job.Variant) -> str:
         """
@@ -162,7 +162,7 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
             'variables': variant.variables.value
         }
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_build(self, build: Build) -> str:
         """
@@ -180,12 +180,12 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
 
         for suite in build.suites:
             result['test_suites'].append(
-                self.provider.fn.load(
+                self.provider.load(
                     self.print_suite(suite)
                 )
             )
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_suite(self, suite: TestSuite) -> str:
         """
@@ -204,12 +204,12 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
 
         for test in suite.tests:
             result['tests'].append(
-                self.provider.fn.load(
+                self.provider.load(
                     self.print_test(test)
                 )
             )
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
     def print_test(self, test: Test) -> str:
         """
@@ -224,7 +224,7 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
             'url': test.url.value
         }
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
 
 
 class JSONZuulSystemPrinter(SerializedZuulSystemPrinter[JSON]):
@@ -249,10 +249,10 @@ class JSONZuulSystemPrinter(SerializedZuulSystemPrinter[JSON]):
 
     @overrides
     def print_variant(self, variant: Job.Variant) -> str:
-        result = self.provider.fn.load(super().print_variant(variant))
+        result = self.provider.load(super().print_variant(variant))
 
         if has_plugin_section(variant):
-            section = self.provider.fn.load(
+            section = self.provider.load(
                 get_plugin_section(
                     style=OutputStyle.JSON,
                     model=variant,
@@ -262,4 +262,4 @@ class JSONZuulSystemPrinter(SerializedZuulSystemPrinter[JSON]):
 
             result['plugins'] = section
 
-        return self.provider.fn.dump(result)
+        return self.provider.dump(result)
