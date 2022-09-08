@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from cibyl.cli.output import OutputStyle, OutputArrangement
+from cibyl.cli.output import OutputArrangement, OutputStyle
 
 
 class TestOutputArrangement(TestCase):

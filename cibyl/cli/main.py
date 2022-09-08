@@ -17,7 +17,7 @@ import logging
 import sys
 from typing import List
 
-from cibyl.cli.output import OutputStyle, OutputArrangement
+from cibyl.cli.output import OutputArrangement, OutputStyle
 from cibyl.exceptions import CibylException
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import ConfigurationNotFound, EmptyConfiguration
