@@ -24,7 +24,7 @@ import networkx as nx
 
 import cibyl.exceptions.config as conf_exc
 from cibyl.cli.argument import Argument
-from cibyl.cli.output import OutputStyle
+from cibyl.cli.output import OutputArrangement, OutputStyle
 from cibyl.cli.parser import Parser
 from cibyl.cli.query import get_query_type
 from cibyl.cli.validator import Validator
@@ -367,9 +367,13 @@ class Orchestrator:
                 self.parser.extend(arguments, group_name, level=level,
                                    parent_queries=parent_queries)
 
-    def query_and_publish(self, output_path: Optional[str] = None,
-                          output_style: OutputStyle = OutputStyle.COLORIZED,
-                          features: Optional[list] = None) -> None:
+    def query_and_publish(
+        self,
+        output_path: Optional[str] = None,
+        output_style: OutputStyle = OutputStyle.COLORIZED,
+        output_arrangement: OutputArrangement = OutputArrangement.HIERARCHY,
+        features: Optional[list] = None
+    ) -> None:
         """Iterate over the environments and their systems and publish
         the results of the queries.
 
@@ -379,7 +383,8 @@ class Orchestrator:
 
         :param output_path: Path to write the output to (if not defined print
         to stdout)
-        :param output_style: Style to print the output with
+        :param output_style: Style to print the output with.
+        :param output_arrangement: Disposition of output.
         :param features: List of features to query for, it will be None for the
         'query' subcommand
         """
@@ -407,11 +412,13 @@ class Orchestrator:
             file.create()
 
         publisher = PublisherFactory.create_publisher(
-                target=target,
-                style=output_style,
-                query=query_type,
-                verbosity=self.parser.app_args.get('verbosity', 0),
-                output_file=file)
+            target=target,
+            style=output_style,
+            arrangement=output_arrangement,
+            query=query_type,
+            verbosity=self.parser.app_args.get('verbosity', 0),
+            output_file=file
+        )
 
         for env in self.environments:
             query()

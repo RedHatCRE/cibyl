@@ -19,7 +19,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Optional, Union
 
-from cibyl.cli.output import OutputStyle
+from cibyl.cli.output import OutputArrangement, OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.environment import Environment
 from cibyl.outputs.cli.ci.env.factory import CIPrinterFactory
@@ -41,15 +41,21 @@ class Publisher(ABC):
 
     def __init__(self, target: PublisherTarget = PublisherTarget.TERMINAL,
                  style: OutputStyle = OutputStyle.TEXT,
+                 arrangement: OutputArrangement = OutputArrangement.HIERARCHY,
                  query: QueryType = QueryType.NONE,
                  verbosity: int = 0, output_file: Optional[File] = None):
         self.target = target
         self.style = style
+        self.arrangement = arrangement
         self.query = query
         self.verbosity = verbosity
         self.output_file = output_file
-        self.printer = CIPrinterFactory.from_style(self.style, self.query,
-                                                   self.verbosity)
+        self.printer = CIPrinterFactory.from_style(
+            self.style,
+            self.arrangement,
+            self.query,
+            self.verbosity
+        )
 
     @abstractmethod
     def publish(self, environment: Environment) -> None:
@@ -137,16 +143,31 @@ PUBLISHER_TYPE = Union[PrintPublisher, JSONPublisher]
 
 
 class PublisherFactory:
-    """Create the apropiate publisher according to user input."""
+    """Create the appropriate publisher according to user input."""
+
     @staticmethod
-    def create_publisher(target: PublisherTarget = PublisherTarget.TERMINAL,
-                         style: OutputStyle = OutputStyle.TEXT,
-                         query: QueryType = QueryType.NONE,
-                         verbosity: int = 0,
-                         output_file: Optional[File] = None) -> PUBLISHER_TYPE:
+    def create_publisher(
+        target: PublisherTarget = PublisherTarget.TERMINAL,
+        style: OutputStyle = OutputStyle.TEXT,
+        arrangement: OutputArrangement = OutputArrangement.HIERARCHY,
+        query: QueryType = QueryType.NONE,
+        verbosity: int = 0,
+        output_file: Optional[File] = None
+    ) -> PUBLISHER_TYPE:
         if style in (OutputStyle.JSON,):
-            return JSONPublisher(target=target, style=style, query=query,
-                                 verbosity=verbosity, output_file=output_file)
+            return JSONPublisher(
+                target=target,
+                style=style,
+                query=query,
+                verbosity=verbosity,
+                output_file=output_file
+            )
         else:
-            return PrintPublisher(target=target, style=style, query=query,
-                                  verbosity=verbosity, output_file=output_file)
+            return PrintPublisher(
+                target=target,
+                style=style,
+                arrangement=arrangement,
+                query=query,
+                verbosity=verbosity,
+                output_file=output_file
+            )

@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.cli.output import OutputStyle
+from cibyl.cli.output import OutputArrangement, OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.env.impl.colored import CIColoredPrinter
 from cibyl.outputs.cli.ci.env.impl.serialized import CIJSONPrinter
@@ -26,11 +26,16 @@ class CIPrinterFactory:
     """
 
     @staticmethod
-    def from_style(style: OutputStyle, query: QueryType,
-                   verbosity: int) -> CIPrinter:
+    def from_style(
+        style: OutputStyle,
+        arrangement: OutputArrangement,
+        query: QueryType,
+        verbosity: int
+    ) -> CIPrinter:
         """Builds the appropriate printer for the desired output style.
 
         :param style: The desired output style.
+        :param arrangement: The desired output disposition.
         :param query: How far the hierarchy the printer shall go.
         :param verbosity: Verbosity level.
         :return: The printer.
@@ -40,6 +45,7 @@ class CIPrinterFactory:
         if style == OutputStyle.TEXT:
             return CIColoredPrinter(
                 query=query,
+                arrangement=arrangement,
                 verbosity=verbosity,
                 palette=ClearText()
             )
@@ -47,6 +53,7 @@ class CIPrinterFactory:
         if style == OutputStyle.COLORIZED:
             return CIColoredPrinter(
                 query=query,
+                arrangement=arrangement,
                 verbosity=verbosity
             )
 

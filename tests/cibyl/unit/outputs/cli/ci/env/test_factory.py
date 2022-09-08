@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.cli.output import OutputStyle
+from cibyl.cli.output import OutputStyle, OutputArrangement
 from cibyl.outputs.cli.ci.env.factory import CIPrinterFactory
 from cibyl.utils.colors import ClearText, DefaultPalette
 
@@ -25,11 +25,17 @@ class TestCIPrinterFactory(TestCase):
     def test_unknown_style(self):
         query = Mock()
         verbosity = Mock()
+        arrangement = Mock()
 
         factory = CIPrinterFactory()
 
         with self.assertRaises(NotImplementedError):
-            factory.from_style(-1, query, verbosity)
+            factory.from_style(
+                -1,
+                arrangement,
+                query,
+                verbosity
+            )
 
     def test_returns_clear_text_printer(self):
         query = Mock()
@@ -37,7 +43,12 @@ class TestCIPrinterFactory(TestCase):
 
         factory = CIPrinterFactory()
 
-        result = factory.from_style(OutputStyle.TEXT, query, verbosity)
+        result = factory.from_style(
+            OutputStyle.TEXT,
+            OutputArrangement.HIERARCHY,
+            query,
+            verbosity
+        )
 
         self.assertEqual(query, result.query)
         self.assertEqual(verbosity, result.verbosity)
@@ -50,7 +61,12 @@ class TestCIPrinterFactory(TestCase):
 
         factory = CIPrinterFactory()
 
-        result = factory.from_style(OutputStyle.COLORIZED, query, verbosity)
+        result = factory.from_style(
+            OutputStyle.COLORIZED,
+            OutputArrangement.HIERARCHY,
+            query,
+            verbosity
+        )
 
         self.assertEqual(query, result.query)
         self.assertEqual(verbosity, result.verbosity)

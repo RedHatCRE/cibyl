@@ -17,6 +17,8 @@ import logging
 
 from overrides import overrides
 
+from cibyl.cli.output import OutputArrangement
+from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.environment import Environment
 from cibyl.models.ci.base.system import JobsSystem, System
 from cibyl.models.ci.zuul.system import ZuulSystem
@@ -28,6 +30,7 @@ from cibyl.outputs.cli.ci.system.impls.jobs.colored import \
 from cibyl.outputs.cli.ci.system.impls.zuul.colored import \
     ColoredZuulSystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
+from cibyl.utils.colors import ColorPalette, DefaultPalette
 from cibyl.utils.strings import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
@@ -37,6 +40,21 @@ class CIColoredPrinter(ColoredPrinter, CIPrinter):
     """Prints a whole CI model hierarchy decorating the output with colors
     for easier read.
     """
+
+    def __init__(
+        self,
+        query: QueryType = QueryType.NONE,
+        arrangement: OutputArrangement = OutputArrangement.HIERARCHY,
+        verbosity: int = 0,
+        palette: ColorPalette = DefaultPalette()
+    ):
+        super().__init__(query, verbosity, palette)
+
+        self._arrangement = arrangement
+
+    @property
+    def arrangement(self) -> OutputArrangement:
+        return self._arrangement
 
     @overrides
     def print_environment(self, env: Environment) -> str:

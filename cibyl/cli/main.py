@@ -158,6 +158,7 @@ def main() -> None:
         orchestrator.query_and_publish(
             output_path=arguments["output_file_path"],
             output_style=arguments["output_style"],
+            output_arrangement=arguments["output_arrangement"],
             features=features
         )
     except CibylException as ex:
