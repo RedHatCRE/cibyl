@@ -17,11 +17,12 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 from cibyl.cli.main import OutputStyle, raw_parsing
+from cibyl.cli.output import OutputArrangement
 from cibyl.exceptions.cli import InvalidArgument
 
 
-class TestRawParsing(TestCase):
-    """Tests for the -f CLI option.
+class TestOutputStyle(TestCase):
+    """Tests for the '-f' CLI option.
     """
 
     def test_default_output(self):
@@ -29,7 +30,7 @@ class TestRawParsing(TestCase):
         """
         args = raw_parsing([])
 
-        self.assertTrue(OutputStyle.COLORIZED, args['output_style'])
+        self.assertEqual(OutputStyle.COLORIZED, args['output_style'])
 
     @patch('cibyl.cli.main.OutputStyle.from_key')
     def test_f_arg(self, parse_call: Mock):
@@ -41,7 +42,7 @@ class TestRawParsing(TestCase):
 
         args = raw_parsing(['', '-f', style])
 
-        self.assertTrue(OutputStyle.TEXT, args['output_style'])
+        self.assertEqual(OutputStyle.TEXT, args['output_style'])
 
         parse_call.assert_called_once_with(style)
 
@@ -55,7 +56,7 @@ class TestRawParsing(TestCase):
 
         args = raw_parsing(['', '--output-format', output])
 
-        self.assertTrue(OutputStyle.TEXT, args['output_style'])
+        self.assertEqual(OutputStyle.TEXT, args['output_style'])
 
         parse_call.assert_called_once_with(output)
 
@@ -75,3 +76,71 @@ class TestRawParsing(TestCase):
             raw_parsing(['', '--output-format', output])
 
         parse_call.assert_called_once_with(output)
+
+
+class TestOutputArrangement(TestCase):
+    """Tests for the '-a' option of the CLI.
+    """
+
+    def test_default_output(self):
+        """Checks the value that is picked if the option is not defined.
+        """
+        args = raw_parsing([])
+
+        self.assertEqual(
+            OutputArrangement.HIERARCHY,
+            args['output_arrangement']
+        )
+
+    @patch('cibyl.cli.main.OutputArrangement.from_key')
+    def test_a_arg(self, parse_call: Mock):
+        """Checks that the arrangement can be defined through the '-a'
+        argument.
+        """
+        arrangement = 'hierarchy'
+
+        parse_call.return_value = OutputArrangement.HIERARCHY
+
+        args = raw_parsing(['', '-a', arrangement])
+
+        self.assertEqual(
+            OutputArrangement.HIERARCHY,
+            args['output_arrangement']
+        )
+
+        parse_call.assert_called_once_with(arrangement)
+
+    @patch('cibyl.cli.main.OutputArrangement.from_key')
+    def test_output_arg(self, parse_call: Mock):
+        """Checks that the arrangement can be defined through the
+        '--output-arrangement' argument.
+        '"""
+        arrangement = 'hierarchy'
+
+        parse_call.return_value = OutputArrangement.HIERARCHY
+
+        args = raw_parsing(['', '--output-arrangement', arrangement])
+
+        self.assertEqual(
+            OutputArrangement.HIERARCHY,
+            args['output_arrangement']
+        )
+
+        parse_call.assert_called_once_with(arrangement)
+
+    @patch('cibyl.cli.main.OutputArrangement.from_key')
+    def test_invalid_output_arg(self, parse_call: Mock):
+        """Checks reaction to invalid option.
+        '"""
+
+        def raise_error(_):
+            raise NotImplementedError
+
+        arrangement = 'hierarchy'
+
+        parse_call.side_effect = raise_error
+
+        with self.assertRaises(InvalidArgument):
+            raw_parsing(['', '--output-arrangement', arrangement])
+
+        parse_call.assert_called_once_with(arrangement)

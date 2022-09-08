@@ -29,6 +29,7 @@ class CustomAction(argparse.Action):
     whether an argument data is populated, the function associated
     with the argument and the level in the models.
     """
+
     def __init__(self, *args, func: Callable = None, populated: bool = False,
                  level: int = -1, ranged: bool = False, **kwargs):
         """
@@ -98,6 +99,18 @@ class Parser:
             '--output-format', '-f', choices=("text", "colorized", "json"),
             dest="output_style", default="colorized",
             help="Sets the output format."
+        )
+        app_args_group.add_argument(
+            '--output-arrangement', '-a', choices=("list", "hierarchy"),
+            dest="output_arrangement", default="hierarchy",
+            help="Only supported by Zuul sources. "
+                 "Selects the disposition for output in 'test' / 'colorized' "
+                 "formats. "
+                 "List: Show results as individual collections of "
+                 "elements. "
+                 "Hierarchy: Show results following the hierarchy they "
+                 "have at their host. "
+                 "Defaults to 'hierarchy'."
         )
         app_args_group.add_argument(
             '--plugin', '-p', dest="plugin", default="openstack")

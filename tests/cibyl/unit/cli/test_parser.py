@@ -57,17 +57,27 @@ class TestParser(TestCase):
         self.parser.extend(self.environment.arguments, 'Environment')
         self.parser.add_subparsers()
         self.parser.parse(['--plugin', 'openshift', 'query', '--envs', 'env1'])
-        self.assertEqual(self.parser.app_args, {'plugin': 'openshift',
-                                                'verbosity': 0,
-                                                'output_style': 'colorized',
-                                                'command': 'query',
-                                                'debug': False})
-        self.assertEqual(self.parser.ci_args,
-                         {'envs': Argument(
-                             name='envs', arg_type=str,
-                             description='Name of the environment', nargs=1,
-                             func=None, populated=False, level=0,
-                             value=['env1'])})
+        self.assertEqual(
+            self.parser.app_args,
+            {
+                'plugin': 'openshift',
+                'verbosity': 0,
+                'output_arrangement': 'hierarchy',
+                'output_style': 'colorized',
+                'command': 'query',
+                'debug': False
+            }
+        )
+        self.assertEqual(
+            self.parser.ci_args,
+            {
+                'envs': Argument(
+                    name='envs', arg_type=str,
+                    description='Name of the environment', nargs=1,
+                    func=None, populated=False, level=0,
+                    value=['env1'])
+            }
+        )
 
     def test_parser_get_group(self):
         """Tests parser get_group method"""

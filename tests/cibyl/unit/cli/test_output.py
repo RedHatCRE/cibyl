@@ -22,33 +22,22 @@ class TestOutputArrangement(TestCase):
     """Tests for :class:`OutputArrangement`.
     """
 
-    def test_from_kwargs(self):
-        """Checks options that are returned for all possible value of the
-        'arrangement' key.
+    def test_from_key(self):
+        """Checks options that are returned for all possible values of the
+        key.
         """
-        # No key
         self.assertEqual(
             OutputArrangement.LIST,
-            OutputArrangement.from_kwargs(**{})
+            OutputArrangement.from_key('list')
         )
 
-        # Unknown value
-        self.assertEqual(
-            OutputArrangement.LIST,
-            OutputArrangement.from_kwargs(**{'arrangement': 'unknown'})
-        )
-
-        # List option
-        self.assertEqual(
-            OutputArrangement.LIST,
-            OutputArrangement.from_kwargs(**{'arrangement': 'list'})
-        )
-
-        # Hierarchy option
         self.assertEqual(
             OutputArrangement.HIERARCHY,
-            OutputArrangement.from_kwargs(**{'arrangement': 'hierarchy'})
+            OutputArrangement.from_key('hierarchy')
         )
+
+        with self.assertRaises(NotImplementedError):
+            OutputArrangement.from_key('unknown')
 
 
 class TestFromKey(TestCase):

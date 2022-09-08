@@ -17,7 +17,7 @@ import logging
 import sys
 from typing import List
 
-from cibyl.cli.output import OutputStyle
+from cibyl.cli.output import OutputStyle, OutputArrangement
 from cibyl.exceptions import CibylException
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.config import ConfigurationNotFound, EmptyConfiguration
@@ -62,7 +62,8 @@ def raw_parsing(arguments: List[str]) -> dict:
             "log_file": "cibyl_output.log", "log_mode": "both",
             "logging": logging.INFO, "plugins": [],
             "debug": False, "output_file_path": None,
-            "output_style": "colorized"}
+            "output_style": "colorized",
+            "output_arrangement": "hierarchy"}
     for i, item in enumerate(arguments[1:]):
         if item in ('-c', '--config'):
             args['config_file_path'] = arguments[i + 2]
@@ -83,8 +84,11 @@ def raw_parsing(arguments: List[str]) -> dict:
             args["output_file_path"] = arguments[i + 2]
         elif item in ('-f', '--output-format'):
             args["output_style"] = arguments[i + 2]
+        elif item in ('-a', '--output-arrangement'):
+            args["output_arrangement"] = arguments[i + 2]
 
     setup_output_format(args)
+    setup_output_arrangement(args)
 
     return args
 
@@ -96,6 +100,18 @@ def setup_output_format(args: dict) -> None:
         args["output_style"] = OutputStyle.from_key(user_output_format)
     except NotImplementedError:
         msg = f'Unknown output format: {user_output_format}'
+        raise InvalidArgument(msg) from None
+
+
+def setup_output_arrangement(args: dict) -> None:
+    """Parse the OutputArrangement specified by the user."""
+    user_output_arrangement = args["output_arrangement"]
+    try:
+        args["output_arrangement"] = OutputArrangement.from_key(
+            user_output_arrangement
+        )
+    except NotImplementedError:
+        msg = f'Unknown output arrangement: {user_output_arrangement}'
         raise InvalidArgument(msg) from None
 
 

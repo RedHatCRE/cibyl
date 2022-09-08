@@ -38,7 +38,7 @@ class OutputArrangement(Enum):
                 - 3
     """
     HIERARCHY = 1
-    """Show models following the hierarchy they follow at their host.
+    """Show models following the hierarchy they have at their host.
 
     For example:
         - Jobs:
@@ -50,37 +50,24 @@ class OutputArrangement(Enum):
     """
 
     @staticmethod
-    def from_kwargs(**kwargs) -> 'OutputArrangement':
-        """Looks for the 'arrangement' key and returns the correct option for
-        its value.
+    def from_key(key: str) -> 'OutputArrangement':
+        """Parses a key into a :class:`OutputArrangement`.
 
-        In case the key in not present, then the 'list' option is returned.
-        In case the key points to an unknown value, then the 'list' option
-        is also returned.
+        Map of known keys:
+            * 'list' -> OutputArrangement.LIST
+            * 'hierarchy' -> OutputArrangement.HIERARCHY
 
-        List of known values:
-            - 'list'
-            - 'hierarchy'
-
-        :param kwargs: Arguments to look for the key in.
-        :return: The chosen option.
+        :param key: The key to get the arrangement for.
+        :return: The correspondent option.
+        :raise NotImplementedError: If no option is present for the given key.
         """
-        arrangement = kwargs.get('arrangement')
-
-        if not arrangement:
-            msg = "'arrangement' key not found. Defaulting to list mode..."
-            LOG.debug(msg)
+        if key == 'list':
             return OutputArrangement.LIST
 
-        if arrangement == 'list':
-            return OutputArrangement.LIST
-
-        if arrangement == 'hierarchy':
+        if key == 'hierarchy':
             return OutputArrangement.HIERARCHY
 
-        msg = "Unknown arrangement: '%s'. Defaulting to list mode..."
-        LOG.debug(msg, arrangement)
-        return OutputArrangement.LIST
+        raise NotImplementedError(f'Unknown arrangement: {key}.')
 
 
 class OutputStyle(Enum):
