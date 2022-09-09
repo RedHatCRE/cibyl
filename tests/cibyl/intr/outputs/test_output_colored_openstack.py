@@ -87,6 +87,7 @@ class TestOutputZuulSystemWithOpenstackPlugin(OpenstackPluginWithZuulSystem):
         # check that output is five lines long(system line, one line per job
         # and the line for total number of jobs)
         self.assertEqual(14, len(output.split("\n")))
+
         expected = "System: test-system\n"
         expected += "  Tenant: tenant\n"
         expected += "    Projects: \n"

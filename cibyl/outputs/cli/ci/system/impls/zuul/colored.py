@@ -17,6 +17,7 @@ import logging
 
 from overrides import overrides
 
+import cibyl.outputs.cli.ci.system.common.features as features_query
 from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.build import Build
@@ -107,6 +108,10 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result.add(self.palette.blue('Job: '), 0)
             result[-1].append(job.name.value)
 
+            if features_query.is_features_query(self.query):
+                # if features are used, do not print further below
+                return result.build()
+
             if self.query >= QueryType.BUILDS:
                 builds = apply_filters(
                     job.builds.values(),
@@ -147,6 +152,10 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             result.add(self.palette.blue('Job: '), 0)
             result[-1].append(job.name.value)
+
+            if features_query.is_features_query(self.query):
+                # if features are used, do not print further below
+                return result.build()
 
             if self.verbosity > 0:
                 if job.url.value:
@@ -319,7 +328,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         # Begin with the text common to all systems
         printer.add(super().print_system(system), 0)
 
-        if self.query == QueryType.FEATURES:
+        if features_query.is_pure_features_query(self.query):
             # if the user has only requested features, there is no need to
             # print anything else
             return printer.build()

@@ -24,6 +24,7 @@ from cibyl.models.ci.base.build import Build, Test
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.base.stage import Stage
 from cibyl.models.ci.base.system import System
+from cibyl.outputs.cli.ci.system.common.features import is_features_query
 from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
                                                        has_plugin_section)
 from cibyl.outputs.cli.ci.system.impls.base.serialized import \
@@ -62,7 +63,7 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
             'name': job.name.value
         }
 
-        if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
+        if is_features_query(self.query):
             return self.provider.dump(result)
 
         if self.query >= QueryType.BUILDS:

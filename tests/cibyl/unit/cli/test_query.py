@@ -159,10 +159,9 @@ class TestGetQueryType(TestCase):
             'jobs': None
         }
 
-        self.assertIn(
-            QueryType.FEATURES_JOBS,
-            get_query_type(command="features", **args)
-        )
+        query = get_query_type(command="features", **args)
+        self.assertIn(QueryType.FEATURES, query)
+        self.assertIn(QueryType.JOBS, query)
 
     def test_get_feature_jobs_no_command(self):
         """Checks that "JOBS" is returned for "--feature" and

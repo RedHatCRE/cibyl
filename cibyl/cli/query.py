@@ -26,8 +26,6 @@ class QueryType(IntFlag):
     """No data from host is requested."""
     FEATURES = auto()
     """Retrieve data using features."""
-    FEATURES_JOBS = auto()
-    """Retrieve data using features and jobs."""
     TENANTS = auto()
     """Only retrieve data concerning tenants."""
     PROJECTS = auto()
@@ -97,10 +95,7 @@ class QuerySelector:
             result |= QueryType.TESTS
 
         if command == 'features':
-            if job_args:
-                result |= QueryType.FEATURES_JOBS
-            else:
-                result |= QueryType.FEATURES
+            result |= QueryType.FEATURES
 
         return result
 
