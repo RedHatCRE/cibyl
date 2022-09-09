@@ -352,67 +352,70 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         :param tenant: The tenant.
         :return: Textual representation of the provided model.
         """
-
-        def print_projects() -> None:
-            def create_printer() -> ColoredZuulSystemPrinter.ProjectCascade:
-                return ColoredZuulSystemPrinter.ProjectCascade(
-                    self.query, self.verbosity, self.palette
-                )
-
-            # Avoid header if there are no project
-            result.add(self.palette.blue('Projects: '), 1)
-
-            if tenant.projects.value:
-                for project in tenant.projects.values():
-                    result.add(create_printer().print_project(project), 2)
-
-                result.add(
-                    self.palette.blue(
-                        "Total projects found in query for tenant '"
-                    ), 1
-                )
-                result[-1].append(self.palette.underline(tenant.name))
-                result[-1].append(self.palette.blue("': "))
-                result[-1].append(len(tenant.projects))
-            else:
-                msg = 'No projects found in query.'
-                result.add(self.palette.red(msg), 2)
-
-        def print_jobs() -> None:
-            def create_printer() -> ColoredZuulSystemPrinter.JobCascade:
-                return ColoredZuulSystemPrinter.JobCascade(
-                    self.query, self.verbosity, self.palette
-                )
-
-            # Avoid header if there are no jobs
-            result.add(self.palette.blue('Jobs: '), 1)
-
-            if tenant.jobs.value:
-                for job in sort(tenant.jobs.values(), self._job_sorter):
-                    result.add(create_printer().print_job(job), 2)
-
-                result.add(
-                    self.palette.blue(
-                        "Total jobs found in query for tenant '"
-                    ), 1
-                )
-
-                result[-1].append(self.palette.underline(tenant.name))
-                result[-1].append(self.palette.blue("': "))
-                result[-1].append(len(tenant.jobs))
-            else:
-                msg = 'No jobs found in query.'
-                result.add(self.palette.red(msg), 2)
-
         result = IndentedTextBuilder()
 
         result.add(self.palette.blue('Tenant: '), 0)
         result[-1].append(tenant.name)
 
         if self.query >= QueryType.PROJECTS:
-            print_projects()
+            result.add(self._print_projects_on(tenant), 1)
 
             if self.query >= QueryType.JOBS:
-                print_jobs()
+                result.add(self._print_jobs_on(tenant), 1)
+
+        return result.build()
+
+    def _print_projects_on(self, tenant: Tenant) -> str:
+        result = IndentedTextBuilder()
+
+        result.add(self.palette.blue('Projects: '), 1)
+
+        if tenant.projects.value:
+            for project in tenant.projects.values():
+                printer = ColoredZuulSystemPrinter.ProjectCascade(
+                    self.query, self.verbosity, self.palette
+                )
+
+                result.add(printer.print_project(project), 2)
+
+            result.add(
+                self.palette.blue(
+                    "Total projects found in query for tenant '"
+                ), 1
+            )
+            result[-1].append(self.palette.underline(tenant.name))
+            result[-1].append(self.palette.blue("': "))
+            result[-1].append(len(tenant.projects))
+        else:
+            msg = 'No projects found in query.'
+            result.add(self.palette.red(msg), 2)
+
+        return result.build()
+
+    def _print_jobs_on(self, tenant: Tenant) -> str:
+        result = IndentedTextBuilder()
+
+        result.add(self.palette.blue('Jobs: '), 1)
+
+        if tenant.jobs.value:
+            for job in sort(tenant.jobs.values(), self._job_sorter):
+                printer = ColoredZuulSystemPrinter.JobCascade(
+                    self.query, self.verbosity, self.palette
+                )
+
+                result.add(printer.print_job(job), 2)
+
+            result.add(
+                self.palette.blue(
+                    "Total jobs found in query for tenant '"
+                ), 1
+            )
+
+            result[-1].append(self.palette.underline(tenant.name))
+            result[-1].append(self.palette.blue("': "))
+            result[-1].append(len(tenant.jobs))
+        else:
+            msg = 'No jobs found in query.'
+            result.add(self.palette.red(msg), 2)
 
         return result.build()
