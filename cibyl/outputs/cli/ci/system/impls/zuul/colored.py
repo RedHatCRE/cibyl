@@ -401,7 +401,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result.add(
                 self.palette.blue(
                     "Total projects found in query for tenant '"
-                ), 1
+                ), 0
             )
             result[-1].append(self.palette.underline(tenant.name))
             result[-1].append(self.palette.blue("': "))
@@ -428,7 +428,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result.add(
                 self.palette.blue(
                     "Total jobs found in query for tenant '"
-                ), 1
+                ), 0
             )
 
             result[-1].append(self.palette.underline(tenant.name))
