@@ -357,18 +357,38 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         result.add(self.palette.blue('Tenant: '), 0)
         result[-1].append(tenant.name)
 
-        if self.query >= QueryType.PROJECTS:
+        if self._is_projects_requested():
             result.add(self._print_projects_on(tenant), 1)
 
-            if self.query >= QueryType.JOBS:
-                result.add(self._print_jobs_on(tenant), 1)
+        if self._is_jobs_requested():
+            result.add(self._print_jobs_on(tenant), 1)
 
         return result.build()
+
+    def _is_projects_requested(self) -> bool:
+        return any(
+            option in self.query
+            for option in (
+                QueryType.PROJECTS,
+                QueryType.PIPELINES
+            )
+        )
+
+    def _is_jobs_requested(self) -> bool:
+        return any(
+            option in self.query
+            for option in (
+                QueryType.JOBS,
+                QueryType.VARIANTS,
+                QueryType.BUILDS,
+                QueryType.TESTS
+            )
+        )
 
     def _print_projects_on(self, tenant: Tenant) -> str:
         result = IndentedTextBuilder()
 
-        result.add(self.palette.blue('Projects: '), 1)
+        result.add(self.palette.blue('Projects: '), 0)
 
         if tenant.projects.value:
             for project in tenant.projects.values():
@@ -376,7 +396,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                     self.query, self.verbosity, self.palette
                 )
 
-                result.add(printer.print_project(project), 2)
+                result.add(printer.print_project(project), 1)
 
             result.add(
                 self.palette.blue(
@@ -388,14 +408,14 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result[-1].append(len(tenant.projects))
         else:
             msg = 'No projects found in query.'
-            result.add(self.palette.red(msg), 2)
+            result.add(self.palette.red(msg), 1)
 
         return result.build()
 
     def _print_jobs_on(self, tenant: Tenant) -> str:
         result = IndentedTextBuilder()
 
-        result.add(self.palette.blue('Jobs: '), 1)
+        result.add(self.palette.blue('Jobs: '), 0)
 
         if tenant.jobs.value:
             for job in sort(tenant.jobs.values(), self._job_sorter):
@@ -403,7 +423,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
                     self.query, self.verbosity, self.palette
                 )
 
-                result.add(printer.print_job(job), 2)
+                result.add(printer.print_job(job), 1)
 
             result.add(
                 self.palette.blue(
@@ -416,6 +436,6 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result[-1].append(len(tenant.jobs))
         else:
             msg = 'No jobs found in query.'
-            result.add(self.palette.red(msg), 2)
+            result.add(self.palette.red(msg), 1)
 
         return result.build()

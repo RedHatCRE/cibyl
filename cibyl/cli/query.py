@@ -77,7 +77,8 @@ class QuerySelector:
         if 'projects' in kwargs:
             result |= QueryType.PROJECTS
 
-        if 'pipelines' in kwargs:
+        pipeline_args = subset(kwargs, ['pipelines', 'fetch_pipelines'])
+        if pipeline_args:
             result |= QueryType.PIPELINES
 
         job_args = subset(kwargs, ["jobs", "job_url"])
