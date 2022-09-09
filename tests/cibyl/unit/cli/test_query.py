@@ -59,22 +59,18 @@ class TestGetQueryType(TestCase):
         self.assertEqual(QueryType.PIPELINES, get_query_type(**args))
 
     def test_get_jobs(self):
-        """Checks that "Jobs" is returned for "--jobs", winning over
-        "--tenants".
+        """Checks that "Jobs" is returned for "--jobs".
         """
         args = {
-            'tenants': None,
             'jobs': None
         }
 
         self.assertEqual(QueryType.JOBS, get_query_type(**args))
 
     def test_get_builds(self):
-        """Checks that "Builds" is returned for "--builds", winning over
-        "--jobs".
+        """Checks that "Builds" is returned for "--builds".
         """
         args = {
-            'jobs': None,
             'builds': None
         }
 
@@ -163,8 +159,10 @@ class TestGetQueryType(TestCase):
             'jobs': None
         }
 
-        self.assertEqual(QueryType.FEATURES_JOBS,
-                         get_query_type(command="features", **args))
+        self.assertIn(
+            QueryType.FEATURES_JOBS,
+            get_query_type(command="features", **args)
+        )
 
     def test_get_feature_jobs_no_command(self):
         """Checks that "JOBS" is returned for "--feature" and
@@ -183,7 +181,7 @@ class TestGetQueryType(TestCase):
             'last_build': None
         }
 
-        self.assertEqual(QueryType.TESTS, get_query_type(**args))
+        self.assertIn(QueryType.TESTS, get_query_type(**args))
 
 
 class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):

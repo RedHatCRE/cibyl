@@ -13,35 +13,35 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from enum import IntEnum
+from enum import IntFlag, auto
 from typing import Optional
 
 from cibyl.utils.dicts import subset
 
 
-class QueryType(IntEnum):
+class QueryType(IntFlag):
     """Defines the hierarchy level at which a query is meant to be performed.
     """
     NONE = 0
     """No data from host is requested."""
-    FEATURES = 1
+    FEATURES = auto()
     """Retrieve data using features."""
-    TENANTS = 2
-    """Only retrieve data concerning tenants."""
-    PROJECTS = 3
-    """Retrieve data concerning projects and above."""
-    PIPELINES = 4
-    """Retrieve data concerning pipelines and above."""
-    JOBS = 5
-    """Retrieve data concerning jobs and above."""
-    VARIANTS = 6
-    """Retrieve data concerning job variants and above."""
-    BUILDS = 7
-    """Retrieve data concerning builds and above."""
-    TESTS = 8
-    """Retrieve data concerning tests and above."""
-    FEATURES_JOBS = 9
+    FEATURES_JOBS = auto()
     """Retrieve data using features and jobs."""
+    TENANTS = auto()
+    """Only retrieve data concerning tenants."""
+    PROJECTS = auto()
+    """Retrieve data concerning projects and above."""
+    PIPELINES = auto()
+    """Retrieve data concerning pipelines and above."""
+    JOBS = auto()
+    """Retrieve data concerning jobs and above."""
+    VARIANTS = auto()
+    """Retrieve data concerning job variants and above."""
+    BUILDS = auto()
+    """Retrieve data concerning builds and above."""
+    TESTS = auto()
+    """Retrieve data concerning tests and above."""
 
 
 class QuerySelector:
@@ -72,34 +72,34 @@ class QuerySelector:
         result = QueryType.NONE
 
         if 'tenants' in kwargs:
-            result = QueryType.TENANTS
+            result |= QueryType.TENANTS
 
         if 'projects' in kwargs:
-            result = QueryType.PROJECTS
+            result |= QueryType.PROJECTS
 
         if 'pipelines' in kwargs:
-            result = QueryType.PIPELINES
+            result |= QueryType.PIPELINES
 
         job_args = subset(kwargs, ["jobs", "job_url"])
         if job_args:
-            result = QueryType.JOBS
+            result |= QueryType.JOBS
 
         if 'variants' in kwargs:
-            result = QueryType.VARIANTS
+            result |= QueryType.VARIANTS
 
         build_args = subset(kwargs, ["builds", "last_build", "build_status"])
         if build_args:
-            result = QueryType.BUILDS
+            result |= QueryType.BUILDS
 
         test_args = subset(kwargs, ["tests", "test_result", "test_duration"])
         if test_args:
-            result = QueryType.TESTS
+            result |= QueryType.TESTS
 
         if command == 'features':
             if job_args:
-                result = QueryType.FEATURES_JOBS
+                result |= QueryType.FEATURES_JOBS
             else:
-                result = QueryType.FEATURES
+                result |= QueryType.FEATURES
 
         return result
 
