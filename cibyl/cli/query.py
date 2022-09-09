@@ -116,8 +116,8 @@ class QuerySelector:
         core_query = self.get_query_type_core(command=command, **kwargs)
         plugins_query = QueryType.NONE
         if self.query_selector_functions:
-            plugins_query = max([get_query(**kwargs) for get_query in
-                                 self.query_selector_functions])
+            for get_query in self.query_selector_functions:
+                plugins_query |= get_query(**kwargs)
 
         return core_query | plugins_query
 
