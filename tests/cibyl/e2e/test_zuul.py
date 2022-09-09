@@ -290,8 +290,6 @@ class TestQueryComposing(EndToEndTest):
         expected1 = IndentedTextBuilder()
         expected1.add('System: zuul_system', 1)
         expected1.add('Tenant: example-tenant', 2)
-        expected1.add('Projects: ', 3)
-        expected1.add('No projects found in query.', 4)
         expected1.add('Jobs: ', 3)
         expected1.add('Job: build-docker-image', 4)
 
