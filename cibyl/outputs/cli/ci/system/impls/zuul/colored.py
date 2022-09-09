@@ -110,8 +110,8 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             if self.query >= QueryType.BUILDS:
                 builds = apply_filters(
                     job.builds.values(),
-                    lambda bld: bld.project.value != project.name.value,
-                    lambda bld: bld.pipeline.value != pipeline.name.value
+                    lambda bld: bld.project.value == project.name.value,
+                    lambda bld: bld.pipeline.value == pipeline.name.value
                 )
 
                 if builds:
