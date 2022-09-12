@@ -14,7 +14,7 @@
 #    under the License.
 """
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from cibyl.plugins.openstack.sources.zuul.deployments.arguments import \
     SpecArgumentHandler
@@ -69,25 +69,41 @@ class DeploymentQuery:
     class Tools:
         """A collection of utilities that this uses to perform its task.
         """
-        deployment_generator = DeploymentGenerator()
+        deployment_generator: DeploymentGenerator = field(
+            default_factory=lambda: DeploymentGenerator()
+        )
         """Generates the deployment model."""
-        spec_arg_handler = SpecArgumentHandler()
+        spec_arg_handler: SpecArgumentHandler = field(
+            default_factory=lambda: SpecArgumentHandler()
+        )
         """Indicates which jobs are to be fetched."""
-        deployment_filter = DeploymentFiltering()
+        deployment_filter: DeploymentFiltering = field(
+            default_factory=lambda: DeploymentFiltering()
+        )
         """Allows to filter out undesired deployments."""
-        output_builder = QueryOutputBuilder()
+        output_builder: QueryOutputBuilder = field(
+            default_factory=lambda: QueryOutputBuilder()
+        )
         """Builds the query output."""
 
-    def __init__(self, api, queries=Queries(), tools=Tools()):
+    def __init__(self, api, queries=None, tools=None):
         """Constructor.
 
         :param api: API to interact with Zuul with.
         :type api: :class:`cibyl.sources.zuul.apis.ZuulAPI`
         :param queries: Functions this uses to get the data it works with.
-        :type queries: :class:`DeploymentQuery.Queries`
+            'None' to allow this to build its own.
+        :type queries: :class:`DeploymentQuery.Queries` or None
         :param tools: Utilities this uses to achieve its function.
-        :type tools: :class:`DeploymentQuery.Tools`
+            'None' to allow this to build its own.
+        :type tools: :class:`DeploymentQuery.Tools` or None
         """
+        if queries is None:
+            queries = DeploymentQuery.Queries()
+
+        if tools is None:
+            tools = DeploymentQuery.Tools()
+
         self._api = api
         self._queries = queries
         self._tools = tools
