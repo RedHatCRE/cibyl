@@ -21,6 +21,7 @@ from overrides import overrides
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.system import System
 from cibyl.models.product.feature import Feature
+from cibyl.outputs.cli.ci.system.common.features import is_features_query
 from cibyl.outputs.cli.ci.system.printer import CISystemPrinter
 from cibyl.outputs.cli.printer import JSON, PROV, STDJSON, SerializedPrinter
 
@@ -40,7 +41,7 @@ class SerializedBaseSystemPrinter(
             'type': system.system_type.value
         }
 
-        if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
+        if is_features_query(self.query):
             result['features'] = []
 
             for feature in system.features.values():

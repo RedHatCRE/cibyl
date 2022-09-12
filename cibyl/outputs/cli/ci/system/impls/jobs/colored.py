@@ -15,6 +15,7 @@
 """
 from overrides import overrides
 
+import cibyl.outputs.cli.ci.system.common.features as features_queries
 from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.build import Build
@@ -51,7 +52,9 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
 
             if not system.is_queried():
                 printer.add(self.palette.blue('No query performed'), 1)
-            elif self.query != QueryType.FEATURES:
+            elif not features_queries.is_pure_features_query(self.query):
+                # avoid printing the number of jobs in case of having requested
+                # only features without jobs flag
                 header = 'Total jobs found in query: '
 
                 printer.add(self.palette.blue(header), 1)
@@ -74,7 +77,7 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
                 printer.add(self.palette.blue('URL: '), 1)
                 printer[-1].append(job.url.value)
 
-        if self.query in (QueryType.FEATURES_JOBS, QueryType.FEATURES):
+        if features_queries.is_features_query(self.query):
             # if features are used, do not print further below
             return printer.build()
 
