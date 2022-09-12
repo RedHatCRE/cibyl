@@ -30,7 +30,10 @@ class ArgumentReview:
         :return: True if the user requested the release to be part of the
             deployment, False if not.
         """
-        return any(arg in kwargs for arg in ('spec', 'release'))
+        return any(
+            arg in kwargs
+            for arg in ('features', 'spec', 'release')
+        )
 
     def is_infra_type_requested(self, **kwargs: Any) -> bool:
         """
@@ -38,7 +41,10 @@ class ArgumentReview:
         :return: True if the user requested the infra type to be part of the
             deployment, False if not.
         """
-        return any(arg in kwargs for arg in ('spec', 'infra_type'))
+        return any(
+            arg in kwargs
+            for arg in ('features', 'spec', 'infra_type')
+        )
 
     def is_nodes_requested(self, **kwargs: Any) -> bool:
         """
@@ -46,7 +52,10 @@ class ArgumentReview:
         :return: True if the user requested the nodes to be part of the
             deployment, False if not.
         """
-        return any(arg in kwargs for arg in ('spec', 'nodes', 'controllers'))
+        return any(
+            arg in kwargs
+            for arg in ('features', 'spec', 'nodes', 'controllers')
+        )
 
     def is_topology_requested(self, **kwargs: Any) -> bool:
         """
@@ -54,7 +63,10 @@ class ArgumentReview:
         :return: True if the user requested the topology to be part of the
             deployment, False if not.
         """
-        return any(arg in kwargs for arg in ('spec', 'topology'))
+        return any(
+            arg in kwargs
+            for arg in ('features', 'spec', 'topology')
+        )
 
     def is_cinder_backend_requested(self, **kwargs: Any) -> bool:
         """
@@ -62,7 +74,10 @@ class ArgumentReview:
         :return: True if the user requested the cinder backend to be part
             of the deployment, False if not.
         """
-        return any(arg in kwargs for arg in ('spec', 'cinder_backend'))
+        return any(
+            arg in kwargs
+            for arg in ('features', 'spec', 'cinder_backend')
+        )
 
     def is_network_backend_requested(self, **kwargs: Any) -> bool:
         """
@@ -70,7 +85,10 @@ class ArgumentReview:
         :return: True if the user requested the network backend to be part
             of the deployment, False if not.
         """
-        return any(arg in kwargs for arg in ('spec', 'network_backend'))
+        return any(
+            arg in kwargs
+            for arg in ('features', 'spec', 'network_backend')
+        )
 
     def is_ip_version_requested(self, **kwargs: Any) -> bool:
         """
@@ -78,7 +96,10 @@ class ArgumentReview:
         :return: True if the user requested the ip version to be part of the
             deployment, False if not.
         """
-        return any(arg in kwargs for arg in ('spec', 'ip_version'))
+        return any(
+            arg in kwargs
+            for arg in ('features', 'spec', 'ip_version')
+        )
 
     def is_tls_everywhere_requested(self, **kwargs: Any) -> bool:
         """
@@ -86,7 +107,10 @@ class ArgumentReview:
         :return: True if the user requested tls everywhere to be part of the
             deployment, False if not.
         """
-        return any(arg in kwargs for arg in ('spec',))
+        return any(
+            arg in kwargs
+            for arg in ('features', 'spec')
+        )
 
     def is_ml2_driver_requested(self, **kwargs: Any) -> bool:
         """
@@ -94,7 +118,10 @@ class ArgumentReview:
         :return: True if the user requested ml2 driver to be part of the
             deployment, False if not.
         """
-        return any(arg in kwargs for arg in ('spec', 'ml2_driver'))
+        return any(
+            arg in kwargs
+            for arg in ('features', 'spec', 'ml2_driver')
+        )
 
 
 class SpecArgumentHandler:

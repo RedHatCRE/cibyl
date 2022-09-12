@@ -32,6 +32,7 @@ class TestArgumentReview(TestCase):
 
         self.assertTrue(review.is_release_requested(**{'release': None}))
         self.assertTrue(review.is_release_requested(**{'spec': None}))
+        self.assertTrue(review.is_release_requested(**{'features': None}))
 
     def test_is_infra_type_requested(self):
         """Checks the conditions required for the infra type to be requested.
@@ -42,6 +43,7 @@ class TestArgumentReview(TestCase):
 
         self.assertTrue(review.is_infra_type_requested(**{'infra_type': None}))
         self.assertTrue(review.is_infra_type_requested(**{'spec': None}))
+        self.assertTrue(review.is_infra_type_requested(**{'features': None}))
 
     def test_is_nodes_requested(self):
         """Checks the conditions required for the nodes list to be
@@ -54,6 +56,7 @@ class TestArgumentReview(TestCase):
         self.assertTrue(review.is_nodes_requested(**{'controllers': None}))
         self.assertTrue(review.is_nodes_requested(**{'nodes': None}))
         self.assertTrue(review.is_nodes_requested(**{'spec': None}))
+        self.assertTrue(review.is_nodes_requested(**{'features': None}))
 
     def test_is_topology_requested(self):
         """Checks the conditions required for the topology to be requested.
@@ -64,6 +67,7 @@ class TestArgumentReview(TestCase):
 
         self.assertTrue(review.is_topology_requested(**{'topology': None}))
         self.assertTrue(review.is_topology_requested(**{'spec': None}))
+        self.assertTrue(review.is_topology_requested(**{'features': None}))
 
     def test_is_cinder_backend_requested(self):
         """Checks the conditions required for the cinder backend to be
@@ -81,6 +85,10 @@ class TestArgumentReview(TestCase):
 
         self.assertTrue(
             review.is_cinder_backend_requested(**{'spec': None})
+        )
+
+        self.assertTrue(
+            review.is_cinder_backend_requested(**{'features': None})
         )
 
     def test_is_network_backend_requested(self):
@@ -101,6 +109,10 @@ class TestArgumentReview(TestCase):
             review.is_network_backend_requested(**{'spec': None})
         )
 
+        self.assertTrue(
+            review.is_network_backend_requested(**{'features': None})
+        )
+
     def test_is_ip_version_requested(self):
         """Checks the conditions required for the ip version to be requested.
         """
@@ -110,15 +122,24 @@ class TestArgumentReview(TestCase):
 
         self.assertTrue(review.is_ip_version_requested(**{'ip_version': None}))
         self.assertTrue(review.is_ip_version_requested(**{'spec': None}))
+        self.assertTrue(review.is_ip_version_requested(**{'features': None}))
 
     def test_is_tls_everywhere_requested(self):
         """Checks the conditions required for tls everywhere to be requested.
         """
         review = ArgumentReview()
 
-        self.assertFalse(review.is_tls_everywhere_requested(**{}))
+        self.assertFalse(
+            review.is_tls_everywhere_requested(**{})
+        )
 
-        self.assertTrue(review.is_tls_everywhere_requested(**{'spec': None}))
+        self.assertTrue(
+            review.is_tls_everywhere_requested(**{'spec': None})
+        )
+
+        self.assertTrue(
+            review.is_tls_everywhere_requested(**{'features': None})
+        )
 
     def test_is_ml2_driver_requested(self):
         """Checks the conditions required for ml2 driver to be requested.
@@ -129,6 +150,7 @@ class TestArgumentReview(TestCase):
 
         self.assertTrue(review.is_ml2_driver_requested(**{'spec': None}))
         self.assertTrue(review.is_ml2_driver_requested(**{'ml2_driver': None}))
+        self.assertTrue(review.is_ml2_driver_requested(**{'features': None}))
 
 
 class TestSpecArgumentHandler(TestCase):
