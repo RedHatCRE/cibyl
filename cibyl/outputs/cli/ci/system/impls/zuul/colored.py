@@ -38,6 +38,7 @@ from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.filtering import apply_filters
 from cibyl.utils.sorting import sort
 from cibyl.utils.strings import IndentedTextBuilder
+from cibyl.utils.time import as_minutes
 
 LOG = logging.getLogger(__name__)
 
@@ -288,7 +289,8 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             if self.verbosity > 0:
                 result.add(self.palette.blue('Duration: '), 1)
-                result[-1].append(test.duration.value)
+                duration = as_minutes(test.duration.value, unit="s")
+                result[-1].append(f'{duration:.2f}min')
 
             result.add(self.palette.blue('Result: '), 1)
             result[-1].append(self._get_colored_test_result(test.result.value))

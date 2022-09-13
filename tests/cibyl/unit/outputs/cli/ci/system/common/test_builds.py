@@ -224,7 +224,7 @@ class TestGetDurationSection(TestCase):
         build.duration.value = 60000
 
         self.assertEqual(
-            'Duration: 1.0000min',
+            'Duration: 1.00min',
             get_duration_section(palette, build)
         )
 
