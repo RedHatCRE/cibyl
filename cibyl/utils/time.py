@@ -15,10 +15,18 @@
 """
 
 
-def as_minutes(ms: int) -> int:
-    """Converts ms to mins.
+def as_minutes(duration: float, unit: str = "ms") -> float:
+    """Converts a duration to mins.
 
-    :param ms: The ms to converts.
+    :param duration: The duration to convert.
+    :param unit: The unit the duration is in.
     :return: The time in minutes.
+    :raises: NotImplementedError if the unit is not known (milliseconds or
+    seconds)
     """
-    return ms / 60000
+    if unit == "ms":
+        return duration / 60000
+    elif unit == "s":
+        return duration / 60
+    else:
+        raise NotImplementedError

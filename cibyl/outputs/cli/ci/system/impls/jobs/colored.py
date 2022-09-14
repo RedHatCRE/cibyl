@@ -158,6 +158,6 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
                 duration = as_minutes(test.duration.value)
 
                 printer.add(self.palette.blue('Duration: '), 1)
-                printer[-1].append(f'{duration:.2f}m')
+                printer[-1].append(f'{duration:.2f}min')
 
         return printer.build()
