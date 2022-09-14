@@ -17,6 +17,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, Sequence
 
+from cibyl.exceptions.source import SourceException
 from cibyl.sources.zuul.transactions import JobResponse as Job
 from cibyl.sources.zuul.transactions import TenantResponse as Tenant
 from cibyl.sources.zuul.transactions import VariantResponse as Variant
@@ -28,7 +29,7 @@ Variables = Dict[str, Any]
 """Type for a variant's variables."""
 
 
-class SearchError(Exception):
+class SearchError(SourceException):
     """Represents any error occurring during a search on the Zuul host.
     """
 
