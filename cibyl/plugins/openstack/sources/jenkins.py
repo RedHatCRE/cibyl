@@ -40,11 +40,11 @@ from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
 from cibyl.utils.dicts import subset
 from cibyl.utils.files import get_file_name_from_path
-from cibyl.utils.filtering import (CINDER_BACKEND_PATTERN, DEPLOYMENT_PATTERN,
-                                   DVR_PATTERN_NAME, IP_PATTERN,
-                                   NETWORK_BACKEND_PATTERN, RELEASE_PATTERN,
-                                   SERVICES_PATTERN, TOPOLOGY_PATTERN,
-                                   apply_filters, filter_topology,
+from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
+                                   IP_PATTERN, NETWORK_BACKEND_PATTERN,
+                                   RELEASE_PATTERN, SERVICES_PATTERN,
+                                   TOPOLOGY_PATTERN, apply_filters,
+                                   filter_topology,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
 
@@ -203,9 +203,7 @@ class Jenkins(SourceExtension):
 
         missing_cinder_backend = not bool(job.get("cinder_backend", ""))
         if missing_cinder_backend and ("cinder_backend" in kwargs or spec):
-            cinder_backend = detect_job_info_regex(job_name,
-                                                   CINDER_BACKEND_PATTERN)
-            job["cinder_backend"] = cinder_backend
+            job["cinder_backend"] = ""
 
         missing_ip_version = "ip_version" not in job or not job["ip_version"]
         if missing_ip_version and ("ip_version" in kwargs or spec):

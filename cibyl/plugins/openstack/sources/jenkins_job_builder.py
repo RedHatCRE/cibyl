@@ -147,7 +147,7 @@ class JenkinsJobBuilder(SourceExtension):
                 return None
         return ip_version_str
 
-    @speed_index({'base': 3})
+    @speed_index({'base': 3, 'cinder_backend': 1})
     def get_deployment(self, **kwargs):
         """
         extract different aspects of deployment information
