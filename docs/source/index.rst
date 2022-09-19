@@ -51,6 +51,7 @@ Index
    parser
    plugins
    sources
+   output
 
 .. toctree::
    :maxdepth: 2
@@ -88,6 +89,7 @@ Index
    development/tests
    development/sources
    development/features
+   development/output
    development/contribute
 
 

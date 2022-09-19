@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import ABC
+from typing import Optional
 
 from overrides import overrides
 
@@ -31,10 +32,10 @@ from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
                                                        has_plugin_section)
 from cibyl.outputs.cli.ci.system.impls.base.serialized import \
     SerializedBaseSystemPrinter
-from cibyl.outputs.cli.printer import JSONPrinter
+from cibyl.outputs.cli.printer import JSON, PROV, STDJSON
 
 
-class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter, ABC):
+class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
     """Base printer for all machine-readable printers dedicated to output
     Zuul systems.
     """
@@ -226,9 +227,25 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter, ABC):
         return self.provider.dump(result)
 
 
-class JSONZuulSystemPrinter(JSONPrinter, SerializedZuulSystemPrinter):
+class JSONZuulSystemPrinter(SerializedZuulSystemPrinter[JSON]):
     """Printer that will output Zuul system in JSON format.
     """
+
+    def __init__(
+        self,
+        provider: Optional[JSON] = None,
+        query: QueryType = QueryType.NONE,
+        verbosity: int = 0
+    ):
+        """Constructor. See parent for more information.
+
+        :param provider: Implementation of a JSON marshaller / unmarshaller.
+            Leave as 'None' to let this build its own.
+        """
+        if provider is None:
+            provider = STDJSON()
+
+        super().__init__(provider, query, verbosity)
 
     @overrides
     def print_variant(self, variant: Job.Variant) -> str:

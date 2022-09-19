@@ -17,6 +17,7 @@ import logging
 
 from overrides import overrides
 
+import cibyl.outputs.cli.ci.system.common.features as features_query
 from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.build import Build
@@ -37,6 +38,7 @@ from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.filtering import apply_filters
 from cibyl.utils.sorting import sort
 from cibyl.utils.strings import IndentedTextBuilder
+from cibyl.utils.time import as_minutes
 
 LOG = logging.getLogger(__name__)
 
@@ -107,11 +109,15 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result.add(self.palette.blue('Job: '), 0)
             result[-1].append(job.name.value)
 
+            if features_query.is_features_query(self.query):
+                # if features are used, do not print further below
+                return result.build()
+
             if self.query >= QueryType.BUILDS:
                 builds = apply_filters(
                     job.builds.values(),
-                    lambda bld: bld.project.value != project.name.value,
-                    lambda bld: bld.pipeline.value != pipeline.name.value
+                    lambda bld: bld.project.value == project.name.value,
+                    lambda bld: bld.pipeline.value == pipeline.name.value
                 )
 
                 if builds:
@@ -147,6 +153,10 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             result.add(self.palette.blue('Job: '), 0)
             result[-1].append(job.name.value)
+
+            if features_query.is_features_query(self.query):
+                # if features are used, do not print further below
+                return result.build()
 
             if self.verbosity > 0:
                 if job.url.value:
@@ -279,7 +289,8 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
 
             if self.verbosity > 0:
                 result.add(self.palette.blue('Duration: '), 1)
-                result[-1].append(test.duration.value)
+                duration = as_minutes(test.duration.value, unit="s")
+                result[-1].append(f'{duration:.2f}min')
 
             result.add(self.palette.blue('Result: '), 1)
             result[-1].append(self._get_colored_test_result(test.result.value))
@@ -319,7 +330,7 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         # Begin with the text common to all systems
         printer.add(super().print_system(system), 0)
 
-        if self.query == QueryType.FEATURES:
+        if features_query.is_pure_features_query(self.query):
             # if the user has only requested features, there is no need to
             # print anything else
             return printer.build()
@@ -352,67 +363,90 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         :param tenant: The tenant.
         :return: Textual representation of the provided model.
         """
-
-        def print_projects() -> None:
-            def create_printer() -> ColoredZuulSystemPrinter.ProjectCascade:
-                return ColoredZuulSystemPrinter.ProjectCascade(
-                    self.query, self.verbosity, self.palette
-                )
-
-            # Avoid header if there are no project
-            result.add(self.palette.blue('Projects: '), 1)
-
-            if tenant.projects.value:
-                for project in tenant.projects.values():
-                    result.add(create_printer().print_project(project), 2)
-
-                result.add(
-                    self.palette.blue(
-                        "Total projects found in query for tenant '"
-                    ), 1
-                )
-                result[-1].append(self.palette.underline(tenant.name))
-                result[-1].append(self.palette.blue("': "))
-                result[-1].append(len(tenant.projects))
-            else:
-                msg = 'No projects found in query.'
-                result.add(self.palette.red(msg), 2)
-
-        def print_jobs() -> None:
-            def create_printer() -> ColoredZuulSystemPrinter.JobCascade:
-                return ColoredZuulSystemPrinter.JobCascade(
-                    self.query, self.verbosity, self.palette
-                )
-
-            # Avoid header if there are no jobs
-            result.add(self.palette.blue('Jobs: '), 1)
-
-            if tenant.jobs.value:
-                for job in sort(tenant.jobs.values(), self._job_sorter):
-                    result.add(create_printer().print_job(job), 2)
-
-                result.add(
-                    self.palette.blue(
-                        "Total jobs found in query for tenant '"
-                    ), 1
-                )
-
-                result[-1].append(self.palette.underline(tenant.name))
-                result[-1].append(self.palette.blue("': "))
-                result[-1].append(len(tenant.jobs))
-            else:
-                msg = 'No jobs found in query.'
-                result.add(self.palette.red(msg), 2)
-
         result = IndentedTextBuilder()
 
         result.add(self.palette.blue('Tenant: '), 0)
         result[-1].append(tenant.name)
 
-        if self.query >= QueryType.PROJECTS:
-            print_projects()
+        if self._is_projects_requested():
+            result.add(self._print_projects_on(tenant), 1)
 
-            if self.query >= QueryType.JOBS:
-                print_jobs()
+        if self._is_jobs_requested():
+            result.add(self._print_jobs_on(tenant), 1)
+
+        return result.build()
+
+    def _is_projects_requested(self) -> bool:
+        return any(
+            option in self.query
+            for option in (
+                QueryType.PROJECTS,
+                QueryType.PIPELINES
+            )
+        )
+
+    def _is_jobs_requested(self) -> bool:
+        return any(
+            option in self.query
+            for option in (
+                QueryType.JOBS,
+                QueryType.VARIANTS,
+                QueryType.BUILDS,
+                QueryType.TESTS
+            )
+        )
+
+    def _print_projects_on(self, tenant: Tenant) -> str:
+        result = IndentedTextBuilder()
+
+        result.add(self.palette.blue('Projects: '), 0)
+
+        if tenant.projects.value:
+            for project in tenant.projects.values():
+                printer = ColoredZuulSystemPrinter.ProjectCascade(
+                    self.query, self.verbosity, self.palette
+                )
+
+                result.add(printer.print_project(project), 1)
+
+            result.add(
+                self.palette.blue(
+                    "Total projects found in query for tenant '"
+                ), 0
+            )
+            result[-1].append(self.palette.underline(tenant.name))
+            result[-1].append(self.palette.blue("': "))
+            result[-1].append(len(tenant.projects))
+        else:
+            msg = 'No projects found in query.'
+            result.add(self.palette.red(msg), 1)
+
+        return result.build()
+
+    def _print_jobs_on(self, tenant: Tenant) -> str:
+        result = IndentedTextBuilder()
+
+        result.add(self.palette.blue('Jobs: '), 0)
+
+        if tenant.jobs.value:
+            for job in sort(tenant.jobs.values(), self._job_sorter):
+                printer = ColoredZuulSystemPrinter.JobCascade(
+                    self.query, self.verbosity, self.palette
+                )
+
+                result.add(printer.print_job(job), 1)
+
+            result.add(
+                self.palette.blue(
+                    "Total jobs found in query for tenant '"
+                ), 0
+            )
+
+            result[-1].append(self.palette.underline(tenant.name))
+            result[-1].append(self.palette.blue("': "))
+            result[-1].append(len(tenant.jobs))
+        else:
+            msg = 'No jobs found in query.'
+            result.add(self.palette.red(msg), 1)
 
         return result.build()

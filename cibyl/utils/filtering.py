@@ -151,7 +151,16 @@ def matches_regex(pattern: str, string: str, flags: int = 0) -> bool:
 
 
 def apply_filters(iterable: Iterable, *filters: Callable) -> Iterable:
-    """Applies a set of filters to a collection.
+    """Returns a collection containing the items from the iterable that
+    satisfy all the conditions passed as filters.
+
+    Filters are AND'd together, meaning that an item has to pass all of them in
+    order to appear on the result.
+
+    Examples
+    -------
+    >>> apply_filters([1, 2, 3], lambda x: x > 1, lambda x: x < 3)
+    [2]
 
     :param iterable: The collection to filter.
     :param filters: List of filters to apply.

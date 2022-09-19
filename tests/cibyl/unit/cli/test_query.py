@@ -59,22 +59,18 @@ class TestGetQueryType(TestCase):
         self.assertEqual(QueryType.PIPELINES, get_query_type(**args))
 
     def test_get_jobs(self):
-        """Checks that "Jobs" is returned for "--jobs", winning over
-        "--tenants".
+        """Checks that "Jobs" is returned for "--jobs".
         """
         args = {
-            'tenants': None,
             'jobs': None
         }
 
         self.assertEqual(QueryType.JOBS, get_query_type(**args))
 
     def test_get_builds(self):
-        """Checks that "Builds" is returned for "--builds", winning over
-        "--jobs".
+        """Checks that "Builds" is returned for "--builds".
         """
         args = {
-            'jobs': None,
             'builds': None
         }
 
@@ -163,8 +159,9 @@ class TestGetQueryType(TestCase):
             'jobs': None
         }
 
-        self.assertEqual(QueryType.FEATURES_JOBS,
-                         get_query_type(command="features", **args))
+        query = get_query_type(command="features", **args)
+        self.assertIn(QueryType.FEATURES, query)
+        self.assertIn(QueryType.JOBS, query)
 
     def test_get_feature_jobs_no_command(self):
         """Checks that "JOBS" is returned for "--feature" and
@@ -183,7 +180,7 @@ class TestGetQueryType(TestCase):
             'last_build': None
         }
 
-        self.assertEqual(QueryType.TESTS, get_query_type(**args))
+        self.assertIn(QueryType.TESTS, get_query_type(**args))
 
 
 class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
@@ -338,7 +335,7 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'cinder_backend': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertIn(QueryType.JOBS, get_query_type(**args))
 
     def test_get_spec_packages(self):
         """Checks that "Jobs" is returned for "--packages" if the
@@ -350,7 +347,7 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'packages': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertIn(QueryType.JOBS, get_query_type(**args))
 
     def test_get_spec_services(self):
         """Checks that "Jobs" is returned for "--services" if the
@@ -362,7 +359,7 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'services': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertIn(QueryType.JOBS, get_query_type(**args))
 
     def test_get_spec_containers(self):
         """Checks that "Jobs" is returned for "--containers" if the
@@ -374,4 +371,4 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'containers': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertIn(QueryType.JOBS, get_query_type(**args))

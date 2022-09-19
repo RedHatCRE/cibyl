@@ -14,11 +14,12 @@
 #    under the License.
 """
 from abc import ABC
-from typing import Union
+from typing import Optional, Union
 
 from overrides import overrides
 
-from cibyl.outputs.cli.printer import JSONPrinter, SerializedPrinter
+from cibyl.cli.query import QueryType
+from cibyl.outputs.cli.printer import JSON, PROV, STDJSON, SerializedPrinter
 from cibyl.plugins.openstack import Deployment
 from cibyl.plugins.openstack.container import Container
 from cibyl.plugins.openstack.node import Node
@@ -28,7 +29,7 @@ from cibyl.plugins.openstack.service import Service
 from cibyl.plugins.openstack.test_collection import TestCollection
 
 
-class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
+class OSSerializedPrinter(SerializedPrinter[PROV], OSPrinter, ABC):
     """Provides a machine-readable representation of the plugin's models for
     easy readability from a machine.
     """
@@ -99,8 +100,8 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
             collection = TestCollection()
 
         result = {
+            # sort list of tests so it's consistently displayed
             'tests':
-                # sort list of tests so it's consistently displayed
                 sorted(list(collection.tests.value))
                 if collection.tests.value else [],
             'setup': collection.setup.value
@@ -157,13 +158,29 @@ class OSSerializedPrinter(OSPrinter, SerializedPrinter, ABC):
 
     def _print_overcloud_templates(self, templates: Union[str, set]) -> list:
         if isinstance(templates, str):
-            # sometime the test collection is stored as a string indicating
+            # sometimes the test collection is stored as a string indicating
             # that no test information was available (usually N/A), so in those
             # cases we'll replace the collection with an empty one
             return []
         return list(templates)
 
 
-class OSJSONPrinter(JSONPrinter, OSSerializedPrinter):
+class OSJSONPrinter(OSSerializedPrinter[JSON]):
     """Provides a representation of the plugin's models in JSON format.
     """
+
+    def __init__(
+        self,
+        provider: Optional[JSON],
+        query: QueryType = QueryType.NONE,
+        verbosity: int = 0
+    ):
+        """Constructor. See parent for more information.
+
+        :param provider: Implementation of a JSON marshaller / unmarshaller.
+            Leave as 'None' to let this build its own.
+        """
+        if provider is None:
+            provider = STDJSON()
+
+        super().__init__(provider, query, verbosity)

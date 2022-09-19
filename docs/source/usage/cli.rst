@@ -88,6 +88,9 @@ The application-level arguments supported by cibyl are:
     but the colorized uses color for better visuals. Json support is not
     complete.
 
+``-o, --output``
+    Write output to the file passed as value.
+
 ``-p, --plugin``
     Plugins to use in the queries.
 

@@ -676,7 +676,10 @@ class VariantResponse:
         result = self._variant.branches
 
         if not result:
-            result = [self._variant.context.branch]
+            context = self._variant.context
+
+            if context:
+                result = [context.branch]
 
         return result
 

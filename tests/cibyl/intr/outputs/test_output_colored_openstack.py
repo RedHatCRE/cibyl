@@ -79,12 +79,15 @@ class TestOutputZuulSystemWithOpenstackPlugin(OpenstackPluginWithZuulSystem):
         palette.underline = Mock()
         palette.underline.side_effect = lambda text: text
 
-        printer = zuul_colored.ColoredZuulSystemPrinter(palette=palette,
-                                                        query=QueryType.JOBS)
+        printer = zuul_colored.ColoredZuulSystemPrinter(
+            palette=palette,
+            query=QueryType.PIPELINES | QueryType.JOBS
+        )
         output = printer.print_system(system)
         # check that output is five lines long(system line, one line per job
         # and the line for total number of jobs)
         self.assertEqual(14, len(output.split("\n")))
+
         expected = "System: test-system\n"
         expected += "  Tenant: tenant\n"
         expected += "    Projects: \n"

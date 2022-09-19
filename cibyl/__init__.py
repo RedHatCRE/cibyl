@@ -13,3 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from pbr.version import VersionInfo
+
+all = ('__version__')
+
+__version__ = VersionInfo('cibyl').release_string()

@@ -208,6 +208,45 @@ class TestHierarchyCrawler(TestCase):
         with self.assertRaises(StopIteration):
             next(iterator)
 
+    def test_stops_if_error_in_search(self):
+        """Checks that if an error occurs while looking for the parent
+        variant, the iteration stops prematurely.
+        """
+
+        def parent_of(vrnt):
+            if vrnt == variant:
+                return parent
+
+            if vrnt == parent:
+                raise SearchError
+
+            return None
+
+        parent = Mock()
+        variant = Mock()
+
+        finder = Mock()
+        finder.find = Mock()
+        finder.find.return_value = Mock()
+        finder.find.return_value.parent_of = Mock()
+        finder.find.return_value.parent_of.side_effect = parent_of
+
+        tools = Mock()
+        tools.variants = finder
+
+        crawler = HierarchyCrawler(
+            variant=variant,
+            tools=tools
+        )
+
+        iterator = iter(crawler)
+
+        self.assertEqual(variant, next(iterator))
+        self.assertEqual(parent, next(iterator))
+
+        with self.assertRaises(StopIteration):
+            next(iterator)
+
 
 class TestHierarchyCrawlerFactory(TestCase):
     """Tests for :class:`HierarchyCrawlerFactory`.

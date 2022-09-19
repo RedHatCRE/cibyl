@@ -13,42 +13,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.cli.query import QueryType
 from cibyl.outputs.cli.ci.system.common.stages import print_stage
+from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.plugins.openstack.ironic import Ironic
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.printers import OSPrinter
 from cibyl.plugins.openstack.storage import Storage
-from cibyl.utils.colors import DefaultPalette
 from cibyl.utils.strings import IndentedTextBuilder
 
 
-class OSColoredPrinter(OSPrinter):
+class OSColoredPrinter(ColoredPrinter, OSPrinter):
     """Provides a human-readable representation of OS models decorated with
     coloring for easier readability.
     """
-
-    def __init__(self,
-                 query=QueryType.NONE, verbosity=0,
-                 palette=DefaultPalette()):
-        """Constructor.
-
-        See parents for more information.
-
-        :param palette: Palette of colors to be used.
-        :type palette: :class:`cibyl.utils.colors.ColorPalette`
-        """
-        super().__init__(query, verbosity)
-
-        self._palette = palette
-
-    @property
-    def palette(self):
-        """
-        :return: The palette currently in use.
-        :rtype: :class:`cibyl.utils.colors.ColorPalette`
-        """
-        return self._palette
 
     def _print_deployment_network_section(self, network: Network,
                                           printer: IndentedTextBuilder):

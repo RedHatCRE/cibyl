@@ -13,19 +13,23 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, Sequence
 
+from cibyl.exceptions.source import SourceException
 from cibyl.sources.zuul.transactions import JobResponse as Job
 from cibyl.sources.zuul.transactions import TenantResponse as Tenant
 from cibyl.sources.zuul.transactions import VariantResponse as Variant
 from cibyl.utils.filtering import matches_regex
 
+LOG = logging.getLogger(__name__)
+
 Variables = Dict[str, Any]
 """Type for a variant's variables."""
 
 
-class SearchError(Exception):
+class SearchError(SourceException):
     """Represents any error occurring during a search on the Zuul host.
     """
 
@@ -128,7 +132,12 @@ class VariantFinder:
             for candidate in job.variants().get():
                 for condition in candidate.branches:
                     for branch in variant.branches:
+                        # See if parent pattern matches my branch
                         if matches_regex(condition, branch):
+                            return candidate
+
+                        # See if my pattern matches my parent's branch
+                        if matches_regex(branch, condition):
                             return candidate
 
             raise SearchError(
@@ -214,12 +223,21 @@ class HierarchyCrawler:
             self._step = next_step
             return self._step
 
-        def _get_next_step(self) -> Variant:
+        def _get_next_step(self) -> Optional[Variant]:
             # Make the start variant be part of the iteration
             if self._step is None:
                 return self._start
 
-            return self.tools.variants.find().parent_of(self._step)
+            try:
+                return self.tools.variants.find().parent_of(self._step)
+            except SearchError as ex:
+                LOG.warning(
+                    "Prematurely finished iterating over hierarchy for: '%s'. "
+                    "Reason: '%s'. "
+                    "Results may be incomplete as a consequence.",
+                    self._start.name, ex
+                )
+                return None
 
         @property
         def start(self) -> Variant:

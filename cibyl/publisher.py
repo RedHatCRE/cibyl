@@ -125,8 +125,12 @@ class JSONPublisher(Publisher):
         the output for all environments, like the json one."""
         envs = [json.loads(env) for env in self.output]
         final_output = {'environments': envs}
-        self._print_output(json.dumps(final_output,
-                                      indent=self.printer.indentation))
+        self._print_output(
+            json.dumps(
+                final_output,
+                indent=self.printer.provider.indentation
+            )
+        )
 
 
 PUBLISHER_TYPE = Union[PrintPublisher, JSONPublisher]
