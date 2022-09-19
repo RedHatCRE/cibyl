@@ -802,12 +802,19 @@ tripleo_ironic_conductor.service loaded    active     running
         job_names = ['test_17.3_ipv4_job_2comp_1cont_geneve_swift',
                      'test_16_ipv6_job_1comp_2cont_lvm', 'test_job']
         response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastBuild': None})
+                                     'lastCompletedBuild': {'description':
+                                                            logs_url}})
 
-        self.jenkins.send_request = Mock(side_effect=[response])
+        artifacts = [
+                get_yaml_overcloud(cinder_backend="swift"),
+                get_yaml_overcloud(cinder_backend="lvm"),
+                get_yaml_overcloud(cinder_backend="")]
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
         args = {
             "cinder_backend": Argument("cinder_backend", str, "",
                                        value=["swift"])
