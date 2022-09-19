@@ -24,6 +24,7 @@ from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.node import Node
+from cibyl.plugins.openstack.storage import Storage
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
 
@@ -35,6 +36,8 @@ IP_VERSION = r'--network-protocol\s+ipv[4|6]'
 IP_VERSION_NUMBER = r'4|6'
 RELEASE = r'.*rhos-\d\d.\d-.*patches|.*rhos-\d\d-.*patches|.*send_results_to_umb.*'  # noqa: E501
 RELEASE_NUMBER = r'\d\d.\d|\d\d'
+CINDER_BACKEND = r'.*--storage-backend.*|.*IR_TRIPLEO_OVERCLOUD_STORAGE_BACKEND_UPD.*'  # noqa: E501
+CINDER_BACKEND_NAME = r'ceph|lvm|netapp-iscsi|netapp-nfs|swift|nfs'
 
 
 def args_are_in_list(arg_list, list):
@@ -202,6 +205,40 @@ class JenkinsJobBuilder(SourceExtension):
                     return None
         return release_str
 
+    def _get_cinder_backend(self, path, **kwargs):
+        """
+        extract cinder_backend from the JJB xml file and
+        represent it in the form of string, e.g
+           swift or ceph
+
+        Note: this function is used to support filtering
+            e.g. --cinder-backend swift
+        :param path: to JJB xml file
+        :param **kwargs: cibyl command line
+
+        :return: cinder_backend string
+                 None if filtered out
+        """
+        cinder_backends_str = ""
+        if "cinder_backend" in kwargs:
+            in_mem_file = parse_xml(path)
+            result = set([])
+
+            lines = [line.rstrip() for line in in_mem_file]
+            for line in lines:
+                cinder_backend_lst = re.findall(CINDER_BACKEND, line)
+                for el in cinder_backend_lst:
+                    cinder_backends = set(re.findall(CINDER_BACKEND_NAME, el))
+                    result = result.union(cinder_backends)
+
+            cinder_backends_str = ",".join(result)
+            # filtering support e.g. --cinder-backend swift
+            if kwargs['cinder_backend'].value:
+                if not args_are_in_list(kwargs['cinder_backend'].value,
+                                        result):
+                    return None
+        return cinder_backends_str
+
     @speed_index({'base': 3})
     def get_deployment(self, **kwargs):
         """
@@ -248,6 +285,14 @@ class JenkinsJobBuilder(SourceExtension):
                 filterted_out += [job_name]
                 continue
 
+            # ------------------------------            cinder_backend
+            cinder_backend = self._get_cinder_backend(path, **kwargs)
+            # compute what is filtered out according to cinder_backend
+            if cinder_backend is None and \
+                    kwargs['cinder_backend'].value is not None:
+                filterted_out += [job_name]
+                continue
+
             network = Network(ip_version=ipv,
                               ml2_driver="",
                               network_backend="",
@@ -255,12 +300,14 @@ class JenkinsJobBuilder(SourceExtension):
                               tls_everywhere="",
                               security_group="")
 
+            storage = Storage(cinder_backend=cinder_backend)
+
             deployment = Deployment(release=release,
                                     nodes=self._get_nodes(path, **kwargs),
                                     services={},
                                     topology=topology,
                                     network=network,
-                                    storage="",
+                                    storage=storage,
                                     ironic="",
                                     test_collection="",
                                     overcloud_templates="",

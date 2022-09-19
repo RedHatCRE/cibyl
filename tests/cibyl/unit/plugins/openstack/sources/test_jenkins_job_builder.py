@@ -91,7 +91,7 @@ ipv_content = [
 release_content = [
     # ------------------------  release
     {
-        "str": "<pattern>rhos-10.0-patches</pattern>",  # noqa: E501
+        "str": "<pattern>rhos-10.0-patches</pattern>",
         "kwargs": {
             'release': Argument("release", str, "", value=[])},
         "res": "10.0"},
@@ -114,6 +114,28 @@ release_content = [
         "str": "RefSpecName = &quot;+refs/heads/rhos-10.0-patches:refs/remotes/origin/rhos-10.0-patches&quot;",  # noqa: E501
         "kwargs": {
             'release': Argument("release", str, "", value=[17.0])},
+        "res": None},
+]
+
+# add everything relevant manually from the results of
+# grep IR_TRIPLEO_OVERCLOUD_STORAGE_BACKEND_UPD * -rn  | awk '{ $1=""; print $0; }' | sort -u  # noqa: E501
+# grep storage-backend * -rn  | awk '{ $1=""; print $0; }' | sort -u
+cinder_backup_content = [
+    # ------------------------  cinder_backup
+    {
+        "str": " IR_TRIPLEO_OVERCLOUD_STORAGE_BACKEND_UPD = 'lvm'",
+        "kwargs": {
+            'cinder_backend': Argument("cinder_backend", str, "", value=[])},
+        "res": "lvm"},
+    {
+        "str": "--storage-backend swift",
+        "kwargs": {
+            'cinder_backend': Argument("cinder_backend", str, "", value=[])},
+        "res": "swift"},
+    {
+        "str": "--storage-backend swift",
+        "kwargs": {
+            'cinder_backend': Argument("cinder_backend", str, "", value=["lvm"])},  # noqa: E501
         "res": None},
 ]
 
@@ -151,4 +173,12 @@ class TestJJBSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
                 side_effect=[StringIO(el['str'])])
             self.assertEqual(
                 self.jjb._get_release("path.xml", **el['kwargs']),
+                el['res'])
+
+    def test_get_cinder_backend(self):
+        for el in cinder_backup_content:
+            jenkins_job_builder.parse_xml = Mock(
+                side_effect=[StringIO(el['str'])])
+            self.assertEqual(
+                self.jjb._get_cinder_backend("path.xml", **el['kwargs']),
                 el['res'])
