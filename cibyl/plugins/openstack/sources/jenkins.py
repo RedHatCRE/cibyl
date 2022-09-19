@@ -153,11 +153,11 @@ def filter_models_set_field(job: JenkinsJob, user_input: Argument,
 class Jenkins(SourceExtension):
     """A class representation of Jenkins client."""
 
-    deployment_attr = ["topology", "release",
-                       "network_backend", "cinder_backend",
-                       "infra_type", "dvr", "ip_version",
-                       "tls_everywhere", "ml2_driver",
-                       "ironic_inspector", "test_setup"]
+    regex_attr = ["topology", "release",
+                  "network_backend", "cinder_backend",
+                  "infra_type",  "ip_version", "ml2_driver"]
+    deployment_attr = regex_attr+["dvr", "tls_everywhere",
+                                  "ironic_inspector", "test_setup"]
 
     # deployment properties that have no cli argument and will not be used to
     # filter jobs, just for the spec
@@ -313,7 +313,7 @@ accurate results", len(jobs_found))
                                        field_to_check=attribute,
                                        default_user_value=['True']))
                 continue
-            if attribute in ('release', 'topology') and input_attr:
+            if attribute in self.regex_attr and input_attr:
                 for pattern_str in input_attr.value:
                     pattern = re.compile(pattern_str)
                     checks_to_apply.append(partial(satisfy_regex_match,
