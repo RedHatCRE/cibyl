@@ -50,6 +50,8 @@ def satisfy_regex_match(model: Dict[str, str], pattern: Pattern,
     :param field_to_check: model field to perform the check
     :returns: Whether the model satisfies user input
     """
+    if field_to_check not in model:
+        return False
     return re.search(pattern, model[field_to_check]) is not None
 
 
@@ -64,6 +66,8 @@ def satisfy_exact_match(model: Dict[str, str], user_input: Argument,
     :param field_to_check: Job field to perform the check
     :returns: Whether the model satisfies user input
     """
+    if field_to_check not in model:
+        return False
     return model[field_to_check] in user_input.value
 
 
@@ -84,6 +88,8 @@ def satisfy_case_insensitive_match(model: Dict[str, str], user_input: Argument,
     no value
     :returns: Whether the model satisfies user input
     """
+    if field_to_check not in model:
+        return False
     if model[field_to_check] is None:
         return False
     value = user_input.value
@@ -105,6 +111,8 @@ def satisfy_range_match(model: Dict[str, str], user_input: Argument,
     :param field_to_check: Job field to perform the check
     :returns: Whether the model satisfies user input
     """
+    if field_to_check not in model:
+        return False
     model_value = float(model[field_to_check])
     results = [RANGE_OPERATORS[operator](float(model_value), float(user_value))
                for operator, user_value in user_input.value]
