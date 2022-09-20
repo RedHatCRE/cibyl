@@ -139,6 +139,27 @@ cinder_backup_content = [
         "res": None},
 ]
 
+# add everything relevant manually from the results of
+# egrep -e "network-backend|IR_TRIPLEO_OVERCLOUD_NETWORK_BACKEND_UPD" * -rn  | awk '{ $1=""; print $0; }' | sort -u  # noqa: E501
+network_backup_content = [
+    # ------------------------  network_backup
+    {
+        "str": " IR_TRIPLEO_OVERCLOUD_NETWORK_BACKEND_UPD = 'vxlan' ",
+        "kwargs": {
+            'network_backend': Argument("network_backend", str, "", value=[])},
+        "res": "vxlan"},
+    {
+        "str": "--network-backend gre",
+        "kwargs": {
+            'network_backend': Argument("network_backend", str, "", value=[])},
+        "res": "gre"},
+    {
+        "str": "--network-backend vlan",
+        "kwargs": {
+            'network_backend': Argument("network_backend", str, "", value=["gre"])},  # noqa: E501
+        "res": None},
+]
+
 
 class TestJJBSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
     def setUp(self):
