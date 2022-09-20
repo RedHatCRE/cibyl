@@ -160,6 +160,37 @@ network_backup_content = [
         "res": None},
 ]
 
+# add everything relevant manually from the results of
+# egrep -e "r'network-ovs yes|network-ovs True|network-ovn yes|network-ovn True'" * -rn  | awk '{ $1=""; print $0; }' | sort -u  # noqa: E501
+ml2_driver_content = [
+    # ------------------------  network_backup
+    {
+        "str": "IR_TRIPLEO_OVERCLOUD_NETWORK_OVS=&quot;--network-ovs yes&quot;",  # noqa: E501
+        "kwargs": {
+            'ml2_driver': Argument("ml2_driver", str, "", value=[])},
+        "res": "ovs"},
+    {
+        "str": " IR_TRIPLEO_OVERCLOUD_NETWORK_OVS=&quot;--network-ovs True&quot;",  # noqa: E501
+        "kwargs": {
+            'ml2_driver': Argument("ml2_driver", str, "", value=[])},
+        "res": "ovs"},
+    {
+        "str": " IR_TRIPLEO_OVERCLOUD_NETWORK_OVN=&quot;--network-ovn yes&quot;",  # noqa: E501
+        "kwargs": {
+            'ml2_driver': Argument("ml2_driver", str, "", value=["ovs"])},
+        "res": None},
+    {
+        "str": " IR_TRIPLEO_OVERCLOUD_NETWORK_OVN=&quot;--network-ovn no&quot;",  # noqa: E501
+        "kwargs": {
+            'ml2_driver': Argument("ml2_driver", str, "", value=[])},
+        "res": ""},
+    {
+        "str": " IR_TRIPLEO_OVERCLOUD_NETWORK_OVN=&quot;--network-ovn &quot;",
+        "kwargs": {
+            'ml2_driver': Argument("ml2_driver", str, "", value=[])},
+        "res": ""},
+]
+
 
 class TestJJBSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
     def setUp(self):
@@ -202,4 +233,20 @@ class TestJJBSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
                 side_effect=[StringIO(el['str'])])
             self.assertEqual(
                 self.jjb._get_cinder_backend("path.xml", **el['kwargs']),
+                el['res'])
+
+    def test_get_network_backend(self):
+        for el in network_backup_content:
+            jenkins_job_builder.parse_xml = Mock(
+                side_effect=[StringIO(el['str'])])
+            self.assertEqual(
+                self.jjb._get_network_backend("path.xml", **el['kwargs']),
+                el['res'])
+
+    def test_get_ml2_driver(self):
+        for el in ml2_driver_content:
+            jenkins_job_builder.parse_xml = Mock(
+                side_effect=[StringIO(el['str'])])
+            self.assertEqual(
+                self.jjb._get_ml2_driver("path.xml", **el['kwargs']),
                 el['res'])
