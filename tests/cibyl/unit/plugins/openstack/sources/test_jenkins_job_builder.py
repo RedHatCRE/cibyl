@@ -138,6 +138,38 @@ cinder_backup_content = [
             'cinder_backend': Argument("cinder_backend", str, "", value=["lvm"])},  # noqa: E501
         "res": None},
 ]
+infra_type_content = [
+    {
+        "str": " <defaultValue>--deployment-files composable_roles",
+        "kwargs": {"infra_type": Argument("intra_type", str, "", value=[])},
+        "res": "virt"},
+    {
+        "str": " --deployment-files bm_templates_link \\ ",
+        "kwargs": {"infra_type": Argument("intra_type", str, "", value=[])},
+        "res": "baremetal"},
+    {
+        "str": " --deployment-files ovb \\ ",
+        "kwargs": {"infra_type": Argument("intra_type", str, "", value=[])},
+        "res": "ovb"},
+    {
+        "str": " --deployment-files virt",
+        "kwargs": {"infra_type": Argument("intra_type", str, "", value=[])},
+        "res": "virt"},
+    {
+        "str": " --deployment-files virt \\ ",
+        "kwargs": {"infra_type": Argument("intra_type", str, "", value=[])},
+        "res": "virt"},
+    {
+        "str": " --deployment-files virt",
+        "kwargs": {"infra_type": Argument("intra_type", str, "",
+                                          value=["virt"])},
+        "res": "virt"},
+    {
+        "str": " --deployment-files virt \\ ",
+        "kwargs": {"infra_type": Argument("intra_type", str, "",
+                                          value=["ovb"])},
+        "res": None}
+]
 
 # add everything relevant manually from the results of
 # egrep -e "network-backend|IR_TRIPLEO_OVERCLOUD_NETWORK_BACKEND_UPD" * -rn  | awk '{ $1=""; print $0; }' | sort -u  # noqa: E501
@@ -249,4 +281,12 @@ class TestJJBSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
                 side_effect=[StringIO(el['str'])])
             self.assertEqual(
                 self.jjb._get_ml2_driver("path.xml", **el['kwargs']),
+                el['res'])
+
+    def test_get_infra_type(self):
+        for el in infra_type_content:
+            jenkins_job_builder.parse_xml = Mock(
+                side_effect=[StringIO(el['str'])])
+            self.assertEqual(
+                self.jjb._get_infra_type("path.xml", **el['kwargs']),
                 el['res'])

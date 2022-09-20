@@ -78,7 +78,7 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
    * - --release
      - | OpenStack Release
@@ -86,7 +86,7 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:black_square_button:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
    * - --infra-type
      - | The infrastructure on which
@@ -95,7 +95,7 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:black_square_button:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
    * - --topology
      - | The combination of node
@@ -103,14 +103,14 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
    * - --nodes
      - | List of nodes on the topology.
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:black_square_button:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
    * - --controllers
      - | Number of controllers
@@ -150,7 +150,7 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
      - |:ballot_box_with_check:|
-     - |:black_square_button:|
+     - |:ballot_box_with_check:|
      - |:black_square_button:|
    * - --containers
      - | List of containers running
