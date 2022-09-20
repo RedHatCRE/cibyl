@@ -38,6 +38,10 @@ RELEASE = r'.*rhos-\d\d.\d-.*patches|.*rhos-\d\d-.*patches|.*send_results_to_umb
 RELEASE_NUMBER = r'\d\d.\d|\d\d'
 CINDER_BACKEND = r'.*--storage-backend.*|.*IR_TRIPLEO_OVERCLOUD_STORAGE_BACKEND_UPD.*'  # noqa: E501
 CINDER_BACKEND_NAME = r'ceph|lvm|netapp-iscsi|netapp-nfs|swift|nfs'
+NETWORK_BACKEND = r'.*--network-backend.*|.*IR_TRIPLEO_OVERCLOUD_NETWORK_BACKEND_UPD.*'  # noqa: E501
+NETWORK_BACKEND_NAME = r'geneve|edge-geneve|gre|vlan|vxlan'
+ML2_DRIVER = r'.*network-ovs yes.*|.*network-ovs True.*|.*network-ovn yes.*|.*network-ovn True.*'  # noqa: E501
+ML2_DRIVER_NAME = r'ovn|ovs'
 DEPLOYMENT = r'--deployment-files \w+\b'
 
 
@@ -239,6 +243,76 @@ class JenkinsJobBuilder(SourceExtension):
                     return None
         return cinder_backends_str
 
+    def _get_network_backend(self, path, **kwargs):
+        """
+        extract network_backend from the JJB xml file and
+        represent it in the form of string, e.g
+           xvlan or geneve
+
+        Note: this function is used to support filtering
+            e.g. --network-backend vxlan
+        :param path: to JJB xml file
+        :param **kwargs: cibyl command line
+
+        :return: network_backend string
+                 None if filtered out
+        """
+        network_backends_str = ""
+        if "network_backend" in kwargs:
+            in_mem_file = parse_xml(path)
+            result = set([])
+
+            lines = [line.rstrip() for line in in_mem_file]
+            for line in lines:
+                network_backend_lst = re.findall(NETWORK_BACKEND, line)
+                for el in network_backend_lst:
+                    network_backends = set(
+                        re.findall(NETWORK_BACKEND_NAME, el))
+                    result = result.union(network_backends)
+
+            network_backends_str = ",".join(result)
+            # filtering support e.g. --network-backend vxlan
+            if kwargs['network_backend'].value:
+                if not args_are_in_list(kwargs['network_backend'].value,
+                                        result):
+                    return None
+        return network_backends_str
+
+    def _get_ml2_driver(self, path, **kwargs):
+        """
+        extract ml2_driver from the JJB xml file and
+        represent it in the form of string, e.g
+           ovn or ovs
+
+        Note: this function is used to support filtering
+            e.g. --ml2-driver ovn
+        :param path: to JJB xml file
+        :param **kwargs: cibyl command line
+
+        :return: ml2_driver string
+                 None if filtered out
+        """
+        ml2_driver_str = ""
+        if "ml2_driver" in kwargs:
+            in_mem_file = parse_xml(path)
+            result = set([])
+
+            lines = [line.rstrip() for line in in_mem_file]
+            for line in lines:
+                ml2_driver_lst = re.findall(ML2_DRIVER, line)
+                for el in ml2_driver_lst:
+                    ml2_driver = set(
+                        re.findall(ML2_DRIVER_NAME, el))
+                    result = result.union(ml2_driver)
+
+            ml2_driver_str = ",".join(result)
+            # filtering support e.g. --ml2_driver ovn
+            if kwargs['ml2_driver'].value:
+                if not args_are_in_list(kwargs['ml2_driver'].value,
+                                        result):
+                    return None
+        return ml2_driver_str
+
     def _get_infra_type(self, path, **kwargs):
         """
         extract infra_type from the JJB xml file and
@@ -339,14 +413,33 @@ class JenkinsJobBuilder(SourceExtension):
                 filterted_out += [job_name]
                 continue
 
+            # ------------------------------            network_backend
+            network_backend = self._get_network_backend(path, **kwargs)
+            # compute what is filtered out according to network_backend
+            if network_backend is None and \
+                    kwargs['network_backend'].value is not None:
+                filterted_out += [job_name]
+                continue
+
+            # ------------------------------            ml2_driver
+            ml2_driver = self._get_ml2_driver(path, **kwargs)
+            # compute what is filtered out according to ml2_driver
+            if ml2_driver is None and \
+                    kwargs['ml2_driver'].value is not None:
+                filterted_out += [job_name]
+                continue
+
+            # ------------------------------            infra_type
             infra_type = self._get_infra_type(path, **kwargs)
-            if infra_type is None and kwargs['infra_type'].value is not None:
+            # compute what is filtered out according to infra_type
+            if infra_type is None and \
+                    kwargs['infra_type'].value is not None:
                 filterted_out += [job_name]
                 continue
 
             network = Network(ip_version=ipv,
-                              ml2_driver="",
-                              network_backend="",
+                              ml2_driver=ml2_driver,
+                              network_backend=network_backend,
                               dvr="",
                               tls_everywhere="",
                               security_group="")
