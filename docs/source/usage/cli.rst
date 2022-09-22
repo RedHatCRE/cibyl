@@ -172,6 +172,10 @@ or list the  tests that contain the string `123` in their name::
 
     cibyl query --jobs --last-build --tests 123
 
+.. note:: The --tests argument can filter by test name or by test class name.
+   Typically filtering by a individual test is probably too fine-grained, so
+   filtering by the test suite name is also supported in the argument.
+
 or list only the failing tests::
 
     cibyl query --jobs --last-build --test-result FAILED
