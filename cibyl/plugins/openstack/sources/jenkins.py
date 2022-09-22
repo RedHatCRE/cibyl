@@ -276,7 +276,7 @@ accurate results", len(jobs_found))
         job_deployment_info = []
         for job in jobs_found:
             job_name = job['name']
-            last_build = job.get("lastCompletedBuild")
+            last_build = job.get("lastSuccessfulBuild")
             if spec:
                 if last_build is None:
                     # jenkins only has a logs link for completed builds
@@ -421,13 +421,14 @@ accurate results", len(jobs_found))
         spec = "spec" in kwargs
         query_nodes, query_topology = should_query_for_nodes_topology(**kwargs)
         job_name = job['name']
-        build_description = job["lastCompletedBuild"].get("description")
+        build_description = job["lastSuccessfulBuild"].get("description")
         if not build_description:
             LOG.debug("Resorting to get deployment information from job name"
                       " for job %s", job_name)
             self.add_job_info_from_name(job, **kwargs)
             return
-        logs_url_pattern = re.compile(r'href="(.*)">Browse logs')
+        raw_pattern = r'href="([\w()@:%_\+.~#?&//=-]*)">Browse logs'
+        logs_url_pattern = re.compile(raw_pattern)
         logs_url = logs_url_pattern.search(build_description)
         if logs_url is None:
             LOG.debug("Resorting to get deployment information from job name"

@@ -237,7 +237,7 @@ class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {}})
+                                     'lastSuccessfulBuild': {}})
         # each job triggers 2 artifacts requests, if both fail, fallback to
         # search the name
         artifacts_fail = [JenkinsError for _ in range(3*len(job_names))]
@@ -279,8 +279,8 @@ class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            "link"}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             "link"}})
         # each job triggers 2 artifacts requests, if both fail, fallback to
         # search the name
         artifacts_fail = [JenkinsError for _ in range(3*len(job_names))]
@@ -323,8 +323,8 @@ class TestJenkinsSourceOpenstackPlugin(OpenstackPluginWithJobSystem):
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
         services = """
 tripleo_heat_api_cron.service loaded    active     running
 tripleo_heat_engine.service loaded    active     running
@@ -424,8 +424,8 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
         services = """
 tripleo_heat_api_cron.service loaded    active     running
 tripleo_heat_engine.service loaded    active     running
@@ -519,8 +519,8 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
         artifacts = [JenkinsError()]*12
@@ -806,8 +806,8 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
 
         artifacts = [
                 get_yaml_overcloud(cinder_backend="swift"),
@@ -961,8 +961,8 @@ tripleo_ironic_conductor.service loaded    active     running
         logs_url = 'href="link">Browse logs'
         response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                  'name': job_name, 'url': 'url',
-                                 'lastCompletedBuild': {'description':
-                                                        logs_url}})
+                                 'lastSuccessfulBuild': {'description':
+                                                         logs_url}})
         artifacts = [
                 get_yaml_from_topology_string(topology),
                 get_yaml_overcloud(ip_version, release,
@@ -1014,8 +1014,8 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
         artifacts = [
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
@@ -1073,8 +1073,8 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
         artifacts = [
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
@@ -1135,8 +1135,8 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
         artifacts = [
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
@@ -1232,8 +1232,8 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
         artifacts = [
                 get_yaml_from_topology_string(topologies[0]),
                 get_yaml_overcloud(ip_versions[0], releases[0],
@@ -1293,8 +1293,8 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
         artifacts = [
                 get_yaml_from_topology_string(""),
                 get_yaml_overcloud(ip_versions[0], releases[0],
@@ -1447,8 +1447,8 @@ basesystem-11-5.el8.noarch"""
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
         services = """
 tripleo_heat_api_cron.service loaded    active     running
 tripleo_heat_engine.service loaded    active     running
@@ -1543,8 +1543,8 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
         self.jenkins.send_request = Mock(side_effect=[response])
 
         spec = Argument("spec", str, "", value=job_names)
@@ -1561,7 +1561,7 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': None})
+                                     'lastSuccessfulBuild': None})
         self.jenkins.send_request = Mock(side_effect=[response])
 
         spec = Argument("spec", str, "", value=['test_17.3_ipv4_job'])
@@ -1577,7 +1577,7 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': None})
+                                     'lastSuccessfulBuild': None})
         self.jenkins.send_request = Mock(side_effect=[response])
 
         spec = Argument("spec", str, "", value=[])
@@ -1598,8 +1598,8 @@ tripleo_ironic_conductor.service loaded    active     running
         logs_url = 'href="link">Browse logs'
         response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                  'name': job_name, 'url': 'url',
-                                 'lastCompletedBuild': {'description':
-                                                        logs_url}})
+                                 'lastSuccessfulBuild': {'description':
+                                                         logs_url}})
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
         artifacts = [
@@ -1662,9 +1662,9 @@ tripleo_ironic_conductor.service loaded    active     running
         logs_url = 'href="link">Browse logs'
         response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                  'name': job_name, 'url': 'url',
-                                 'lastCompletedBuild': {'description':
-                                                        logs_url,
-                                                        'number': 84}})
+                                 'lastSuccessfulBuild': {'description':
+                                                         logs_url,
+                                                         'number': 84}})
         stages_data = {'stages': [{'name': 'build1', 'status': 'SUCCESS'},
                                   {'name': 'run1', 'status': 'FAILURE'}]}
         # ensure that all deployment properties are found in the artifact so
@@ -1722,14 +1722,14 @@ tripleo_ironic_conductor.service loaded    active     running
 
     def test_get_deployment_spec_stages_missing_data(self):
         """ Test get_deployment call with --stages but no
-        lastCompletedBuild available."""
+        lastSuccessfulBuild available."""
         job_name = 'test_17.3_ipv4_job'
         ip_version = '4'
 
         response = {'jobs': [{'_class': 'folder'}]}
         response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                  'name': job_name, 'url': 'url',
-                                 'lastCompletedBuild': None})
+                                 'lastSuccessfulBuild': None})
         self.jenkins.send_request = Mock(side_effect=[response])
         ip = Argument("ip_version", str, "", value=[])
         stages = Argument("stages", str, "", value=[])
@@ -1759,8 +1759,8 @@ tripleo_ironic_conductor.service loaded    active     running
         logs_url = 'href="link">Browse logs'
         response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                  'name': job_name, 'url': 'url',
-                                 'lastCompletedBuild': {'description':
-                                                        logs_url}})
+                                 'lastSuccessfulBuild': {'description':
+                                                         logs_url}})
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
         artifacts = [
@@ -1811,8 +1811,8 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
         artifacts = [
@@ -1859,8 +1859,8 @@ tripleo_ironic_conductor.service loaded    active     running
         logs_url = 'href="link">Browse logs'
         response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                  'name': job_name, 'url': 'url',
-                                 'lastCompletedBuild': {'description':
-                                                        logs_url}})
+                                 'lastSuccessfulBuild': {'description':
+                                                         logs_url}})
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
         artifacts = [
@@ -1904,8 +1904,8 @@ tripleo_ironic_conductor.service loaded    active     running
         for job_name in job_names:
             response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                      'name': job_name, 'url': 'url',
-                                     'lastCompletedBuild': {'description':
-                                                            logs_url}})
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
         containers = """
 <a href="./nova_libvirt/">nova_libvirt/</a>
 <a href="./nova_libvirt/">nova/</a>
@@ -1981,8 +1981,8 @@ tripleo_ironic_conductor.service loaded    active     running
         logs_url = 'href="link">Browse logs'
         response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                  'name': job_name, 'url': 'url',
-                                 'lastCompletedBuild': {'description':
-                                                        logs_url}})
+                                 'lastSuccessfulBuild': {'description':
+                                                         logs_url}})
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
         artifacts = [
@@ -2032,8 +2032,8 @@ tripleo_ironic_conductor.service loaded    active     running
         logs_url = 'href="link">Browse logs'
         response['jobs'].append({'_class': 'org.job.WorkflowJob',
                                  'name': job_name, 'url': 'url',
-                                 'lastCompletedBuild': {'description':
-                                                        logs_url}})
+                                 'lastSuccessfulBuild': {'description':
+                                                         logs_url}})
         # ensure that all deployment properties are found in the artifact so
         # that it does not fallback to reading values from job name
         artifacts = [
@@ -2051,6 +2051,38 @@ tripleo_ironic_conductor.service loaded    active     running
         test_setup = Argument("test_setup", str, "", value=["git"])
         jobs = self.jenkins.get_deployment(test_setup=test_setup)
         self.assertEqual(len(jobs), 0)
+
+    def test_logs_url_regex(self):
+        """ Test that the regex that extracts the logs url from the build
+        description handles properly cases where more than one link
+        is present."""
+        job_name = 'test_17.3_ipv4_job'
+        link = "http://rhos-ci-logs.lab.eng.tlv2.redhat.com/logs/rcj/job/15"
+        text = 'Started by user , errata_id: <b><a'
+        text += 'href="https://errata.engineering.redhat.com/advisory/null">'
+        text += 'null</a></b>,<br /><b>Overcloud Container Images URLs:</b>'
+        text += f' <br />0.<br /><a href="{link}"'
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = f'href={text}>Browse logs</a>'
+        response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                 'name': job_name, 'url': 'url',
+                                 'lastSuccessfulBuild': {'description':
+                                                         logs_url}})
+
+        topology = "compute:2,controller:3"
+        artifacts = [get_yaml_from_topology_string(topology), JenkinsError]
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+        args = {"topology": Argument("topology", str, "", value=[])}
+        jobs = self.jenkins.get_deployment(**args)
+        self.assertEqual(len(jobs), 1)
+        job_name = "test_17.3_ipv4_job"
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        self.assertEqual(deployment.topology.value, topology)
+        # check that the right link was read
+        self.jenkins.send_request.has_call(item="", query="",
+                                           url=link+"/infrared/provision.yaml",
+                                           raw_response=True)
 
 
 class TestFilters(TestCase):

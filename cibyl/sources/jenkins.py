@@ -195,7 +195,7 @@ class Jenkins(ServerSource):
                          3: "?tree=allBuilds[number,result,duration]"}
     jobs_last_build_query = "?tree=jobs[name,url,lastBuild[number,result]]"
     jobs_query_for_deployment = \
-        "?tree=jobs[name,url,lastCompletedBuild[number,result,description]]"
+        "?tree=jobs[name,url,lastSuccessfulBuild[number,result,description]]"
 
     # pylint: disable=too-many-arguments
     def __init__(self, url: str, username: str = None, token: str = None,
