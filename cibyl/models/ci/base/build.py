@@ -48,7 +48,7 @@ class Build(Model):
             'attribute_value_class': AttributeDictValue,
             'arguments': [Argument(name='--tests', arg_type=str,
                                    nargs='*', func='get_tests',
-                                   description="Job test")]
+                                   description="Test name or test suite name")]
         },
         'stages': {
             'attr_type': Stage,

@@ -125,9 +125,14 @@ def get_test_filters(**kwargs: Argument) -> List[Callable]:
     tests_arg = kwargs.get('tests')
     if tests_arg and tests_arg.value:
         pattern = re.compile("|".join(tests_arg.value))
-        checks_to_apply.append(partial(satisfy_regex_match,
-                                       pattern=pattern,
-                                       field_to_check="name"))
+        filter_name = partial(satisfy_regex_match, pattern=pattern,
+                              field_to_check="name")
+        # check also whether the class name matches the input
+        filter_class = partial(satisfy_regex_match, pattern=pattern,
+                               field_to_check="className")
+
+        checks_to_apply.append(lambda model:
+                               filter_name(model) or filter_class(model))
 
     tests_results = kwargs.get('test_result')
     if tests_results and tests_results.value:

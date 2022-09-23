@@ -79,7 +79,7 @@ class Build(Model):
                 Argument(
                     name='--tests', arg_type=str,
                     nargs='*', func='get_tests',
-                    description="Fetch build tests"
+                    description="Test name or test suite name"
                 )
             ]
         }
