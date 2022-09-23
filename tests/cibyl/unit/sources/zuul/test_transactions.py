@@ -35,9 +35,11 @@ class TestTestsRequest(TestCase):
         """
         test1 = Mock()
         test1.name = 'test1'
+        test1.class_name = 'class1'
 
         test2 = Mock()
         test2.name = 'test2'
+        test2.class_name = 'class2'
 
         suite = Mock()
         suite.tests = [test1, test2]
@@ -55,6 +57,64 @@ class TestTestsRequest(TestCase):
 
         self.assertEqual(1, len(result))
         self.assertEqual(test1, result[0].data)
+
+    def test_with_name_class_name(self):
+        """Checks that the request can filter tests by class name.
+        """
+        test1 = Mock()
+        test1.name = 'test1'
+        test1.class_name = 'class1'
+
+        test2 = Mock()
+        test2.name = 'test2'
+        test2.class_name = 'class2'
+
+        suite = Mock()
+        suite.tests = [test1, test2]
+
+        build = Mock()
+        build.tests = Mock()
+        build.tests.return_value = [suite]
+
+        name = test1.class_name
+
+        request = TestsRequest(build)
+        request.with_name(name)
+
+        result = list(request.get())
+
+        self.assertEqual(1, len(result))
+        self.assertEqual(test1, result[0].data)
+
+    def test_with_name_class_name_and_name(self):
+        """Checks that the request can filter tests by class name and name at
+        the same time.
+        """
+        test1 = Mock()
+        test1.name = 'test1'
+        test1.class_name = 'class1'
+
+        test2 = Mock()
+        test2.name = 'test2'
+        test2.class_name = 'class2'
+
+        suite = Mock()
+        suite.tests = [test1, test2]
+
+        build = Mock()
+        build.tests = Mock()
+        build.tests.return_value = [suite]
+
+        name = (test1.class_name, test2.class_name)
+
+        request = TestsRequest(build)
+        request.with_name(*name)
+
+        result = list(request.get())
+
+        self.assertEqual(2, len(result))
+        self.assertEqual(test1, result[0].data)
+        self.assertEqual(test2, result[1].data)
 
     @parameterized.expand(['SUCCESS', 'success'])
     def test_with_status(self, status: str):
