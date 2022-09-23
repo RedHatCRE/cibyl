@@ -295,6 +295,9 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
             result.add(self.palette.blue('Result: '), 1)
             result[-1].append(self._get_colored_test_result(test.result.value))
 
+            if test.class_name.value:
+                result.add(self.palette.blue('Class name: '), 1)
+                result[-1].append(test.class_name.value)
             if self.verbosity > 1:
                 result.add(self.palette.blue('URL: '), 1)
                 result[-1].append(test.url.value)

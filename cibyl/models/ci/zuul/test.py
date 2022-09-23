@@ -20,7 +20,6 @@ from overrides import overrides
 from strenum import StrEnum
 
 from cibyl.models.ci.base.test import Test as BaseTest
-from cibyl.utils.dicts import nsubset
 
 
 class TestKind(StrEnum):
@@ -67,7 +66,7 @@ class Test(BaseTest):
         """Page where more information about the test can be obtained."""
 
     API = {
-        **nsubset(BaseTest.API, ['class_name']),
+        **BaseTest.API,
         'kind': {
             'attr_type': TestKind,
             'arguments': []
