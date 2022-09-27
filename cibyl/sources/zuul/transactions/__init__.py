@@ -381,7 +381,8 @@ class TestsRequest(Request):
         self._build = build
 
     def with_name(self, *pattern: str) -> 'TestsRequest':
-        """Will limit request to tests whose name follows a certain pattern.
+        """Will limit request to tests whose name or class name follow a
+        certain pattern.
 
         :param pattern: Regex pattern for the desired test name.
         :return: The request's instance.
@@ -390,7 +391,9 @@ class TestsRequest(Request):
         def test(response):
             return any(
                 matches_regex(patt, response.name) for patt in pattern
-            )
+                ) or any(
+                matches_regex(patt, response.class_name) for patt in pattern
+                )
 
         self._filters.append(test)
         return self
