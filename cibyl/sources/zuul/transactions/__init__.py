@@ -782,6 +782,16 @@ class TestResponse:
         return self.data.name
 
     @property
+    def class_name(self) -> str:
+        """
+        :return: Name of the class the test belongs to.
+        """
+        if hasattr(self.data, "class_name"):
+            return self.data.class_name
+        else:
+            return ""
+
+    @property
     def status(self) -> TestStatus:
         """
         :return: Result of the test case.

@@ -221,7 +221,8 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
             'type': test.kind.value,
             'duration': test.duration.value,
             'result': test.result.value,
-            'url': test.url.value
+            'url': test.url.value,
+            'class_name': test.class_name.value
         }
 
         return self.provider.dump(result)

@@ -253,7 +253,8 @@ class QueryOutputBuilder:
                     status=test.status,
                     duration=test.duration,
                     url=test.url
-                )
+                ),
+                class_name=test.class_name
             )
 
             suite.add_test(model)
