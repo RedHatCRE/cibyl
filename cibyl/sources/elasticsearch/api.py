@@ -396,9 +396,13 @@ class ElasticSearch(ServerSource):
                 'test_class_name',
                 None
             )
-            # check if necessary to filter by test name:
-            if tests_pattern and not matches_regex(tests_pattern, test_name):
-                continue
+            # check if necessary to filter by test name or by test class name:
+            if tests_pattern:
+                matches_test_name = matches_regex(tests_pattern, test_name)
+                matches_test_class = (class_name is not None and
+                                      matches_regex(tests_pattern, class_name))
+                if not (matches_test_class or matches_test_name):
+                    continue
             # Check if necessary filter by Test Status:
             if test_result_argument and \
                     test_status not in test_result_argument:
