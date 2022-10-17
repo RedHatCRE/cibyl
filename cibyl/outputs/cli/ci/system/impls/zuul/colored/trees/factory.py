@@ -15,13 +15,13 @@
 """
 import logging
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional
+from typing import Iterable
 
-from anytree import find, PreOrderIter, findall
+from anytree import find, findall
 from overrides import overrides
 
 from cibyl.models.ci.zuul.job import Job
-from cibyl.outputs.cli.ci.system.impls.zuul.trees import Tree, Leaf
+from cibyl.outputs.cli.ci.system.impls.zuul.colored.trees import Tree, Leaf
 
 LOG = logging.getLogger(__name__)
 
