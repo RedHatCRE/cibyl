@@ -33,10 +33,12 @@ class TreeFactory(ABC):
 
 
 class FlatTreeFactory(TreeFactory):
+    ROOT_NAME: str = '.'
+
     @overrides
     def from_jobs(self, jobs: Iterable[Job]) -> Tree:
         return Tree(
-            name='.',
+            name=self.ROOT_NAME,
             children=[
                 self._new_leaf_for(job)
                 for job in jobs
