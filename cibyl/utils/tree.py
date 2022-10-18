@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import TypeVar, Generic, Iterable, Optional, Any
+from typing import Any, Generic, Iterable, Optional, TypeVar
 
-from anytree import findall, NodeMixin
+from anytree import NodeMixin, findall
 
 T = TypeVar("T", bound=Any)
 

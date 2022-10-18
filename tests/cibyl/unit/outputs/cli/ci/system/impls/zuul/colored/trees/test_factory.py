@@ -16,8 +16,8 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.outputs.cli.ci.system.impls.zuul.colored.trees.factory import \
-    FlatTreeFactory, HierarchicalTreeFactory
+from cibyl.outputs.cli.ci.system.impls.zuul.colored.trees.factory import (
+    FlatTreeFactory, HierarchicalTreeFactory)
 
 
 class TestFlatTreeFactory(TestCase):
