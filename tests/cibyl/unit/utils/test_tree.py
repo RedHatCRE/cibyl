@@ -28,7 +28,7 @@ class TestLeaf(TestCase):
         """
         name = 'test'
 
-        leaf = Leaf[int](name=name, value=None)
+        leaf = Leaf[str](name=name, value=None)
 
         self.assertEqual(name, leaf.name)
 

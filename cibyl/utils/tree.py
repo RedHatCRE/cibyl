@@ -13,29 +13,33 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import TypeVar, Generic, Iterable, Optional
+from typing import TypeVar, Generic, Iterable, Optional, Any
 
 from anytree import findall, NodeMixin
 
-T = TypeVar("T")
+T = TypeVar("T", bound=Any)
 
 
 class Leaf(Generic[T], NodeMixin):
-    def __init__(self, name: str, value: Optional[T] = None):
-        self._name = name
-        self._value = value
+    def __init__(
+        self,
+        name: str,
+        parent: Optional['Leaf[T]'] = None,
+        children: Optional[Iterable['Leaf[T]']] = None,
+        value: Optional[T] = None
+    ):
+        super().__init__()
 
-    @property
-    def name(self) -> str:
-        return self._name
+        if children is None:
+            children = ()
 
-    @property
-    def value(self) -> Optional[T]:
-        return self._value
+        # Mixin values
+        self.parent = parent
+        self.children = children
 
-    @value.setter
-    def value(self, value: Optional[T]) -> None:
-        self._value = value
+        # Own values
+        self.name = name
+        self.value = value
 
 
 class Tree(Generic[T]):
