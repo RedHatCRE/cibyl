@@ -14,19 +14,25 @@
 #    under the License.
 """
 import logging
+from typing import Iterable
 
 from overrides import overrides
 
 import cibyl.outputs.cli.ci.system.common.features as features_query
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.system import System
+from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.outputs.cli.ci.system.impls.base.colored import \
     ColoredBaseSystemPrinter
+from cibyl.outputs.cli.ci.system.impls.zuul.colored.cascades.hierarchy import \
+    HierarchyCascade
 from cibyl.outputs.cli.ci.system.impls.zuul.colored.cascades.job import \
     JobCascade
 from cibyl.outputs.cli.ci.system.impls.zuul.colored.cascades.project import \
     ProjectCascade
+from cibyl.outputs.cli.ci.system.impls.zuul.colored.trees.factory import \
+    HierarchicalTreeFactory
 from cibyl.utils.sorting import sort
 from cibyl.utils.strings import IndentedTextBuilder
 
@@ -144,12 +150,10 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         result.add(self.palette.blue('Jobs: '), 0)
 
         if tenant.jobs.value:
-            for job in sort(tenant.jobs.values(), self._job_sorter):
-                printer = JobCascade(
-                    self.query, self.verbosity, self.palette
-                )
+            jobs = sort(tenant.jobs.values(), self._job_sorter)
 
-                result.add(printer.print_job(job), 1)
+            result.add(self._print_hierarchy_for(jobs), 1)
+            result.add(self._print_list_for(jobs), 1)
 
             result.add(
                 self.palette.blue(
@@ -163,5 +167,30 @@ class ColoredZuulSystemPrinter(ColoredBaseSystemPrinter):
         else:
             msg = 'No jobs found in query.'
             result.add(self.palette.red(msg), 1)
+
+        return result.build()
+
+    def _print_hierarchy_for(self, jobs: Iterable[Job]) -> str:
+        result = IndentedTextBuilder()
+
+        trees = HierarchicalTreeFactory()
+        printer = HierarchyCascade(self.query, self.verbosity, self.palette)
+
+        tree = trees.from_jobs(jobs)
+
+        result.add(self.palette.blue('Summary: '), 0)
+        result.add(printer.print_tree(tree), 1)
+
+        return result.build()
+
+    def _print_list_for(self, jobs: Iterable[Job]) -> str:
+        result = IndentedTextBuilder()
+
+        printer = JobCascade(self.query, self.verbosity, self.palette)
+
+        result.add(self.palette.blue('In detail: '), 0)
+
+        for job in jobs:
+            result.add(printer.print_job(job), 1)
 
         return result.build()
