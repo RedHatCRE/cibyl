@@ -14,9 +14,11 @@
 #    under the License.
 """
 from dataclasses import dataclass, field
+from typing import Optional
 
 from overrides import overrides
 
+from cibyl.sources.zuul.apis import ZuulAPI as Zuul
 from cibyl.sources.zuul.queries.composition import AggregatedQuery
 from cibyl.sources.zuul.queries.composition.quick import QuickQuery
 from cibyl.sources.zuul.queries.jobs import perform_jobs_query
@@ -32,6 +34,12 @@ class HierarchyQuery(QuickQuery):
         crawlers: HierarchyCrawlerFactory = field(
             default_factory=lambda: HierarchyCrawlerFactory()
         )
+
+    def __init__(self, api: Zuul, tools: Optional[Tools] = None):
+        if tools is None:
+            tools = HierarchyQuery.Tools()
+
+        super().__init__(api, tools)
 
     @property
     @overrides

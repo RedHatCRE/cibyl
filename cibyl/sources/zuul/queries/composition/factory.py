@@ -14,6 +14,7 @@
 #    under the License.
 """
 from cibyl.sources.zuul.apis import ZuulAPI as Zuul
+from cibyl.sources.zuul.queries.composition.hierarchy import HierarchyQuery
 from cibyl.sources.zuul.queries.composition.quick import QuickQuery
 from cibyl.sources.zuul.queries.composition.verbose import VerboseQuery
 
@@ -32,5 +33,8 @@ class AggregatedQueryFactory:
         """
         if 'fetch_pipelines' in kwargs:
             return VerboseQuery(api)
+
+        if 'fetch_hierarchy' in kwargs:
+            return HierarchyQuery(api)
 
         return QuickQuery(api)
