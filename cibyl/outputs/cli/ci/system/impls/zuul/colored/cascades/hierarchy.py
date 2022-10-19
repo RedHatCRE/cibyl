@@ -22,7 +22,22 @@ from cibyl.utils.tree import Tree
 
 
 class HierarchyCascade(ColoredPrinter):
+    """Section of a Zuul source output that takes care of printing the
+    relationship existing between its elements.
+    """
+
     def print_tree(self, tree: Tree[Job]) -> str:
+        """Textual representation of the parent-child relationship between
+        Zuul jobs as indicated by the hierarchical tree given as input.
+
+        Output example::
+            .
+            +-- base
+                +-- example-job
+
+        :param tree: Structure indicating the relationship between jobs.
+        :return: ASCII-style text portrayal of the tree.
+        """
         result = IndentedTextBuilder()
         renderer = RenderTree(node=tree.root, style=AsciiStyle())
 
