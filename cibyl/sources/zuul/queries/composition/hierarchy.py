@@ -53,6 +53,12 @@ class HierarchyQuery(QuickQuery):
     def with_jobs_query(self, **kwargs) -> 'AggregatedQuery':
         for job in perform_jobs_query(self.api, **kwargs):
             for variant in perform_variants_query(job):
-                pass
+                crawler = self.tools.crawlers.from_variant(variant)
 
-        return self
+                for level in crawler:
+                    if level.name == variant.name:
+                        continue
+
+                    kwargs['jobs'].value.append(f'^{level.name}$')
+
+        return super().with_variants_query(**kwargs)
