@@ -19,3 +19,4 @@ networkx~=2.8.4; python_version>'3.6'
 xsdata~=22.7
 StrEnum~=0.4.8
 pbr>=2.0.0
+anytree~=2.8.0
