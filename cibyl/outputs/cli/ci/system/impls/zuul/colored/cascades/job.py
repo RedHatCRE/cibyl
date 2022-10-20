@@ -50,11 +50,12 @@ class JobCascade(ColoredPrinter):
                 result.add(self.palette.blue('URL: '), 1)
                 result[-1].append(job.url.value)
 
-        if job.variants.value:
-            result.add(self.palette.blue('Variants: '), 1)
+        if QueryType.VARIANTS in self.query:
+            if job.variants.value:
+                result.add(self.palette.blue('Variants: '), 1)
 
-            for variant in job.variants:
-                result.add(self.print_variant(variant), 2)
+                for variant in job.variants:
+                    result.add(self.print_variant(variant), 2)
 
         if self.query >= QueryType.BUILDS:
             if job.builds.value:
