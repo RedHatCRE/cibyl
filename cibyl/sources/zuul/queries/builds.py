@@ -56,6 +56,10 @@ def perform_builds_query(job, **kwargs):
     if 'last_build' in kwargs:
         builds.with_last_build_only()
 
+    if 'last_completed_build' in kwargs:
+        builds.with_status('SUCCESS')
+        builds.with_last_build_only()
+
     result += builds.get()
 
     return result
