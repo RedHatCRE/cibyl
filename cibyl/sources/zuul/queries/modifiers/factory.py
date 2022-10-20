@@ -15,15 +15,16 @@
 """
 from typing import Iterable
 
+from cibyl.sources.zuul.apis import ZuulAPI as Zuul
 from cibyl.sources.zuul.queries.modifiers import QueryModifier
 from cibyl.sources.zuul.queries.modifiers.hierarchy import HierarchyModifier
 
 
 class QueryModifierFactory:
-    def from_kwargs(self, **kwargs) -> Iterable[QueryModifier]:
+    def from_kwargs(self, api: Zuul, **kwargs) -> Iterable[QueryModifier]:
         result = []
 
         if 'fetch_hierarchy' in kwargs:
-            result.append(HierarchyModifier())
+            result.append(HierarchyModifier(api=api))
 
         return result

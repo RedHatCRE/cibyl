@@ -14,7 +14,7 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from typing import Any, Dict
 
 Query = Dict[str, Any]
 

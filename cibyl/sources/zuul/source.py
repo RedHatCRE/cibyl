@@ -245,7 +245,7 @@ class Zuul(ServerSource):
         )
 
     def _perform_query(self, **kwargs) -> QueryOutput:
-        modifiers = self.tools.modifiers.from_kwargs(**kwargs)
+        modifiers = self.tools.modifiers.from_kwargs(self._api, **kwargs)
 
         for modifier in modifiers:
             kwargs = modifier.modify(**kwargs)
