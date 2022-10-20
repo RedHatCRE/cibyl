@@ -58,11 +58,13 @@ def has_duration_section(build: Build) -> bool:
     return build.duration.value
 
 
-def get_duration_section(palette: ColorPalette, build: Build) -> str:
+def get_duration_section(palette: ColorPalette, build: Build,
+                         unit: str = "ms") -> str:
     """Generates the text describing the duration of a build.
 
     :param palette: The palette of colors to follow.
     :param build: The build to get the data from.
+    :param unit: The unit the duration is in.
     :return: The text with the duration of the build.
     """
     if not has_duration_section(build):
@@ -71,6 +73,6 @@ def get_duration_section(palette: ColorPalette, build: Build) -> str:
     text = IndentedTextBuilder()
 
     text.add(palette.blue('Duration: '), 0)
-    text[-1].append(f'{as_minutes(build.duration.value):.2f}min')
+    text[-1].append(f'{as_minutes(build.duration.value, unit=unit):.2f}min')
 
     return text.build()
