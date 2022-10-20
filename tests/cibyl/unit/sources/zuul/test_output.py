@@ -149,7 +149,9 @@ class TestQueryOutputBuilder(TestCase):
             'result': 'SUCCESS',
             'project': 'project',
             'pipeline': 'pipeline',
-            'duration': 0
+            'duration': 0,
+            'start_time': '1970-01-01T00:00:00',
+            'end_time': '1970-01-01T00:00:00'
         }
 
         builder = QueryOutputBuilder()
@@ -169,3 +171,13 @@ class TestQueryOutputBuilder(TestCase):
         self.assertEqual(build.data['uuid'], result_build.build_id.value)
         self.assertEqual(build.data['result'], result_build.status.value)
         self.assertEqual(build.data['duration'], result_build.duration.value)
+
+        self.assertEqual(
+            build.data['start_time'].replace('T', ' '),
+            result_build.start_time.value
+        )
+
+        self.assertEqual(
+            build.data['end_time'].replace('T', ' '),
+            result_build.end_time.value
+        )

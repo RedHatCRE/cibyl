@@ -370,7 +370,9 @@ class TestQuickQuery(TestCase):
             'pipeline': 'pipeline',
             'uuid': '1234',
             'result': 'success',
-            'duration': 10
+            'duration': 10,
+            'start_time': '1970-01-01T00:00:00',
+            'end_time': '1970-01-01T00:00:00'
         }
 
         api = Mock()
@@ -401,6 +403,10 @@ class TestQuickQuery(TestCase):
         result = source.get_builds(**kwargs)
 
         models = result.value
+
+        expected_start = build.raw['start_time'].replace('T', ' ')
+        expected_end = build.raw['end_time'].replace('T', ' ')
+
         expected = {
             tenant.name: Tenant(
                 name=tenant.name,
@@ -415,7 +421,9 @@ class TestQuickQuery(TestCase):
                                     pipeline=build.raw['pipeline'],
                                     uuid=build.raw['uuid'],
                                     result=build.raw['result'],
-                                    duration=build.raw['duration']
+                                    duration=build.raw['duration'],
+                                    start_time=expected_start,
+                                    end_time=expected_end
                                 )
                             )
                         }
@@ -454,7 +462,9 @@ class TestQuickQuery(TestCase):
             'pipeline': 'pipeline',
             'uuid': '1234',
             'result': 'success',
-            'duration': 10
+            'duration': 10,
+            'start_time': '1970-01-01T00:00:00',
+            'end_time': '1970-01-01T00:00:00'
         }
         build.tests = Mock()
         build.tests.return_value = [suite]
@@ -502,6 +512,10 @@ class TestQuickQuery(TestCase):
         result = source.get_tests(**kwargs)
 
         models = result.value
+
+        expected_start = build.raw['start_time'].replace('T', ' ')
+        expected_end = build.raw['end_time'].replace('T', ' ')
+
         expected = {
             tenant.name: Tenant(
                 name=tenant.name,
@@ -516,7 +530,9 @@ class TestQuickQuery(TestCase):
                                     pipeline=build.raw['pipeline'],
                                     uuid=build.raw['uuid'],
                                     result=build.raw['result'],
-                                    duration=build.raw['duration']
+                                    duration=build.raw['duration'],
+                                    start_time=expected_start,
+                                    end_time=expected_end
                                 ),
                                 suites=[
                                     TestSuite(
