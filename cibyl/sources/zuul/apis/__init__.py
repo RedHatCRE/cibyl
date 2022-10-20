@@ -85,7 +85,7 @@ class ZuulBuildAPI(Closeable, ABC):
     def result(self):
         """
         :return: The build's result.
-        :rtype: str
+        :rtype: str or None
         """
         return self._build['result']
 

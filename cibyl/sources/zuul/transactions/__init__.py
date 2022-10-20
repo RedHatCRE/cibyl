@@ -298,8 +298,13 @@ class BuildsRequest(Request):
         """
 
         def test(build):
+            result = build.result
+
+            if not result:
+                return False
+
             return any(
-                matches_regex(patt, build.result) for patt in pattern
+                matches_regex(patt, result) for patt in pattern
             )
 
         self._filters.append(test)
@@ -391,9 +396,9 @@ class TestsRequest(Request):
         def test(response):
             return any(
                 matches_regex(patt, response.name) for patt in pattern
-                ) or any(
+            ) or any(
                 matches_regex(patt, response.class_name) for patt in pattern
-                )
+            )
 
         self._filters.append(test)
         return self
