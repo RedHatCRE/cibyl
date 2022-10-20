@@ -14,7 +14,8 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
-from typing import NamedTuple, Optional
+from dataclasses import dataclass, field
+from typing import Optional
 
 from cibyl.sources.zuul.apis import ZuulAPI as Zuul
 from cibyl.sources.zuul.output import QueryOutput
@@ -33,10 +34,13 @@ class AggregatedQuery(ABC):
     class.
     """
 
-    class Tools(NamedTuple):
+    @dataclass
+    class Tools:
         """Tools used by this to perform its task.
         """
-        builder: OutputBuilder
+        builder: OutputBuilder = field(
+            default_factory=lambda: OutputBuilder()
+        )
         """Tools used to generate the output of this query."""
 
     def __init__(self, api: Zuul, tools: Optional[Tools] = None):
@@ -47,9 +51,7 @@ class AggregatedQuery(ABC):
             'None' for defaults.
         """
         if not tools:
-            tools = AggregatedQuery.Tools(
-                builder=OutputBuilder()
-            )
+            tools = AggregatedQuery.Tools()
 
         self._api = api
         self._tools = tools
@@ -62,7 +64,7 @@ class AggregatedQuery(ABC):
         return self._api
 
     @property
-    def tools(self):
+    def tools(self) -> Tools:
         """
         :return: Tools used by this to perform its task.
         """

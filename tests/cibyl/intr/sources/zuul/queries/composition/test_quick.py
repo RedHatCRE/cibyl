@@ -27,6 +27,7 @@ from cibyl.models.ci.zuul.test_suite import TestSuite
 from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
 from cibyl.sources.zuul.arguments import ArgumentReview
 from cibyl.sources.zuul.queries.composition.quick import QuickQuery
+from cibyl.sources.zuul.queries.modifiers.factory import QueryModifierFactory
 from cibyl.sources.zuul.source import Zuul
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
 from cibyl.sources.zuul.utils.tests.types import TestResult
@@ -56,7 +57,8 @@ class TestQuickQuery(TestCase):
         tools = Zuul.Tools(
             api=ZuulRESTFactory(),
             arguments=ArgumentReview(),
-            query=factory
+            queries=factory,
+            modifiers=QueryModifierFactory()
         )
 
         source = Zuul(
@@ -104,7 +106,8 @@ class TestQuickQuery(TestCase):
         tools = Zuul.Tools(
             api=ZuulRESTFactory(),
             arguments=ArgumentReview(),
-            query=factory
+            queries=factory,
+            modifiers=QueryModifierFactory()
         )
 
         source = Zuul(
@@ -166,7 +169,8 @@ class TestQuickQuery(TestCase):
         tools = Zuul.Tools(
             api=ZuulRESTFactory(),
             arguments=ArgumentReview(),
-            query=factory
+            queries=factory,
+            modifiers=QueryModifierFactory()
         )
 
         source = Zuul(
@@ -229,7 +233,8 @@ class TestQuickQuery(TestCase):
         tools = Zuul.Tools(
             api=ZuulRESTFactory(),
             arguments=ArgumentReview(),
-            query=factory
+            queries=factory,
+            modifiers=QueryModifierFactory()
         )
 
         source = Zuul(
@@ -297,7 +302,8 @@ class TestQuickQuery(TestCase):
         tools = Zuul.Tools(
             api=ZuulRESTFactory(),
             arguments=ArgumentReview(),
-            query=factory
+            queries=factory,
+            modifiers=QueryModifierFactory()
         )
 
         source = Zuul(
@@ -380,7 +386,8 @@ class TestQuickQuery(TestCase):
         tools = Zuul.Tools(
             api=ZuulRESTFactory(),
             arguments=ArgumentReview(),
-            query=factory
+            queries=factory,
+            modifiers=QueryModifierFactory()
         )
 
         source = Zuul(
@@ -480,7 +487,8 @@ class TestQuickQuery(TestCase):
         tools = Zuul.Tools(
             api=ZuulRESTFactory(),
             arguments=ArgumentReview(),
-            query=factory
+            queries=factory,
+            modifiers=QueryModifierFactory()
         )
 
         source = Zuul(
@@ -566,7 +574,8 @@ class TestQuickQuery(TestCase):
         tools = Zuul.Tools(
             api=ZuulRESTFactory(),
             arguments=ArgumentReview(),
-            query=factory
+            queries=factory,
+            modifiers=QueryModifierFactory()
         )
 
         source = Zuul(

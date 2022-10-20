@@ -38,9 +38,19 @@ class Pipeline(Model):
                     func='get_jobs'
                 ),
                 Argument(
+                    name='--fetch-hierarchy',
+                    arg_type=str, nargs=0,
+                    description='Zuul Only: '
+                                'Show on the summary section the hierarchy of '
+                                'jobs that lead to the fetched ones. '
+                                'Warning, this operation may take long to '
+                                'perform.'
+                ),
+                Argument(
                     name='--fetch-pipelines',
                     arg_type=str, nargs=0,
-                    description='Show the job below the pipelines that '
+                    description='Zuul Only: '
+                                'Show the job below the pipelines that '
                                 'trigger it. '
                                 'Warning, this operation may take long to '
                                 'perform.'

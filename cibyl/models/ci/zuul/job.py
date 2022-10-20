@@ -108,7 +108,7 @@ class Job(BaseJob):
             'attribute_value_class': AttributeListValue,
             'arguments': [
                 Argument(
-                    name='--variants', arg_type=None, nargs=0,
+                    name='--variants', arg_type=str, nargs=0,
                     func='get_jobs', description='Fetch job variants'
                 )
             ]

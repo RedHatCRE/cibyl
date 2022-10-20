@@ -79,7 +79,7 @@ class QuerySelector:
         if pipeline_args:
             result |= QueryType.PIPELINES
 
-        job_args = subset(kwargs, ["jobs", "job_url"])
+        job_args = subset(kwargs, ["jobs", "job_url", "fetch_hierarchy"])
         if job_args:
             result |= QueryType.JOBS
 

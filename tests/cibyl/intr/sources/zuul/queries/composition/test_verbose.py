@@ -24,6 +24,7 @@ from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
 from cibyl.sources.zuul.arguments import ArgumentReview
 from cibyl.sources.zuul.queries.composition.verbose import VerboseQuery
+from cibyl.sources.zuul.queries.modifiers.factory import QueryModifierFactory
 from cibyl.sources.zuul.source import Zuul
 
 
@@ -74,7 +75,8 @@ class TestVerboseQuery(TestCase):
         tools = Zuul.Tools(
             api=ZuulRESTFactory(),
             arguments=ArgumentReview(),
-            query=factory
+            queries=factory,
+            modifiers=QueryModifierFactory()
         )
 
         source = Zuul(

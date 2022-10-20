@@ -28,6 +28,7 @@ from cibyl.sources.zuul.arguments import ArgumentReview
 from cibyl.sources.zuul.output import QueryOutput
 from cibyl.sources.zuul.queries.composition.factory import \
     AggregatedQueryFactory
+from cibyl.sources.zuul.queries.modifiers.factory import QueryModifierFactory
 from cibyl.utils.dicts import subset
 
 
@@ -53,8 +54,9 @@ class Zuul(ServerSource):
         """Used to get the API this will use to interact with Zuul."""
         arguments: ArgumentReview
         """Used to make sense out of the arguments coming from the user."""
-        query: AggregatedQueryFactory
+        queries: AggregatedQueryFactory
         """Used to generate the manager that will perform the query."""
+        modifiers: QueryModifierFactory
 
     def __init__(self, name, driver, url, cert=None,
                  fallbacks=None, tenants=None, enabled=True,
@@ -86,7 +88,8 @@ class Zuul(ServerSource):
             tools = Zuul.Tools(
                 api=ZuulRESTFactory(),
                 arguments=ArgumentReview(),
-                query=AggregatedQueryFactory()
+                queries=AggregatedQueryFactory(),
+                modifiers=QueryModifierFactory()
             )
 
         # URLs are built assuming no slash at the end of URL
@@ -242,7 +245,14 @@ class Zuul(ServerSource):
         )
 
     def _perform_query(self, **kwargs) -> QueryOutput:
-        query = self.tools.query.from_kwargs(self._api, **kwargs)
+        # Apply modifiers before performing the query
+        modifiers = self.tools.modifiers.from_kwargs(self._api, **kwargs)
+
+        for modifier in modifiers:
+            kwargs = modifier.modify(**kwargs)
+
+        # Perform the query
+        query = self.tools.queries.from_kwargs(self._api, **kwargs)
 
         if self.tools.arguments.is_tenants_query_requested(**kwargs):
             query.with_tenants_query(**kwargs)
