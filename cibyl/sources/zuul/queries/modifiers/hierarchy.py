@@ -28,17 +28,29 @@ from cibyl.sources.zuul.utils.variants.hierarchy import HierarchyCrawlerFactory
 
 
 class HierarchyModifier(QueryModifier):
+    """Adds enough arguments to a query so that it is possible to later
+    calculate the hierarchy of jobs fetched by the query.
+    """
+
     @dataclass
     class Tools:
+        """Tools this uses to do its job.
+        """
         arguments: ArgumentReview = field(
             default_factory=lambda: ArgumentReview()
         )
-
+        """Tool used to interpret arguments on the query."""
         crawlers: HierarchyCrawlerFactory = field(
             default_factory=lambda: HierarchyCrawlerFactory()
         )
+        """Tools used to iterate through a job's hierarchy."""
 
     def __init__(self, api: Zuul, tools: Optional[Tools] = None):
+        """Constructor.
+
+        :param api: Channel of communication with the Zuul host.
+        :param tools: Tools this uses to do its task.
+        """
         if tools is None:
             tools = HierarchyModifier.Tools()
 
@@ -46,11 +58,17 @@ class HierarchyModifier(QueryModifier):
         self._tools = tools
 
     @property
-    def api(self):
+    def api(self) -> Zuul:
+        """
+        :return: Channel of communication with the Zuul host.
+        """
         return self._api
 
     @property
-    def tools(self):
+    def tools(self) -> Tools:
+        """
+        :return: Tools this uses to do its task.
+        """
         return self._tools
 
     @overrides

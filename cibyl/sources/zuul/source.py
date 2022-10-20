@@ -245,11 +245,13 @@ class Zuul(ServerSource):
         )
 
     def _perform_query(self, **kwargs) -> QueryOutput:
+        # Apply modifiers before performing the query
         modifiers = self.tools.modifiers.from_kwargs(self._api, **kwargs)
 
         for modifier in modifiers:
             kwargs = modifier.modify(**kwargs)
 
+        # Perform the query
         query = self.tools.queries.from_kwargs(self._api, **kwargs)
 
         if self.tools.arguments.is_tenants_query_requested(**kwargs):

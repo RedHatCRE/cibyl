@@ -17,9 +17,19 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 Query = Dict[str, Any]
+"""Type for arguments of the query to by run by the source."""
 
 
 class QueryModifier(ABC):
+    """Interface for all classes that alter query arguments in order to
+    extend or reduce the scope of a query based on some conditionals.
+    """
+
     @abstractmethod
     def modify(self, **kwargs) -> Query:
+        """Alters the query represented by the keyword arguments.
+
+        :param kwargs: Arguments describing the query.
+        :return: The same query, modified by this class under its criteria.
+        """
         raise NotImplementedError

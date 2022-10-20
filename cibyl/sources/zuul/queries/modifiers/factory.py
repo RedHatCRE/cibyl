@@ -21,7 +21,18 @@ from cibyl.sources.zuul.queries.modifiers.hierarchy import HierarchyModifier
 
 
 class QueryModifierFactory:
+    """Factory for :class:`QueryModifier`.
+    """
+
     def from_kwargs(self, api: Zuul, **kwargs) -> Iterable[QueryModifier]:
+        """Generates modifiers that react against some query
+        arguments passed through the keyword arguments.
+
+        :param api: Channel through which to communicate with the Zuul host.
+        :param kwargs: Dictionary describing the query arguments passed
+            through the CLI.
+        :return: Modifiers resulting from the parsing of the arguments.
+        """
         result = []
 
         if 'fetch_hierarchy' in kwargs:
