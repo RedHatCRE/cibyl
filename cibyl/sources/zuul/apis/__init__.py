@@ -100,7 +100,7 @@ class ZuulBuildAPI(Closeable, ABC):
     @property
     def start_time(self):
         """
-        :return: Date at which the build started running.
+        :return: Date, following ISO 8601, at which the build started running.
         :rtype: str
         """
         return self._build['start_time']
@@ -108,8 +108,8 @@ class ZuulBuildAPI(Closeable, ABC):
     @property
     def end_time(self):
         """
-        :return: Date at which the build finished running. 'None' if it
-            still is.
+        :return: Date, following ISO 8601, at which the build finished
+            running. 'None' if it still is.
         :rtype: str or None
         """
         return self._build['end_time']

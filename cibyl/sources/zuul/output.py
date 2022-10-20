@@ -14,6 +14,7 @@
 #    under the License.
 """
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Dict, Optional
 
 from cibyl.models.ci.zuul.build import Build
@@ -196,6 +197,10 @@ class QueryOutputBuilder:
         :return: Model for this build.
         :rtype: :class:`Build`
         """
+
+        def format_iso(date):
+            return str(datetime.fromisoformat(date))
+
         # Register this build's job
         job = self.with_job(build.job)
 
@@ -209,8 +214,8 @@ class QueryOutputBuilder:
                     uuid=build.data['uuid'],
                     result=build.data['result'],
                     duration=build.data['duration'],
-                    start_time=build.data['start_time'],
-                    end_time=build.data['end_time']
+                    start_time=format_iso(build.data['start_time']),
+                    end_time=format_iso(build.data['end_time'])
                 )
             )
         )
