@@ -208,7 +208,9 @@ class QueryOutputBuilder:
                     pipeline=build.data['pipeline'],
                     uuid=build.data['uuid'],
                     result=build.data['result'],
-                    duration=build.data['duration']
+                    duration=build.data['duration'],
+                    start_time=build.data['start_time'],
+                    end_time=build.data['end_time']
                 )
             )
         )

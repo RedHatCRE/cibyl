@@ -98,6 +98,23 @@ class ZuulBuildAPI(Closeable, ABC):
         return self._build['duration']
 
     @property
+    def start_time(self):
+        """
+        :return: Date at which the build started running.
+        :rtype: str
+        """
+        return self._build['start_time']
+
+    @property
+    def end_time(self):
+        """
+        :return: Date at which the build finished running. 'None' if it
+            still is.
+        :rtype: str or None
+        """
+        return self._build['end_time']
+
+    @property
     def artifacts(self):
         """
         :return: Information on artifacts published by the build.

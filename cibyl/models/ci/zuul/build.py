@@ -44,6 +44,10 @@ class Build(Model):
         """Result of the build."""
         duration: float
         """Time, in seconds, the build took to complete."""
+        start_time: str
+        """Date at which the build begun, in 'DD/MM/YYYY HH:MM' format."""
+        end_time: str
+        """Date at which the build finished, in 'DD/MM/YYYY HH:MM' format."""
 
     API = {
         'build_id': {
@@ -71,6 +75,14 @@ class Build(Model):
         'duration': {
             'attr_type': float,
             'arguments': [],
+        },
+        'start_time': {
+            'attr_type': str,
+            'arguments': []
+        },
+        'end_time': {
+            'attr_type': str,
+            'arguments': []
         },
         'suites': {
             'attr_type': TestSuite,
@@ -101,6 +113,8 @@ class Build(Model):
                 'pipeline': data.pipeline,
                 'status': data.result,
                 'duration': data.duration,
+                'start_time': data.start_time,
+                'end_time': data.end_time,
                 'suites': suites
             }
         )
@@ -119,6 +133,8 @@ class Build(Model):
             self.pipeline == other.pipeline and \
             self.status == other.status and \
             self.duration == other.duration and \
+            self.start_time == other.start_time and \
+            self.end_time == other.end_time and \
             self.suites == other.suites
 
     def add_suite(self, suite: TestSuite) -> None:
