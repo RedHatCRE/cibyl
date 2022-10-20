@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.models.ci.zuul.test import TestStatus
 
 
 def perform_builds_query(job, **kwargs):
@@ -54,6 +55,10 @@ def perform_builds_query(job, **kwargs):
         builds.with_status(*kwargs['build_status'].value)
 
     if 'last_build' in kwargs:
+        builds.with_last_build_only()
+
+    if 'last_completed_build' in kwargs:
+        builds.with_status(TestStatus.SUCCESS)
         builds.with_last_build_only()
 
     result += builds.get()

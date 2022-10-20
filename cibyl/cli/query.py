@@ -75,22 +75,38 @@ class QuerySelector:
         if 'projects' in kwargs:
             result |= QueryType.PROJECTS
 
-        pipeline_args = subset(kwargs, ['pipelines', 'fetch_pipelines'])
+        pipeline_args = subset(
+            kwargs,
+            ['pipelines', 'fetch_pipelines']
+        )
+
         if pipeline_args:
             result |= QueryType.PIPELINES
 
-        job_args = subset(kwargs, ["jobs", "job_url", "fetch_hierarchy"])
+        job_args = subset(
+            kwargs,
+            ["jobs", "job_url", "fetch_hierarchy"]
+        )
+
         if job_args:
             result |= QueryType.JOBS
 
         if 'variants' in kwargs:
             result |= QueryType.VARIANTS
 
-        build_args = subset(kwargs, ["builds", "last_build", "build_status"])
+        build_args = subset(
+            kwargs,
+            ["builds", "build_status", "last_build", "last_completed_build"]
+        )
+
         if build_args:
             result |= QueryType.BUILDS
 
-        test_args = subset(kwargs, ["tests", "test_result", "test_duration"])
+        test_args = subset(
+            kwargs,
+            ["tests", "test_result", "test_duration"]
+        )
+
         if test_args:
             result |= QueryType.TESTS
 

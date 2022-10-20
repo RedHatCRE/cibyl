@@ -77,7 +77,12 @@ class ArgumentReview:
         """
         return any(
             arg in kwargs
-            for arg in ('builds', 'last_build', 'build_status')
+            for arg in (
+                'builds',
+                'build_status',
+                'last_build',
+                'last_completed_build'
+            )
         )
 
     def is_tests_query_requested(self, **kwargs) -> bool:
