@@ -115,7 +115,9 @@ class JobCascade(ColoredPrinter):
 
         if self.verbosity > 0:
             if build.duration.value:
-                result.add(get_duration_section(self.palette, build), 1)
+                build_duration = get_duration_section(self.palette, build,
+                                                      unit="s")
+                result.add(build_duration, 1)
 
         if self.query >= QueryType.TESTS:
             result.add(self.palette.blue('Test Suites: '), 1)
