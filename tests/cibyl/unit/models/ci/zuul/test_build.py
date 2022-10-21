@@ -32,8 +32,19 @@ class TestBuild(TestCase):
         uuid = 'uuid'
         status = 'STATUS'
         duration = 1
+        start_time = '1970-01-01T00:00:00'
+        end_time = '1970-01-01T00:00:00'
 
-        data = Build.Data(uuid, project, pipeline, status, duration)
+        data = Build.Data(
+            uuid,
+            project,
+            pipeline,
+            status,
+            duration,
+            start_time,
+            end_time
+        )
+
         build = Build(data, suites)
 
         self.assertEqual(uuid, build.build_id.value)
@@ -46,7 +57,16 @@ class TestBuild(TestCase):
     def test_equality_by_type(self):
         """Checks that a build is not equal to something not of its type.
         """
-        data = Build.Data('uuid', 'project', 'pipeline', 'status', 0)
+        data = Build.Data(
+            'uuid',
+            'project',
+            'pipeline',
+            'status',
+            0,
+            '1970-01-01T00:00:00',
+            '1970-01-01T00:00:00'
+        )
+
         build = Build(data)
         other = Mock()
 
@@ -55,7 +75,16 @@ class TestBuild(TestCase):
     def test_equality_by_reference(self):
         """Checks that a build is equal to itself.
         """
-        data = Build.Data('uuid', 'project', 'pipeline', 'status', 0)
+        data = Build.Data(
+            'uuid',
+            'project',
+            'pipeline',
+            'status',
+            0,
+            '1970-01-01T00:00:00',
+            '1970-01-01T00:00:00'
+        )
+
         build = Build(data)
 
         self.assertEqual(build, build)
@@ -63,7 +92,16 @@ class TestBuild(TestCase):
     def test_equality_by_contents(self):
         """Checks that a build equals another whose contents are the same.
         """
-        data = Build.Data('uuid', 'project', 'pipeline', 'status', 0)
+        data = Build.Data(
+            'uuid',
+            'project',
+            'pipeline',
+            'status',
+            0,
+            '1970-01-01T00:00:00',
+            '1970-01-01T00:00:00'
+        )
+
         build1 = Build(data)
         build2 = Build(data)
 

@@ -119,6 +119,14 @@ class JobCascade(ColoredPrinter):
                                                       unit="s")
                 result.add(build_duration, 1)
 
+        if build.start_time.value:
+            result.add(self.palette.blue('Start Time: '), 1)
+            result[-1].append(build.start_time.value)
+
+        if build.end_time.value:
+            result.add(self.palette.blue('End Time: '), 1)
+            result[-1].append(build.end_time.value)
+
         if self.query >= QueryType.TESTS:
             result.add(self.palette.blue('Test Suites: '), 1)
 

@@ -16,6 +16,8 @@
 from dataclasses import dataclass, field
 from typing import Dict, Optional
 
+import dateparser
+
 from cibyl.models.ci.zuul.build import Build
 from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
@@ -196,6 +198,10 @@ class QueryOutputBuilder:
         :return: Model for this build.
         :rtype: :class:`Build`
         """
+
+        def format_iso(date):
+            return str(dateparser.parse(date))
+
         # Register this build's job
         job = self.with_job(build.job)
 
@@ -208,7 +214,9 @@ class QueryOutputBuilder:
                     pipeline=build.data['pipeline'],
                     uuid=build.data['uuid'],
                     result=build.data['result'],
-                    duration=build.data['duration']
+                    duration=build.data['duration'],
+                    start_time=format_iso(build.data['start_time']),
+                    end_time=format_iso(build.data['end_time'])
                 )
             )
         )

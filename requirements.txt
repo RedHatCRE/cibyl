@@ -20,3 +20,4 @@ xsdata~=22.7
 StrEnum~=0.4.8
 pbr>=2.0.0
 anytree~=2.8.0
+dateparser~=1.1.2
