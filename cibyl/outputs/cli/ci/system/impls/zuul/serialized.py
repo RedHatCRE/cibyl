@@ -175,6 +175,8 @@ class SerializedZuulSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
             'pipeline': build.pipeline.value,
             'status': build.status.value,
             'duration': build.duration.value,
+            'start_time': build.start_time.value,
+            'end_time': build.end_time.value,
             'test_suites': []
         }
 
