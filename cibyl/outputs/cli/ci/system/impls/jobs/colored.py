@@ -111,6 +111,10 @@ class ColoredJobsSystemPrinter(ColoredBaseSystemPrinter):
             if build.duration.value:
                 printer.add(get_duration_section(self.palette, build), 1)
 
+        if build.start_time.value:
+            printer.add(self.palette.blue('Start Time: '), 1)
+            printer[-1].append(build.start_time.value)
+
         if self.query >= QueryType.TESTS:
             if build.tests.value:
                 for test in build.tests.values():

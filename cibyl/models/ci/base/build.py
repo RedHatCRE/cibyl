@@ -43,6 +43,10 @@ class Build(Model):
             'attr_type': int,
             'arguments': [],
         },
+        'start_time': {
+            'attr_type': str,
+            'arguments': []
+        },
         'tests': {
             'attr_type': Test,
             'attribute_value_class': AttributeDictValue,
@@ -60,12 +64,13 @@ class Build(Model):
 
     def __init__(self, build_id: str, status: str = None,
                  duration: int = None, tests: Dict[str, Test] = None,
-                 stages: List[Stage] = None, **kwargs):
+                 stages: List[Stage] = None, start_time: str = None, **kwargs):
         if status is not None:
             status = status.upper()
         super().__init__({'build_id': build_id, 'status': status,
                           'duration': duration, 'tests': tests,
-                          'stages': stages, **kwargs})
+                          'stages': stages, 'start_time': start_time,
+                          **kwargs})
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -105,3 +110,5 @@ class Build(Model):
             self.add_test(test)
         if not self.stages.value and other.stages.value:
             self.stages = other.stages
+        if not self.start_time.value:
+            self.start_time.value = other.start_time.value

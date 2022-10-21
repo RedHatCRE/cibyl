@@ -248,6 +248,34 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(stages[1].name.value, "run2")
         self.assertEqual(stages[1].status.value, "SUCCESS")
 
+    def test_get_builds_with_start_time(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_builds` is
+            correctly reading the build start time.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1'}]}
+        builds = {'_class': '_empty',
+                  'allBuilds': [{'number': 1, 'result': "SUCCESS",
+                                 'timestamp': '1665407586476'},
+                                {'number': 2, 'result': "FAILURE"}]}
+        self.jenkins.send_request = Mock(side_effect=[response, builds])
+
+        jobs = self.jenkins.get_builds()
+        self.assertEqual(len(jobs), 1)
+        job = jobs["ansible"]
+        self.assertEqual(job.name.value, "ansible")
+        self.assertEqual(job.url.value, "url1")
+        builds_found = job.builds.value
+        self.assertEqual(len(builds_found), 2)
+        self.assertEqual(builds_found["1"].build_id.value, "1")
+        self.assertEqual(builds_found["1"].status.value, "SUCCESS")
+        self.assertEqual(builds_found["1"].start_time.value,
+                         "2022-10-10 13:13:06")
+        self.assertEqual(builds_found["2"].build_id.value, "2")
+        self.assertEqual(builds_found["2"].status.value, "FAILURE")
+        self.assertIsNone(builds_found["2"].start_time.value)
+
     def test_get_last_build(self):
         """
             Tests that the internal logic from :meth:`Jenkins.get_last_build`
@@ -314,6 +342,31 @@ class TestJenkinsSource(TestCase):
         self.assertEqual(stages[0].status.value, "SUCCESS")
         self.assertEqual(stages[1].name.value, "run1")
         self.assertEqual(stages[1].status.value, "FAILURE")
+
+    def test_get_last_build_with_start_time(self):
+        """
+            Tests that the internal logic from :meth:`Jenkins.get_last_build`
+            is correctly reading the build start time.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1',
+                              'lastBuild': {'number': 1, 'result': "SUCCESS",
+                                            'timestamp': '1665407586476'}
+                              }]}
+        self.jenkins.send_request = Mock(side_effect=[response])
+
+        jobs = self.jenkins.get_last_build()
+
+        self.assertEqual(len(jobs), 1)
+        job = jobs["ansible"]
+        self.assertEqual(job.name.value, "ansible")
+        self.assertEqual(job.url.value, "url1")
+        builds_found = job.builds.value
+        self.assertEqual(len(builds_found), 1)
+        self.assertEqual(builds_found["1"].build_id.value, "1")
+        self.assertEqual(builds_found["1"].status.value, "SUCCESS")
+        self.assertEqual(builds_found["1"].start_time.value,
+                         "2022-10-10 13:13:06")
 
     def test_get_stages(self):
         """
