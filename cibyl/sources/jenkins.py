@@ -17,6 +17,7 @@
 import json
 import logging
 import re
+from datetime import datetime, timezone
 from functools import partial
 from typing import Callable, Dict, List
 from urllib.parse import urlparse
@@ -189,16 +190,39 @@ def filter_tests(tests_found: List[Dict],
     return apply_filters(tests_found, is_test, *checks_to_apply)
 
 
+def get_start_time_from_epoch(epoch_time: str) -> str:
+    """Transform the start time given in epoch time into a datetime using ISO
+    8601 format.
+    :param epoch_time: Start time of a build, given in epoch time
+    :returns: Start time of a build, given in ISO 8601 format
+    """
+    try:
+        # jenkins returns the timestamp in milliseconds
+        epoch_time_seconds = float(epoch_time)/1000
+        start_time = datetime.fromtimestamp(epoch_time_seconds,
+                                            timezone.utc)
+    except ValueError as ex:
+        LOG.debug("Timestamp %s could not be converted to date, reason: '%s'",
+                  epoch_time, str(ex))
+        return ""
+    # remove timezone info from string representation
+    start_time = start_time.replace(tzinfo=None)
+    return str(start_time.isoformat(sep=" ", timespec="seconds"))
+
+
 # pylint: disable=no-member
 class Jenkins(ServerSource):
     """A class representation of Jenkins client."""
 
     jobs_query = "?tree=jobs[name,url]"
-    jobs_builds_query = {0: "?tree=allBuilds[number,result]",
-                         1: "?tree=allBuilds[number,result,duration]",
-                         2: "?tree=allBuilds[number,result,duration]",
-                         3: "?tree=allBuilds[number,result,duration]"}
-    jobs_last_build_query = "?tree=jobs[name,url,lastBuild[number,result]]"
+    jobs_builds_query = {
+            0: "?tree=allBuilds[number,result,timestamp]",
+            1: "?tree=allBuilds[number,result,duration,timestamp]",
+            2: "?tree=allBuilds[number,result,duration,timestamp]",
+            3: "?tree=allBuilds[number,result,duration,timestamp]"
+            }
+    jobs_last_build_query = \
+        "?tree=jobs[name,url,lastBuild[number,result,timestamp]]"
     jobs_query_for_deployment = \
         "?tree=jobs[name,url,lastSuccessfulBuild[number,result,description]]"
 
@@ -370,9 +394,14 @@ try reducing verbosity for quicker query")
                     if "stages" in kwargs:
                         build_stages = self._get_stages(job_name,
                                                         build["number"])
+                    start_epoch = build.get("timestamp")
+                    start_time = None
+                    if start_epoch:
+                        start_time = get_start_time_from_epoch(start_epoch)
                     build_object = Build(build["number"], build["result"],
                                          duration=build.get('duration'),
-                                         stages=build_stages)
+                                         stages=build_stages,
+                                         start_time=start_time)
                     job.add_build(build_object)
 
             has_builds = has_builds_job(job)
@@ -409,9 +438,14 @@ try reducing verbosity for quicker query")
                     if "stages" in kwargs:
                         build_stages = self._get_stages(name,
                                                         build["number"])
+                    start_epoch = build.get("timestamp")
+                    start_time = None
+                    if start_epoch:
+                        start_time = get_start_time_from_epoch(start_epoch)
                     build_obj = Build(build["number"], build["result"],
                                       duration=build.get('duration'),
-                                      stages=build_stages)
+                                      stages=build_stages,
+                                      start_time=start_time)
                     job_object.add_build(build_obj)
             has_builds = has_builds_job(job_object)
             if (filtering_builds and has_builds) or not filtering_builds:

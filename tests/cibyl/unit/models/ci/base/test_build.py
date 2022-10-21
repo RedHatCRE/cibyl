@@ -81,10 +81,13 @@ str")
         """Test Build merge method."""
         test = Test("test_name", "failure")
         self.build.status.value = "SUCCESS"
+        self.build.start_time.value = "2022-10-19 12:42:27"
         self.build.add_test(test)
         self.build.add_stage(Stage("Run", "SUCCESS"))
         self.second_build.merge(self.build)
         self.assertEqual(self.second_build.status.value, "SUCCESS")
+        self.assertEqual(self.second_build.start_time.value,
+                         "2022-10-19 12:42:27")
         self.assertEqual(len(self.second_build.tests), 1)
         self.assertEqual(len(self.second_build.stages), 1)
         test_obj = self.second_build.tests["test_name"]

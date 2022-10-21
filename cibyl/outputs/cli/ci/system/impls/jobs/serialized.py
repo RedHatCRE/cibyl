@@ -87,6 +87,7 @@ class SerializedJobsSystemPrinter(SerializedBaseSystemPrinter[PROV], ABC):
             'uuid': build.build_id.value,
             'status': build.status.value,
             'duration': build.duration.value,
+            'start_time': build.start_time.value,
             'tests': [],
             'stages': []
         }
