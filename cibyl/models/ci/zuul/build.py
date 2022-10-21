@@ -45,9 +45,9 @@ class Build(Model):
         duration: float
         """Time, in seconds, the build took to complete."""
         start_time: str
-        """Date at which the build begun, in 'DD-MM-YYYY HH:MM:SS' format."""
+        """Date at which the build begun, in 'YYYY-MM-DD HH:MM:SS' format."""
         end_time: str
-        """Date at which the build ended, in 'DD-MM-YYYY HH:MM:SS' format."""
+        """Date at which the build ended, in 'YYYY-MM-DD HH:MM:SS' format."""
 
     API = {
         'build_id': {

@@ -14,8 +14,9 @@
 #    under the License.
 """
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import Dict, Optional
+
+import dateparser
 
 from cibyl.models.ci.zuul.build import Build
 from cibyl.models.ci.zuul.job import Job
@@ -199,7 +200,7 @@ class QueryOutputBuilder:
         """
 
         def format_iso(date):
-            return str(datetime.fromisoformat(date))
+            return str(dateparser.parse(date))
 
         # Register this build's job
         job = self.with_job(build.job)
