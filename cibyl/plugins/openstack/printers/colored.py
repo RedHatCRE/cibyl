@@ -15,6 +15,7 @@
 """
 from cibyl.outputs.cli.ci.system.common.stages import print_stage
 from cibyl.outputs.cli.printer import ColoredPrinter
+from cibyl.plugins.openstack.glance import Glance
 from cibyl.plugins.openstack.ironic import Ironic
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.printers import OSPrinter
@@ -127,6 +128,25 @@ class OSColoredPrinter(ColoredPrinter, OSPrinter):
             printer.pop()
         return is_empty_ironic
 
+    def _print_deployment_glance_section(
+        self,
+        glance: Glance,
+        printer: IndentedTextBuilder
+    ):
+        is_empty_glance = True
+        printer.add(self.palette.blue('Glance: '), 1)
+
+        if glance.glance_backend.value:
+            if glance.glance_backend.value != "N/A" or self.verbosity > 0:
+                is_empty_glance = False
+                printer.add(self.palette.blue('Glance backend: '), 2)
+                printer[-1].append(glance.glance_backend)
+
+        if is_empty_glance:
+            printer.pop()
+
+        return is_empty_glance
+
     def print_deployment(self, deployment):
         printer = IndentedTextBuilder()
 
@@ -166,6 +186,12 @@ class OSColoredPrinter(ColoredPrinter, OSPrinter):
             ironic = deployment.ironic.value
             is_empty_ironic = self._print_deployment_ironic_section(ironic,
                                                                     printer)
+        is_empty_glance = True
+        if deployment.glance.value:
+            glance = deployment.glance.value
+            is_empty_glance = self._print_deployment_glance_section(glance,
+                                                                    printer)
+
         if deployment.overcloud_templates.value:
             if deployment.overcloud_templates.value != "N/A" or \
                self.verbosity > 0:
@@ -199,7 +225,7 @@ class OSColoredPrinter(ColoredPrinter, OSPrinter):
                         printer[-1].append('N/A')
 
         is_empty_deployment &= (is_empty_network and is_empty_storage and
-                                is_empty_ironic)
+                                is_empty_ironic and is_empty_glance)
 
         if deployment.nodes.values():
             is_empty_deployment = False

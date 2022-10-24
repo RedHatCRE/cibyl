@@ -91,6 +91,10 @@ class Deployment(Model):
             'attr_type': Ironic,
             'arguments': []
         },
+        'glance': {
+            'attr_type': Glance,
+            'arguments': []
+        },
         'overcloud_templates': {
             'arguments': [Argument(name='--overcloud-templates', arg_type=str,
                                    func='get_deployment', nargs='*',
