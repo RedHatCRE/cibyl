@@ -27,7 +27,6 @@ from cibyl.plugins.openstack.service import Service
 from cibyl.plugins.openstack.storage import Storage
 from cibyl.plugins.openstack.test_collection import TestCollection
 
-
 # pylint: disable=no-member
 
 
