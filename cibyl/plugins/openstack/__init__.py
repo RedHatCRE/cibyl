@@ -48,7 +48,7 @@ def get_query_openstack(**kwargs) -> QueryType:
 
     deployment_args = subset(kwargs, PLUGIN_ARGUMENTS)
     if deployment_args:
-        result = QueryType.JOBS
+        result = QueryType.JOBS | QueryType.VARIANTS
 
     return result
 
