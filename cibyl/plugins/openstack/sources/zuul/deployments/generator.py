@@ -17,7 +17,6 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from cibyl.plugins.openstack import Deployment
-from cibyl.plugins.openstack.glance import Glance
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.sources.zuul.deployments.arguments import \
@@ -79,9 +78,7 @@ class DeploymentGenerator:
                 ml2_driver=self._get_ml2_driver(summary, **kwargs)
             ),
             storage=Storage(
-                cinder_backend=self._get_cinder_backend(summary, **kwargs)
-            ),
-            glance=Glance(
+                cinder_backend=self._get_cinder_backend(summary, **kwargs),
                 glance_backend=self._get_glance_backend(summary, **kwargs)
             )
         )

@@ -99,6 +99,7 @@ class DeploymentFiltering:
 
         storage_args = (
             'cinder_backend',
+            'glance_backend'
         )
 
         for arg in storage_args:
@@ -106,17 +107,6 @@ class DeploymentFiltering:
                 arg,
                 kwargs,
                 lambda dpl: dpl.storage.value
-            )
-
-        glance_args = (
-            'glance_backend',
-        )
-
-        for arg in glance_args:
-            self._handle_filter_for_simple_arg(
-                arg,
-                kwargs,
-                lambda dpl: dpl.glance.value
             )
 
     def _handle_dict_args(self, **kwargs):

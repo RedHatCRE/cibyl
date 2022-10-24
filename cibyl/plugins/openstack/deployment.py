@@ -19,7 +19,6 @@ from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.base.stage import Stage
 from cibyl.models.model import Model
-from cibyl.plugins.openstack.glance import Glance
 from cibyl.plugins.openstack.ironic import Ironic
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.node import Node
@@ -90,10 +89,6 @@ class Deployment(Model):
             'attr_type': Ironic,
             'arguments': []
         },
-        'glance': {
-            'attr_type': Glance,
-            'arguments': []
-        },
         'overcloud_templates': {
             'arguments': [Argument(name='--overcloud-templates', arg_type=str,
                                    func='get_deployment', nargs='*',
@@ -127,7 +122,6 @@ class Deployment(Model):
                  network: Optional[Network] = None,
                  storage: Optional[Storage] = None,
                  ironic: Optional[Ironic] = None,
-                 glance: Optional[Glance] = None,
                  overcloud_templates: Optional[Set[str]] = None,
                  stages: Optional[List[Stage]] = None,
                  test_collection: Optional[TestCollection] = None):
@@ -135,7 +129,6 @@ class Deployment(Model):
                           'nodes': nodes, 'services': services,
                           'topology': topology, 'network': network,
                           'storage': storage, 'ironic': ironic,
-                          'glance': glance,
                           'overcloud_templates': overcloud_templates,
                           'test_collection': test_collection,
                           'stages': stages})
@@ -199,12 +192,6 @@ class Deployment(Model):
                 self.ironic.value.merge(other.ironic.value)
             else:
                 self.ironic = other.ironic
-
-        if other.glance.value:
-            if self.glance.value:
-                self.glance.value.merge(other.glance.value)
-            else:
-                self.glance = other.glance
 
         if other.overcloud_templates.value:
             other_templates = other.overcloud_templates.value
