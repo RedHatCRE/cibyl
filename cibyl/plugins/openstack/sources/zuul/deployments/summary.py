@@ -150,7 +150,7 @@ class VariantDeployment:
     def get_ml2_driver(self) -> Optional[str]:
         """
         :return: Comma delimited list with all the ml2 drivers in use.
-            'None' if it not defined.
+            'None' if it is not defined.
         """
         return self._summary.components.neutron.ml2_driver
 
@@ -160,6 +160,13 @@ class VariantDeployment:
             'None' if it is not defined.
         """
         return self._summary.components.cinder.backend
+
+    def get_glance_backend(self) -> Optional[str]:
+        """
+        :return: Name of the backend that support the Glance component.
+            'None' if it is not defined.
+        """
+        return self._summary.components.glance.backend
 
 
 class VariantDeploymentFactory:

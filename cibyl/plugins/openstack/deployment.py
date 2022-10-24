@@ -19,12 +19,14 @@ from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.base.stage import Stage
 from cibyl.models.model import Model
+from cibyl.plugins.openstack.glance import Glance
 from cibyl.plugins.openstack.ironic import Ironic
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.service import Service
 from cibyl.plugins.openstack.storage import Storage
 from cibyl.plugins.openstack.test_collection import TestCollection
+
 
 # pylint: disable=no-member
 
@@ -110,7 +112,7 @@ class Deployment(Model):
             'attr_type': Stage,
             'attribute_value_class': AttributeListValue,
             'arguments': []
-            }
+        }
     }
 
     def __init__(self,
@@ -122,13 +124,15 @@ class Deployment(Model):
                  network: Optional[Network] = None,
                  storage: Optional[Storage] = None,
                  ironic: Optional[Ironic] = None,
-                 overcloud_templates: Optional[Set[str]] = None, stages:
-                 Optional[List[Stage]] = None,
+                 glance: Optional[Glance] = None,
+                 overcloud_templates: Optional[Set[str]] = None,
+                 stages: Optional[List[Stage]] = None,
                  test_collection: Optional[TestCollection] = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,
                           'topology': topology, 'network': network,
                           'storage': storage, 'ironic': ironic,
+                          'glance': glance,
                           'overcloud_templates': overcloud_templates,
                           'test_collection': test_collection,
                           'stages': stages})
@@ -192,6 +196,12 @@ class Deployment(Model):
                 self.ironic.value.merge(other.ironic.value)
             else:
                 self.ironic = other.ironic
+
+        if other.glance.value:
+            if self.glance.value:
+                self.glance.value.merge(other.glance.value)
+            else:
+                self.glance = other.glance
 
         if other.overcloud_templates.value:
             other_templates = other.overcloud_templates.value

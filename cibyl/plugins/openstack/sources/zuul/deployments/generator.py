@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from cibyl.plugins.openstack import Deployment
+from cibyl.plugins.openstack.glance import Glance
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.node import Node
 from cibyl.plugins.openstack.sources.zuul.deployments.arguments import \
@@ -79,6 +80,9 @@ class DeploymentGenerator:
             ),
             storage=Storage(
                 cinder_backend=self._get_cinder_backend(summary, **kwargs)
+            ),
+            glance=Glance(
+                glance_backend=self._get_glance_backend(summary, **kwargs)
             )
         )
 
@@ -199,3 +203,15 @@ class DeploymentGenerator:
             return None
 
         return summary.get_cinder_backend()
+
+    def _get_glance_backend(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
+
+        if not arguments.is_glance_backend_requested(**kwargs):
+            return None
+
+        return summary.get_glance_backend()
