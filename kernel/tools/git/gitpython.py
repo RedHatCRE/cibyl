@@ -22,12 +22,12 @@ from git import Remote as RemoteAPI
 from git import Repo as RepoAPI
 from overrides import overrides
 
+from kernel.tools.fs import Dir, File
 from kernel.tools.git import Git as IGit
 from kernel.tools.git import GitError
 from kernel.tools.git import Remote as IRemote
 from kernel.tools.git import Repository as IRepository
-from tripleo.utils.fs import Dir, File
-from tripleo.utils.urls import URL
+from kernel.tools.urls import URL
 
 LOG = logging.getLogger(__name__)
 

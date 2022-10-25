@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from tripleo.utils.urls import URL, is_git, is_github
+from kernel.tools.urls import URL, is_git, is_github
 
 
 class TestIsGit(TestCase):

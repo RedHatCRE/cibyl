@@ -22,7 +22,7 @@ from typing import Generator, Union
 
 from overrides import overrides
 
-from tripleo.utils.paths import Preprocessor
+from kernel.tools.paths import Preprocessor
 
 RawPath = Union[bytes, str, PathLike, Path]
 

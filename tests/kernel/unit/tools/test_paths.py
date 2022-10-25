@@ -13,26 +13,31 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from pathlib import Path
 from unittest import TestCase
+from unittest.mock import Mock
 
-from tripleo.utils.strings import is_url
+from kernel.tools.paths import resolve_home
 
 
-class TestIsURL(TestCase):
-    """Tests for :func:`is_url`.
+class TestResolveHome(TestCase):
+    """Tests for :func:`resolve_home`.
     """
 
-    def test_is_valid_url(self):
-        """Checks that the function returns true if the string is a valid URL.
+    def test_resolves_home_shortcut(self):
+        """Checks that the function is capable of expanding the '~'
+        shortcut.
         """
-        url = 'http://localhost:8080/path/to/my/file.txt'
+        home = '/home'
 
-        self.assertTrue(is_url(url))
+        path = Mock(spec=Path)
 
-    def test_is_invalid_url(self):
-        """Checks that the function returns false if the string is not a
-        valid URL.
-        """
-        url = 'some-string-that-is-no-url'
+        path.home = Mock()
+        path.home.return_value = home
 
-        self.assertFalse(is_url(url))
+        path.__str__ = Mock()
+        path.__str__.return_value = '~/path/to/dir'
+
+        result = resolve_home(path)
+
+        self.assertEqual('/home/path/to/dir', str(result))

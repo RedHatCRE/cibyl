@@ -16,8 +16,8 @@
 from unittest import TestCase
 
 from kernel.tools.git import GitError
+from kernel.tools.urls import URL
 from tripleo.insights import DeploymentLookUp, DeploymentOutline
-from tripleo.utils.urls import URL
 
 
 class TestOpenDev(TestCase):

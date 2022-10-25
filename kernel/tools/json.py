@@ -20,7 +20,7 @@ from typing import Union
 from jsonschema.validators import Draft7Validator
 from overrides import overrides
 
-from tripleo.utils.fs import File
+from kernel.tools.fs import File
 
 JSONValidator = Union[Draft7Validator]
 """Possible validators returned by the factory."""

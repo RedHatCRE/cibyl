@@ -16,10 +16,10 @@
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
+from kernel.tools.yaml import YAMLError
 from tripleo.insights.exceptions import DownloadError
 from tripleo.insights.git import (GitCLIDownloader, GitDownload,
                                   GitDownloaderFetcher, GitHubDownloader)
-from tripleo.utils.yaml import YAMLError
 
 
 class TestGitCLIDownloader(TestCase):

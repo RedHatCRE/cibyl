@@ -16,9 +16,9 @@
 from abc import ABC, abstractmethod
 from typing import Iterable
 
-from tripleo.utils.fs import Dir
-from tripleo.utils.io import Closeable
-from tripleo.utils.urls import URL
+from kernel.tools.fs import Dir
+from kernel.tools.io import Closeable
+from kernel.tools.urls import URL
 
 
 class GitError(Exception):

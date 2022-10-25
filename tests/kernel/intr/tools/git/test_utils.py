@@ -16,7 +16,7 @@
 from unittest import TestCase
 
 from kernel.tools.git.utils import get_repository_fullname
-from tripleo.utils.urls import URL
+from kernel.tools.urls import URL
 
 
 class TestGetRepositoryFullname(TestCase):

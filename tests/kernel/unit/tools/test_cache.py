@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from tripleo.utils.cache import Cache, CacheError
+from kernel.tools.cache import Cache, CacheError
 
 
 class TestCache(TestCase):

@@ -15,7 +15,7 @@
 """
 from urllib.parse import urlparse
 
-from tripleo.utils.strings import is_url
+from kernel.tools.strings import is_url
 
 
 class URL(str):

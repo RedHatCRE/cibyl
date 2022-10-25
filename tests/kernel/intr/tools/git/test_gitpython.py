@@ -16,9 +16,9 @@
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
+from kernel.tools.fs import Dir
 from kernel.tools.git.gitpython import GitPython
-from tripleo.utils.fs import Dir
-from tripleo.utils.urls import URL
+from kernel.tools.urls import URL
 
 
 class TestGitPython(TestCase):

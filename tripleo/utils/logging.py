@@ -20,7 +20,7 @@ from typing import Any, TextIO
 
 import colorlog
 
-from tripleo.utils.fs import File
+from kernel.tools.fs import File
 
 GENERIC_LOG_FORMAT = '{}%(levelname)-8s %(name)-20s %(message)s'
 """Base format for logging messages."""

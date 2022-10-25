@@ -17,7 +17,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import TestCase, skip
 
-from tripleo.utils.fs import Dir, File
+from kernel.tools.fs import Dir, File
 
 
 class TestDir(TestCase):
