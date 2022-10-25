@@ -29,8 +29,8 @@ from cibyl.sources.source import (get_source_instance_from_method,
                                   select_source_method,
                                   source_information_from_method)
 from cibyl.utils.colors import Colors
-from cibyl.utils.files import FileSearch
-from cibyl.utils.reflection import get_classes_in, load_module
+from kernel.tools.files import FileSearch
+from kernel.tools.reflection import get_classes_in, load_module
 
 LOG = logging.getLogger(__name__)
 

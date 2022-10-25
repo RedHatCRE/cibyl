@@ -18,8 +18,8 @@ import os.path
 from unittest import TestCase
 from unittest.mock import Mock, call
 
-from cibyl.utils.files import (FileSearch, get_file_name_from_path,
-                               get_first_available_file)
+from kernel.tools.files import (FileSearch, get_file_name_from_path,
+                                get_first_available_file)
 
 
 class TestFileSearch(TestCase):

@@ -28,10 +28,10 @@ from cibyl.exceptions.cli import AbortedByUserError
 from cibyl.exceptions.config import SchemaError
 from cibyl.models.ci.system_factory import SystemType
 from cibyl.utils import yaml
-from cibyl.utils.files import get_first_available_file, is_file_available
-from cibyl.utils.fs import File, cd_context_manager
-from cibyl.utils.json import Draft7ValidatorFactory
-from cibyl.utils.net import DownloadError, download_file
+from kernel.tools.files import get_first_available_file, is_file_available
+from kernel.tools.fs import File, cd_context_manager
+from kernel.tools.json import Draft7ValidatorFactory
+from kernel.tools.net import DownloadError, download_file
 
 LOG = logging.getLogger(__name__)
 
@@ -246,7 +246,7 @@ class ConfigFactory:
         host. The definition is accessed and downloaded into the provided path.
 
         Supported protocols are defined by
-        :func:`cibyl.utils.net.download_file`.
+        :func:`kernel.tools.net.download_file`.
 
         Warnings
         -------

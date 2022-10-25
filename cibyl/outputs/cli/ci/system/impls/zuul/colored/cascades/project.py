@@ -22,7 +22,7 @@ from cibyl.models.ci.zuul.project import Project
 from cibyl.outputs.cli.ci.system.common.builds import get_status_section
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.filtering import apply_filters
-from cibyl.utils.strings import IndentedTextBuilder
+from kernel.tools.text import IndentedTextBuilder
 
 
 class ProjectCascade(ColoredPrinter):

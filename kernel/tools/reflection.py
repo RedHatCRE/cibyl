@@ -18,7 +18,7 @@ import inspect
 from types import ModuleType
 from typing import Callable, List, Optional
 
-from cibyl.utils.files import get_file_name_from_path
+from kernel.tools.files import get_file_name_from_path
 
 
 def load_module(path: str) -> ModuleType:

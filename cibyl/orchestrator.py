@@ -43,10 +43,10 @@ from cibyl.sources.source import (Source, get_source_instance_from_method,
                                   select_source_method,
                                   source_information_from_method)
 from cibyl.sources.source_factory import SourceFactory
-from cibyl.utils.dicts import intersect_models
-from cibyl.utils.fs import File
-from cibyl.utils.paths import resolve_home
 from cibyl.utils.status_bar import StatusBar
+from kernel.tools.dicts import intersect_models
+from kernel.tools.fs import File
+from kernel.tools.paths import resolve_home
 
 LOG = logging.getLogger(__name__)
 

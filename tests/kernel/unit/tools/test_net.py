@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.utils.net import DownloadError, download_into_memory, requests
+from kernel.tools.net import DownloadError, download_into_memory, requests
 
 
 class TestDownloadIntoMemory(TestCase):

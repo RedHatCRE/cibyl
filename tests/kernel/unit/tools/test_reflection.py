@@ -17,8 +17,8 @@ import importlib.util
 from unittest import TestCase
 from unittest.mock import Mock
 
-import cibyl.utils.files
-from cibyl.utils.reflection import get_classes_in, load_module
+import kernel.tools.reflection as reflection
+from kernel.tools.reflection import get_classes_in, load_module
 
 
 class TestLoadModule(TestCase):
@@ -33,8 +33,8 @@ class TestLoadModule(TestCase):
         name = 'module'
         path = 'some/path'
 
-        cibyl.utils.reflection.get_file_name_from_path = Mock()
-        cibyl.utils.reflection.get_file_name_from_path.return_value = name
+        reflection.get_file_name_from_path = Mock()
+        reflection.get_file_name_from_path.return_value = name
 
         importlib.util.spec_from_file_location = Mock()
         importlib.util.spec_from_file_location.return_value = spec
@@ -46,7 +46,7 @@ class TestLoadModule(TestCase):
 
         self.assertEqual(module, result)
 
-        cibyl.utils.reflection.get_file_name_from_path.assert_called_once_with(
+        reflection.get_file_name_from_path.assert_called_once_with(
             path
         )
 

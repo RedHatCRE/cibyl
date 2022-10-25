@@ -16,7 +16,7 @@
 from enum import IntFlag, auto
 from typing import Optional
 
-from cibyl.utils.dicts import subset
+from kernel.tools.dicts import subset
 
 
 class QueryType(IntFlag):

@@ -32,10 +32,10 @@ from cibyl.models.ci.base.test import Test
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
-from cibyl.utils.dicts import chunk_dictionary_into_lists
 from cibyl.utils.filtering import (apply_filters, matches_regex,
                                    satisfy_exact_match, satisfy_regex_match)
 from cibyl.utils.models import has_builds_job, has_tests_job
+from kernel.tools.dicts import chunk_dictionary_into_lists
 
 LOG = logging.getLogger(__name__)
 

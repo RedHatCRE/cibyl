@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from cibyl.utils.strings import IndentedTextBuilder
+from kernel.tools.text import IndentedTextBuilder
 
 
 class TestIndentedTextBuilder(TestCase):

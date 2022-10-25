@@ -19,7 +19,7 @@ from cibyl.cli.argument import Argument
 from cibyl.models.attribute import AttributeDictValue, AttributeListValue
 from cibyl.models.ci.base.job import Job as BaseJob
 from cibyl.models.model import Model
-from cibyl.utils.dicts import subset
+from kernel.tools.dicts import subset
 
 
 class Job(BaseJob):

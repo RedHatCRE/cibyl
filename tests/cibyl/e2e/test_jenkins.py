@@ -17,7 +17,7 @@ import sys
 
 from cibyl.cli.main import main
 from cibyl.utils.colors import Colors
-from cibyl.utils.strings import IndentedTextBuilder
+from kernel.tools.text import IndentedTextBuilder
 from tests.cibyl.e2e.containers.jenkins import JenkinsContainer
 from tests.cibyl.e2e.fixtures import EndToEndTest
 

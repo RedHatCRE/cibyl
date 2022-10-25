@@ -20,8 +20,8 @@ from cibyl.models.ci.base.build import Build
 from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
-from cibyl.utils.dicts import (chunk_dictionary_into_lists, intersect_models,
-                               nsubset, subset)
+from kernel.tools.dicts import (chunk_dictionary_into_lists, intersect_models,
+                                nsubset, subset)
 
 
 class TestSubset(TestCase):

@@ -22,7 +22,7 @@ import requests
 
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.source import NoSupportedSourcesFound, NoValidSources
-from cibyl.utils.attrdict import AttrDict
+from kernel.tools.attrdict import AttrDict
 
 LOG = logging.getLogger(__name__)
 

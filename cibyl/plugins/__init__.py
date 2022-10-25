@@ -23,9 +23,9 @@ from cibyl.models.model import Model
 from cibyl.outputs.cli.printer import JSON, ColoredPrinter, SerializedPrinter
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source_factory import SourceFactory
-from cibyl.utils.files import FileSearch
 from cibyl.utils.filtering import apply_filters
-from cibyl.utils.reflection import get_classes_in, load_module
+from kernel.tools.files import FileSearch
+from kernel.tools.reflection import get_classes_in, load_module
 
 LOG = logging.getLogger(__name__)
 

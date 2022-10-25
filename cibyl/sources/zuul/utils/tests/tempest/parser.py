@@ -24,7 +24,7 @@ from cibyl.sources.zuul.utils.artifacts.manifest import ManifestFile
 from cibyl.sources.zuul.utils.builds import get_url_to_build_file
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
 from cibyl.sources.zuul.utils.tests.types import TestResult, TestSuite
-from cibyl.utils.net import download_into_memory
+from kernel.tools.net import download_into_memory
 from kernel.tools.urls import URL
 
 

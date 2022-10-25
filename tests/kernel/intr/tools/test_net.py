@@ -15,7 +15,7 @@
 """
 from unittest import TestCase, skip
 
-from cibyl.utils.net import download_into_memory
+from kernel.tools.net import download_into_memory
 from tests.cibyl.e2e.containers.httpd import HTTPDContainer
 
 

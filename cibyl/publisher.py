@@ -23,7 +23,7 @@ from cibyl.cli.output import OutputStyle
 from cibyl.cli.query import QueryType
 from cibyl.models.ci.base.environment import Environment
 from cibyl.outputs.cli.ci.env.factory import CIPrinterFactory
-from cibyl.utils.fs import File
+from kernel.tools.fs import File
 
 LOG = logging.getLogger(__name__)
 

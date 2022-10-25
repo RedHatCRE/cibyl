@@ -33,8 +33,8 @@ from cibyl.outputs.cli.ci.system.impls.zuul.colored.cascades.project import \
     ProjectCascade
 from cibyl.outputs.cli.ci.system.impls.zuul.colored.trees.factory import \
     HierarchicalTreeFactory
-from cibyl.utils.sorting import sort
-from cibyl.utils.strings import IndentedTextBuilder
+from kernel.tools.sorting import sort
+from kernel.tools.text import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
 

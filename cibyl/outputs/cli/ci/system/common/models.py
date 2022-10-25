@@ -21,7 +21,7 @@ from cibyl.models.attribute import (AttributeDictValue, AttributeListValue,
                                     AttributeValue)
 from cibyl.models.model import Model
 from cibyl.outputs.cli.printer import JSON, ColoredPrinter, SerializedPrinter
-from cibyl.utils.strings import IndentedTextBuilder
+from kernel.tools.text import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
 

@@ -30,7 +30,7 @@ from cibyl.sources.zuul.apis import ZuulBuildAPI
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
 from cibyl.sources.zuul.utils.tests.types import Test, TestResult, TestSuite
 from cibyl.utils.filtering import apply_filters, matches_regex
-from cibyl.utils.urls import URL
+from kernel.tools.urls import URL
 
 
 class Request(ABC):

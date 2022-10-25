@@ -23,8 +23,8 @@ from cibyl.plugins.openstack.storage import Storage
 from cibyl.plugins.openstack.test_collection import TestCollection
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
-from cibyl.utils.dicts import chunk_dictionary_into_lists
 from cibyl.utils.filtering import IP_PATTERN
+from kernel.tools.dicts import chunk_dictionary_into_lists
 
 
 class ElasticSearch(SourceExtension):
