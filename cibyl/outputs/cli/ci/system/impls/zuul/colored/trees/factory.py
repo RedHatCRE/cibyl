@@ -20,7 +20,7 @@ from typing import Iterable
 from overrides import overrides
 
 from cibyl.models.ci.zuul.job import Job
-from cibyl.utils.tree import Leaf, Tree
+from kernel.tools.tree import Leaf, Tree
 
 LOG = logging.getLogger(__name__)
 

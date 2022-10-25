@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.utils.tree import Leaf, Tree
+from kernel.tools.tree import Leaf, Tree
 
 
 class TestLeaf(TestCase):
