@@ -64,6 +64,14 @@ class ArgumentReview:
         """
         return any(arg in kwargs for arg in ('spec', 'cinder_backend'))
 
+    def is_glance_backend_requested(self, **kwargs: Any) -> bool:
+        """
+        :param kwargs: Arguments coming from the CLI.
+        :return: True if the user requested the glance backend to be part
+            of the deployment, False if not.
+        """
+        return any(arg in kwargs for arg in ('spec', 'glance_backend'))
+
     def is_network_backend_requested(self, **kwargs: Any) -> bool:
         """
         :param kwargs: Arguments coming from the CLI.

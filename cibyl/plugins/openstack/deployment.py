@@ -110,7 +110,7 @@ class Deployment(Model):
             'attr_type': Stage,
             'attribute_value_class': AttributeListValue,
             'arguments': []
-            }
+        }
     }
 
     def __init__(self,
@@ -122,8 +122,8 @@ class Deployment(Model):
                  network: Optional[Network] = None,
                  storage: Optional[Storage] = None,
                  ironic: Optional[Ironic] = None,
-                 overcloud_templates: Optional[Set[str]] = None, stages:
-                 Optional[List[Stage]] = None,
+                 overcloud_templates: Optional[Set[str]] = None,
+                 stages: Optional[List[Stage]] = None,
                  test_collection: Optional[TestCollection] = None):
         super().__init__({'release': release, 'infra_type': infra_type,
                           'nodes': nodes, 'services': services,

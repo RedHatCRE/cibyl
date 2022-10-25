@@ -94,8 +94,15 @@ class OSColoredPrinter(ColoredPrinter, OSPrinter):
                 printer.add(self.palette.blue('Cinder backend: '), 2)
                 printer[-1].append(storage.cinder_backend)
 
+        if storage.glance_backend.value:
+            if storage.glance_backend.value != "N/A" or self.verbosity > 0:
+                is_empty_storage = False
+                printer.add(self.palette.blue('Glance backend: '), 2)
+                printer[-1].append(storage.glance_backend)
+
         if is_empty_storage:
             printer.pop()
+
         return is_empty_storage
 
     def _print_deployment_ironic_section(self, ironic: Ironic,

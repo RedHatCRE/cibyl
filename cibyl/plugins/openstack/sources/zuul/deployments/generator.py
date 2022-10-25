@@ -78,7 +78,8 @@ class DeploymentGenerator:
                 ml2_driver=self._get_ml2_driver(summary, **kwargs)
             ),
             storage=Storage(
-                cinder_backend=self._get_cinder_backend(summary, **kwargs)
+                cinder_backend=self._get_cinder_backend(summary, **kwargs),
+                glance_backend=self._get_glance_backend(summary, **kwargs)
             )
         )
 
@@ -199,3 +200,15 @@ class DeploymentGenerator:
             return None
 
         return summary.get_cinder_backend()
+
+    def _get_glance_backend(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
+
+        if not arguments.is_glance_backend_requested(**kwargs):
+            return None
+
+        return summary.get_glance_backend()

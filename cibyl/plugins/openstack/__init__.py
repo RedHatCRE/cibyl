@@ -30,7 +30,7 @@ PLUGIN_ARGUMENTS = ('release', 'spec', 'infra_type', 'nodes', 'controllers',
                     'container_image', 'packages', 'services', 'ip_version',
                     'topology', 'dvr', 'ml2_driver', 'tls_everywhere',
                     'ironic_inspector', 'network_backend', 'cinder_backend',
-                    'test_setup')
+                    'glance_backend', 'test_setup')
 
 
 def add_deployment(self, deployment: Deployment) -> None:
@@ -48,7 +48,7 @@ def get_query_openstack(**kwargs) -> QueryType:
 
     deployment_args = subset(kwargs, PLUGIN_ARGUMENTS)
     if deployment_args:
-        result = QueryType.JOBS
+        result = QueryType.JOBS | QueryType.VARIANTS
 
     return result
 

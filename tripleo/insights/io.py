@@ -76,6 +76,13 @@ class DeploymentSummary:
             """Name of the backend supporting cinder."""
 
         @dataclass
+        class Glance:
+            """Information on the Glance component.
+            """
+            backend: Optional[str] = None
+            """Name of the backend supporting glance."""
+
+        @dataclass
         class Neutron:
             """Information on the Neutron component.
             """
@@ -92,6 +99,10 @@ class DeploymentSummary:
             default_factory=lambda *_: DeploymentSummary.Components.Cinder()
         )
         """Section for the Cinder component."""
+        glance: Glance = field(
+            default_factory=lambda *_: DeploymentSummary.Components.Glance()
+        )
+        """Section for the Glance component."""
         neutron: Neutron = field(
             default_factory=lambda *_: DeploymentSummary.Components.Neutron()
         )

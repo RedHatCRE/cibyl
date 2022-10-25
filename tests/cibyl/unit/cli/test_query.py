@@ -193,7 +193,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'release': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_spec(self):
         """Checks that "Jobs" is returned for "--spec" if the openstack
@@ -202,7 +205,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'spec': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_infra_type(self):
         """Checks that "Jobs" is returned for "--infra-type" if the openstack
@@ -211,7 +217,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'infra_type': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_nodes(self):
         """Checks that "Jobs" is returned for "--nodes" if the openstack
@@ -220,7 +229,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'nodes': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_controllers(self):
         """Checks that "Jobs" is returned for "--controllers" if the openstack
@@ -229,7 +241,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'controllers': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_computes(self):
         """Checks that "Jobs" is returned for "--computes" if the openstack
@@ -238,7 +253,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'computes': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_services(self):
         """Checks that "Jobs" is returned for "--services" if the openstack
@@ -247,7 +265,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'services': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_ip_version(self):
         """Checks that "Jobs" is returned for "--ip-version" if the openstack
@@ -256,7 +277,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'ip_version': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_topology(self):
         """Checks that "Jobs" is returned for "--topology" if the openstack
@@ -265,7 +289,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'topology': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_dvr(self):
         """Checks that "Jobs" is returned for "--dvr" if the openstack
@@ -274,7 +301,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'dvr': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_ml2_driver(self):
         """Checks that "Jobs" is returned for "--ml2-driver" if the openstack
@@ -283,7 +313,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'ml2_driver': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_tls_everywhere(self):
         """Checks that "Jobs" is returned for "--tls-everywhere" if the
@@ -293,7 +326,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'tls_everywhere': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_ironic_inspector(self):
         """Checks that "Jobs" is returned for "--ironic-inspector" if the
@@ -303,7 +339,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'ironic_inspector': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_network_backend(self):
         """Checks that "Jobs" is returned for "--network-backend" if the
@@ -313,7 +352,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'network_backend': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_cinder_backend(self):
         """Checks that "Jobs" is returned for "--storage-backend" if the
@@ -323,7 +365,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'cinder_backend': None
         }
 
-        self.assertEqual(QueryType.JOBS, get_query_type(**args))
+        self.assertEqual(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_spec_tenants(self):
         """Checks that "Jobs" is returned for "--storage-backend" if the
@@ -335,7 +380,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'cinder_backend': None
         }
 
-        self.assertIn(QueryType.JOBS, get_query_type(**args))
+        self.assertIn(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_spec_packages(self):
         """Checks that "Jobs" is returned for "--packages" if the
@@ -347,7 +395,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'packages': None
         }
 
-        self.assertIn(QueryType.JOBS, get_query_type(**args))
+        self.assertIn(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_spec_services(self):
         """Checks that "Jobs" is returned for "--services" if the
@@ -359,7 +410,10 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'services': None
         }
 
-        self.assertIn(QueryType.JOBS, get_query_type(**args))
+        self.assertIn(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )
 
     def test_get_spec_containers(self):
         """Checks that "Jobs" is returned for "--containers" if the
@@ -371,4 +425,7 @@ class TestGetQueryTypeOpenstackPlugin(OpenstackPluginWithJobSystem):
             'containers': None
         }
 
-        self.assertIn(QueryType.JOBS, get_query_type(**args))
+        self.assertIn(
+            QueryType.JOBS | QueryType.VARIANTS,
+            get_query_type(**args)
+        )

@@ -389,6 +389,11 @@ class ScenarioInterpreter(FileInterpreter):
             backends = Backends()
             """Keys pointing to the component's backend."""
 
+        class Glance(NamedTuple):
+            """Defines all the fields related to the glance component."""
+            backend: str = 'GlanceBackend'
+            """Key pointing to the backend supporting glance."""
+
         class Neutron(NamedTuple):
             """Defines all the fields related to the neutron component.
             """
@@ -402,6 +407,8 @@ class ScenarioInterpreter(FileInterpreter):
 
         cinder: Cinder = Cinder()
         """Keys related to the cinder component."""
+        glance: Glance = Glance()
+        """Keys related to the glance component."""
         neutron: Neutron = Neutron()
         """Keys related to the neutron component."""
 
@@ -455,6 +462,8 @@ class ScenarioInterpreter(FileInterpreter):
         """
         cinder_backend: str = 'iscsi'
         """Default backend supporting cinder."""
+        glance_backend: str = 'swift'
+        """Default backend supporting glance."""
         neutron_backend: str = 'geneve'
         """Default backend supporting neutron."""
         ml2_driver: str = 'ovn'
@@ -544,6 +553,20 @@ class ScenarioInterpreter(FileInterpreter):
         backend = backends[0]
 
         return mapping[backend]
+
+    def get_glance_backend(self) -> str:
+        """
+        :return: Name of the backend behind Glance. If none is defined,
+            then this will fall back to Swift.
+        """
+        key = self.keys.glance.backend
+        default = self.defaults.glance_backend
+
+        if key not in self._parameters:
+            # The backend is not defined on the file
+            return default
+
+        return self._parameters[key]
 
     def get_neutron_backend(self) -> str:
         """

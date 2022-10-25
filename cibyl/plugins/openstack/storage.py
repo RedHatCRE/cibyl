@@ -31,11 +31,30 @@ class Storage(Model):
                                    func='get_deployment', nargs='*',
                                    description="Cinder backend used in the "
                                                "deployment")]
+        },
+        'glance_backend': {
+            'attr_type': str,
+            'arguments': [
+                Argument(
+                    name='--glance-backend', arg_type=str,
+                    func='get_deployment', nargs='*',
+                    description='Glance backend used in the deployment.'
+                )
+            ]
         }
     }
 
-    def __init__(self, cinder_backend: Optional[str] = None):
-        super().__init__({'cinder_backend': cinder_backend})
+    def __init__(
+        self,
+        cinder_backend: Optional[str] = None,
+        glance_backend: Optional[str] = None
+    ):
+        super().__init__(
+            {
+                'cinder_backend': cinder_backend,
+                'glance_backend': glance_backend
+            }
+        )
 
     def merge(self, other: 'Storage'):
         """Merge the information of two deployment objects representing the
@@ -45,3 +64,6 @@ class Storage(Model):
         """
         if not self.cinder_backend.value:
             self.cinder_backend.value = other.cinder_backend.value
+
+        if not self.glance_backend.value:
+            self.glance_backend.value = other.glance_backend.value
