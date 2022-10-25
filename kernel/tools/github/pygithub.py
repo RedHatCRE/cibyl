@@ -18,9 +18,9 @@ from github import GithubException
 from github.Repository import Repository as RepoAPIv3
 from overrides import overrides
 
-from tripleo.utils.github import GitHub as IGitHub
-from tripleo.utils.github import GitHubError
-from tripleo.utils.github import Repository as IRepository
+from kernel.tools.github import GitHub as IGitHub
+from kernel.tools.github import GitHubError
+from kernel.tools.github import Repository as IRepository
 
 
 class Repository(IRepository):

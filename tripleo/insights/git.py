@@ -20,15 +20,15 @@ from typing import Iterable, Optional, Sequence
 from cached_property import cached_property
 from overrides import overrides
 
+from kernel.tools.git import Git, GitError
+from kernel.tools.git import Repository as GitRepo
+from kernel.tools.git.gitpython import GitPython
+from kernel.tools.git.utils import get_repository_fullname
+from kernel.tools.github import GitHub, GitHubError
+from kernel.tools.github import Repository as GitHubRepo
+from kernel.tools.github.pygithub import PyGitHub
 from tripleo.insights.exceptions import DownloadError, InvalidURL
 from tripleo.utils.fs import Dir
-from tripleo.utils.git import Git, GitError
-from tripleo.utils.git import Repository as GitRepo
-from tripleo.utils.git.gitpython import GitPython
-from tripleo.utils.git.utils import get_repository_fullname
-from tripleo.utils.github import GitHub, GitHubError
-from tripleo.utils.github import Repository as GitHubRepo
-from tripleo.utils.github.pygithub import PyGitHub
 from tripleo.utils.paths import resolve_home
 from tripleo.utils.rng import get_new_uuid
 from tripleo.utils.urls import URL, is_git, is_github

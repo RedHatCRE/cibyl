@@ -15,8 +15,8 @@
 """
 from unittest import TestCase
 
-from tripleo.utils.github import GitHubError
-from tripleo.utils.github.pygithub import PyGitHub
+from kernel.tools.github import GitHubError
+from kernel.tools.github.pygithub import PyGitHub
 
 
 class TestPyGitHub(TestCase):

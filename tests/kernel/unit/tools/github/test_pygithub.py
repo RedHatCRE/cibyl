@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from tripleo.utils.github.pygithub import PyGitHub, Repository
+from kernel.tools.github.pygithub import PyGitHub, Repository
 
 
 class TestPyGitHub(TestCase):

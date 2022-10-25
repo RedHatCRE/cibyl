@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from tripleo.utils.git.gitpython import Repository
+from kernel.tools.git.gitpython import Repository
 
 
 class TestRepository(TestCase):

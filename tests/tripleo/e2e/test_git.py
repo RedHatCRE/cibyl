@@ -15,8 +15,8 @@
 """
 from unittest import TestCase
 
+from kernel.tools.git import GitError
 from tripleo.insights import DeploymentLookUp, DeploymentOutline
-from tripleo.utils.git import GitError
 from tripleo.utils.urls import URL
 
 
