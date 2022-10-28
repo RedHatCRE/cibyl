@@ -29,7 +29,7 @@ from cibyl.sources.zuul.output import QueryOutput
 from cibyl.sources.zuul.queries.composition.factory import \
     AggregatedQueryFactory
 from cibyl.sources.zuul.queries.modifiers.factory import QueryModifierFactory
-from cibyl.utils.dicts import subset
+from kernel.tools.dicts import subset
 
 
 class Zuul(ServerSource):

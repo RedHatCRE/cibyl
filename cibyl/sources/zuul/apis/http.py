@@ -21,7 +21,7 @@ from overrides import overrides
 from requests import HTTPError, Session
 
 from cibyl.sources.zuul.apis import ZuulAPIError, ZuulBuildAPI
-from cibyl.utils.io import Closeable
+from kernel.tools.io import Closeable
 
 
 class ZuulSession(Closeable):

@@ -26,8 +26,8 @@ from cibyl.outputs.cli.ci.system.utils.sorting.builds import SortBuildsByUUID
 from cibyl.outputs.cli.ci.system.utils.sorting.jobs import SortJobsByName
 from cibyl.outputs.cli.printer import ColoredPrinter
 from cibyl.utils.colors import ColorPalette, DefaultPalette
-from cibyl.utils.sorting import BubbleSortAlgorithm, SortingAlgorithm
-from cibyl.utils.strings import IndentedTextBuilder
+from kernel.tools.sorting import BubbleSortAlgorithm, SortingAlgorithm
+from kernel.tools.text import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
 

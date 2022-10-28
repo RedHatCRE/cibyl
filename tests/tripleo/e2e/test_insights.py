@@ -38,7 +38,7 @@ class TestInsights(TestCase):
         lookup = DeploymentLookUp()
         result = lookup.run(outline)
 
-        self.assertEqual('On', result.tls_everywhere)
+        self.assertEqual('On', result.components.neutron.tls_everywhere)
 
     def test_cinder_backend(self):
         """Checks that the cinder backend is extracted from a scenario
@@ -48,7 +48,7 @@ class TestInsights(TestCase):
         lookup = DeploymentLookUp()
         result = lookup.run(outline)
 
-        self.assertEqual('rbd', result.cinder_backend)
+        self.assertEqual('rbd', result.components.cinder.backend)
 
     def test_neutron_backend(self):
         """Checks that the neutron backend is extracted from a scenario
@@ -58,4 +58,4 @@ class TestInsights(TestCase):
         lookup = DeploymentLookUp()
         result = lookup.run(outline)
 
-        self.assertEqual('vxlan', result.neutron_backend)
+        self.assertEqual('vxlan', result.components.neutron.backend)

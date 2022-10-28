@@ -23,7 +23,7 @@ from cibyl.models.ci.zuul.job import Job as ZuulJob
 from cibyl.plugins import PluginTemplate
 from cibyl.plugins.openstack.deployment import Deployment
 from cibyl.plugins.openstack.printers.router import PrinterRouter
-from cibyl.utils.dicts import subset
+from kernel.tools.dicts import subset
 
 PLUGIN_ARGUMENTS = ('release', 'spec', 'infra_type', 'nodes', 'controllers',
                     'computes', 'node_name', 'role', 'containers',

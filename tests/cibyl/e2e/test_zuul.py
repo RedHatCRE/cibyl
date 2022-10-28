@@ -17,7 +17,7 @@ import sys
 from unittest import skip
 
 from cibyl.cli.main import main
-from cibyl.utils.strings import IndentedTextBuilder
+from kernel.tools.text import IndentedTextBuilder
 from tests.cibyl.e2e.containers.zuul import OpenDevZuulContainer
 from tests.cibyl.e2e.fixtures import EndToEndTest
 

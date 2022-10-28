@@ -19,7 +19,7 @@ from cibyl.plugins.openstack.ironic import Ironic
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.printers import OSPrinter
 from cibyl.plugins.openstack.storage import Storage
-from cibyl.utils.strings import IndentedTextBuilder
+from kernel.tools.text import IndentedTextBuilder
 
 
 class OSColoredPrinter(ColoredPrinter, OSPrinter):

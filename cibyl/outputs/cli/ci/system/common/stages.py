@@ -16,8 +16,8 @@
 from cibyl.models.ci.base.stage import Stage
 from cibyl.outputs.cli.ci.system.common.status import get_status_colored
 from cibyl.utils.colors import ColorPalette
-from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
+from kernel.tools.text import IndentedTextBuilder
 
 
 def print_stage(stage: Stage, palette: ColorPalette,

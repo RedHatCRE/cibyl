@@ -28,7 +28,7 @@ from cibyl.outputs.cli.ci.system.impls.jobs.colored import \
 from cibyl.outputs.cli.ci.system.impls.zuul.colored import \
     ColoredZuulSystemPrinter
 from cibyl.outputs.cli.printer import ColoredPrinter
-from cibyl.utils.strings import IndentedTextBuilder
+from kernel.tools.text import IndentedTextBuilder
 
 LOG = logging.getLogger(__name__)
 

@@ -14,7 +14,7 @@
 #    under the License.
 """
 from cibyl.models.ci.base.build import Build
-from cibyl.utils.sorting import Comparator
+from kernel.tools.sorting import Comparator
 
 
 class SortBuildsByUUID(Comparator):

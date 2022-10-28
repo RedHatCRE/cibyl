@@ -17,13 +17,13 @@ from abc import ABC
 from enum import Enum
 from typing import Dict, Iterable, NamedTuple, Optional, Sequence
 
+from kernel.tools.fs import File, cd_context_manager
+from kernel.tools.json import Draft7ValidatorFactory, JSONValidatorFactory
+from kernel.tools.yaml import YAML
 from tripleo import __path__ as tripleo_package_path
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
 from tripleo.insights.topology import Node
-from tripleo.utils.fs import File, cd_context_manager
-from tripleo.utils.json import Draft7ValidatorFactory, JSONValidatorFactory
-from tripleo.utils.yaml import YAML
 
 
 class FileInterpreter(ABC):

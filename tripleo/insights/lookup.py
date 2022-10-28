@@ -17,6 +17,9 @@ import logging
 from dataclasses import dataclass
 from typing import NamedTuple, Optional
 
+from kernel.tools.cache import Cache
+from kernel.tools.urls import URL
+from kernel.tools.yaml import YAML
 from tripleo.insights.git import GitDownload
 from tripleo.insights.interpreters import (EnvironmentInterpreter,
                                            FeatureSetInterpreter,
@@ -26,9 +29,6 @@ from tripleo.insights.interpreters import (EnvironmentInterpreter,
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
 from tripleo.insights.tripleo import THTBranchCreator, THTPathCreator
 from tripleo.insights.validation import OutlineValidator
-from tripleo.utils.cache import Cache
-from tripleo.utils.urls import URL
-from tripleo.utils.yaml import YAML
 
 LOG = logging.getLogger(__name__)
 

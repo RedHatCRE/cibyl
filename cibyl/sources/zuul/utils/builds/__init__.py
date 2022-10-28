@@ -15,7 +15,7 @@
 """
 from cibyl.sources.zuul.apis import ZuulBuildAPI as Build
 from cibyl.sources.zuul.utils.artifacts.manifest import ManifestFile
-from cibyl.utils.urls import URL
+from kernel.tools.urls import URL
 
 
 def get_url_to_build_file(build: Build, file: ManifestFile) -> URL:

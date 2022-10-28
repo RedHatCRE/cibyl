@@ -25,8 +25,8 @@ from cibyl.outputs.cli.ci.system.common.builds import (get_duration_section,
 from cibyl.outputs.cli.ci.system.common.models import (get_plugin_section,
                                                        has_plugin_section)
 from cibyl.outputs.cli.printer import ColoredPrinter
-from cibyl.utils.strings import IndentedTextBuilder
 from cibyl.utils.time import as_minutes
+from kernel.tools.text import IndentedTextBuilder
 
 
 class JobCascade(ColoredPrinter):

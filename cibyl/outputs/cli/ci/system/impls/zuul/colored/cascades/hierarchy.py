@@ -17,8 +17,8 @@ from anytree import AsciiStyle, RenderTree
 
 from cibyl.models.ci.zuul.job import Job
 from cibyl.outputs.cli.printer import ColoredPrinter
-from cibyl.utils.strings import IndentedTextBuilder
-from cibyl.utils.tree import Tree
+from kernel.tools.text import IndentedTextBuilder
+from kernel.tools.tree import Tree
 
 
 class HierarchyCascade(ColoredPrinter):

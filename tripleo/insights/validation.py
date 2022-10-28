@@ -15,9 +15,9 @@
 """
 from typing import Callable, Iterable, Optional
 
+from kernel.tools.urls import is_git
 from tripleo.insights.exceptions import InsightsError, InvalidURL
 from tripleo.insights.io import DeploymentOutline
-from tripleo.utils.urls import is_git
 
 Outline = DeploymentOutline
 Validation = Callable[[Outline], Optional[InsightsError]]

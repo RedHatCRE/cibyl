@@ -14,7 +14,7 @@
 #    under the License.
 """
 from cibyl.models.ci.base.job import Job
-from cibyl.utils.sorting import Comparator
+from kernel.tools.sorting import Comparator
 
 
 class SortJobsByName(Comparator):

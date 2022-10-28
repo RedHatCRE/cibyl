@@ -23,8 +23,8 @@ import cibyl.config
 from cibyl.config import Config, ConfigFactory
 from cibyl.exceptions.cli import AbortedByUserError
 from cibyl.exceptions.config import ConfigurationNotFound, EmptyConfiguration
-from cibyl.utils.net import DownloadError
 from cibyl.utils.yaml import encrypted_constructor, get_loader
+from kernel.tools.net import DownloadError
 
 
 class TestConfig(TestCase):

@@ -16,12 +16,12 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
+from kernel.tools.urls import URL
 from tripleo.insights.defaults import (DEFAULT_ENVIRONMENT_FILE,
                                        DEFAULT_FEATURESET_FILE,
                                        DEFAULT_NODES_FILE, DEFAULT_QUICKSTART,
                                        DEFAULT_RELEASE_FILE, DEFAULT_THT)
 from tripleo.insights.topology import Topology
-from tripleo.utils.urls import URL
 
 
 @dataclass

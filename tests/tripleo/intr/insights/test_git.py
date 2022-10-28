@@ -15,8 +15,8 @@
 """
 from unittest import TestCase
 
+from kernel.tools.urls import URL
 from tripleo.insights.git import GitCLIDownloader, GitDownloaderFetcher
-from tripleo.utils.urls import URL
 
 
 class TestGitDownloaderFetcher(TestCase):

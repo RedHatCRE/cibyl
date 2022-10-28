@@ -38,8 +38,6 @@ from cibyl.plugins.openstack.utils import translate_topology_string
 from cibyl.sources.jenkins import LOG, detect_job_info_regex, filter_jobs
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
-from cibyl.utils.dicts import subset
-from cibyl.utils.files import get_file_name_from_path
 from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
                                    IP_PATTERN, NETWORK_BACKEND_PATTERN,
                                    RELEASE_PATTERN, SERVICES_PATTERN,
@@ -47,6 +45,8 @@ from cibyl.utils.filtering import (DEPLOYMENT_PATTERN, DVR_PATTERN_NAME,
                                    filter_topology,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
+from kernel.tools.dicts import subset
+from kernel.tools.files import get_file_name_from_path
 
 # shorthand for the type that will hold the job information obtained from the
 # Jenkins API response
