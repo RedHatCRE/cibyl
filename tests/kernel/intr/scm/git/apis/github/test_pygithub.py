@@ -15,8 +15,8 @@
 """
 from unittest import TestCase
 
-from kernel.git.apis.github import GitHubError
-from kernel.git.apis.github.pygithub import PyGitHub
+from kernel.scm.git.apis.github import GitHubError
+from kernel.scm.git.apis.github.pygithub import PyGitHub
 
 
 class TestPyGitHub(TestCase):

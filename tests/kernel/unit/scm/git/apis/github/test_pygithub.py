@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from kernel.git.apis.github.pygithub import PyGitHub, Repository
+from kernel.scm.git.apis.github.pygithub import PyGitHub, Repository
 
 
 class TestPyGitHub(TestCase):

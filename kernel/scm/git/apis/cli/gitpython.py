@@ -22,10 +22,10 @@ from git import Remote as RemoteAPI
 from git import Repo as RepoAPI
 from overrides import overrides
 
-from kernel.git.apis.cli import Git as IGit
-from kernel.git.apis.cli import GitError
-from kernel.git.apis.cli import Remote as IRemote
-from kernel.git.apis.cli import Repository as IRepository
+from kernel.scm.git.apis.cli import Git as IGit
+from kernel.scm.git.apis.cli import GitError
+from kernel.scm.git.apis.cli import Remote as IRemote
+from kernel.scm.git.apis.cli import Repository as IRepository
 from kernel.tools.fs import Dir, File
 from kernel.tools.urls import URL
 

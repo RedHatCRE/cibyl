@@ -18,9 +18,9 @@ from github import GithubException
 from github.Repository import Repository as RepoAPIv3
 from overrides import overrides
 
-from kernel.git.apis.github import GitHub as IGitHub
-from kernel.git.apis.github import GitHubError
-from kernel.git.apis.github import Repository as IRepository
+from kernel.scm.git.apis.github import GitHub as IGitHub
+from kernel.scm.git.apis.github import GitHubError
+from kernel.scm.git.apis.github import Repository as IRepository
 
 
 class Repository(IRepository):
