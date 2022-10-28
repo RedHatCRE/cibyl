@@ -14,7 +14,7 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 from kernel.scm.tools.fs import UUIDFactory, WorkspaceFactory
 
