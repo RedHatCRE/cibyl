@@ -15,8 +15,8 @@
 """
 from unittest import TestCase
 
-from kernel.tools.github import GitHubError
-from kernel.tools.github.pygithub import PyGitHub
+from kernel.scm.git.apis.github import GitHubError
+from kernel.scm.git.apis.github.pygithub import PyGitHub
 
 
 class TestPyGitHub(TestCase):
@@ -48,5 +48,5 @@ class TestPyGitHub(TestCase):
         repo = github.get_repository('rhos-infra', 'cibyl')
         result = repo.download_as_text('README.rst')
 
-        with open('README.rst', 'r') as readme:
-            self.assertEquals(result, readme.read())
+        with open('README.rst', mode='r', encoding='utf-8') as readme:
+            self.assertEqual(result, readme.read())

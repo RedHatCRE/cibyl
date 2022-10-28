@@ -20,14 +20,14 @@ from typing import Iterable, Optional, Sequence
 from cached_property import cached_property
 from overrides import overrides
 
+from kernel.scm.git.apis.cli import Git, GitError
+from kernel.scm.git.apis.cli import Repository as GitRepo
+from kernel.scm.git.apis.cli.gitpython import GitPython
+from kernel.scm.git.apis.github import GitHub, GitHubError
+from kernel.scm.git.apis.github import Repository as GitHubRepo
+from kernel.scm.git.apis.github.pygithub import PyGitHub
+from kernel.scm.git.apis.utils import get_repository_fullname
 from kernel.tools.fs import Dir
-from kernel.tools.git import Git, GitError
-from kernel.tools.git import Repository as GitRepo
-from kernel.tools.git.gitpython import GitPython
-from kernel.tools.git.utils import get_repository_fullname
-from kernel.tools.github import GitHub, GitHubError
-from kernel.tools.github import Repository as GitHubRepo
-from kernel.tools.github.pygithub import PyGitHub
 from kernel.tools.paths import resolve_home
 from kernel.tools.rng import get_new_uuid
 from kernel.tools.urls import URL, is_git, is_github

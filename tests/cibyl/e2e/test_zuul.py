@@ -150,7 +150,7 @@ class TestQueryLevel(EndToEndTest):
         main()
 
         self.assertIn(
-            "Total jobs found in query for tenant 'example-tenant': 65",
+            "Total jobs found in query for tenant 'example-tenant': 66",
             self.stdout
         )
 

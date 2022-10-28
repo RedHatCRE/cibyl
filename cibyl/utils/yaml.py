@@ -30,16 +30,16 @@ def parse(file: str) -> dict:
     :raises YAMLError: If the file failed to be loaded.
     """
     try:
-        with open(file, 'r', encoding='utf8') as buffer:
+        with open(file, 'r', encoding='utf-8') as buffer:
             return yaml.safe_load(buffer)
     except (OSError, YAMLLoadError) as ex:
         raise YAMLError(f"Failed to parse file: '{file}'") from ex
 
 
-def encrypted_constructor(loader: yaml.SafeLoader,
-                          node: yaml.nodes.MappingNode):
+def encrypted_constructor(_loader: yaml.SafeLoader,
+                          _node: yaml.nodes.MappingNode):
     """
-    Construct an ecrypted token.
+    Construct an encrypted token.
     """
     return ""
 
