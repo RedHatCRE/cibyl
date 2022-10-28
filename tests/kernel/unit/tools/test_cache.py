@@ -83,3 +83,30 @@ class TestCache(TestCase):
         self.assertEqual(value, cache.get(key))
 
         loader.assert_not_called()
+
+    def test_deletes_entry(self):
+        """Checks that it is possible to remove an entry from the cache.
+        """
+        key = 0
+        value = 'some-text'
+
+        loader = Mock()
+
+        cache = Cache[int, str](
+            loader=loader,
+            storage={
+                key: value
+            }
+        )
+
+        self.assertTrue(cache.has(key))
+
+        # Check that I can remove the entry
+        cache.delete(key)
+
+        self.assertFalse(cache.has(key))
+
+        # Check that nothing happens when I remove again
+        cache.delete(key)
+
+        self.assertFalse(cache.has(key))

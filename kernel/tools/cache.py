@@ -99,6 +99,17 @@ class Cache(Generic[K, V]):
 
         return self.storage[key]
 
+    def delete(self, key: K) -> None:
+        """Deletes an entry in the cache. Does nothing if the entry already
+        does not exist.
+
+        :param key: Key to the entry to remove.
+        """
+        if key not in self.storage:
+            return
+
+        del self.storage[key]
+
     def _load(self, key: K) -> None:
         """Retrieves a value from the datastore and stores it in this.
 
