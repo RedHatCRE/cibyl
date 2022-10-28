@@ -21,8 +21,9 @@ from unittest.mock import MagicMock, Mock, PropertyMock, patch
 from cibyl.cli.argument import Argument
 from cibyl.exceptions.jenkins import JenkinsError
 from cibyl.exceptions.source import MissingArgument, SourceException
-from cibyl.sources.jenkins import (Jenkins, filter_builds, filter_jobs,
-                                   get_build_filters, safe_request)
+from cibyl.sources.jenkins import (Jenkins, LastBuildEnum, filter_builds,
+                                   filter_jobs, get_build_filters,
+                                   safe_request)
 
 
 class TestSafeRequestJenkinsError(TestCase):
@@ -288,6 +289,54 @@ class TestJenkinsSource(TestCase):
         self.jenkins.send_request = Mock(side_effect=[response])
 
         jobs = self.jenkins.get_last_build()
+        self.assertEqual(len(jobs), 1)
+        job = jobs["ansible"]
+        self.assertEqual(job.name.value, "ansible")
+        self.assertEqual(job.url.value, "url1")
+        self.assertEqual(len(job.builds.value), 1)
+        build = job.builds.value["1"]
+        self.assertEqual(build.build_id.value, "1")
+        self.assertEqual(build.status.value, "SUCCESS")
+
+    def test_get_last_completed_build(self):
+        """
+            Tests that the internal logic from
+            :meth:`Jenkins.get_last_completed_build` is correct.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1',
+                              'lastSuccessfulBuild': {'number': 1,
+                                                      'result': "SUCCESS"}
+                              }]}
+        self.jenkins.send_request = Mock(side_effect=[response])
+
+        kind = LastBuildEnum.lastCompletedBuild
+        jobs = self.jenkins.get_last_build(kind=kind)
+        self.assertEqual(len(jobs), 1)
+        job = jobs["ansible"]
+        self.assertEqual(job.name.value, "ansible")
+        self.assertEqual(job.url.value, "url1")
+        self.assertEqual(len(job.builds.value), 1)
+        build = job.builds.value["1"]
+        self.assertEqual(build.build_id.value, "1")
+        self.assertEqual(build.status.value, "SUCCESS")
+
+    def test_get_last_completed_build_from_get_builds(self):
+        """
+            Tests that the internal logic from
+            :meth:`Jenkins.get_builds` handles the case for
+            --last-completed-build.
+        """
+        response = {'jobs': [{'_class': 'org..job.WorkflowRun',
+                              'name': "ansible", 'url': 'url1',
+                              'lastSuccessfulBuild': {'number': 1,
+                                                      'result': "SUCCESS"}
+                              }]}
+        self.jenkins.send_request = Mock(side_effect=[response])
+        build_arg = Argument("last_completed_build", arg_type=str,
+                             description="", value=[])
+
+        jobs = self.jenkins.get_builds(last_completed_build=build_arg)
         self.assertEqual(len(jobs), 1)
         job = jobs["ansible"]
         self.assertEqual(job.name.value, "ansible")
