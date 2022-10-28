@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from kernel.tools.git.gitpython import Repository
+from kernel.git.apis.cli.gitpython import Repository
 
 
 class TestRepository(TestCase):

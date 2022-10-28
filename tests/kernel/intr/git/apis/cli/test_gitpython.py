@@ -16,8 +16,8 @@
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
+from kernel.git.apis.cli.gitpython import GitPython
 from kernel.tools.fs import Dir
-from kernel.tools.git.gitpython import GitPython
 from kernel.tools.urls import URL
 
 

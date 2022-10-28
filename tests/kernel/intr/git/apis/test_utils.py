@@ -15,7 +15,7 @@
 """
 from unittest import TestCase
 
-from kernel.tools.git.utils import get_repository_fullname
+from kernel.git.apis.utils import get_repository_fullname
 from kernel.tools.urls import URL
 
 
