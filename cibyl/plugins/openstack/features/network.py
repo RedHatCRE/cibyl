@@ -14,6 +14,7 @@
 #    under the License.
 """
 import logging
+from typing import Dict
 
 from cibyl.cli.argument import Argument
 from cibyl.features import FeatureDefinition
@@ -30,7 +31,7 @@ class HA(OpenstackFeatureTemplate, FeatureDefinition):
     def __init__(self):
         super().__init__(self.name)
 
-    def get_template_args(self):
+    def get_template_args(self) -> Dict[str, Argument]:
         """Get the arguments necessary to obtain the information that defines
         the feature."""
         ha_arg = Argument("controllers", arg_type=str,
@@ -48,7 +49,7 @@ class IPV4(OpenstackFeatureTemplate, FeatureDefinition):
     def __init__(self):
         super().__init__(self.name)
 
-    def get_template_args(self):
+    def get_template_args(self) -> Dict[str, Argument]:
         """Get the arguments necessary to obtain the information that defines
         the feature."""
         ip_arg = Argument("ip_version", arg_type=str,
@@ -66,7 +67,7 @@ class IPV6(OpenstackFeatureTemplate, FeatureDefinition):
     def __init__(self):
         super().__init__(self.name)
 
-    def get_template_args(self):
+    def get_template_args(self) -> Dict[str, Argument]:
         """Get the arguments necessary to obtain the information that defines
         the feature."""
         ip_arg = Argument("ip_version", arg_type=str,
@@ -84,7 +85,7 @@ class DVR(OpenstackFeatureTemplate, FeatureDefinition):
     def __init__(self):
         super().__init__(self.name)
 
-    def get_template_args(self):
+    def get_template_args(self) -> Dict[str, Argument]:
         """Get the arguments necessary to obtain the information that defines
         the feature."""
         dvr_arg = Argument("dvr", arg_type=str,
