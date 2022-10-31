@@ -71,6 +71,13 @@ Arguments Matrix
      - |:ballot_box_with_check:|
      - |:x:|
      - |:x:|
+   * - --last-completed-build
+     - | The last non-failed build of a job
+     - |:ballot_box_with_check:|
+     - |:ballot_box_with_check:|
+     - |:black_square_button:|
+     - |:x:|
+     - |:x:|
    * - --build-status
      - | Build status (default: all)
        | failure, success,

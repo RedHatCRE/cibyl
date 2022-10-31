@@ -18,6 +18,7 @@ import json
 import logging
 import re
 from datetime import datetime, timezone
+from enum import Enum
 from functools import partial
 from typing import Callable, Dict, List
 from urllib.parse import urlparse
@@ -210,6 +211,14 @@ def get_start_time_from_epoch(epoch_time: str) -> str:
     return str(start_time.isoformat(sep=" ", timespec="seconds"))
 
 
+class LastBuildEnum(str, Enum):
+    lastBuild = "lastBuild"
+    # Jenkins meaning of lastCompletedBuild is slightly different from what we
+    # have used, lastCompletedBuild will return also builds that failed,
+    # lastSuccessfulBuild is what we want
+    lastCompletedBuild = "lastSuccessfulBuild"
+
+
 # pylint: disable=no-member
 class Jenkins(ServerSource):
     """A class representation of Jenkins client."""
@@ -222,7 +231,7 @@ class Jenkins(ServerSource):
             3: "?tree=allBuilds[number,result,duration,timestamp]"
             }
     jobs_last_build_query = \
-        "?tree=jobs[name,url,lastBuild[number,result,timestamp]]"
+        "?tree=jobs[name,url,{}[number,result,timestamp]]"
     jobs_query_for_deployment = \
         "?tree=jobs[name,url,lastSuccessfulBuild[number,result,description]]"
 
@@ -372,6 +381,9 @@ class Jenkins(ServerSource):
 
         if 'last_build' in kwargs:
             return self.get_last_build(**kwargs)
+        if 'last_completed_build' in kwargs:
+            return self.get_last_build(kind=LastBuildEnum.lastCompletedBuild,
+                                       **kwargs)
         jobs_found = self.get_jobs(**kwargs)
         build_filters = get_build_filters(**kwargs)
         filtering_builds = bool(build_filters)
@@ -411,16 +423,23 @@ try reducing verbosity for quicker query")
         jobs_found.value = jobs_with_builds
         return jobs_found
 
-    def get_last_build(self, **kwargs):
+    def get_last_build(self, kind: LastBuildEnum = LastBuildEnum.lastBuild,
+                       **kwargs):
         """
             Get last build for jobs from jenkins server.
 
+            :param kind: category of last build defined by jenkins, default is
+            'lastBuild' which will return the last build that ran, others are
+            lastSuccessfulBuild, which will return the last build that did not
+            fail, or lastUnstableBuild, which will return the last build that
+            was unstable
             :returns: container of jobs with build information from
             jenkins server
             :rtype: :class:`AttributeDictValue`
         """
 
-        jobs_found = self.send_request(self.jobs_last_build_query)["jobs"]
+        query_string = self.jobs_last_build_query.format(kind)
+        jobs_found = self.send_request(query_string)["jobs"]
         jobs_filtered = filter_jobs(jobs_found, **kwargs)
         build_filters = get_build_filters(**kwargs)
         filtering_builds = bool(build_filters)
@@ -430,8 +449,8 @@ try reducing verbosity for quicker query")
             name = job.get('name')
 
             job_object = Job(name=name, url=job.get('url'))
-            if job["lastBuild"]:
-                builds_to_add = filter_builds([job["lastBuild"]],
+            if job[kind]:
+                builds_to_add = filter_builds([job[kind]],
                                               build_filters)
                 for build in builds_to_add:
                     build_stages = None
