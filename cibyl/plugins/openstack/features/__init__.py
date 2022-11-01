@@ -26,5 +26,5 @@ class OpenstackFeatureTemplate(FeatureTemplate):
     def __init__(self, name: str):
         self.name = name
 
-    def get_method_to_query(self):
+    def get_method_to_query(self) -> str:
         return "get_deployment"

@@ -31,7 +31,8 @@ from cibyl.cli.validator import Validator
 from cibyl.config import AppConfig
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.source import NoSupportedSourcesFound, SourceException
-from cibyl.features import get_feature, get_string_all_features, load_features
+from cibyl.features import (FeatureDefinition, get_feature,
+                            get_string_all_features, load_features)
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.environment import Environment
 from cibyl.models.ci.base.system import JobsSystem, System
@@ -146,7 +147,7 @@ class Orchestrator:
         validator = Validator(self.parser.ci_args)
         self.environments = validator.validate_environments(self.environments)
 
-    def load_features(self) -> list:
+    def load_features(self) -> List[FeatureDefinition]:
         """Read user-requested features and setup the right argument to query
         the information for them."""
         user_features = self.parser.app_args.get('features')
@@ -168,7 +169,8 @@ class Orchestrator:
         return [get_feature(feature_name)
                 for feature_name in user_features]
 
-    def run_features(self, system: System, features_to_run: list) -> None:
+    def run_features(self, system: System,
+                     features_to_run: List[FeatureDefinition]) -> None:
         """Run user-requested features, the output of each feature will be
         stored in the system attributes. This output can either be
         whether the feature is tested in the system or jobs where the feature
@@ -369,7 +371,8 @@ class Orchestrator:
 
     def query_and_publish(self, output_path: Optional[str] = None,
                           output_style: OutputStyle = OutputStyle.COLORIZED,
-                          features: Optional[list] = None) -> None:
+                          features: Optional[List[FeatureDefinition]] = None
+                          ) -> None:
         """Iterate over the environments and their systems and publish
         the results of the queries.
 

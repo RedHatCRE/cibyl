@@ -14,6 +14,7 @@
 #    under the License.
 """
 import logging
+from typing import Dict
 
 from cibyl.cli.argument import Argument
 from cibyl.features import FeatureDefinition
@@ -30,7 +31,7 @@ class Inspector(OpenstackFeatureTemplate, FeatureDefinition):
     def __init__(self):
         super().__init__(self.name)
 
-    def get_template_args(self):
+    def get_template_args(self) -> Dict[str, Argument]:
         """Get the arguments necessary to obtain the information that defines
         the feature."""
         inspector_arg = Argument("ironic_inspector", arg_type=str,
