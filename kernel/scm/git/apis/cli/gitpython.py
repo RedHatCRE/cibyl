@@ -79,19 +79,26 @@ class Repository(IRepository):
         self.close()
 
     @property
+    @overrides
+    def branch(self) -> str:
+        return self.handler.active_branch.name
+
+    @property
+    @overrides
+    def remotes(self) -> Iterable[Remote]:
+        return [Remote(remote) for remote in self.handler.remotes]
+
+    @property
+    @overrides
+    def workspace(self) -> Dir:
+        return Dir(self.handler.working_dir)
+
+    @property
     def handler(self) -> RepoAPI:
         """
         :return: Session used to interact with the repository.
         """
         return self._handler
-
-    @property
-    def branch(self) -> str:
-        return self.handler.active_branch.name
-
-    @property
-    def remotes(self) -> Iterable[Remote]:
-        return [Remote(remote) for remote in self.handler.remotes]
 
     @overrides
     def checkout(self, branch: str) -> None:
