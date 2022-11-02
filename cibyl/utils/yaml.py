@@ -34,20 +34,3 @@ def parse(file: str) -> dict:
             return yaml.safe_load(buffer)
     except (OSError, YAMLLoadError) as ex:
         raise YAMLError(f"Failed to parse file: '{file}'") from ex
-
-
-def encrypted_constructor(_loader: yaml.SafeLoader,
-                          _node: yaml.nodes.MappingNode):
-    """
-    Construct an encrypted token.
-    """
-    return ""
-
-
-def get_loader():
-    """
-    Add constructors to PyYAML loader.
-    """
-    loader = yaml.SafeLoader
-    loader.add_constructor("!encrypted/pkcs1-oaep", encrypted_constructor)
-    return loader

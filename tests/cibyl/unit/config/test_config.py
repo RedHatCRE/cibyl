@@ -17,13 +17,10 @@ from tempfile import NamedTemporaryFile
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-import yaml
-
 import cibyl.config
 from cibyl.config import Config, ConfigFactory
 from cibyl.exceptions.cli import AbortedByUserError
 from cibyl.exceptions.config import ConfigurationNotFound, EmptyConfiguration
-from cibyl.utils.yaml import encrypted_constructor, get_loader
 from kernel.tools.net import DownloadError
 
 
@@ -58,24 +55,6 @@ class TestConfig(TestCase):
                 yaml_patched.parse.assert_called_with(config_file.name)
 
             self.assertEqual(config, yaml_return)
-
-    def test_encrypted_constructor(self):
-        self.assertEqual('', encrypted_constructor(yaml.SafeLoader,
-                                                   yaml.Node))
-
-    def test_yaml_loader(self):
-        yaml_text = """
----
-- secret:
-    name: ansible_galaxy_info_tripleo_ci
-    data:
-      url: https://galaxy.ansible.com
-      token: !encrypted/pkcs1-oaep
-        - asdjflasdj
-        """
-        data = yaml.load(yaml_text, Loader=get_loader())
-        self.assertIn('secret', data[0].keys())
-        self.assertIs('', data[0]['secret']['data']['token'])
 
 
 class TestConfigFromSearch(TestCase):

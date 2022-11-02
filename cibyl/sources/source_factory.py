@@ -25,7 +25,6 @@ from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 from cibyl.sources.server import ServerSource
 from cibyl.sources.zuul.source import Zuul
-from cibyl.sources.zuuld.source import ZuulD
 
 LOG = logging.getLogger(__name__)
 
@@ -92,9 +91,6 @@ with plugin source")
 
             if source_type == SourceType.JENKINS_JOB_BUILDER:
                 return JenkinsJobBuilder(name=name, **kwargs)
-
-            if source_type == SourceType.ZUUL_D:
-                return ZuulD(name=name, **kwargs)
         except TypeError as ex:
             re_unexpected_arg = re.search(r'unexpected keyword argument (.*)',
                                           ex.args[0])
