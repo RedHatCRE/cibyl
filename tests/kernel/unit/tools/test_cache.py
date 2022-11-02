@@ -16,11 +16,11 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from kernel.tools.cache import Cache, CacheError
+from kernel.tools.cache import CacheError, RTCache
 
 
-class TestCache(TestCase):
-    """Tests for :class:`Cache`.
+class TestRTCache(TestCase):
+    """Tests for :class:`RTCache`.
     """
 
     def test_error_on_none(self):
@@ -32,7 +32,7 @@ class TestCache(TestCase):
         loader = Mock()
         loader.return_value = None
 
-        cache = Cache[int, str](
+        cache = RTCache[int, str](
             loader=loader,
             storage=None
         )
@@ -52,7 +52,7 @@ class TestCache(TestCase):
         loader = Mock()
         loader.return_value = value
 
-        cache = Cache[int, str](
+        cache = RTCache[int, str](
             loader=loader,
             storage=None
         )
@@ -72,7 +72,7 @@ class TestCache(TestCase):
 
         loader = Mock()
 
-        cache = Cache[int, str](
+        cache = RTCache[int, str](
             loader=loader,
             storage={
                 key: value
@@ -80,6 +80,27 @@ class TestCache(TestCase):
         )
 
         self.assertTrue(cache.get(key))
+        self.assertEqual(value, cache.get(key))
+
+        loader.assert_not_called()
+
+    def test_puts_data_from_user(self):
+        """Checks that it is possible to modify the cache directly, without
+        having to go through the datastore.
+        """
+        key = 0
+        value = 'some-text'
+
+        loader = Mock()
+
+        cache = RTCache[int, str](
+            loader=loader,
+            storage={}
+        )
+
+        cache.put(key, value)
+
+        self.assertTrue(cache.has(key))
         self.assertEqual(value, cache.get(key))
 
         loader.assert_not_called()
@@ -92,7 +113,7 @@ class TestCache(TestCase):
 
         loader = Mock()
 
-        cache = Cache[int, str](
+        cache = RTCache[int, str](
             loader=loader,
             storage={
                 key: value

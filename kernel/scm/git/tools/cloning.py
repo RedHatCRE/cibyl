@@ -14,14 +14,13 @@
 #    under the License.
 """
 import logging
-
 from dataclasses import dataclass, field
 from typing import Optional
 
 from kernel.scm.git.apis.cli import Git, GitError, Repository
 from kernel.scm.git.apis.cli.gitpython import GitPython
 from kernel.scm.tools.fs import WorkspaceFactory
-from kernel.tools.cache import Cache
+from kernel.tools.cache import Cache, RTCache
 from kernel.tools.fs import Dir
 from kernel.tools.urls import URL
 
@@ -61,7 +60,7 @@ class RepositoryFactory:
         tools: Optional[Tools] = None
     ):
         if memory is None:
-            memory = Cache(
+            memory = RTCache[URL, Dir](
                 loader=lambda *_: self.tools.workspaces.new_workspace()
             )
 
