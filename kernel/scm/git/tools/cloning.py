@@ -47,18 +47,28 @@ class RepositoryFactory:
 
     @dataclass
     class Tools:
+        """Tools this uses to do its task.
+        """
         git: Git = field(
             default_factory=lambda *_: GitPython()
         )
+        """API with which to interact with Git's CLI."""
         workspaces: WorkspaceFactory = field(
             default_factory=lambda *_: WorkspaceFactory()
         )
+        """Tool used to create directories where to clone repositories into."""
 
     def __init__(
         self,
         memory: Optional[Cache[URL, Dir]] = None,
         tools: Optional[Tools] = None
     ):
+        """Constructor.
+
+        :param memory: Cache that remembers where repositories where cloned
+            into. 'None' to let this create its own.
+        :param tools: Tools this uses to do its task.
+        """
         if memory is None:
             memory = RTCache[URL, Dir](
                 loader=lambda *_: self.tools.workspaces.new_workspace()
@@ -72,13 +82,38 @@ class RepositoryFactory:
 
     @property
     def memory(self) -> Cache[URL, Dir]:
+        """
+        :return: Cache that remembers where repositories where cloned
+            into. Keys are remote urls, while values are the directory where
+            the remote got cloned into.
+        """
         return self._memory
 
     @property
     def tools(self) -> Tools:
+        """
+        :return: Tools this uses to do its task.
+        """
         return self._tools
 
     def from_remote(self, url: URL) -> Repository:
+        """Clones, or opens, a session to a git repository.
+
+        If the repository is not present on the file system, then this will
+        take care of cloning it. If it is, then this will try to open the
+        repository again instead, saving the cost of downloading it. In case
+        the 'open' operation fails, the repository is cloned again at a
+        different location.
+
+        The intention of this is to try anything possible, within reason, to
+        get a session to the repository up and running.
+
+        :param url: URL to the git remote to open session to. Only
+            HTTP/HTTPS is supported.
+        :return: An open session to that repository.
+        :raises GitError:
+            If a session to the repository could not be established.
+        """
         workspace = self.memory.get(url)
 
         # Check if the workspace is brand new...
