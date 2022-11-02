@@ -14,7 +14,7 @@
 #    under the License.
 """
 import sys
-from unittest import TestCase
+from unittest import TestCase, skip
 
 from cibyl.cli.main import main
 from tests.cibyl.e2e.containers.httpd import HTTPDContainer
@@ -157,6 +157,7 @@ class TestSchema(EndToEndTest):
 
         self.assertEqual(expected, self.stdout)
 
+    @skip('To be enabled after zuuld is implemented')
     def test_zuuld_local_configuration(self):
         """Checks that the example for a zuuld source gets a pass.
         """
@@ -176,6 +177,7 @@ class TestSchema(EndToEndTest):
 
         self.assertEqual(expected, self.stdout)
 
+    @skip('To be enabled after zuuld is implemented')
     def test_zuuld_remote_configuration(self):
         """Checks that the example for a zuuld source gets a pass.
         """
