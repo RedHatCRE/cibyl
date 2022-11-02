@@ -81,6 +81,36 @@ class TestDir(TestCase):
                 directory.cd(subfolder)
             )
 
+    def test_ls(self):
+        """Checks that it can list a directory containing other directories
+        and files.
+        """
+        subfile = 'subfile.txt'
+
+        subfolder = 'subfolder'
+        subsubfile = 'subsubfile.txt'
+
+        with TemporaryDirectory() as folder:
+            directory = Dir(folder)
+
+            directory.touch(name=subfile)
+            directory.cd(subfolder).mkdir(recursive=True)
+            directory.cd(subfolder).touch(name=subsubfile)
+
+            result = list(directory.ls())
+
+            self.assertEqual(2, len(result))
+
+            self.assertEqual(
+                Dir(directory.as_path() / subfolder),
+                result[0]
+            )
+
+            self.assertEqual(
+                File(directory.as_path() / subfile),
+                result[1]
+            )
+
     def test_mkdir_error(self):
         """Checks that an error is raised if the directory's parents do not
         exist.
@@ -129,6 +159,28 @@ class TestDir(TestCase):
 
             self.assertFalse(directory.exists())
 
+    def test_touch(self):
+        """Checks that it is possible to create a file through the API.
+        """
+        file = 'test.txt'
+        content = 'hello world'
+
+        with TemporaryDirectory() as folder:
+            directory = Dir(folder)
+
+            file = File(directory.as_path() / file)
+
+            self.assertFalse(file.exists())
+
+            directory.touch(
+                name=file,
+                content=content
+            )
+
+            self.assertTrue(file.exists())
+
+            self.assertEqual(content, file.read())
+
     def test_as_path(self):
         """Checks that the type can be converted into a path.
         """
@@ -151,6 +203,19 @@ class TestDir(TestCase):
 class TestFile(TestCase):
     """Tests for :class:`File`.
     """
+
+    def test_read(self):
+        """Checks that it is possible to read the contents of the file.
+        """
+        content = 'hello world!'
+
+        with NamedTemporaryFile(mode='w') as buffer:
+            buffer.write(content)
+            buffer.flush()
+
+            file = File(buffer.name)
+
+            self.assertEqual(content, file.read())
 
     def test_check_exists(self):
         """Checks that an error is thrown if the file does not exist.

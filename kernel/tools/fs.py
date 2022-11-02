@@ -18,7 +18,7 @@ from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from os import PathLike, chdir, getcwd
 from pathlib import Path
-from typing import Generator, Union
+from typing import Generator, Iterable, Union
 
 from overrides import overrides
 
@@ -117,6 +117,27 @@ class Dir(FSPath):
         """
         return Dir(self.as_path() / path)
 
+    def ls(self) -> Iterable[FSPath]:
+        """Lists directory contents.
+
+        :return: Collection containing the absolute path to all elements
+            below this directory.
+        """
+        result = []
+
+        for path in self.as_path().glob("*"):
+            if path.is_dir():
+                result.append(Dir(path))
+                continue
+
+            if path.is_file():
+                result.append(File(path))
+                continue
+
+            raise IOError(f"Unknown type for path: '{path}'.")
+
+        return result
+
     def mkdir(self, recursive: bool = False) -> None:
         """Creates the directory on the filesystem. Will do nothing if the
         folder already exists.
@@ -134,6 +155,20 @@ class Dir(FSPath):
         """
         shutil.rmtree(self)
 
+    def touch(self, name: str, content: str = '') -> 'File':
+        """Creates a new file on the directory.
+
+        :param name: Name of the file.
+        :param content: Text the file will be created with.
+        :return: Path to the created file.
+        """
+        path = self.as_path() / name
+
+        with path.open('w', encoding='utf-8') as file:
+            file.write(content)
+
+        return File(path)
+
 
 class File(FSPath):
     """Represents a file on the filesystem.
@@ -148,3 +183,14 @@ class File(FSPath):
     @overrides
     def exists(self) -> bool:
         return self.as_path().is_file()
+
+    def read(self) -> str:
+        """Gets contents from the file.
+
+        This function assumes that the file is text-based and, for that
+        matter, not binary.
+
+        :return: Text stored within the file.
+        """
+        with self.as_path().open('r', encoding='utf-8') as file:
+            return file.read()
