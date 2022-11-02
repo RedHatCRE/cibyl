@@ -19,11 +19,13 @@ import re
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from inspect import isclass
-from typing import Optional, Type, Union
+from typing import Dict, Optional
 
+from cibyl.cli.argument import Argument
 from cibyl.exceptions.cli import InvalidArgument
 from cibyl.exceptions.features import MissingFeature
 from cibyl.exceptions.source import NoSupportedSourcesFound, SourceException
+from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.system import System
 from cibyl.sources.source import (get_source_instance_from_method,
                                   select_source_method,
@@ -103,7 +105,13 @@ def get_string_all_features() -> str:
     return msg
 
 
-def get_feature(name_feature: str) -> Type:
+class FeatureDefinition:
+    """Flag that indicates that the class is meant to define a Cibyl
+    feature.
+    """
+
+
+def get_feature(name_feature: str) -> FeatureDefinition:
     """Get the function associated with the given feature name
 
     :param name_feature: Name of the feature
@@ -126,12 +134,6 @@ def get_feature(name_feature: str) -> Type:
     return feature_class()
 
 
-class FeatureDefinition:
-    """Flag that indicates that the class is meant to define a Cibyl
-    feature.
-    """
-
-
 class FeatureTemplate(ABC):
     """Skeleton for a generic feature, this is meant to provide a few helpful
     methods to write features. If the query method of this class will be used,
@@ -145,18 +147,18 @@ class FeatureTemplate(ABC):
         self.name = name
 
     @abstractmethod
-    def get_method_to_query(self):
+    def get_method_to_query(self) -> str:
         """Get the source method that will be called to obtain the information
         that defines the feature."""
         pass
 
     @abstractmethod
-    def get_template_args(self):
+    def get_template_args(self) -> Dict[str, Argument]:
         """Get the arguments necessary to obtain the information that defines
         the feature."""
         pass
 
-    def query(self, system: System, **kwargs) -> Union[dict, None]:
+    def query(self, system: System, **kwargs) -> Optional[AttributeDictValue]:
         """Execute the sources query that would provide the information that
         defines the feature."""
         debug = kwargs.get("debug", False)
