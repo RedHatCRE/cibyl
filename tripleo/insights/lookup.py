@@ -17,7 +17,7 @@ import logging
 from dataclasses import dataclass
 from typing import NamedTuple, Optional
 
-from kernel.tools.cache import Cache
+from kernel.tools.cache import Cache, RTCache
 from kernel.tools.urls import URL
 from kernel.tools.yaml import YAML
 from tripleo.insights.git import GitDownload
@@ -146,7 +146,7 @@ class DeploymentLookUp:
     ):
         """Constructor.
 
-        :param cache: Storage where resources this uses are contained in.
+        :param cache: Storage where resources are contained in.
             'None' to allow this to create its own.
         :param scenarios: Utility used to create scenario interpreters from
             complex inputs. 'None' to allow this to create its own.
@@ -160,7 +160,7 @@ class DeploymentLookUp:
                     branch=resource.branch
                 )
 
-            cache = Cache[Resource, YAML](
+            cache = RTCache[Resource, YAML](
                 loader=loader,
                 storage=None  # Let the cache set up its own container
             )

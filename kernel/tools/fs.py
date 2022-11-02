@@ -118,12 +118,13 @@ class Dir(FSPath):
         return Dir(self.as_path() / path)
 
     def mkdir(self, recursive: bool = False) -> None:
-        """Creates the directory on the filesystem.
+        """Creates the directory on the filesystem. Will do nothing if the
+        folder already exists.
 
         :param recursive: Whether to also create missing directories
             leading to this one or not.
         :raises FileNotFoundError: If the parents on the directory do not
-            exist. Can only happen if 'recursive" is False.
+            exist. Can only happen if 'recursive' is False.
         """
         self.as_path().mkdir(parents=recursive, exist_ok=True)
 

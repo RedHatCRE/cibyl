@@ -67,6 +67,14 @@ class Repository(Closeable, ABC):
         """
         raise NotImplementedError
 
+    @property
+    @abstractmethod
+    def workspace(self) -> Dir:
+        """
+        :return: Directory where the repository is cloned at.
+        """
+        raise NotImplementedError
+
     @abstractmethod
     def checkout(self, branch: str) -> None:
         """Changes the active branch on the repository.
