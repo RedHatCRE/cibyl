@@ -44,3 +44,58 @@ class TestRepositoryFactory(TestCase):
             result = repositories.from_remote(url)
 
             self.assertIn(url, *[remote.urls for remote in result.remotes])
+            self.assertIn(folder, result.workspace)
+
+    def test_opens_repository(self):
+        """Checks that once cloned, the factory can open a repository for
+        its session.
+        """
+        url = URL('https://github.com/RedHatCRE/cibyl.git')
+
+        with TemporaryDirectory() as folder:
+            repositories = RepositoryFactory(
+                tools=RepositoryFactory.Tools(
+                    workspaces=WorkspaceFactory(
+                        root=Dir(folder)
+                    )
+                )
+            )
+
+            result1 = repositories.from_remote(url)
+            remotes1 = [remote.urls for remote in result1.remotes]
+            workspace1 = result1.workspace
+
+            result2 = repositories.from_remote(url)
+            remotes2 = [remote.urls for remote in result2.remotes]
+            workspace2 = result2.workspace
+
+            self.assertEqual(remotes1, remotes2)
+            self.assertEqual(workspace1, workspace2)
+
+    def test_retries_somewhere_else(self):
+        """Checks that if a repository cannot be opened, then it is cloned
+        again somewhere else.
+        """
+        url = URL('https://github.com/RedHatCRE/cibyl.git')
+
+        with TemporaryDirectory() as folder:
+            repositories = RepositoryFactory(
+                tools=RepositoryFactory.Tools(
+                    workspaces=WorkspaceFactory(
+                        root=Dir(folder)
+                    )
+                )
+            )
+
+            result1 = repositories.from_remote(url)
+            remotes1 = [remote.urls for remote in result1.remotes]
+            workspace1 = result1.workspace
+
+            result1.workspace.rm()
+
+            result2 = repositories.from_remote(url)
+            remotes2 = [remote.urls for remote in result2.remotes]
+            workspace2 = result2.workspace
+
+            self.assertEqual(remotes1, remotes2)
+            self.assertNotEqual(workspace1, workspace2)

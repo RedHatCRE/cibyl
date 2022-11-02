@@ -134,4 +134,5 @@ class RepositoryFactory:
 
             # Forget about the workspace and try again
             self.memory.delete(url)
-            self.from_remote(url)
+
+            return self.from_remote(url)
