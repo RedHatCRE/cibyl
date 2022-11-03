@@ -23,6 +23,7 @@ from cibyl.sources.zuuld.errors import IllegibleData
 from cibyl.sources.zuuld.models.job import Job
 from cibyl.sources.zuuld.scms.git import GitStorage
 from kernel.scm.git.apis.cli import Repository
+from kernel.scm.git.tools.cloning import RepositoryFactory
 from kernel.tools.fs import File
 from kernel.tools.io import Closeable
 from kernel.tools.json import Draft7ValidatorFactory, JSONValidatorFactory
@@ -183,5 +184,33 @@ class GitBackend(Closeable):
 
 
 class GitBackendFactory:
-    def from_defs(self, defs: Iterable[GitStorage]) -> GitBackend:
-        pass
+    @dataclass
+    class Tools:
+        repositories: RepositoryFactory = field(
+            default_factory=lambda *_: RepositoryFactory()
+        )
+
+    def __init__(self, tools: Optional[Tools] = None):
+        if tools is None:
+            tools = GitBackendFactory.Tools()
+
+        self._tools = tools
+
+    @property
+    def tools(self) -> Tools:
+        return self._tools
+
+    def from_specs(self, specs: Iterable[GitStorage]) -> GitBackend:
+        return GitBackend(
+            db=[
+                GitBackend.DatabaseEntry(
+                    handle=RepositoryHandle(
+                        handle=self.tools.repositories.from_remote(
+                            url=spec.url
+                        )
+                    ),
+                    directory=spec.dir
+                )
+                for spec in specs
+            ]
+        )

@@ -23,4 +23,3 @@ from kernel.tools.urls import URL
 class Storage:
     url: URL
     dir: Path = field(default_factory=lambda: Path('.'))
-
