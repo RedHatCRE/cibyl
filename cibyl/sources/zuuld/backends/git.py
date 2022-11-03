@@ -13,19 +13,39 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from typing import Iterable
+from typing import Iterable, Optional
 
+from dataclasses import dataclass, field
 from overrides import overrides
 
 from cibyl.sources.zuuld.backends.abc import ZuulDBackend, T
 from cibyl.sources.zuuld.models import Job
 from cibyl.sources.zuuld.specs.git import GitSpec
+from kernel.scm.git.tools.cloning import RepositoryFactory
 
 
 class GitBackend(ZuulDBackend[GitSpec]):
     class Get(ZuulDBackend.Get):
+        @dataclass
+        class Tools:
+            repositories: RepositoryFactory = field(
+                default_factory=lambda *_: RepositoryFactory()
+            )
+
+        def __init__(self, tools: Optional[Tools] = None):
+            if tools is None:
+                tools = GitBackend.Get.Tools()
+
+            self._tools = tools
+
+        @property
+        def tools(self) -> Tools:
+            return self._tools
+
         @overrides
         def jobs(self, spec: T) -> Iterable[Job]:
+            repo = self.tools.repositories.from_remote(url=spec.remote)
+
             return []
 
     def __init__(self):
