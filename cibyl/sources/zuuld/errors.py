@@ -16,17 +16,17 @@
 from cibyl.exceptions.source import SourceException
 
 
-class ZuuldError(SourceException):
+class ZuulDError(SourceException):
     """Generic error occurring on the Zuul.d API.
     """
 
 
-class InvalidURL(ZuuldError):
+class InvalidURL(ZuulDError):
     """A URL does not conform to its expected structure.
     """
 
 
-class IllegibleData(ZuuldError):
+class IllegibleData(ZuulDError):
     """Some data read by the API does not conform to the structure expected
     by it.
     """
