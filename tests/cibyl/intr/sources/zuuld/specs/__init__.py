@@ -13,19 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-
-
-class ZuulDError(Exception):
-    """Generic error occurring on the Zuul.d API.
-    """
-
-
-class InvalidURL(ZuulDError):
-    """A URL does not conform to its expected structure.
-    """
-
-
-class IllegibleData(ZuulDError):
-    """Some data read by the API does not conform to the structure expected
-    by it.
-    """

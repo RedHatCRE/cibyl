@@ -13,12 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from dataclasses import dataclass, field
 from typing import Iterable, Optional
 
-from dataclasses import dataclass, field
 from overrides import overrides
 
-from cibyl.sources.zuuld.backends.abc import ZuulDBackend, T
+from cibyl.sources.zuuld.backends.abc import T, ZuulDBackend
 from cibyl.sources.zuuld.models import Job
 from cibyl.sources.zuuld.specs.git import GitSpec
 from kernel.scm.git.tools.cloning import RepositoryFactory

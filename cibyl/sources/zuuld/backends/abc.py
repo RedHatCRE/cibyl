@@ -14,7 +14,7 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
-from typing import Iterable, TypeVar, Generic
+from typing import Generic, Iterable, TypeVar
 
 from cibyl.sources.zuuld.models import Job
 from cibyl.sources.zuuld.specs.abc import SCMSpec

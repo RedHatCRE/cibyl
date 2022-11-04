@@ -13,19 +13,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from unittest import TestCase
+
+from cibyl.sources.zuuld.errors import InvalidURL
+from cibyl.sources.zuuld.specs.git import GitSpec
+from kernel.tools.urls import URL
 
 
-class ZuulDError(Exception):
-    """Generic error occurring on the Zuul.d API.
+class TestGitSpec(TestCase):
+    """Tests for :class:`GitSpec`.
     """
 
+    def test_error_if_not_git_url(self):
+        """Checks that an error is raised if the remote URL is not a Git
+        URL.
+        """
+        url = URL('http://localhost:8080')
 
-class InvalidURL(ZuulDError):
-    """A URL does not conform to its expected structure.
-    """
-
-
-class IllegibleData(ZuulDError):
-    """Some data read by the API does not conform to the structure expected
-    by it.
-    """
+        with self.assertRaises(InvalidURL):
+            GitSpec(remote=url)
