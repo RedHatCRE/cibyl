@@ -14,6 +14,7 @@
 #    under the License.
 """
 import sys
+from tempfile import NamedTemporaryFile
 
 from cibyl.cli.main import main
 from cibyl.utils.colors import Colors
@@ -69,6 +70,29 @@ class TestJenkins(EndToEndTest):
             expected.add('Total jobs found in query: 3', 2)
 
             self.assertIn(expected.build(), self.stdout)
+
+    def test_get_write_output_file(self):
+        """Checks that output is written to file.
+        """
+        with JenkinsContainer() as jenkins:
+            jenkins.add_job('test_1')
+            jenkins.add_job('test_2')
+
+            with NamedTemporaryFile() as out_file:
+                sys.argv = [
+                    'cibyl',
+                    '--config', 'tests/cibyl/e2e/data/configs/jenkins.yaml',
+                    '-o', out_file.name,
+                    '-f', 'text',
+                    '-vv', 'query',
+                    '--jobs'
+                ]
+
+                main()
+                with open(out_file.name) as f:
+                    output = f.read()
+
+                self.assertIn('Total jobs found in query: 2', output)
 
 
 class TestJenkinsCore(EndToEndTest):
