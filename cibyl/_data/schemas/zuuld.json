@@ -5,33 +5,40 @@
   "items": {
     "type": "object",
     "properties": {
-      "name": {
-        "type": "string"
-      },
-      "parent": {
-        "type": "string"
-      },
-      "branches": {
-        "oneOf": [
-          {
+      "job": {
+        "type": "object",
+        "properties": {
+          "name": {
             "type": "string"
           },
-          {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "additionalItems": false
+          "parent": {
+            "type": "string"
+          },
+          "branches": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "additionalItems": false
+              }
+            ]
+          },
+          "vars": {
+            "type": "object"
           }
-        ]
-      },
-      "vars": {
-        "type": "object"
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": true
       }
     },
-    "required": [
-      "name"
-    ]
+    "additionalProperties": true
   },
   "additionalItems": false
 }
