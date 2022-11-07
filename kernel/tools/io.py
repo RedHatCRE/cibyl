@@ -21,7 +21,7 @@ class Closeable(ABC):
     """
 
     @abstractmethod
-    def close(self):
+    def close(self) -> None:
         """Releases any resources associated to this object.
         """
         raise NotImplementedError
