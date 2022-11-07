@@ -14,9 +14,9 @@
 #    under the License.
 """
 from collections import UserDict
-from typing import List, MutableMapping, Iterable
-
 from dataclasses import dataclass, field
+from typing import Iterable, List, MutableMapping
+
 from overrides import overrides
 
 from cibyl.models.attribute import AttributeDictValue

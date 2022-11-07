@@ -91,7 +91,7 @@ with plugin source")
                         return ZuulRESTFactory.from_kwargs(**kwargs)
 
                     if source_type == SourceType.ZUUL_D:
-                        return ZuulD()
+                        return ZuulD.from_kwargs(**kwargs)
 
                     raise NotImplementedError
 

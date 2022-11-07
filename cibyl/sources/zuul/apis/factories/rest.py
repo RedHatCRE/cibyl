@@ -33,7 +33,7 @@ class ZuulRESTFactory(ZuulAPIFactory):
         self._cert = cert
 
     @staticmethod
-    def from_kwargs(**kwargs):
+    def from_kwargs(**kwargs) -> 'ZuulRESTFactory':
         if 'url' not in kwargs:
             raise ValueError
 

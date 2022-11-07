@@ -16,7 +16,7 @@
 from abc import ABC, abstractmethod
 from typing import Generic, Iterable, TypeVar
 
-from cibyl.sources.zuuld.models import Job
+from cibyl.sources.zuuld.models.job import Job
 from cibyl.sources.zuuld.specs.abc import SCMSpec
 
 T = TypeVar('T', bound=SCMSpec)
