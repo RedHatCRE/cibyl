@@ -42,7 +42,7 @@ class JobAPI(ZuulJobAPI):
     @property
     @overrides
     def url(self):
-        raise NotImplementedError
+        return ''
 
     @overrides
     def variants(self):

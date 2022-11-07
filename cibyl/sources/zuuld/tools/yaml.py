@@ -17,11 +17,11 @@ from dataclasses import dataclass, field
 from typing import Iterable, Optional
 
 from cached_property import cached_property
-
+from cibyl import __path__ as pwd
 from cibyl.sources.zuuld.errors import IllegibleData
 from cibyl.sources.zuuld.models.job import Job
 from kernel.tools.files import FileSearchFactory
-from kernel.tools.fs import Dir, File
+from kernel.tools.fs import Dir, File, cd_context_manager
 from kernel.tools.json import Draft7ValidatorFactory, JSONValidatorFactory
 from kernel.tools.yaml import YAML, StandardYAMLParser, YAMLArray, YAMLParser
 
@@ -57,10 +57,12 @@ class YAMLReader:
     @cached_property
     def data(self) -> YAML:
         data = self.tools.parser.as_yaml(self.file.read())
-        validator = self.tools.validators.from_file(self.schema)
 
-        if not validator.is_valid(data):
-            raise IllegibleData()
+        with cd_context_manager(pwd[0]):
+            validator = self.tools.validators.from_file(self.schema)
+
+            if not validator.is_valid(data):
+                raise IllegibleData()
 
         return data
 
