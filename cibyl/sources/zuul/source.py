@@ -16,6 +16,7 @@
 from collections import UserDict
 from typing import List, MutableMapping, NamedTuple, Optional
 
+from dataclasses import dataclass, field
 from overrides import overrides
 
 from cibyl.models.attribute import AttributeDictValue
@@ -47,16 +48,26 @@ class Zuul(ServerSource):
             ['tenant_1', 'tenant_2']
         """
 
-    class Tools(NamedTuple):
+    @dataclass
+    class Tools:
         """Tools this uses to perform its task.
         """
-        api: ZuulAPIFactory
+        api: ZuulAPIFactory = field(
+            default_factory=lambda *_: ZuulRESTFactory()
+        )
         """Used to get the API this will use to interact with Zuul."""
-        arguments: ArgumentReview
+        arguments: ArgumentReview = field(
+            default_factory=lambda *_: ArgumentReview()
+        )
         """Used to make sense out of the arguments coming from the user."""
-        queries: AggregatedQueryFactory
+        queries: AggregatedQueryFactory = field(
+            default_factory=lambda *_: AggregatedQueryFactory()
+        )
         """Used to generate the manager that will perform the query."""
-        modifiers: QueryModifierFactory
+        modifiers: QueryModifierFactory = field(
+            default_factory=lambda *_: QueryModifierFactory()
+        )
+        """Used to extend queries for certain scenarios."""
 
     def __init__(self, name, driver, url, cert=None,
                  fallbacks=None, tenants=None, enabled=True,
@@ -85,12 +96,7 @@ class Zuul(ServerSource):
             fallbacks = Zuul.Fallbacks()
 
         if not tools:
-            tools = Zuul.Tools(
-                api=ZuulRESTFactory(),
-                arguments=ArgumentReview(),
-                queries=AggregatedQueryFactory(),
-                modifiers=QueryModifierFactory()
-            )
+            tools = Zuul.Tools()
 
         # URLs are built assuming no slash at the end of URL
         if url.endswith('/'):
