@@ -14,7 +14,7 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Union, List
+from typing import Any, Dict, List, Union
 
 import yaml
 from overrides import overrides
