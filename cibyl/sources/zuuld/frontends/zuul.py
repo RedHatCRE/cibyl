@@ -35,5 +35,5 @@ class ZuulFrontend(ZuulAPI):
 
 class ZuulFrontendFactory(ZuulAPIFactory):
     @overrides
-    def create(self, url, cert=None, **kwargs) -> ZuulFrontend:
+    def new(self) -> ZuulAPI:
         return ZuulFrontend()

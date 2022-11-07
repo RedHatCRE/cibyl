@@ -13,10 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Optional
+
 from overrides import overrides
 
+from cibyl.sources.zuul.apis import ZuulAPI
 from cibyl.sources.zuul.apis.factories import ZuulAPIFactory
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
+from kernel.tools.urls import URL
 
 
 class ZuulRESTFactory(ZuulAPIFactory):
@@ -24,6 +28,31 @@ class ZuulRESTFactory(ZuulAPIFactory):
     the host's REST-API.
     """
 
+    def __init__(self, url: URL, cert: Optional[str] = None):
+        self._url = url
+        self._cert = cert
+
+    @staticmethod
+    def from_kwargs(**kwargs):
+        if 'url' not in kwargs:
+            raise ValueError
+
+        return ZuulRESTFactory(
+            url=kwargs['url'],
+            cert=kwargs.get('cert')
+        )
+
+    @property
+    def url(self) -> URL:
+        return self._url
+
+    @property
+    def cert(self) -> Optional[str]:
+        return self._cert
+
     @overrides
-    def create(self, url, cert=None, **kwargs):
-        return ZuulRESTClient.from_url(url, cert)
+    def new(self) -> ZuulAPI:
+        return ZuulRESTClient.from_url(
+            host=self.url,
+            cert=self.cert
+        )

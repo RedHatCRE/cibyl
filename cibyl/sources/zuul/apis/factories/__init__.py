@@ -15,22 +15,13 @@
 """
 from abc import ABC, abstractmethod
 
+from cibyl.sources.zuul.apis import ZuulAPI
+
 
 class ZuulAPIFactory(ABC):
     """Factory for the creation of interfaces between Cibyl and a Zuul host.
     """
 
     @abstractmethod
-    def create(self, url, cert=None, **kwargs):
-        """Creates a new API.
-
-        :param url: Zuul host the API will interact with.
-        :type url: str
-        :param cert: See :meth:`ZuulRESTClient.from_url`
-        :type cert: str or None
-        :param kwargs: Additional arguments.
-        :type kwargs: Any
-        :return: The API instance.
-        :type: :class:`cibyl.sources.zuul.apis.ZuulAPI`
-        """
+    def new(self) -> ZuulAPI:
         raise NotImplementedError

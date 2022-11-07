@@ -24,6 +24,7 @@ from cibyl.sources.elasticsearch.api import ElasticSearch
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 from cibyl.sources.server import ServerSource
+from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
 from cibyl.sources.zuul.source import Zuul
 from cibyl.sources.zuuld.frontends.zuul import ZuulFrontendFactory as ZuulD
 
@@ -84,11 +85,27 @@ with plugin source")
             if source_type == SourceType.JENKINS:
                 return Jenkins(name=name, **kwargs)
 
-            if source_type == SourceType.ZUUL:
-                return Zuul.new_source(
-                    name=name,
-                    tools=Zuul.Tools(),
-                    **kwargs
+            if source_type in (SourceType.ZUUL, SourceType.ZUUL_D):
+                def get_provider():
+                    if source_type == SourceType.ZUUL:
+                        return ZuulRESTFactory.from_kwargs(**kwargs)
+
+                    if source_type == SourceType.ZUUL_D:
+                        return ZuulD()
+
+                    raise NotImplementedError
+
+                return Zuul(
+                    provider=get_provider(),
+                    spec=Zuul.SourceSpec(
+                        name=name,
+                        driver=kwargs.get('driver', 'zuul'),
+                        enabled=kwargs.get('enabled', True)
+                    ),
+                    fallbacks=Zuul.Fallbacks.from_kwargs(
+                        keys=['tenants'],
+                        **kwargs
+                    )
                 )
 
             if source_type == SourceType.ELASTICSEARCH:
@@ -96,15 +113,6 @@ with plugin source")
 
             if source_type == SourceType.JENKINS_JOB_BUILDER:
                 return JenkinsJobBuilder(name=name, **kwargs)
-
-            if source_type == SourceType.ZUUL_D:
-                return Zuul.new_source(
-                    name=name,
-                    tools=Zuul.Tools(
-                        api=ZuulD()
-                    ),
-                    **kwargs
-                )
         except TypeError as ex:
             re_unexpected_arg = re.search(r'unexpected keyword argument (.*)',
                                           ex.args[0])
