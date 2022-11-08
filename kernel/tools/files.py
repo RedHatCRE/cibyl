@@ -15,11 +15,10 @@
 """
 import logging
 import os
+from dataclasses import dataclass, field
 from os import PathLike
 from pathlib import Path
-from typing import Callable, Iterable, List, Union, Optional
-
-from dataclasses import dataclass, field
+from typing import Callable, Iterable, List, Optional, Union
 
 LOG = logging.getLogger(__name__)
 
