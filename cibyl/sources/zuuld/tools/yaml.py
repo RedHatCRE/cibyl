@@ -26,6 +26,8 @@ from kernel.tools.fs import Dir, File, cd_context_manager
 from kernel.tools.json import Draft7ValidatorFactory, JSONValidatorFactory
 from kernel.tools.yaml import YAML, StandardYAMLParser, YAMLArray, YAMLParser
 
+YAMLFile = File
+
 
 class YAMLReader:
     DEFAULT_SCHEMA = File('_data/schemas/zuuld.json')
@@ -114,23 +116,43 @@ class YAMLReaderFactory:
     """
 
     def from_file(self, file: File) -> YAMLReader:
+        """Builds a new reader for the given file.
+
+        :param file: The YAML file to handle.
+        :return: The new instance.
+        """
         return YAMLReader(file)
 
 
 class YAMLSearch:
+    """Recursively looks for YAML files on a directory.
+    """
     DEFAULT_YAML_EXTENSIONS = ('.yml', '.yaml')
+    """Default file extensions that identify YAML files."""
 
     @dataclass
     class Tools:
+        """Tools used by the class to do its job.
+        """
         files: FileSearchFactory = field(
             default_factory=lambda *_: FileSearchFactory()
         )
+        """Used to perform the search for interesting files."""
 
     def __init__(
         self,
         extensions: Optional[Iterable[str]] = None,
         tools: Optional[Tools] = None
     ):
+        """Constructor.
+
+        :param extensions:
+            File extensions that identify YAML files.
+            'None' to use the default set: YAMLReader.DEFAULT_YAML_EXTENSIONS
+        :param tools:
+            Tools used by the class to do its job.
+            'None' to let this build its own.
+        """
         if extensions is None:
             extensions = YAMLSearch.DEFAULT_YAML_EXTENSIONS
 
@@ -142,17 +164,29 @@ class YAMLSearch:
 
     @property
     def extensions(self) -> Iterable[str]:
+        """
+        :return: File extensions the class look for.
+        """
         return self._extensions
 
     @property
     def tools(self) -> Tools:
+        """
+        :return: Tools used by this to do its task.
+        """
         return self._tools
 
-    def search(self, path: Dir) -> Iterable[File]:
+    def search(self, path: Dir) -> Iterable[YAMLFile]:
+        """Recursively searches the directory for all YAML files contained
+        within.
+
+        :param path: Directory to look in.
+        :return: A handle to all retrieved files.
+        """
         search = self.tools.files.from_root(path)
         search.with_recursion()
 
         for ext in self.extensions:
             search.with_extension(ext)
 
-        return [File(path) for path in search.get()]
+        return [YAMLFile(path) for path in search.get()]
