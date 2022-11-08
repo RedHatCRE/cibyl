@@ -14,14 +14,18 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, List, Union
 
 import yaml
 from overrides import overrides
 from yaml import YAMLError as StandardYAMLError
 
-YAML = Dict[str, Any]
-"""Represents data originated from reading a YAML file."""
+YAMLObj = Dict[str, Any]
+"""Represents an object on a YAML file."""
+YAMLArray = List[YAMLObj]
+"""Represents an array on a YAML file."""
+YAML = Union[YAMLArray, YAMLObj]
+"""Represents data originated from a YAML file."""
 
 
 class YAMLError(Exception):

@@ -23,5 +23,7 @@ class Closeable(ABC):
     @abstractmethod
     def close(self):
         """Releases any resources associated to this object.
+
+        :rtype: None
         """
         raise NotImplementedError

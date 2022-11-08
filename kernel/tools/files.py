@@ -116,6 +116,19 @@ class FileSearch:
         return other
 
 
+class FileSearchFactory:
+    """Factory for :class:`FileSearch`.
+    """
+
+    def from_root(self, root: str):
+        """Builds a new search that begins from the given root directory.
+
+        :param root: Path to directory to look files in.
+        :return: The instance.
+        """
+        return FileSearch(directory=root)
+
+
 def is_file_available(filename: str) -> bool:
     """Checks if a file is present on the filesystem.
 
@@ -125,12 +138,10 @@ def is_file_available(filename: str) -> bool:
     return os.path.isfile(filename)
 
 
-def get_first_available_file(filenames: Iterable[
-                                Union[bytes, str, PathLike]
-                             ],
-                             file_check: Callable[[str], bool]
-                             = is_file_available
-                             ) -> Union[bytes, str, None]:
+def get_first_available_file(
+    filenames: Iterable[Union[bytes, str, PathLike]],
+    file_check: Callable[[str], bool] = is_file_available
+) -> Union[bytes, str, None]:
     """Searches for the first file out of the provided paths that exists
     on the host's drive.
 
