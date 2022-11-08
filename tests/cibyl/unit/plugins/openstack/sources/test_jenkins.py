@@ -78,7 +78,8 @@ def get_yaml_overcloud(ip=None, release=None, cinder_backend=None,
                        network_backend=None, dvr=None,
                        tls_everywhere=None, infra_type=None, ml2_driver=None,
                        ironic_inspector=None, cleaning_network=None,
-                       security_group=None, overcloud_templates=None):
+                       security_group=None, overcloud_templates=None,
+                       glance_backend=None):
     """Provide a yaml representation for the paremeters obtained from an
     infrared overcloud-install.yml file.
 
@@ -86,7 +87,7 @@ def get_yaml_overcloud(ip=None, release=None, cinder_backend=None,
     :type ip: str
     :param release: Openstack version used
     :type release: str
-    :param cinder_backend: Storage backend used
+    :param cinder_backend: Cinder backend used
     :type cinder_backend: str
     :param network_backend: Network backend used
     :type network_backend: str
@@ -94,6 +95,8 @@ def get_yaml_overcloud(ip=None, release=None, cinder_backend=None,
     :type dvr: bool
     :param tls_everywhere: Whether tls_everywhere is used
     :type tls_everywhere: bool
+    :param glance_backend: Glance backend used
+    :type glance_backend: str
 
     :returns: yaml representation of a overcloud-install.yml file
     :rtype: str
@@ -132,6 +135,8 @@ def get_yaml_overcloud(ip=None, release=None, cinder_backend=None,
         overcloud["config"] = {"heat": security_group_dict}
     if overcloud_templates:
         overcloud["overcloud"] = {"templates": overcloud_templates}
+    if glance_backend:
+        overcloud["glance"] = {"backend": glance_backend}
     return yaml.dump({"install": overcloud})
 
 
@@ -834,6 +839,46 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(network.ip_version.value, "")
         self.assertEqual(deployment.topology.value, "")
         self.assertEqual(storage.cinder_backend.value, "swift")
+        self.assertEqual(network.network_backend.value, "")
+
+    def test_get_deployment_filter_glance_backend(self):
+        """Test that get_deployment filters by storage backend."""
+        job_names = ['test_17.3_ipv4_job_2comp_1cont_geneve_swift',
+                     'test_16_ipv6_job_1comp_2cont_lvm', 'test_job']
+        response = {'jobs': [{'_class': 'folder'}]}
+        logs_url = 'href="link">Browse logs'
+        for job_name in job_names:
+            response['jobs'].append({'_class': 'org.job.WorkflowJob',
+                                     'name': job_name, 'url': 'url',
+                                     'lastSuccessfulBuild': {'description':
+                                                             logs_url}})
+
+        artifacts = [
+                get_yaml_overcloud(glance_backend="rbd"),
+                get_yaml_overcloud(glance_backend="cinder"),
+                get_yaml_overcloud(glance_backend="")]
+
+        self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
+        args = {
+            "glance_backend": Argument("glance_backend", str, "",
+                                       value=["rbd"])
+        }
+
+        jobs = self.jenkins.get_deployment(**args)
+        self.assertEqual(len(jobs), 1)
+        job_name = 'test_17.3_ipv4_job_2comp_1cont_geneve_swift'
+        job = jobs[job_name]
+        deployment = job.deployment.value
+        storage = deployment.storage.value
+        network = deployment.network.value
+        self.assertEqual(job.name.value, job_name)
+        self.assertEqual(job.url.value, "url")
+        self.assertEqual(len(job.builds.value), 0)
+        self.assertEqual(deployment.release.value, "")
+        self.assertEqual(network.ip_version.value, "")
+        self.assertEqual(deployment.topology.value, "")
+        self.assertEqual(storage.glance_backend.value, "rbd")
+        self.assertEqual(storage.cinder_backend.value, "")
         self.assertEqual(network.network_backend.value, "")
 
     def test_get_deployment_filter_controller(self):
@@ -1610,7 +1655,8 @@ tripleo_ironic_conductor.service loaded    active     running
                                    ironic_inspector=False, ml2_driver="ovs",
                                    cleaning_network=True,
                                    security_group="openvswitch",
-                                   overcloud_templates=["a", "b"]),
+                                   overcloud_templates=["a", "b"],
+                                   glance_backend="cinder"),
                 get_yaml_tests(["designate", "neutron"])]
 
         self.jenkins.send_request = Mock(side_effect=[response]+artifacts)
@@ -1632,6 +1678,7 @@ tripleo_ironic_conductor.service loaded    active     running
         self.assertEqual(deployment.topology.value, topology)
         self.assertEqual(deployment.infra_type.value, "ovb")
         self.assertEqual(storage.cinder_backend.value, "ceph")
+        self.assertEqual(storage.glance_backend.value, "cinder")
         self.assertEqual(network.ip_version.value, ip)
         self.assertEqual(network.network_backend.value, "geneve")
         self.assertEqual(network.dvr.value, "False")
