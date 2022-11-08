@@ -126,28 +126,33 @@ class YAMLSearch:
             default_factory=lambda *_: FileSearchFactory()
         )
 
-    def __init__(self, tools: Optional[Tools] = None):
+    def __init__(
+        self,
+        extensions: Optional[Iterable[str]] = None,
+        tools: Optional[Tools] = None
+    ):
+        if extensions is None:
+            extensions = YAMLSearch.DEFAULT_YAML_EXTENSIONS
+
         if tools is None:
             tools = YAMLSearch.Tools()
 
+        self._extensions = extensions
         self._tools = tools
+
+    @property
+    def extensions(self) -> Iterable[str]:
+        return self._extensions
 
     @property
     def tools(self) -> Tools:
         return self._tools
 
-    def search(
-        self,
-        path: Dir,
-        extensions: Optional[Iterable[str]] = None
-    ) -> Iterable[File]:
-        if extensions is None:
-            extensions = YAMLSearch.DEFAULT_YAML_EXTENSIONS
-
+    def search(self, path: Dir) -> Iterable[File]:
         search = self.tools.files.from_root(path)
         search.with_recursion()
 
-        for ext in extensions:
+        for ext in self.extensions:
             search.with_extension(ext)
 
         return [File(path) for path in search.get()]
