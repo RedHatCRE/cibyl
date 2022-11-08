@@ -167,22 +167,39 @@ class File(FSPath):
 
     def append(self, text: str) -> None:
         """Appends some text at the end of the file.
+
         :param text: Text to append.
         """
         self._write(text, 'a')
 
     def write(self, text: str) -> None:
         """Overwrites contents of the file with the given text.
+
         :param text: Text to write.
         """
         self._write(text, 'w')
 
-    def _write(self, text: str, mode: str) -> None:
+    def _write(self, text: str, mode: str, encoding: str = 'utf-8') -> None:
         """Writes some text into the file. This makes no checks to verify
         that the file exists and is accessible beforehand, it is up to the
         caller to ensure this.
+
         :param text: Text to write.
         :param mode: Mode to write on, just like in builtin 'open'.
+        :param encoding:
+            Name of the encoding used by the file, using the same
+            name convention as the built-in 'open' method.
         """
-        with open(self, mode) as buffer:
+        with open(self, mode, encoding=encoding) as buffer:
             buffer.write(text)
+
+    def read(self, encoding: str = 'utf-8') -> str:
+        """Reads the file's contents.
+
+        :param encoding:
+            Name of the encoding used by the file, using the same
+            name convention as the built-in 'open' method.
+        :return: The file's whole text, in a single string.
+        """
+        with self.as_path().open('r', encoding=encoding) as file:
+            return file.read()

@@ -177,6 +177,17 @@ class TestFile(TestCase):
 
             self.assertFalse(file.exists())
 
+    def test_read(self):
+        """Checks that it is possible to read the contents from the file.
+        """
+        text = 'hello_world!'
+
+        with NamedTemporaryFile() as buffer:
+            file = File(buffer.name)
+            file.write(text)
+
+            self.assertEqual(text, file.read())
+
     def test_as_path(self):
         """Checks that the type can be converted into a path.
         """

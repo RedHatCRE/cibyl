@@ -15,9 +15,10 @@
 """
 import logging
 import os
+from dataclasses import dataclass, field
 from os import PathLike
 from pathlib import Path
-from typing import Callable, Iterable, List, Union
+from typing import Callable, Iterable, List, Optional, Union
 
 LOG = logging.getLogger(__name__)
 
@@ -26,22 +27,38 @@ class FileSearch:
     """Allows for complex search queries targeting files on the filesystem.
     """
 
-    def __init__(self, directory: str):
+    @dataclass
+    class SearchTerms:
+        """Set of modifiers to condition the search.
+        """
+        recursive: bool = field(default_factory=lambda *_: False)
+        """Whether the search should iterate over sub-directories."""
+        excluded: List[str] = field(default_factory=lambda *_: [])
+        """Name of files to remove from the result."""
+        extensions: List[str] = field(default_factory=lambda *_: [])
+        """Dot-Prefixed extensions to look for, e.g.: '.py'."""
+
+    def __init__(self, directory: str, terms: Optional[SearchTerms] = None):
         """Constructor.
 
-        :param directory: Path to directory to look for files in.
+        :param directory:
+            Path to directory to look for files in.
+        :param terms:
+            Preset of search terms used when looking for files.
+            'None' to begin from an empty state.
         """
+        if terms is None:
+            terms = FileSearch.SearchTerms()
+
         self._directory = directory
-        self._recursive = False
-        self._extensions = []
-        self._excluded = []
+        self._terms = terms
 
     def with_recursion(self) -> 'FileSearch':
         """Extends the search to the folders inside the directory and beyond.
 
         :return: The instance.
         """
-        self._recursive = True
+        self._terms.recursive = True
         return self
 
     def with_extension(self, extension: str) -> 'FileSearch':
@@ -49,23 +66,21 @@ class FileSearch:
         called more than once, then the filters are joined together following
         and 'OR' approach.
 
-        :param extension: The extension to filter by. Must be passed
-            dot-prefixed, like: '.py'.
+        :param extension: The extension to filter by, dot-prefixed: '.py'.
         :return: The instance.
         """
-        self._extensions.append(extension)
+        self._terms.extensions.append(extension)
         return self
 
-    def with_excluded(self, excluded: list) -> 'FileSearch':
-        """Limits the search to files that are not in the excluded list. If this
-        is called more than once, then the filters are joined together
+    def with_excluded(self, excluded: List[str]) -> 'FileSearch':
+        """Limits the search to files that are not in the excluded list. If
+        this is called more than once, then the filters are joined together
         following an 'OR' approach.
 
         :param excluded: The file names to filter by.
-        :type excluded: list
         :return: The instance.
         """
-        self._excluded.extend(excluded)
+        self._terms.excluded.extend(excluded)
         return self
 
     def get(self) -> List[str]:
@@ -85,14 +100,14 @@ class FileSearch:
 
         for path in list_directory():
             if os.path.isdir(path):
-                if self._recursive:
+                if self._terms.recursive:
                     result += self._copy_for(path).get()
             else:
-                if self._extensions:
-                    if get_file_extension(path) not in self._extensions:
+                if self._terms.extensions:
+                    if get_file_extension(path) not in self._terms.extensions:
                         continue
-                if self._excluded:
-                    if get_file_name_from_path(path) in self._excluded:
+                if self._terms.excluded:
+                    if get_file_name_from_path(path) in self._terms.excluded:
                         continue
 
                 result.append(path)
@@ -107,13 +122,23 @@ class FileSearch:
         :param directory: The directory to search this time around.
         :return: The search's instance.
         """
-        other = FileSearch(directory)
+        return FileSearch(
+            directory=directory,
+            terms=self._terms
+        )
 
-        other._recursive = self._recursive
-        other._extensions = self._extensions
-        other._excluded = self._excluded
 
-        return other
+class FileSearchFactory:
+    """Factory for :class:`FileSearch`.
+    """
+
+    def from_root(self, root: str):
+        """Builds a new search that begins from the given root directory.
+
+        :param root: Path to directory to look files in.
+        :return: The instance.
+        """
+        return FileSearch(directory=root)
 
 
 def is_file_available(filename: str) -> bool:
@@ -125,12 +150,10 @@ def is_file_available(filename: str) -> bool:
     return os.path.isfile(filename)
 
 
-def get_first_available_file(filenames: Iterable[
-                                Union[bytes, str, PathLike]
-                             ],
-                             file_check: Callable[[str], bool]
-                             = is_file_available
-                             ) -> Union[bytes, str, None]:
+def get_first_available_file(
+    filenames: Iterable[Union[bytes, str, PathLike]],
+    file_check: Callable[[str], bool] = is_file_available
+) -> Union[bytes, str, None]:
     """Searches for the first file out of the provided paths that exists
     on the host's drive.
 
