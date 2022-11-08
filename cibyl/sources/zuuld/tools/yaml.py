@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from typing import Iterable, Optional
 
 from cached_property import cached_property
+
 from cibyl import __path__ as pwd
 from cibyl.sources.zuuld.errors import IllegibleData
 from cibyl.sources.zuuld.models.job import Job
