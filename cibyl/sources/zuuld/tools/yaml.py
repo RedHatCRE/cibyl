@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 from dataclasses import dataclass, field
 from typing import Iterable, Optional
 
@@ -23,9 +24,10 @@ from cibyl.sources.zuuld.models.job import Job
 from kernel.tools.files import FileSearchFactory
 from kernel.tools.fs import Dir, File, KnownDirs, cd
 from kernel.tools.json import Draft7ValidatorFactory, JSONValidatorFactory
-from kernel.tools.yaml import YAML, StandardYAMLParser, YAMLArray, YAMLParser
+from kernel.tools.yaml import (YAML, StandardYAMLParser, YAMLArray, YAMLError,
+                               YAMLFile, YAMLFileFactory, YAMLParser)
 
-YAMLFile = File
+LOG = logging.getLogger(__name__)
 
 
 class YAMLReader:
@@ -60,7 +62,7 @@ class YAMLReader:
     def data(self) -> YAML:
         data = self.tools.parser.as_yaml(self.file.read())
 
-        with cd(KnownDirs.DATA):
+        with cd(KnownDirs.CIBYL):
             validator = self.tools.validators.from_file(self.schema)
 
             if not validator.is_valid(data):
@@ -128,19 +130,25 @@ class YAMLSearch:
     """
     DEFAULT_YAML_EXTENSIONS = ('.yml', '.yaml')
     """Default file extensions that identify YAML files."""
+    DEFAULT_SCHEMA = File('_data/schemas/zuuld.json')
+    """Default schema that the YAML files must satisfy."""
 
     @dataclass
     class Tools:
         """Tools used by the class to do its job.
         """
-        files: FileSearchFactory = field(
+        searches: FileSearchFactory = field(
             default_factory=lambda *_: FileSearchFactory()
         )
         """Used to perform the search for interesting files."""
+        files: YAMLFileFactory = field(
+            default_factory=lambda *_: YAMLFileFactory()
+        )
 
     def __init__(
         self,
         extensions: Optional[Iterable[str]] = None,
+        schema: Optional[File] = None,
         tools: Optional[Tools] = None
     ):
         """Constructor.
@@ -155,10 +163,14 @@ class YAMLSearch:
         if extensions is None:
             extensions = YAMLSearch.DEFAULT_YAML_EXTENSIONS
 
+        if schema is None:
+            schema = YAMLSearch.DEFAULT_SCHEMA
+
         if tools is None:
             tools = YAMLSearch.Tools()
 
         self._extensions = extensions
+        self._schema = schema
         self._tools = tools
 
     @property
@@ -167,6 +179,10 @@ class YAMLSearch:
         :return: File extensions the class look for.
         """
         return self._extensions
+
+    @property
+    def schema(self) -> File:
+        return self._schema
 
     @property
     def tools(self) -> Tools:
@@ -182,10 +198,36 @@ class YAMLSearch:
         :param path: Directory to look in.
         :return: A handle to all retrieved files.
         """
-        search = self.tools.files.from_root(path)
-        search.with_recursion()
 
-        for ext in self.extensions:
-            search.with_extension(ext)
+        def finds() -> Iterable[File]:
+            """
+            :return: Files in the directory with the requested extensions.
+            """
+            search = self.tools.searches.from_root(path)
+            search.with_recursion()
 
-        return [YAMLFile(path) for path in search.get()]
+            for ext in self.extensions:
+                search.with_extension(ext)
+
+            return [File(file) for file in search.get()]
+
+        result = []
+
+        for find in finds():
+            try:
+                result.append(
+                    self.tools.files.from_file(
+                        file=find,
+                        schema=self.schema
+                    )
+                )
+            except YAMLError:
+                LOG.debug(
+                    "Ignoring YAML file at: '%s' "
+                    "as it does not meet schema: '%s'.",
+                    find, self.schema
+                )
+
+                continue
+
+        return result

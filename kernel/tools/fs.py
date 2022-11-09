@@ -196,8 +196,8 @@ class File(FSPath):
 
 class KnownDirs:
     """Preset of directories used by Cibyl."""
-    DATA = Dir(pwd[0])
-    """Directory where Cibyl's resources are found in."""
+    CIBYL = Dir(pwd[0])
+    """Cibyl's main module directory."""
 
 
 @contextmanager

@@ -14,16 +14,16 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Union, Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Union
 
 import yaml
 from cached_property import cached_property
-from dataclasses import dataclass, field
 from overrides import overrides
 from yaml import YAMLError as StandardYAMLError
 
-from kernel.tools.fs import File
-from kernel.tools.json import JSONValidatorFactory, Draft7ValidatorFactory
+from kernel.tools.fs import File, KnownDirs, cd
+from kernel.tools.json import Draft7ValidatorFactory, JSONValidatorFactory
 
 YAMLObj = Dict[str, Any]
 """Represents an object on a YAML file."""
@@ -96,10 +96,11 @@ class YAMLFile:
         if self.schema is None:
             return
 
-        validator = self.tools.validators.from_file(self.schema)
+        with cd(KnownDirs.CIBYL):
+            validator = self.tools.validators.from_file(self.schema)
 
-        if validator.is_valid(self.data):
-            return
+            if validator.is_valid(self.data):
+                return
 
         raise YAMLError(
             f"File: '{self.file}' does not conform to schema: '{self.schema}'."
@@ -120,3 +121,11 @@ class YAMLFile:
     @property
     def tools(self) -> Tools:
         return self._tools
+
+
+class YAMLFileFactory:
+    """Factory for :class:`YAMLFile`.
+    """
+
+    def from_file(self, file: File, schema: Optional[File] = None):
+        return YAMLFile(file, schema)

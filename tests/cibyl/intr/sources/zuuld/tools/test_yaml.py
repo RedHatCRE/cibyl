@@ -27,18 +27,30 @@ class TestYAMLSearch(TestCase):
     def test_finds_files(self):
         """Checks that the class is able to find the desired files.
         """
+        contents = \
+            '''
+            - job:
+                name: test
+            '''
+
         with TemporaryDirectory() as folder:
             directory = Dir(folder)
 
             subdirectory = directory.cd('subdir')
             subdirectory.mkdir()
 
-            with NamedTemporaryFile(suffix='.yaml', dir=directory):
-                with NamedTemporaryFile(suffix='.yml', dir=subdirectory):
-                    search = YAMLSearch()
+            file1 = NamedTemporaryFile('w', suffix='.yaml', dir=directory)
+            file1.write(contents)
+            file1.flush()
 
-                    result = list(search.search(directory))
+            file2 = NamedTemporaryFile('w', suffix='.yml', dir=subdirectory)
+            file2.write(contents)
+            file2.flush()
 
-                    self.assertEqual(2, len(result))
-                    self.assertTrue(result[0].endswith('.yaml'))
-                    self.assertTrue(result[1].endswith('.yml'))
+            search = YAMLSearch()
+
+            result = list(search.search(directory))
+
+            self.assertEqual(2, len(result))
+            self.assertTrue(result[0].file.endswith('.yaml'))
+            self.assertTrue(result[1].file.endswith('.yml'))

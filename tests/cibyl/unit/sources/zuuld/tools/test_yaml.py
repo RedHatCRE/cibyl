@@ -14,7 +14,7 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock, call
+from unittest.mock import MagicMock, Mock, call
 
 from cibyl.sources.zuuld.tools.yaml import YAMLSearch
 
@@ -29,52 +29,47 @@ class TestYAMLSearch(TestCase):
         """
         root = Mock()
 
-        builder = Mock()
-        builder.with_recursion = Mock()
-        builder.with_extension = Mock()
-        builder.get = Mock()
-        builder.get.return_value = []
+        search = Mock()
+        search.get = MagicMock()
 
-        factory = Mock()
-        factory.from_root = Mock()
-        factory.from_root.return_value = builder
+        searches = Mock()
+        searches.from_root = Mock()
+        searches.from_root.return_value = search
 
         tools = Mock()
-        tools.files = factory
+        tools.searches = searches
 
-        search = YAMLSearch(
+        yaml = YAMLSearch(
             tools=tools
         )
 
-        search.search(path=root)
+        yaml.search(path=root)
 
-        factory.from_root.assert_called_once_with(root)
+        searches.from_root.assert_called_with(root)
 
     def test_search_is_recursive(self):
         """Checks that the search is requested to be recursive.
         """
         root = Mock()
 
-        builder = Mock()
-        builder.with_recursion = Mock()
-        builder.with_extension = Mock()
-        builder.get = Mock()
-        builder.get.return_value = []
+        search = Mock()
+        search.with_recursion = Mock()
+        search.get = MagicMock()
 
-        factory = Mock()
-        factory.from_root = Mock()
-        factory.from_root.return_value = builder
+        searches = Mock()
+        searches.from_root = Mock()
+        searches.from_root.return_value = search
 
         tools = Mock()
-        tools.files = factory
+        tools.searches = searches
 
-        search = YAMLSearch(
+        yaml = YAMLSearch(
             tools=tools
         )
 
-        search.search(path=root)
+        yaml.search(path=root)
 
-        builder.with_recursion.assert_called()
+        search.with_recursion.assert_called()
 
     def test_search_filters_by_extensions(self):
         """Checks that the search filters by the extensions known by the class.
@@ -82,27 +77,25 @@ class TestYAMLSearch(TestCase):
         root = Mock()
         extensions = [Mock(), Mock()]
 
-        builder = Mock()
-        builder.with_recursion = Mock()
-        builder.with_extension = Mock()
-        builder.get = Mock()
-        builder.get.return_value = []
+        search = Mock()
+        search.with_extension = Mock()
+        search.get = MagicMock()
 
-        factory = Mock()
-        factory.from_root = Mock()
-        factory.from_root.return_value = builder
+        searches = Mock()
+        searches.from_root = Mock()
+        searches.from_root.return_value = search
 
         tools = Mock()
-        tools.files = factory
+        tools.searches = searches
 
-        search = YAMLSearch(
+        yaml = YAMLSearch(
             extensions=extensions,
             tools=tools
         )
 
-        search.search(path=root)
+        yaml.search(path=root)
 
-        builder.with_extension.assert_has_calls(
+        search.with_extension.assert_has_calls(
             calls=[
                 call(extensions[0]),
                 call(extensions[1])
@@ -113,25 +106,40 @@ class TestYAMLSearch(TestCase):
         """Checks that the found files are returned.
         """
         root = Mock()
-        expected = ['path-1', 'path-2']
+        schema = Mock()
 
-        builder = Mock()
-        builder.with_recursion = Mock()
-        builder.with_extension = Mock()
-        builder.get = Mock()
-        builder.get.return_value = expected
+        # Reusing this mock for before and after becoming a YAMLFile.
+        file1 = 'file1.yml'
+        file2 = 'file2.yml'
 
-        factory = Mock()
-        factory.from_root = Mock()
-        factory.from_root.return_value = builder
+        files = Mock()
+        files.from_file = Mock()
+        files.from_file.side_effect = lambda file, **_: file
+
+        search = Mock()
+        search.get = Mock()
+        search.get.return_value = [file1, file2]
+
+        searches = Mock()
+        searches.from_root = Mock()
+        searches.from_root.return_value = search
 
         tools = Mock()
-        tools.files = factory
+        tools.searches = searches
+        tools.files = files
 
-        search = YAMLSearch(
+        yaml = YAMLSearch(
+            schema=schema,
             tools=tools
         )
 
-        result = search.search(path=root)
+        result = yaml.search(path=root)
 
-        self.assertEqual(expected, result)
+        self.assertEqual([file1, file2], result)
+
+        files.from_file.assert_has_calls(
+            calls=[
+                call(file=file1, schema=schema),
+                call(file=file2, schema=schema)
+            ]
+        )
