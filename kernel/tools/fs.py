@@ -22,21 +22,10 @@ from typing import Generator, Union
 
 from overrides import overrides
 
+from cibyl import __path__ as pwd
 from kernel.tools.paths import Preprocessor
 
 RawPath = Union[bytes, str, PathLike, Path]
-
-
-@contextmanager
-def cd_context_manager(path: RawPath) -> Generator:
-    """Simple context manager that changes the working directory and restores
-    the previous one on exit"""
-    old_dir = getcwd()
-    chdir(path)
-    try:
-        yield
-    finally:
-        chdir(old_dir)
 
 
 class FSPath(str, ABC):
@@ -203,3 +192,22 @@ class File(FSPath):
         """
         with self.as_path().open('r', encoding=encoding) as file:
             return file.read()
+
+
+class KnownDirs:
+    """Preset of directories used by Cibyl."""
+    DATA = Dir(pwd[0])
+    """Directory where Cibyl's resources are found in."""
+
+
+@contextmanager
+def cd(path: RawPath) -> Generator:
+    """Simple context manager that changes the working directory and restores
+    the previous one on exit.
+    """
+    old_dir = getcwd()
+    chdir(path)
+    try:
+        yield
+    finally:
+        chdir(old_dir)
