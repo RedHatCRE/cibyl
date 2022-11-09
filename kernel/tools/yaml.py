@@ -14,11 +14,16 @@
 #    under the License.
 """
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Optional
 
 import yaml
+from cached_property import cached_property
+from dataclasses import dataclass, field
 from overrides import overrides
 from yaml import YAMLError as StandardYAMLError
+
+from kernel.tools.fs import File
+from kernel.tools.json import JSONValidatorFactory, Draft7ValidatorFactory
 
 YAMLObj = Dict[str, Any]
 """Represents an object on a YAML file."""
@@ -60,3 +65,58 @@ class StandardYAMLParser(YAMLParser):
         except StandardYAMLError as ex:
             msg = f"Failed to parse text: '{string}'."
             raise YAMLError(msg) from ex
+
+
+class YAMLFile:
+    @dataclass
+    class Tools:
+        parser: YAMLParser = field(
+            default_factory=lambda *_: StandardYAMLParser()
+        )
+        validators: JSONValidatorFactory = field(
+            default_factory=lambda *_: Draft7ValidatorFactory()
+        )
+
+    def __init__(
+        self,
+        file: File,
+        schema: Optional[File] = None,
+        tools: Optional[Tools] = None
+    ):
+        if tools is None:
+            tools = YAMLFile.Tools()
+
+        self._file = file
+        self._schema = schema
+        self._tools = tools
+
+        self._validate()
+
+    def _validate(self):
+        if self.schema is None:
+            return
+
+        validator = self.tools.validators.from_file(self.schema)
+
+        if validator.is_valid(self.data):
+            return
+
+        raise YAMLError(
+            f"File: '{self.file}' does not conform to schema: '{self.schema}'."
+        )
+
+    @cached_property
+    def data(self) -> YAML:
+        return self.tools.parser.as_yaml(self.file.read())
+
+    @property
+    def file(self) -> File:
+        return self._file
+
+    @property
+    def schema(self) -> Optional[File]:
+        return self._schema
+
+    @property
+    def tools(self) -> Tools:
+        return self._tools
