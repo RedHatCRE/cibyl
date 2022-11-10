@@ -121,11 +121,3 @@ class YAMLFile:
     @property
     def tools(self) -> Tools:
         return self._tools
-
-
-class YAMLFileFactory:
-    """Factory for :class:`YAMLFile`.
-    """
-
-    def from_file(self, file: File, schema: Optional[File] = None):
-        return YAMLFile(file, schema)

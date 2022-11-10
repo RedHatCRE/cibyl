@@ -20,7 +20,7 @@ from cibyl.sources.zuuld.tools.yaml import YAMLSearch
 
 
 class TestYAMLSearch(TestCase):
-    """Tests for :class;`YAMLSearch`.
+    """Tests for :class:`YAMLSearch`.
     """
 
     def test_root_is_passed(self):
@@ -106,7 +106,6 @@ class TestYAMLSearch(TestCase):
         """Checks that the found files are returned.
         """
         root = Mock()
-        schema = Mock()
 
         # Reusing this mock for before and after becoming a YAMLFile.
         file1 = 'file1.yml'
@@ -129,17 +128,9 @@ class TestYAMLSearch(TestCase):
         tools.files = files
 
         yaml = YAMLSearch(
-            schema=schema,
             tools=tools
         )
 
         result = yaml.search(path=root)
 
         self.assertEqual([file1, file2], result)
-
-        files.from_file.assert_has_calls(
-            calls=[
-                call(file=file1, schema=schema),
-                call(file=file2, schema=schema)
-            ]
-        )

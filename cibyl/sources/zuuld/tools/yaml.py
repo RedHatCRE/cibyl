@@ -25,9 +25,25 @@ from kernel.tools.files import FileSearchFactory
 from kernel.tools.fs import Dir, File, KnownDirs, cd
 from kernel.tools.json import Draft7ValidatorFactory, JSONValidatorFactory
 from kernel.tools.yaml import (YAML, StandardYAMLParser, YAMLArray, YAMLError,
-                               YAMLFile, YAMLFileFactory, YAMLParser)
+                               YAMLFile, YAMLParser)
 
 LOG = logging.getLogger(__name__)
+
+
+class ZuulDFile(YAMLFile):
+    SCHEMA = File('_data/schemas/zuuld.json')
+
+    def __init__(self, file: File, tools: Optional[YAMLFile.Tools] = None):
+        super().__init__(
+            file=file,
+            schema=ZuulDFile.SCHEMA,
+            tools=tools
+        )
+
+
+class ZuulDFileFactory:
+    def from_file(self, file: File) -> ZuulDFile:
+        return ZuulDFile(file)
 
 
 class YAMLReader:
@@ -130,8 +146,6 @@ class YAMLSearch:
     """
     DEFAULT_YAML_EXTENSIONS = ('.yml', '.yaml')
     """Default file extensions that identify YAML files."""
-    DEFAULT_SCHEMA = File('_data/schemas/zuuld.json')
-    """Default schema that the YAML files must satisfy."""
 
     @dataclass
     class Tools:
@@ -140,15 +154,14 @@ class YAMLSearch:
         searches: FileSearchFactory = field(
             default_factory=lambda *_: FileSearchFactory()
         )
-        """Used to perform the search for interesting files."""
-        files: YAMLFileFactory = field(
-            default_factory=lambda *_: YAMLFileFactory()
+        """Used to search for files of interest."""
+        files: ZuulDFileFactory = field(
+            default_factory=lambda *_: ZuulDFileFactory()
         )
 
     def __init__(
         self,
         extensions: Optional[Iterable[str]] = None,
-        schema: Optional[File] = None,
         tools: Optional[Tools] = None
     ):
         """Constructor.
@@ -163,14 +176,10 @@ class YAMLSearch:
         if extensions is None:
             extensions = YAMLSearch.DEFAULT_YAML_EXTENSIONS
 
-        if schema is None:
-            schema = YAMLSearch.DEFAULT_SCHEMA
-
         if tools is None:
             tools = YAMLSearch.Tools()
 
         self._extensions = extensions
-        self._schema = schema
         self._tools = tools
 
     @property
@@ -181,53 +190,39 @@ class YAMLSearch:
         return self._extensions
 
     @property
-    def schema(self) -> File:
-        return self._schema
-
-    @property
     def tools(self) -> Tools:
         """
         :return: Tools used by this to do its task.
         """
         return self._tools
 
-    def search(self, path: Dir) -> Iterable[YAMLFile]:
+    def search(self, path: Dir) -> Iterable[ZuulDFile]:
         """Recursively searches the directory for all YAML files contained
         within.
 
         :param path: Directory to look in.
         :return: A handle to all retrieved files.
         """
-
-        def finds() -> Iterable[File]:
-            """
-            :return: Files in the directory with the requested extensions.
-            """
-            search = self.tools.searches.from_root(path)
-            search.with_recursion()
-
-            for ext in self.extensions:
-                search.with_extension(ext)
-
-            return [File(file) for file in search.get()]
-
         result = []
 
-        for find in finds():
+        for find in self._search_for_yamls_at(path):
             try:
-                result.append(
-                    self.tools.files.from_file(
-                        file=find,
-                        schema=self.schema
-                    )
-                )
+                zuuld = self.tools.files.from_file(file=find)
+                result.append(zuuld)
             except YAMLError:
                 LOG.debug(
-                    "Ignoring YAML file at: '%s' "
-                    "as it does not meet schema: '%s'.",
-                    find, self.schema
+                    "Ignoring YAML file at '%(find)s' as it does not satisfy "
+                    "the Zuul.D file schema.",
+                    {'find': find}
                 )
 
-                continue
-
         return result
+
+    def _search_for_yamls_at(self, path: Dir):
+        search = self.tools.searches.from_root(path)
+        search.with_recursion()
+
+        for ext in self.extensions:
+            search.with_extension(ext)
+
+        return [File(find) for find in search.get()]
