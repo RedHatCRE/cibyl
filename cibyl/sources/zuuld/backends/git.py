@@ -14,7 +14,6 @@
 #    under the License.
 """
 import logging
-
 from dataclasses import dataclass, field
 from typing import Iterable, Optional
 
