@@ -19,6 +19,7 @@ from typing import Generic, TypeVar
 from cibyl.sources.zuul.apis import ZuulAPI
 
 T = TypeVar('T', bound=ZuulAPI)
+"""Type for APIs built by the factory."""
 
 
 class ZuulAPIFactory(Generic[T], ABC):
