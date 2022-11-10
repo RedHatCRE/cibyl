@@ -22,6 +22,13 @@ from kernel.tools.urls import is_git
 
 @dataclass
 class GitSpec(SCMSpec):
+    """Defines location of Zuul.D files inside a Git repository.
+
+    This class provides some additional checks over its generic counterpart:
+        - For 'remote': It checks that the URL is a valid Git URL. Raises
+        :class:`InvalidURL` if not.
+    """
+
     def __post_init__(self):
         if not is_git(self.remote):
             raise InvalidURL(f"Not a Git URL: '{self.remote}'")

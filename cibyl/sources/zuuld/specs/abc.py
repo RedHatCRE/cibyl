@@ -21,5 +21,11 @@ from kernel.tools.urls import URL
 
 @dataclass
 class SCMSpec:
+    """Defines location of Zuul.D files for a generic SCM.
+    """
     remote: URL
-    directory: Path = field(default_factory=lambda: Path('.'))
+    """Address to the repository that hosts the files."""
+    directory: Path = field(default_factory=lambda: Path('zuul.d/'))
+    """Path, relative to the repository's root, to the directory where the 
+    Zuul.D files are stored in.
+    """

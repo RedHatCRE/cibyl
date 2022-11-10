@@ -27,20 +27,47 @@ from kernel.scm.git.tools.cloning import RepositoryFactory
 
 
 class GitBackend(ZuulDBackend[GitSpec]):
+    """Implementation of a Zuul.D backend that allows interaction with Git
+    repositories through Git's CLI.
+
+    Bear in mind that this backend will require cloning of repositories and,
+    as such, will need a location on the filesystem to hold that data. An
+    effort is made to reduce the amount of cloning performed, but it is
+    unavoidable.
+
+    Additionally, the backend does not take care of authentication
+    operations. Accessing a repository through SSH is up to the user to have
+    prepared (like loading the keys...) before this is used.
+    """
+
     class Get(ZuulDBackend.Get):
+        """Clones specs and reads the information within.
+        """
+
         @dataclass
         class Tools:
+            """Tools this uses to do its task.
+            """
             repositories: RepositoryFactory = field(
                 default_factory=lambda *_: RepositoryFactory()
             )
+            """Used to clone repositories and keep track of them."""
             files: YAMLSearch = field(
                 default_factory=lambda *_: YAMLSearch()
             )
+            """Used to look for Zuul.D files on the repository."""
             readers: YAMLReaderFactory = field(
                 default_factory=lambda *_: YAMLReaderFactory()
             )
+            """Used to parse the Zuul.D files into Python objects."""
 
         def __init__(self, tools: Optional[Tools] = None):
+            """Constructor.
+
+            :param tools:
+                Tools this uses to do its task.
+                'None' to let it build its own.
+            """
             if tools is None:
                 tools = GitBackend.Get.Tools()
 
@@ -48,6 +75,9 @@ class GitBackend(ZuulDBackend[GitSpec]):
 
         @property
         def tools(self) -> Tools:
+            """
+            :return: Tools this uses to do its task.
+            """
             return self._tools
 
         @overrides
@@ -68,4 +98,6 @@ class GitBackend(ZuulDBackend[GitSpec]):
             return result
 
     def __init__(self):
+        """Constructor.
+        """
         super().__init__(get=GitBackend.Get())

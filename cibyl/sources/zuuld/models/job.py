@@ -19,7 +19,13 @@ from typing import Any, Dict, Iterable, Optional
 
 @dataclass
 class Job:
+    """Transcription of a job object from a Zuul.D file.
+    """
     name: str
+    """Name of the job."""
     parent: Optional[str] = field(default_factory=lambda: None)
+    """Name of the parent job for this one."""
     branches: Iterable[str] = field(default_factory=lambda: [])
+    """Branches the job triggers at."""
     vars: Dict[str, Any] = field(default_factory=lambda: {})
+    """Collection of variables that specialize the job."""
