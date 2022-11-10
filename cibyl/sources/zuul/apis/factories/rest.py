@@ -35,6 +35,28 @@ class ZuulRESTClientFactory(ZuulAPIFactory[ZuulRESTClient]):
         self._host = host
         self._cert = cert
 
+    @staticmethod
+    def from_kwargs(**kwargs) -> 'ZuulRESTClientFactory':
+        """Builds a new instance of the factory from a collection of
+        unknown arguments.
+
+        :param kwargs: Keyword arguments.
+        :key url: Required. Address to the Zuul host to connect to.
+        :key cert: Optional. Path to the certificate to identify the user.
+        :return: A new instance of the factory.
+        :raises ValueError:
+            If keyword arguments are missing the 'url' key.
+        """
+        if 'url' not in kwargs:
+            raise ValueError(
+                "Missing key: 'url' from keyword arguments."
+            )
+
+        return ZuulRESTClientFactory(
+            host=kwargs['url'],
+            cert=kwargs.get('cert')
+        )
+
     @property
     def host(self) -> URL:
         """

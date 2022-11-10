@@ -62,7 +62,7 @@ class TestSourceFactory(TestCase):
         self.assertTrue(isinstance(source, Zuul))
         self.assertEqual(source.name, "zuul_source")
         self.assertEqual(source.driver, "zuul")
-        self.assertEqual(source.url, "url")
+        self.assertEqual(source.provider.host, "url")
 
     def test_create_unknown_source(self):
         """Checks that an exception is raise if the source type is unknown."""

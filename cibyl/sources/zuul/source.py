@@ -13,8 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 from collections import UserDict
-from typing import List, MutableMapping, NamedTuple, Optional
+from dataclasses import dataclass, field
+from typing import Iterable, MutableMapping, Union
 
 from overrides import overrides
 
@@ -22,21 +24,21 @@ from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
-from cibyl.sources.zuul.apis.factories import ZuulAPIFactory
-from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
+from cibyl.sources.zuul.apis.factories.abc import ZuulAPIFactory as APIProvider
 from cibyl.sources.zuul.arguments import ArgumentReview
 from cibyl.sources.zuul.output import QueryOutput
 from cibyl.sources.zuul.queries.composition.factory import \
     AggregatedQueryFactory
 from cibyl.sources.zuul.queries.modifiers.factory import QueryModifierFactory
-from kernel.tools.dicts import subset
+
+LOG = logging.getLogger(__name__)
 
 
 class Zuul(ServerSource):
     """Source implementation for a Zuul host.
     """
 
-    class Fallbacks(UserDict, MutableMapping[str, List[str]]):
+    class Fallbacks(UserDict, MutableMapping[str, Union[str, Iterable[str]]]):
         """Dictionary meant to hold the default search terms for arguments
         on a zuul query.
 
@@ -47,108 +49,110 @@ class Zuul(ServerSource):
             ['tenant_1', 'tenant_2']
         """
 
-    class Tools(NamedTuple):
+        @staticmethod
+        def from_kwargs(keys: Iterable[str], **kwargs):
+            """Builds the fallbacks by extracting the entries identified by
+            the keys from the keyword arguments.
+
+            Entries from the keyword arguments are copied, meaning that
+            these are left unmodified.
+
+            If a key points to an entry not found on the arguments,
+            then that key is simply ignored.
+
+            :param keys: Keys to the entries to extract.
+            :param kwargs: The keyword arguments.
+            :return: A new fallbacks dictionary.
+            """
+            result = Zuul.Fallbacks()
+
+            for key in keys:
+                if key not in kwargs:
+                    LOG.debug(
+                        "Key for fallback: '%s' not found in arguments. "
+                        "Ignoring...",
+                        key
+                    )
+                    continue
+
+                result[key] = kwargs[key]
+
+            return result
+
+    @dataclass
+    class SourceSpec:
+        """Defines common data shared by all sources.
+        """
+        name: str
+        """Name of the source."""
+        driver: str = field(default_factory=lambda *_: 'zuul')
+        """Name of its driver."""
+        enabled: bool = field(default_factory=lambda *_: True)
+        """Whether the source should be called."""
+
+    @dataclass
+    class Tools:
         """Tools this uses to perform its task.
         """
-        api: ZuulAPIFactory
-        """Used to get the API this will use to interact with Zuul."""
-        arguments: ArgumentReview
+        arguments: ArgumentReview = field(
+            default_factory=lambda *_: ArgumentReview()
+        )
         """Used to make sense out of the arguments coming from the user."""
-        queries: AggregatedQueryFactory
+        queries: AggregatedQueryFactory = field(
+            default_factory=lambda *_: AggregatedQueryFactory()
+        )
         """Used to generate the manager that will perform the query."""
-        modifiers: QueryModifierFactory
+        modifiers: QueryModifierFactory = field(
+            default_factory=lambda *_: QueryModifierFactory()
+        )
+        """Used to extend queries for certain scenarios."""
 
-    def __init__(self, name, driver, url, cert=None,
-                 fallbacks=None, tenants=None, enabled=True,
-                 tools: Optional[Tools] = None):
+    def __init__(self, provider, spec, fallbacks=None, tools=None):
         """Constructor.
 
-        :param name: Name of the source.
-        :type name: str
-        :param driver: Driver used by the source.
-        :type driver: str
-        :param url: Address where the host is located.
-        :type url: str
-        :param cert: See :meth:`ZuulRESTClient.from_url`
-        :type cert: str or None
-        :param fallbacks: Default search terms to be used for missing query
-            arguments.
+        :param provider:
+            Establishes the API this will use to interact with Zuul.
+        :type provider: :class:`APIProvider`
+        :param spec:
+            Common arguments that define the source for cibyl.
+        :type spec: :class:`Zuul.SourceSpec`
+        :param fallbacks:
+            Default search terms to be used for missing query arguments.
+            'None' to ignore.
         :type fallbacks: :class:`Zuul.Fallbacks` or None
-        :param tenants: List of tenants
-        :type tenants: list
-        :param tools: Collection of tools this uses to do its task.
+        :param tools:
+            Collection of tools this uses to do its task.
             'None' for defaults.
-        :type tools: :class:`Zuul.Tools`
+        :type tools: :class:`Zuul.Tools` or None
         """
         # Handle optional parameters
         if not fallbacks:
             fallbacks = Zuul.Fallbacks()
 
         if not tools:
-            tools = Zuul.Tools(
-                api=ZuulRESTFactory(),
-                arguments=ArgumentReview(),
-                queries=AggregatedQueryFactory(),
-                modifiers=QueryModifierFactory()
-            )
+            tools = Zuul.Tools()
 
-        # URLs are built assuming no slash at the end of URL
-        if url.endswith('/'):
-            url = url[:-1]  # Removes last character of string
-
-        super().__init__(name, driver, url=url, cert=cert, enabled=enabled)
+        super().__init__(spec.name, spec.driver, enabled=spec.enabled)
 
         self._api = None
 
+        self._provider = provider
         self._fallbacks = fallbacks
-        self._tenants = tenants
         self._tools = tools
 
-    @staticmethod
-    def new_source(url, cert=None, **kwargs):
-        """Builds a Zuul source from the data that describes it.
-
-        :param url: Address of Zuul's host.
-        :type url: str
-        :param cert: See :meth:`ZuulRESTClient.from_url`
-        :type cert: str or None
-        :key name:
-            Name of the source.
-            Type: str. Default: 'zuul-ci'.
-        :key driver:
-            Driver for this source.
-            Type: str. Default: 'zuul'.
-        :key priority:
-            Priority of the source.
-            Type: int. Default: 0.
-        :key enabled:
-            Whether this source is to be used.
-            Type: bool. Default: True.
-        :return: The instance.
+    @property
+    def provider(self) -> APIProvider:
         """
+        :return: Factory that provides APIs for the source to work with.
+        """
+        return self._provider
 
-        def new_fallbacks_from(*args):
-            """
-            :param args: Arguments to generate fallbacks for.
-            :return: Dictionary with the default values of the requested
-                arguments.
-            :rtype: :class:`Zuul.Fallbacks`
-            """
-            result = Zuul.Fallbacks()
-
-            for entry in args:
-                if entry in kwargs:
-                    # Add the default values for this entry
-                    result.update(subset(kwargs, [entry]))
-
-            return result
-
-        kwargs.setdefault('name', 'zuul-ci')
-        kwargs.setdefault('driver', 'zuul')
-
-        fallbacks = new_fallbacks_from('tenants')
-
-        return Zuul(url=url, cert=cert, fallbacks=fallbacks, **kwargs)
+    @property
+    def fallbacks(self) -> Fallbacks:
+        """
+        :return: Default values used when arguments are missing.
+        """
+        return self._fallbacks
 
     @property
     def tools(self):
@@ -159,7 +163,7 @@ class Zuul(ServerSource):
 
     @overrides
     def setup(self):
-        self._api = self.tools.api.create(self.url, self.cert)
+        self._api = self._provider.new()
 
     @overrides
     def teardown(self):

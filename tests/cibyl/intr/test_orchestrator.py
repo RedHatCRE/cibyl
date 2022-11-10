@@ -31,7 +31,9 @@ from cibyl.plugins.openstack.sources.jenkins import Jenkins as OSPJenkins
 from cibyl.plugins.openstack.sources.zuul import Zuul as OSPZuul
 from cibyl.sources.elasticsearch.api import ElasticSearch
 from cibyl.sources.jenkins import Jenkins
+from cibyl.sources.zuul.apis.factories.rest import ZuulRESTClientFactory
 from cibyl.sources.zuul.source import Zuul
+from kernel.tools.urls import URL
 
 
 class TestOrchestrator(TestCase):
@@ -292,8 +294,15 @@ class TestOrchestrator(TestCase):
                                                    zuul_setup_mock):
         """Test that the args level is correctly considered and the correct
         number of source queries are done."""
-        source_instance_mock.return_value = Zuul(name="zuul", driver="zuul",
-                                                 url="url")
+        source_instance_mock.return_value = Zuul(
+            provider=ZuulRESTClientFactory(
+                host=URL("http://localhost:8080")
+            ),
+            spec=Zuul.SourceSpec(
+                name="zuul",
+                driver="zuul"
+            )
+        )
         with NamedTemporaryFile() as config_file:
             config_file.write(b"environments:\n")
             config_file.write(b"  env:\n")

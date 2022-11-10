@@ -21,11 +21,12 @@ from cibyl.models.ci.zuul.job import Job
 from cibyl.models.ci.zuul.pipeline import Pipeline
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
-from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
+from cibyl.sources.zuul.apis.factories.rest import ZuulRESTClientFactory
 from cibyl.sources.zuul.arguments import ArgumentReview
 from cibyl.sources.zuul.queries.composition.verbose import VerboseQuery
 from cibyl.sources.zuul.queries.modifiers.factory import QueryModifierFactory
 from cibyl.sources.zuul.source import Zuul
+from kernel.tools.urls import URL
 
 
 class TestVerboseQuery(TestCase):
@@ -72,18 +73,19 @@ class TestVerboseQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Zuul.Tools(
-            api=ZuulRESTFactory(),
-            arguments=ArgumentReview(),
-            queries=factory,
-            modifiers=QueryModifierFactory()
-        )
-
         source = Zuul(
-            name='test-source',
-            driver='zuul',
-            url='http://localhost:8080/',
-            tools=tools
+            provider=ZuulRESTClientFactory(
+                host=URL('http://localhost:8080/')
+            ),
+            spec=Zuul.SourceSpec(
+                name='test-source',
+                driver='zuul'
+            ),
+            tools=Zuul.Tools(
+                arguments=ArgumentReview(),
+                queries=factory,
+                modifiers=QueryModifierFactory()
+            )
         )
 
         kwargs = {'jobs': Argument('jobs', str, '')}
