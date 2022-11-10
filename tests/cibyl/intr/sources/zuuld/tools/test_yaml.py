@@ -36,7 +36,7 @@ class TestZuulDFile(TestCase):
             file.flush()
 
             with self.assertRaises(YAMLError):
-                ZuulDFile(file=File(file))
+                ZuulDFile(file=File(file.name))
 
 
 class TestYAMLSearch(TestCase):
@@ -58,18 +58,32 @@ class TestYAMLSearch(TestCase):
             subdirectory = directory.cd('subdir')
             subdirectory.mkdir()
 
-            file1 = NamedTemporaryFile('w', suffix='.yaml', dir=directory)
-            file1.write(contents)
-            file1.flush()
+            with NamedTemporaryFile(
+                mode='w',
+                delete=False,
+                suffix='.yaml',
+                dir=directory
+            ) as file1:
+                file1.write(contents)
 
-            file2 = NamedTemporaryFile('w', suffix='.yml', dir=subdirectory)
-            file2.write(contents)
-            file2.flush()
+            with NamedTemporaryFile(
+                mode='w',
+                delete=False,
+                suffix='.yml',
+                dir=subdirectory
+            ) as file2:
+                file2.write(contents)
 
             search = YAMLSearch()
 
             result = list(search.search(directory))
 
             self.assertEqual(2, len(result))
-            self.assertTrue(result[0].file.endswith('.yaml'))
-            self.assertTrue(result[1].file.endswith('.yml'))
+
+            self.assertTrue(
+                any(find.file.endswith('.yaml') for find in result)
+            )
+
+            self.assertTrue(
+                any(find.file.endswith('.yml') for find in result)
+            )
