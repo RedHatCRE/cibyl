@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
+
 from dataclasses import dataclass, field
 from typing import Iterable, Optional
 
@@ -24,6 +26,8 @@ from cibyl.sources.zuuld.models.job import Job
 from cibyl.sources.zuuld.specs.git import GitSpec
 from cibyl.sources.zuuld.tools.yaml import YAMLReaderFactory, YAMLSearch
 from kernel.scm.git.tools.cloning import RepositoryFactory
+
+LOG = logging.getLogger(__name__)
 
 
 class GitBackend(ZuulDBackend[GitSpec]):
@@ -82,8 +86,12 @@ class GitBackend(ZuulDBackend[GitSpec]):
 
         @overrides
         def jobs(self, spec: T) -> Iterable[Job]:
+            LOG.debug("Preparing spec: '%s'...", spec)
+
             repo = self.tools.repositories.from_remote(url=spec.remote)
             directory = repo.workspace.cd(spec.directory)
+
+            LOG.debug("Spec ready, parsing contents...")
 
             result = []
 
@@ -93,6 +101,7 @@ class GitBackend(ZuulDBackend[GitSpec]):
                 try:
                     result += reader.jobs()
                 except IllegibleData:
+                    LOG.debug("Failed to parse file: '%s', ignoring...")
                     continue
 
             return result

@@ -26,6 +26,9 @@ class SCMSpec:
     remote: URL
     """Address to the repository that hosts the files."""
     directory: Path = field(default_factory=lambda: Path('zuul.d/'))
-    """Path, relative to the repository's root, to the directory where the 
+    """Path, relative to the repository's root, to the directory where the
     Zuul.D files are stored in.
     """
+
+    def __str__(self):
+        return f"[Remote: '{self.remote}', Directory: '{self.directory}']"

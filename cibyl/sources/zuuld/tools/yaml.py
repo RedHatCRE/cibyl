@@ -230,6 +230,7 @@ class YAMLSearch:
                     "the Zuul.D file schema.",
                     {'find': find}
                 )
+                continue
 
         return result
 
