@@ -16,12 +16,12 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
+from cibyl.sources.zuul.apis.factories.rest import ZuulRESTClientFactory
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
 
 
-class TestZuulRESTFactory(TestCase):
-    """Tests for :class:`ZuulRESTFactory`.
+class TestZuulRESTClientFactory(TestCase):
+    """Tests for :class:`ZuulRESTClientFactory`.
     """
 
     def test_creates_rest_api(self):
@@ -29,9 +29,12 @@ class TestZuulRESTFactory(TestCase):
         """
         url = Mock()
 
-        factory = ZuulRESTFactory()
+        factory = ZuulRESTClientFactory(
+            host=url,
+            cert=None
+        )
 
-        self.assertIsInstance(factory.create(url), ZuulRESTClient)
+        self.assertIsInstance(factory.new(), ZuulRESTClient)
 
     def test_arguments_passed_to_api(self):
         """Checks that the created API has the arguments passed to the
@@ -40,9 +43,12 @@ class TestZuulRESTFactory(TestCase):
         url = Mock()
         cert = Mock()
 
-        factory = ZuulRESTFactory()
+        factory = ZuulRESTClientFactory(
+            host=url,
+            cert=cert
+        )
 
-        result = factory.create(url, cert)
+        result = factory.new()
 
         self.assertEqual(result.session.host, url)
         self.assertEqual(result.session.session.verify, cert)
