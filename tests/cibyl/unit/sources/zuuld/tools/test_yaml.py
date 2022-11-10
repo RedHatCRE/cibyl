@@ -16,7 +16,64 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock, call
 
-from cibyl.sources.zuuld.tools.yaml import YAMLSearch
+from cibyl.sources.zuuld.models.job import Job
+from cibyl.sources.zuuld.tools.yaml import YAMLReader, YAMLSearch
+
+
+class TestYAMLReader(TestCase):
+    """Tests for :class:`YAMLReader`.
+    """
+
+    def test_parses_jobs(self):
+        """Checks that the reader is capable of forming job models from the
+        data in the file.
+        """
+        data = [
+            {
+                'job': {
+                    'name': 'job1',
+                    'branches': 'master'
+                }
+            },
+            {
+                'job': {
+                    'name': 'job2',
+                    'parent': 'job1',
+                    'branches': [
+                        'main',
+                        'devel'
+                    ],
+                    'vars': {
+                        'test': 'var'
+                    }
+                }
+            }
+        ]
+
+        file = Mock()
+        file.data = data
+
+        reader = YAMLReader(file)
+
+        result = list(reader.jobs())
+
+        self.assertEqual(
+            Job(
+                name='job1',
+                branches=['master']
+            ),
+            result[0]
+        )
+
+        self.assertEqual(
+            Job(
+                name='job2',
+                parent='job1',
+                branches=['main', 'devel'],
+                vars={'test': 'var'}
+            ),
+            result[1]
+        )
 
 
 class TestYAMLSearch(TestCase):

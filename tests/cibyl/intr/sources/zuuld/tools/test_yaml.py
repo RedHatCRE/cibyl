@@ -16,8 +16,27 @@
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import TestCase
 
-from cibyl.sources.zuuld.tools.yaml import YAMLSearch
-from kernel.tools.fs import Dir
+from cibyl.sources.zuuld.tools.yaml import YAMLSearch, ZuulDFile
+from kernel.tools.fs import Dir, File
+from kernel.tools.yaml import YAMLError
+
+
+class TestZuulDFile(TestCase):
+    """Tests for :class:`ZuulDFile.`
+    """
+
+    def test_error_if_unmet_schema(self):
+        """Checks that an error is thrown if the file does not meet the
+        schema.
+        """
+        contents = 'hello_world!'
+
+        with NamedTemporaryFile('w') as file:
+            file.write(contents)
+            file.flush()
+
+            with self.assertRaises(YAMLError):
+                ZuulDFile(file=File(file))
 
 
 class TestYAMLSearch(TestCase):
