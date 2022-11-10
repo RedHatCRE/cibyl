@@ -160,6 +160,14 @@ Arguments Matrix
      - |:black_square_button:|
      - |:black_square_button:|
      - |:black_square_button:|
+   * - --manila-backend
+     - | What manila backend is
+       | used (nfs ganesha, nfs, iscsi)
+     - |:ballot_box_with_check:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
+     - |:black_square_button:|
    * - --containers
      - | List of containers running
        | on the hosts
