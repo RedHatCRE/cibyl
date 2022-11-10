@@ -17,15 +17,10 @@ import logging
 from dataclasses import dataclass, field
 from typing import Iterable, Optional
 
-from cached_property import cached_property
-
-from cibyl.sources.zuuld.errors import IllegibleData
 from cibyl.sources.zuuld.models.job import Job
 from kernel.tools.files import FileSearchFactory
-from kernel.tools.fs import Dir, File, KnownDirs, cd
-from kernel.tools.json import Draft7ValidatorFactory, JSONValidatorFactory
-from kernel.tools.yaml import (YAML, StandardYAMLParser, YAMLArray, YAMLError,
-                               YAMLFile, YAMLParser)
+from kernel.tools.fs import Dir, File
+from kernel.tools.yaml import YAMLArray, YAMLError, YAMLFile
 
 LOG = logging.getLogger(__name__)
 
@@ -47,64 +42,28 @@ class ZuulDFileFactory:
 
 
 class YAMLReader:
-    DEFAULT_SCHEMA = File('_data/schemas/zuuld.json')
+    class DataExtractor:
+        def __init__(self, file: ZuulDFile):
+            self._file = file
 
-    @dataclass
-    class Tools:
-        parser: YAMLParser = field(
-            default_factory=lambda *_: StandardYAMLParser()
-        )
-        validators: JSONValidatorFactory = field(
-            default_factory=lambda *_: Draft7ValidatorFactory()
-        )
+        @property
+        def file(self) -> ZuulDFile:
+            return self._file
 
-    def __init__(
-        self,
-        file: File,
-        schema: Optional[File] = None,
-        tools: Optional[Tools] = None
-    ):
-        if schema is None:
-            schema = YAMLReader.DEFAULT_SCHEMA
+        def jobs(self) -> YAMLArray:
+            return [entry['job'] for entry in self.file.data if 'job' in entry]
 
-        if tools is None:
-            tools = YAMLReader.Tools()
-
-        self._file = file
-        self._schema = schema
-        self._tools = tools
-
-    @cached_property
-    def data(self) -> YAML:
-        data = self.tools.parser.as_yaml(self.file.read())
-
-        with cd(KnownDirs.CIBYL):
-            validator = self.tools.validators.from_file(self.schema)
-
-            if not validator.is_valid(data):
-                raise IllegibleData()
-
-        return data
+    def __init__(self, file: ZuulDFile):
+        self._data = YAMLReader.DataExtractor(file)
 
     @property
-    def file(self) -> File:
-        return self._file
-
-    @property
-    def schema(self) -> File:
-        return self._schema
-
-    @property
-    def tools(self) -> Tools:
-        return self._tools
+    def file(self) -> ZuulDFile:
+        return self._data.file
 
     def jobs(self) -> Iterable[Job]:
-        def jobs() -> YAMLArray:
-            return [entry['job'] for entry in self.data if 'job' in entry]
-
         result = []
 
-        for job in jobs():
+        for job in self._data.jobs():
             model = Job(
                 name=job['name']
             )
@@ -132,12 +91,7 @@ class YAMLReaderFactory:
     """Factory for :class:`YAMLReader`.
     """
 
-    def from_file(self, file: File) -> YAMLReader:
-        """Builds a new reader for the given file.
-
-        :param file: The YAML file to handle.
-        :return: The new instance.
-        """
+    def from_file(self, file: ZuulDFile) -> YAMLReader:
         return YAMLReader(file)
 
 
