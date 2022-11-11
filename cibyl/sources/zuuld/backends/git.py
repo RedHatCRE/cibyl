@@ -20,7 +20,6 @@ from typing import Iterable, Optional
 from overrides import overrides
 
 from cibyl.sources.zuuld.backends.abc import T, ZuulDBackend
-from cibyl.sources.zuuld.errors import IllegibleData
 from cibyl.sources.zuuld.models.job import Job
 from cibyl.sources.zuuld.specs.git import GitSpec
 from cibyl.sources.zuuld.tools.yaml import YAMLReaderFactory, YAMLSearch
@@ -95,13 +94,9 @@ class GitBackend(ZuulDBackend[GitSpec]):
             result = []
 
             for file in self.tools.files.search(directory):
+                LOG.debug("Reading: '%s'...", file.file)
                 reader = self.tools.readers.from_file(file)
-
-                try:
-                    result += reader.jobs()
-                except IllegibleData:
-                    LOG.debug("Failed to parse file: '%s', ignoring...")
-                    continue
+                result += reader.jobs()
 
             return result
 
