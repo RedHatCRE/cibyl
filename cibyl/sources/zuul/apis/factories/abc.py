@@ -13,3 +13,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from abc import ABC, abstractmethod
+from typing import Generic, TypeVar
+
+from cibyl.sources.zuul.apis import ZuulAPI
+
+T = TypeVar('T', bound=ZuulAPI)
+"""Type for APIs built by the factory."""
+
+
+class ZuulAPIFactory(Generic[T], ABC):
+    """Base class for factories that create instances for subclasses of
+    :class:`ZuulAPI`.
+    """
+
+    @abstractmethod
+    def new(self) -> T:
+        """Builds a new instance of the API.
+
+        :return: The new instance.
+        """
+        raise NotImplementedError

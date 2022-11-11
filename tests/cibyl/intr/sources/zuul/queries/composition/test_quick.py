@@ -24,13 +24,14 @@ from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
 from cibyl.models.ci.zuul.test import Test, TestKind, TestStatus
 from cibyl.models.ci.zuul.test_suite import TestSuite
-from cibyl.sources.zuul.apis.factories.rest import ZuulRESTFactory
+from cibyl.sources.zuul.apis.factories.rest import ZuulRESTClientFactory
 from cibyl.sources.zuul.arguments import ArgumentReview
 from cibyl.sources.zuul.queries.composition.quick import QuickQuery
 from cibyl.sources.zuul.queries.modifiers.factory import QueryModifierFactory
 from cibyl.sources.zuul.source import Zuul
 from cibyl.sources.zuul.utils.tests.tempest.types import TempestTest
 from cibyl.sources.zuul.utils.tests.types import TestResult
+from kernel.tools.urls import URL
 
 
 class TestQuickQuery(TestCase):
@@ -54,18 +55,19 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Zuul.Tools(
-            api=ZuulRESTFactory(),
-            arguments=ArgumentReview(),
-            queries=factory,
-            modifiers=QueryModifierFactory()
-        )
-
         source = Zuul(
-            name='test-source',
-            driver='zuul',
-            url='http://localhost:8080/',
-            tools=tools
+            provider=ZuulRESTClientFactory(
+                host=URL('http://localhost:8080/')
+            ),
+            spec=Zuul.SourceSpec(
+                name='test-source',
+                driver='zuul'
+            ),
+            tools=Zuul.Tools(
+                arguments=ArgumentReview(),
+                queries=factory,
+                modifiers=QueryModifierFactory()
+            )
         )
 
         kwargs = {'tenants': Argument('tenants', str, '')}
@@ -103,18 +105,19 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Zuul.Tools(
-            api=ZuulRESTFactory(),
-            arguments=ArgumentReview(),
-            queries=factory,
-            modifiers=QueryModifierFactory()
-        )
-
         source = Zuul(
-            name='test-source',
-            driver='zuul',
-            url='http://localhost:8080/',
-            tools=tools
+            provider=ZuulRESTClientFactory(
+                host=URL('http://localhost:8080/')
+            ),
+            spec=Zuul.SourceSpec(
+                name='test-source',
+                driver='zuul'
+            ),
+            tools=Zuul.Tools(
+                arguments=ArgumentReview(),
+                queries=factory,
+                modifiers=QueryModifierFactory()
+            )
         )
 
         kwargs = {'projects': Argument('projects', str, '')}
@@ -166,18 +169,19 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Zuul.Tools(
-            api=ZuulRESTFactory(),
-            arguments=ArgumentReview(),
-            queries=factory,
-            modifiers=QueryModifierFactory()
-        )
-
         source = Zuul(
-            name='test-source',
-            driver='zuul',
-            url='http://localhost:8080/',
-            tools=tools
+            provider=ZuulRESTClientFactory(
+                host=URL('http://localhost:8080/')
+            ),
+            spec=Zuul.SourceSpec(
+                name='test-source',
+                driver='zuul'
+            ),
+            tools=Zuul.Tools(
+                arguments=ArgumentReview(),
+                queries=factory,
+                modifiers=QueryModifierFactory()
+            )
         )
 
         kwargs = {'pipelines': Argument('pipelines', str, '')}
@@ -230,18 +234,19 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Zuul.Tools(
-            api=ZuulRESTFactory(),
-            arguments=ArgumentReview(),
-            queries=factory,
-            modifiers=QueryModifierFactory()
-        )
-
         source = Zuul(
-            name='test-source',
-            driver='zuul',
-            url='http://localhost:8080/',
-            tools=tools
+            provider=ZuulRESTClientFactory(
+                host=URL('http://localhost:8080/')
+            ),
+            spec=Zuul.SourceSpec(
+                name='test-source',
+                driver='zuul'
+            ),
+            tools=Zuul.Tools(
+                arguments=ArgumentReview(),
+                queries=factory,
+                modifiers=QueryModifierFactory()
+            )
         )
 
         kwargs = {'jobs': Argument('jobs', str, '')}
@@ -299,18 +304,19 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Zuul.Tools(
-            api=ZuulRESTFactory(),
-            arguments=ArgumentReview(),
-            queries=factory,
-            modifiers=QueryModifierFactory()
-        )
-
         source = Zuul(
-            name='test-source',
-            driver='zuul',
-            url='http://localhost:8080/',
-            tools=tools
+            provider=ZuulRESTClientFactory(
+                host=URL('http://localhost:8080/')
+            ),
+            spec=Zuul.SourceSpec(
+                name='test-source',
+                driver='zuul'
+            ),
+            tools=Zuul.Tools(
+                arguments=ArgumentReview(),
+                queries=factory,
+                modifiers=QueryModifierFactory()
+            )
         )
 
         kwargs = {
@@ -385,18 +391,19 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Zuul.Tools(
-            api=ZuulRESTFactory(),
-            arguments=ArgumentReview(),
-            queries=factory,
-            modifiers=QueryModifierFactory()
-        )
-
         source = Zuul(
-            name='test-source',
-            driver='zuul',
-            url='http://localhost:8080/',
-            tools=tools
+            provider=ZuulRESTClientFactory(
+                host=URL('http://localhost:8080/')
+            ),
+            spec=Zuul.SourceSpec(
+                name='test-source',
+                driver='zuul'
+            ),
+            tools=Zuul.Tools(
+                arguments=ArgumentReview(),
+                queries=factory,
+                modifiers=QueryModifierFactory()
+            )
         )
 
         kwargs = {'builds': Argument('builds', str, '')}
@@ -494,18 +501,19 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Zuul.Tools(
-            api=ZuulRESTFactory(),
-            arguments=ArgumentReview(),
-            queries=factory,
-            modifiers=QueryModifierFactory()
-        )
-
         source = Zuul(
-            name='test-source',
-            driver='zuul',
-            url='http://localhost:8080/',
-            tools=tools
+            provider=ZuulRESTClientFactory(
+                host=URL('http://localhost:8080/')
+            ),
+            spec=Zuul.SourceSpec(
+                name='test-source',
+                driver='zuul'
+            ),
+            tools=Zuul.Tools(
+                arguments=ArgumentReview(),
+                queries=factory,
+                modifiers=QueryModifierFactory()
+            )
         )
 
         kwargs = {'tests': Argument('tests', str, '')}
@@ -587,18 +595,19 @@ class TestQuickQuery(TestCase):
         factory.from_kwargs = Mock()
         factory.from_kwargs.return_value = query
 
-        tools = Zuul.Tools(
-            api=ZuulRESTFactory(),
-            arguments=ArgumentReview(),
-            queries=factory,
-            modifiers=QueryModifierFactory()
-        )
-
         source = Zuul(
-            name='test-source',
-            driver='zuul',
-            url='http://localhost:8080/',
-            tools=tools
+            provider=ZuulRESTClientFactory(
+                host=URL('http://localhost:8080/')
+            ),
+            spec=Zuul.SourceSpec(
+                name='test-source',
+                driver='zuul'
+            ),
+            tools=Zuul.Tools(
+                arguments=ArgumentReview(),
+                queries=factory,
+                modifiers=QueryModifierFactory()
+            )
         )
 
         kwargs = {

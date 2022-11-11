@@ -13,17 +13,67 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from typing import Optional
+
 from overrides import overrides
 
-from cibyl.sources.zuul.apis.factories import ZuulAPIFactory
+from cibyl.sources.zuul.apis.factories.abc import ZuulAPIFactory
 from cibyl.sources.zuul.apis.rest import ZuulRESTClient
+from kernel.tools.urls import URL
 
 
-class ZuulRESTFactory(ZuulAPIFactory):
-    """Factory that provides interfaces with a Zuul host through the use of
-    the host's REST-API.
+class ZuulRESTClientFactory(ZuulAPIFactory[ZuulRESTClient]):
+    """Factory for :class:`ZuulRESTClient`.
     """
 
+    def __init__(self, host: URL, cert: Optional[str] = None):
+        """Constructor.
+
+        :param host: Address of the Zuul host the API will interact with.
+        :param cert: See :meth:`ZuulRESTClient.from_url`
+        """
+        self._host = host
+        self._cert = cert
+
+    @staticmethod
+    def from_kwargs(**kwargs) -> 'ZuulRESTClientFactory':
+        """Builds a new instance of the factory from a collection of
+        unknown arguments.
+
+        :param kwargs: Keyword arguments.
+        :key url: Required. Address to the Zuul host to connect to.
+        :key cert: Optional. Path to the certificate to identify the user.
+        :return: A new instance of the factory.
+        :raises ValueError:
+            If keyword arguments are missing the 'url' key.
+        """
+        if 'url' not in kwargs:
+            raise ValueError(
+                "Missing key: 'url' from keyword arguments."
+            )
+
+        return ZuulRESTClientFactory(
+            host=kwargs['url'],
+            cert=kwargs.get('cert')
+        )
+
+    @property
+    def host(self) -> URL:
+        """
+        :return: Address of the Zuul host the API will interact with.
+        """
+        return self._host
+
+    @property
+    def cert(self) -> Optional[str]:
+        """
+        :return: Path to the certificate that authenticates the user.
+        """
+        return self._cert
+
     @overrides
-    def create(self, url, cert=None, **kwargs):
-        return ZuulRESTClient.from_url(url, cert)
+    def new(self) -> ZuulRESTClient:
+        return ZuulRESTClient.from_url(
+            host=self.host,
+            cert=self.cert
+        )

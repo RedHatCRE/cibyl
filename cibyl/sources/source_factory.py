@@ -24,6 +24,7 @@ from cibyl.sources.elasticsearch.api import ElasticSearch
 from cibyl.sources.jenkins import Jenkins
 from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 from cibyl.sources.server import ServerSource
+from cibyl.sources.zuul.apis.factories.rest import ZuulRESTClientFactory
 from cibyl.sources.zuul.source import Zuul
 
 LOG = logging.getLogger(__name__)
@@ -84,7 +85,18 @@ with plugin source")
                 return Jenkins(name=name, **kwargs)
 
             if source_type == SourceType.ZUUL:
-                return Zuul.new_source(name=name, **kwargs)
+                return Zuul(
+                    provider=ZuulRESTClientFactory.from_kwargs(**kwargs),
+                    spec=Zuul.SourceSpec(
+                        name=name,
+                        driver=kwargs.get('driver', 'zuul'),
+                        enabled=kwargs.get('enabled', True)
+                    ),
+                    fallbacks=Zuul.Fallbacks.from_kwargs(
+                        keys=['tenants'],
+                        **kwargs
+                    )
+                )
 
             if source_type == SourceType.ELASTICSEARCH:
                 return ElasticSearch(name=name, **kwargs)
