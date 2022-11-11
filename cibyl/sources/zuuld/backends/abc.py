@@ -13,11 +13,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 from abc import ABC, abstractmethod
 from typing import Generic, Iterable, TypeVar
 
+from overrides import overrides
+
 from cibyl.sources.zuuld.models.job import Job
 from cibyl.sources.zuuld.specs.abc import SCMSpec
+
+LOG = logging.getLogger(__name__)
 
 T = TypeVar('T', bound=SCMSpec)
 """Type for the kind of spec used by backend."""
@@ -47,6 +52,8 @@ class ZuulDBackend(Generic[T]):
             :return:
                 A transcription of all job objects found under the files
                 declared at the spec.
+            :raises ZuulDError:
+                If the backend failed to retrieve the data.
             """
             raise NotImplementedError
 
@@ -65,3 +72,21 @@ class ZuulDBackend(Generic[T]):
             providers.
         """
         return self._get
+
+
+class AggregatedBackend(ZuulDBackend[T]):
+    class Get(ZuulDBackend.Get):
+        def __init__(self, backends: Iterable[ZuulDBackend.Get]):
+            self._backends = backends
+
+        @property
+        def backends(self) -> Iterable[ZuulDBackend.Get]:
+            return self._backends
+
+        @overrides
+        def jobs(self, spec: T) -> Iterable[Job]:
+            for backend in self.backends:
+                try:
+                    return backend.jobs(spec)
+                except ZuulDBackend:
+                    continue
