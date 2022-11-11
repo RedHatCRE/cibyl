@@ -13,17 +13,47 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from dataclasses import dataclass
+from typing import Dict, Generic, Iterable
+
 from overrides import overrides
 
-from cibyl.sources.zuul.apis import ZuulAPI, ZuulTenantAPI, ZuulJobAPI
+from cibyl.sources.zuul.apis import ZuulAPI, ZuulJobAPI, ZuulTenantAPI
+from cibyl.sources.zuuld.backends.abc import T, ZuulDBackend
 from cibyl.sources.zuuld.errors import UnsupportedError
 
 
-class _Job(ZuulJobAPI):
+@dataclass
+class Session(Generic[T]):
+    specs: Iterable[T]
+    backend: ZuulDBackend[T]
+
+
+class _Job(Generic[T], ZuulJobAPI):
+    def __init__(
+        self,
+        session: Session[T],
+        spec: T,
+        tenant: '_Tenant',
+        job: Dict
+    ):
+        super().__init__(tenant, job)
+
+        self._session = session
+        self._spec = spec
+
+    @property
+    def session(self) -> Session[T]:
+        return self._session
+
+    @property
+    def spec(self) -> T:
+        return self._spec
+
     @property
     @overrides
     def url(self):
-        raise UnsupportedError
+        return self.spec.remote
 
     @overrides
     def variants(self):
@@ -38,14 +68,46 @@ class _Job(ZuulJobAPI):
         return
 
 
-class _Tenant(ZuulTenantAPI):
+class _Tenant(Generic[T], ZuulTenantAPI):
+    def __init__(self, session: Session[T], data: Dict):
+        super().__init__(data)
+
+        self._session = session
+
+    @property
+    def session(self) -> Session[T]:
+        return self._session
+
+    @property
+    def _specs(self) -> Iterable[T]:
+        return self._session.specs
+
+    @property
+    def _backend(self) -> ZuulDBackend[T]:
+        return self._session.backend
+
     @overrides
     def projects(self):
         raise UnsupportedError
 
     @overrides
     def jobs(self):
-        raise UnsupportedError
+        result = []
+
+        for spec in self._specs:
+            for job in self._backend.get.jobs(spec):
+                result.append(
+                    _Job[T](
+                        session=self.session,
+                        spec=spec,
+                        tenant=self,
+                        job={
+                            'name': job.name
+                        }
+                    )
+                )
+
+        return result
 
     @overrides
     def builds(self):
@@ -56,14 +118,28 @@ class _Tenant(ZuulTenantAPI):
         return
 
 
-class ZuulFrontend(ZuulAPI):
+class ZuulFrontend(Generic[T], ZuulAPI):
+    def __init__(self, session: Session[T]):
+        self._session = session
+
+    @property
+    def session(self) -> Session[T]:
+        return self._session
+
     @overrides
     def info(self):
         raise UnsupportedError
 
     @overrides
     def tenants(self):
-        raise UnsupportedError
+        return [
+            _Tenant[T](
+                session=self.session,
+                data={
+                    'name': 'zuul.d'
+                }
+            )
+        ]
 
     @overrides
     def close(self):

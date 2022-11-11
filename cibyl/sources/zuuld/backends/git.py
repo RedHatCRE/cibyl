@@ -19,7 +19,7 @@ from typing import Iterable, Optional
 
 from overrides import overrides
 
-from cibyl.sources.zuuld.backends.abc import T, ZuulDBackend
+from cibyl.sources.zuuld.backends.abc import ZuulDBackend
 from cibyl.sources.zuuld.models.job import Job
 from cibyl.sources.zuuld.specs.git import GitSpec
 from cibyl.sources.zuuld.tools.yaml import YAMLReaderFactory, YAMLSearch
@@ -88,7 +88,7 @@ class GitBackend(ZuulDBackend[GitSpec]):
             return self._tools
 
         @overrides
-        def jobs(self, spec: T) -> Iterable[Job]:
+        def jobs(self, spec: GitSpec) -> Iterable[Job]:
             LOG.debug("Preparing spec: '%s'...", spec)
 
             repo = self.tools.repositories.from_remote(url=spec.remote)

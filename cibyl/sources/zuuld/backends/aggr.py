@@ -14,7 +14,7 @@
 #    under the License.
 """
 import logging
-from typing import Iterable
+from typing import Generic, Iterable
 
 from overrides import overrides
 
@@ -24,7 +24,7 @@ from cibyl.sources.zuuld.models.job import Job
 LOG = logging.getLogger(__name__)
 
 
-class AggregatedBackend(ZuulDBackend[T]):
+class AggregatedBackend(Generic[T], ZuulDBackend[T]):
     class Get(ZuulDBackend.Get):
         def __init__(self, backends: Iterable[ZuulDBackend.Get]):
             self._backends = backends
