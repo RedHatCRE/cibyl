@@ -29,7 +29,7 @@ from cibyl.exceptions.config import SchemaError
 from cibyl.models.ci.system_factory import SystemType
 from cibyl.utils import yaml
 from kernel.tools.files import get_first_available_file, is_file_available
-from kernel.tools.fs import File, cd_context_manager
+from kernel.tools.fs import File, cd
 from kernel.tools.json import Draft7ValidatorFactory
 from kernel.tools.net import DownloadError, download_file
 
@@ -153,7 +153,7 @@ class AppConfig(Config):
             raise conf_exc.MissingSystemSources(system_name)
 
     def _verify_by_schema(self):
-        with cd_context_manager(pwd[0]):
+        with cd(pwd[0]):
             validators = Draft7ValidatorFactory()
             validator = validators.from_file(self._schema)
 

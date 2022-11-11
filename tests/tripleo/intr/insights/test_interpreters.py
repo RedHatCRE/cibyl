@@ -16,7 +16,7 @@
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
-from kernel.tools.fs import cd_context_manager
+from kernel.tools.fs import cd
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.interpreters import (EnvironmentInterpreter,
                                            FeatureSetInterpreter,
@@ -46,7 +46,7 @@ class TestEnvironmentInterpreter(TestCase):
         data = {}
 
         with TemporaryDirectory() as tempdir:
-            with cd_context_manager(tempdir):
+            with cd(tempdir):
                 EnvironmentInterpreter(data)
 
 
@@ -72,7 +72,7 @@ class TestFeatureSetInterpreter(TestCase):
         data = {}
 
         with TemporaryDirectory() as tempdir:
-            with cd_context_manager(tempdir):
+            with cd(tempdir):
                 FeatureSetInterpreter(data)
 
 
@@ -98,7 +98,7 @@ class TestNodesInterpreter(TestCase):
         data = {}
 
         with TemporaryDirectory() as tempdir:
-            with cd_context_manager(tempdir):
+            with cd(tempdir):
                 NodesInterpreter(data)
 
 
@@ -123,5 +123,5 @@ class TestReleaseInterpreter(TestCase):
         data = {}
 
         with TemporaryDirectory() as tempdir:
-            with cd_context_manager(tempdir):
+            with cd(tempdir):
                 ReleaseInterpreter(data)

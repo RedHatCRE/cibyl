@@ -17,7 +17,7 @@ from abc import ABC
 from enum import Enum
 from typing import Dict, Iterable, NamedTuple, Optional, Sequence
 
-from kernel.tools.fs import File, cd_context_manager
+from kernel.tools.fs import File, cd
 from kernel.tools.json import Draft7ValidatorFactory, JSONValidatorFactory
 from kernel.tools.yaml import YAML
 from tripleo import __path__ as tripleo_package_path
@@ -61,7 +61,7 @@ class FileInterpreter(ABC):
         if overrides is None:
             overrides = {}
 
-        with cd_context_manager(tripleo_package_path[0]):
+        with cd(tripleo_package_path[0]):
             # the default schemas path are stored in a path relative to the
             # root of the tripleo package. In case the working directory is
             # different, we want them to be reachable
