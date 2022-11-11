@@ -72,21 +72,3 @@ class ZuulDBackend(Generic[T]):
             providers.
         """
         return self._get
-
-
-class AggregatedBackend(ZuulDBackend[T]):
-    class Get(ZuulDBackend.Get):
-        def __init__(self, backends: Iterable[ZuulDBackend.Get]):
-            self._backends = backends
-
-        @property
-        def backends(self) -> Iterable[ZuulDBackend.Get]:
-            return self._backends
-
-        @overrides
-        def jobs(self, spec: T) -> Iterable[Job]:
-            for backend in self.backends:
-                try:
-                    return backend.jobs(spec)
-                except ZuulDBackend:
-                    continue
