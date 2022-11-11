@@ -13,12 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 from typing import Iterable
 
 from overrides import overrides
 
 from cibyl.sources.zuuld.backends.abc import T, ZuulDBackend
 from cibyl.sources.zuuld.models.job import Job
+
+LOG = logging.getLogger(__name__)
 
 
 class AggregatedBackend(ZuulDBackend[T]):
@@ -27,15 +30,32 @@ class AggregatedBackend(ZuulDBackend[T]):
             self._backends = backends
 
         @property
+        @overrides
+        def name(self):
+            # Example: Aggregated -> (2){GitHub, Git}
+            # Where:
+            #   -> The number is the amount of backends in the aggregation.
+            #   -> The list between {} are the names of the backends.
+            result = "Aggregated -> "
+            result += f'({sum(1 for _ in self.backends)})'
+            result += "{"
+            result += ", ".join(backend.name for backend in self.backends)
+            result += "}"
+
+            return result
+
+        @property
         def backends(self) -> Iterable[ZuulDBackend.Get]:
             return self._backends
 
         @overrides
         def jobs(self, spec: T) -> Iterable[Job]:
             for backend in self.backends:
+                LOG.debug("Fetching jobs through backend: '%s'.", backend.name)
                 try:
                     return backend.jobs(spec)
-                except ZuulDBackend:
+                except ZuulDBackend as ex:
+                    LOG.debug("Failed to fetch jobs due to error: '%s'.", ex)
                     continue
 
     def __init__(self, get: Iterable[ZuulDBackend[T].Get]):

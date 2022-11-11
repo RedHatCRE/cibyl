@@ -17,8 +17,6 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Generic, Iterable, TypeVar
 
-from overrides import overrides
-
 from cibyl.sources.zuuld.models.job import Job
 from cibyl.sources.zuuld.specs.abc import SCMSpec
 
@@ -41,6 +39,11 @@ class ZuulDBackend(Generic[T]):
     class Get(ABC):
         """Base class for APIs that focus on read operations.
         """
+
+        @property
+        @abstractmethod
+        def name(self):
+            raise NotImplementedError
 
         @abstractmethod
         def jobs(self, spec: T) -> Iterable[Job]:

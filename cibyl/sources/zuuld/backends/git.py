@@ -76,6 +76,11 @@ class GitBackend(ZuulDBackend[GitSpec]):
             self._tools = tools
 
         @property
+        @overrides
+        def name(self):
+            return 'Git'
+
+        @property
         def tools(self) -> Tools:
             """
             :return: Tools this uses to do its task.
