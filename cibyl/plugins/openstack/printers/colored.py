@@ -100,6 +100,12 @@ class OSColoredPrinter(ColoredPrinter, OSPrinter):
                 printer.add(self.palette.blue('Glance backend: '), 2)
                 printer[-1].append(storage.glance_backend)
 
+        if storage.manila_backend.value:
+            if storage.manila_backend.value != "N/A" or self.verbosity > 0:
+                is_empty_storage = False
+                printer.add(self.palette.blue('Manila backend: '), 2)
+                printer[-1].append(storage.manila_backend)
+
         if is_empty_storage:
             printer.pop()
 

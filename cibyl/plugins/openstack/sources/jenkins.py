@@ -153,9 +153,9 @@ def filter_models_set_field(job: JenkinsJob, user_input: Argument,
 class Jenkins(SourceExtension):
     """A class representation of Jenkins client."""
 
-    regex_attr = ["topology", "release",
-                  "network_backend", "cinder_backend",
-                  "infra_type",  "ip_version", "ml2_driver"]
+    regex_attr = ["topology", "release", "network_backend", "cinder_backend",
+                  "glance_backend", "manila_backend", "infra_type",
+                  "ip_version", "ml2_driver"]
     deployment_attr = regex_attr+["dvr", "tls_everywhere",
                                   "ironic_inspector", "test_setup"]
 
@@ -381,6 +381,8 @@ accurate results", len(jobs_found))
                 topology = job.get("topology", "")
             network_backend = job.get("network_backend", "")
             cinder_backend = job.get("cinder_backend", "")
+            glance_backend = job.get("glance_backend", "")
+            manila_backend = job.get("manila_backend", "")
             tls_everywhere = job.get("tls_everywhere", "")
             ironic_inspector = job.get("ironic_inspector", "")
             cleaning_network = job.get("cleaning_network", "")
@@ -393,7 +395,9 @@ accurate results", len(jobs_found))
                               dvr=job.get("dvr", ""),
                               tls_everywhere=tls_everywhere,
                               security_group=security_group)
-            storage = Storage(cinder_backend=cinder_backend)
+            storage = Storage(cinder_backend=cinder_backend,
+                              glance_backend=glance_backend,
+                              manila_backend=manila_backend)
             ironic = Ironic(ironic_inspector=ironic_inspector,
                             cleaning_network=cleaning_network)
 
@@ -477,6 +481,13 @@ accurate results", len(jobs_found))
             storage = overcloud.get("storage", {})
             if "cinder_backend" in kwargs or spec:
                 job["cinder_backend"] = storage.get("backend", "")
+            if "glance_backend" in kwargs or spec:
+                glance = overcloud.get("glance", {})
+                job["glance_backend"] = glance.get("backend", "")
+            if "manila_backend" in kwargs or spec:
+                manila = overcloud.get("manila", {})
+                manila_storage = manila.get("storage", {})
+                job["manila_backend"] = manila_storage.get("protocol", "")
             network = overcloud.get("network", {})
             if "network_backend" in kwargs or spec:
                 job["network_backend"] = network.get("backend", "")

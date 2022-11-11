@@ -41,18 +41,30 @@ class Storage(Model):
                     description='Glance backend used in the deployment.'
                 )
             ]
+        },
+        'manila_backend': {
+            'attr_type': str,
+            'arguments': [
+                Argument(
+                    name='--manila-backend', arg_type=str,
+                    func='get_deployment', nargs='*',
+                    description='Manila backend used in the deployment.'
+                )
+            ]
         }
     }
 
     def __init__(
         self,
         cinder_backend: Optional[str] = None,
-        glance_backend: Optional[str] = None
+        glance_backend: Optional[str] = None,
+        manila_backend: Optional[str] = None
     ):
         super().__init__(
             {
                 'cinder_backend': cinder_backend,
-                'glance_backend': glance_backend
+                'glance_backend': glance_backend,
+                'manila_backend': manila_backend
             }
         )
 
@@ -67,3 +79,6 @@ class Storage(Model):
 
         if not self.glance_backend.value:
             self.glance_backend.value = other.glance_backend.value
+
+        if not self.manila_backend.value:
+            self.manila_backend.value = other.manila_backend.value

@@ -13,9 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from cibyl.exceptions.source import SourceException
 
 
-class ZuulDError(Exception):
+class ZuulDError(SourceException):
     """Generic error occurring on the Zuul.d API.
     """
 
