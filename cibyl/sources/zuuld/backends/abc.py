@@ -43,6 +43,11 @@ class ZuulDBackend(Generic[T]):
         @property
         @abstractmethod
         def name(self):
+            """
+            :return:
+                Name that identifies this provider.
+                Used not as an ID, but for logging purposes.
+            """
             raise NotImplementedError
 
         @abstractmethod

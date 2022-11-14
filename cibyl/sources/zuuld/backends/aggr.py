@@ -25,8 +25,32 @@ LOG = logging.getLogger(__name__)
 
 
 class AggregatedBackend(Generic[T], ZuulDBackend[T]):
+    """Implementation of a Zuul.D backend meant to combine other
+    implementations into a single one so that, in the case one fails, others
+    can try stepping up to the task.
+
+    All implementation aggregated here must support the same type of spec
+    as indicated by the generic argument. This means, for example, that for
+    Git specs, only Git backends may be aggregated here.
+    """
+
     class Get(ZuulDBackend.Get):
+        """Iterates over the aggregated backends to read data from a spec.
+        """
+
         def __init__(self, backends: Iterable[ZuulDBackend.Get]):
+            """Constructor.
+
+            :param backends:
+                Backends this will iterate through.
+                Container type is important, as it will decide order of
+                iteration over the elements.
+                In case a backend fails during an operation, the next one from
+                this container is asked to fill in its shoes. The iteration
+                continues until one is able to satisfy the request.
+                Every time a request is made, the iteration is restarted and
+                the first element is tried again.
+            """
             self._backends = backends
 
         @property
@@ -46,6 +70,9 @@ class AggregatedBackend(Generic[T], ZuulDBackend[T]):
 
         @property
         def backends(self) -> Iterable[ZuulDBackend.Get]:
+            """
+            :return: Backends this provider iterates over.
+            """
             return self._backends
 
         @overrides
@@ -59,6 +86,12 @@ class AggregatedBackend(Generic[T], ZuulDBackend[T]):
                     continue
 
     def __init__(self, get: Iterable[ZuulDBackend[T].Get]):
+        """Constructor.
+
+        :param get:
+            Interfaces that provide reading capabilities to this backend.
+            See :class:`AggregatedBackend.Get` for more information.
+        """
         super().__init__(
             get=AggregatedBackend.Get(
                 backends=get

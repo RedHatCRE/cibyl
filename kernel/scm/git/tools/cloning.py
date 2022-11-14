@@ -108,8 +108,7 @@ class RepositoryFactory:
         The intention of this is to try anything possible, within reason, to
         get a session to the repository up and running.
 
-        :param url: URL to the git remote to open session to. Only
-            HTTP/HTTPS is supported.
+        :param url: URL to the git remote to open session to.
         :return: An open session to that repository.
         :raises GitError:
             If a session to the repository could not be established.
