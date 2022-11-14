@@ -13,14 +13,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+import logging
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, Generic, Iterable
 
 from overrides import overrides
 
 from cibyl.sources.zuul.apis import ZuulAPI, ZuulJobAPI, ZuulTenantAPI
+from cibyl.sources.zuul.apis.factories.abc import ZuulAPIFactory
 from cibyl.sources.zuuld.backends.abc import T, ZuulDBackend
-from cibyl.sources.zuuld.errors import UnsupportedError
+from cibyl.sources.zuuld.backends.git import GitBackend
+from cibyl.sources.zuuld.errors import InvalidURL, UnsupportedError
+from cibyl.sources.zuuld.specs.git import GitSpec
+from kernel.tools.urls import URL
+
+LOG = logging.getLogger(__name__)
 
 
 @dataclass
@@ -97,7 +105,7 @@ class _Tenant(Generic[T], ZuulTenantAPI):
         for spec in self._specs:
             for job in self._backend.get.jobs(spec):
                 result.append(
-                    _Job[T](
+                    _Job(
                         session=self.session,
                         spec=spec,
                         tenant=self,
@@ -133,7 +141,7 @@ class ZuulFrontend(Generic[T], ZuulAPI):
     @overrides
     def tenants(self):
         return [
-            _Tenant[T](
+            _Tenant(
                 session=self.session,
                 data={
                     'name': 'zuul.d'
@@ -144,3 +152,69 @@ class ZuulFrontend(Generic[T], ZuulAPI):
     @overrides
     def close(self):
         return
+
+
+class GitFrontendFactory(ZuulAPIFactory):
+    def __init__(
+        self,
+        specs: Iterable[GitSpec],
+        backend: ZuulDBackend[GitSpec]
+    ):
+        self._specs = specs
+        self._backend = backend
+
+    @staticmethod
+    def from_kwargs(**kwargs) -> 'GitFrontendFactory':
+        if 'repos' not in kwargs:
+            raise ValueError(
+                "Missing key: 'repos' from keyword arguments."
+            )
+
+        def specs():
+            result = []
+
+            for repo in kwargs['repos']:
+                url = repo['url']
+                path = 'zuul.d/'
+
+                try:
+                    result.append(
+                        GitSpec(
+                            remote=URL(url),
+                            directory=Path(path)
+                        )
+                    )
+                except InvalidURL:
+                    LOG.debug(
+                        "Ignoring url: '%s' during git backend creation as it "
+                        "is not a valid git url.",
+                        url
+                    )
+                    continue
+
+            return result
+
+        def backend():
+            return GitBackend()
+
+        return GitFrontendFactory(
+            specs=specs(),
+            backend=backend()
+        )
+
+    @property
+    def specs(self) -> Iterable[GitSpec]:
+        return self._specs
+
+    @property
+    def backend(self) -> ZuulDBackend[GitSpec]:
+        return self._backend
+
+    @overrides
+    def new(self) -> ZuulFrontend[GitSpec]:
+        return ZuulFrontend(
+            session=Session(
+                specs=self.specs,
+                backend=self.backend
+            )
+        )
