@@ -19,6 +19,7 @@ from typing import Generic, Iterable
 from overrides import overrides
 
 from cibyl.sources.zuuld.backends.abc import T, ZuulDBackend
+from cibyl.sources.zuuld.errors import ZuulDError
 from cibyl.sources.zuuld.models.job import Job
 
 LOG = logging.getLogger(__name__)
@@ -81,9 +82,13 @@ class AggregatedBackend(Generic[T], ZuulDBackend[T]):
                 LOG.debug("Fetching jobs through backend: '%s'.", backend.name)
                 try:
                     return backend.jobs(spec)
-                except ZuulDBackend as ex:
+                except ZuulDError as ex:
                     LOG.debug("Failed to fetch jobs due to error: '%s'.", ex)
                     continue
+
+            raise ZuulDError(
+                "Failed to fetch jobs as all backends returned with an error."
+            )
 
     def __init__(self, get: Iterable[ZuulDBackend[T].Get]):
         """Constructor.
