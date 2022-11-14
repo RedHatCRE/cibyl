@@ -17,7 +17,6 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.sources.zuuld.backends.git import GitBackend
-from cibyl.sources.zuuld.errors import IllegibleData
 
 
 class TestGitBackend(TestCase):
