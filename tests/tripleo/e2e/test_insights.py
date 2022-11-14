@@ -28,7 +28,7 @@ class TestInsights(TestCase):
 
     def setUp(self):
         # Enable output into console
-        enable_logging(logging.DEBUG, LogOutput.ToStream, stream=sys.stdout)
+        enable_logging(logging.DEBUG, LogOutput.TO_STREAM, stream=sys.stdout)
 
     def test_tls_everywhere(self):
         """Checks that the state of TLS-Everywhere is extracted from a

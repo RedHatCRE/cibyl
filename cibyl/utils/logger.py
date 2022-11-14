@@ -19,8 +19,7 @@ import sys
 
 import colorlog
 
-from tripleo.conf import LogOutput
-from tripleo.conf import enable_logging as tripleo_enable_logging
+from kernel.tools.log import LogOutput, enable_logging
 
 FORMAT_STR = '{}%(levelname)-8s %(name)-20s %(message)s'
 FILE_LOGGER_FORMATER = logging.Formatter(fmt=FORMAT_STR.format(""))
@@ -77,13 +76,18 @@ def configure_logging(
 
     if log_mode == "terminal":
         configure_terminal_logging(level)
-        tripleo_enable_logging(level, LogOutput.ToStream, stream=sys.stderr)
+        enable_logging('kernel', level, LogOutput.TO_STREAM, stream=sys.stderr)
+        enable_logging('tripleo', level, LogOutput.TO_STREAM, stream=sys.stderr)
     elif log_mode == "file":
         configure_file_logging(log_file, level)
-        tripleo_enable_logging(level, LogOutput.ToFile, file=log_file)
+        enable_logging('kernel', level, LogOutput.TO_FILE, file=log_file)
+        enable_logging('tripleo', level, LogOutput.TO_FILE, file=log_file)
     else:
         configure_terminal_logging(level)
         configure_file_logging(log_file, level)
 
-        tripleo_enable_logging(level, LogOutput.ToStream, stream=sys.stderr)
-        tripleo_enable_logging(level, LogOutput.ToFile, file=log_file)
+        enable_logging('kernel', level, LogOutput.TO_STREAM, stream=sys.stderr)
+        enable_logging('kernel', level, LogOutput.TO_FILE, file=log_file)
+
+        enable_logging('tripleo', level, LogOutput.TO_STREAM, stream=sys.stderr)
+        enable_logging('tripleo', level, LogOutput.TO_FILE, file=log_file)

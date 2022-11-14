@@ -44,21 +44,25 @@ FILE_LOG_FORMAT = logging.Formatter(fmt=GENERIC_LOG_FORMAT.format(''))
 class LogOutput(Enum):
     """Defines the options that the logger can output into.
     """
-    ToStream = 0
+    TO_STREAM = 0
     """Log into an IO stream, like stdout for example."""
-    ToFile = 1
+    TO_FILE = 1
     """Log into a file."""
 
 
-def enable_logging(level: int, output: LogOutput, **kwargs: Any) -> None:
-    """Enables logging on this library.
+def enable_logging(
+    name: str,
+    level: int,
+    output: LogOutput,
+    **kwargs: Any
+) -> None:
+    """Installs the module's logger, using python's standard logging library.
 
-    The library hard uses the standard 'logging' module for this feature.
+    Each call to this function will add a new handle to the logger found at
+    the module. Be free to call this function as many times as desired to
+    make the logger output into multiple targets.
 
-    Each call to this function will add a new handler to the logger at the
-    'tripleo' root folder. Be free to call this function as many times
-    as desired to make the logger output into multiple targets.
-
+    :param name: Name of the module to enable. For example: 'tripleo'.
     :param level: Minimum logging level to output. This should be want of
         the options defined by the standard library, like: logging.INFO.
     :param output: Target where the logger will write into.
@@ -70,12 +74,12 @@ def enable_logging(level: int, output: LogOutput, **kwargs: Any) -> None:
     :raises ValueError: If some arguments are missing or are not valid.
     :raises IOError: If the file cannot be opened or written into.
     """
-    logger = logging.getLogger('tripleo')
+    logger = logging.getLogger(name)
     logger.setLevel(level)
 
-    if output == LogOutput.ToStream:
+    if output == LogOutput.TO_STREAM:
         if 'stream' not in kwargs:
-            msg = "Log output 'ToStream' required key 'stream'."
+            msg = "Log output 'ToStream' requires key 'stream'."
             raise ValueError(msg)
 
         stream = kwargs['stream']
@@ -83,7 +87,7 @@ def enable_logging(level: int, output: LogOutput, **kwargs: Any) -> None:
         _add_new_stream_handler(logger, stream)
         return
 
-    if output == LogOutput.ToFile:
+    if output == LogOutput.TO_FILE:
         if 'file' not in kwargs:
             msg = "Log output 'ToFile' requires key 'file'."
             raise ValueError(msg)
