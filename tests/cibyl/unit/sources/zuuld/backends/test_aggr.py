@@ -14,7 +14,7 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
 
 from cibyl.sources.zuuld.backends.aggr import AggregatedBackend
 from cibyl.sources.zuuld.errors import ZuulDError
