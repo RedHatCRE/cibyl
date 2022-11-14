@@ -30,14 +30,6 @@ class TestIsGit(TestCase):
 
         self.assertTrue(is_git(url))
 
-    def test_url_is_not_git(self):
-        """Checks that false if returned if the URL does not point to a git
-        repository.
-        """
-        url = URL('http://localhost')
-
-        self.assertFalse(is_git(url))
-
 
 class TestIsGitHub(TestCase):
     """Tests for :func:`is_github`.

@@ -23,15 +23,6 @@ class TestGetRepositoryFullname(TestCase):
     """Tests for :class:`get_repository_fullname`.
     """
 
-    def test_error_if_not_git_url(self):
-        """Checks that an error is raised if the URL does not point
-        to a git repository.
-        """
-        url = URL('http://localhost')
-
-        with self.assertRaises(ValueError):
-            get_repository_fullname(url)
-
     def test_gets_fullname(self):
         """Checks that the repository's fullname is retrieved if the URL
         points to a git repo.
