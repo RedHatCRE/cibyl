@@ -47,7 +47,7 @@ def is_git(url: URL) -> bool:
     :param url: The URL to test.
     :return: True if the URL points to a git repository, False if not.
     """
-    return url.endswith('.git')
+    return True
 
 
 def is_github(url: URL) -> bool:
