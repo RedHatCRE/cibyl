@@ -17,9 +17,9 @@ import logging
 import sys
 from unittest import TestCase
 
+from kernel.tools.log import LogOutput, enable_logging
 from tripleo.insights import DeploymentLookUp
 from tripleo.insights import DeploymentOutline as Outline
-from tripleo.utils.logging import LogOutput, enable_logging
 
 
 class TestInsights(TestCase):
@@ -28,7 +28,19 @@ class TestInsights(TestCase):
 
     def setUp(self):
         # Enable output into console
-        enable_logging(logging.DEBUG, LogOutput.ToStream, stream=sys.stdout)
+        enable_logging(
+            'kernel',
+            logging.DEBUG,
+            LogOutput.TO_STREAM,
+            stream=sys.stdout
+        )
+
+        enable_logging(
+            'tripleo',
+            logging.DEBUG,
+            LogOutput.TO_STREAM,
+            stream=sys.stdout
+        )
 
     def test_tls_everywhere(self):
         """Checks that the state of TLS-Everywhere is extracted from a
