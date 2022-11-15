@@ -13,26 +13,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.exceptions.source import SourceException
-
-
-class ZuulDError(SourceException):
-    """Generic error occurring on the Zuul.d API.
-    """
-
-
-class UnsupportedError(ZuulDError):
-    """Indicates that some requested functionality is not implement by the
-    Zuul.D backends.
-    """
-
-
-class InvalidURL(ZuulDError):
-    """A URL does not conform to its expected structure.
-    """
-
-
-class IllegibleData(ZuulDError):
-    """Some data read by the API does not conform to the structure expected
-    by it.
-    """

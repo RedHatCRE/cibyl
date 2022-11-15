@@ -26,6 +26,7 @@ from cibyl.sources.jenkins_job_builder import JenkinsJobBuilder
 from cibyl.sources.server import ServerSource
 from cibyl.sources.zuul.apis.factories.rest import ZuulRESTClientFactory
 from cibyl.sources.zuul.source import Zuul
+from cibyl.sources.zuuld.frontends.zuul import GitFrontendFactory
 
 LOG = logging.getLogger(__name__)
 
@@ -84,18 +85,34 @@ with plugin source")
             if source_type == SourceType.JENKINS:
                 return Jenkins(name=name, **kwargs)
 
-            if source_type == SourceType.ZUUL:
-                return Zuul(
-                    provider=ZuulRESTClientFactory.from_kwargs(**kwargs),
-                    spec=Zuul.SourceSpec(
-                        name=name,
-                        driver=kwargs.get('driver', 'zuul'),
-                        enabled=kwargs.get('enabled', True)
-                    ),
-                    fallbacks=Zuul.Fallbacks.from_kwargs(
-                        keys=['tenants'],
-                        **kwargs
+            if source_type in (SourceType.ZUUL, SourceType.ZUUL_D):
+                spec = Zuul.SourceSpec(
+                    name=name,
+                    driver=kwargs.get('driver', 'zuul'),
+                    enabled=kwargs.get('enabled', True)
+                )
+
+                fallbacks = Zuul.Fallbacks.from_kwargs(
+                    keys=['tenants'],
+                    **kwargs
+                )
+
+                if source_type == SourceType.ZUUL:
+                    return Zuul(
+                        provider=ZuulRESTClientFactory.from_kwargs(**kwargs),
+                        spec=spec,
+                        fallbacks=fallbacks
                     )
+
+                if source_type == SourceType.ZUUL_D:
+                    return Zuul(
+                        provider=GitFrontendFactory.from_kwargs(**kwargs),
+                        spec=spec,
+                        fallbacks=fallbacks
+                    )
+
+                raise NotImplementedError(
+                    f"Unhandled case for option: '{source_type}'."
                 )
 
             if source_type == SourceType.ELASTICSEARCH:

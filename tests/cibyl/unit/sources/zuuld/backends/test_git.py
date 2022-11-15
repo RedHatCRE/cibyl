@@ -17,7 +17,6 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from cibyl.sources.zuuld.backends.git import GitBackend
-from cibyl.sources.zuuld.errors import IllegibleData
 
 
 class TestGitBackend(TestCase):
@@ -73,50 +72,3 @@ class TestGitBackend(TestCase):
         readers.from_file.assert_called_with(files.search.return_value[0])
 
         reader.jobs.assert_called()
-
-    def test_ignores_on_error(self):
-        """Checks that if a file fails to be read, it is ignored.
-        """
-
-        def error():
-            raise IllegibleData()
-
-        spec = Mock()
-        spec.remote = Mock()
-        spec.directory = Mock()
-
-        directory = Mock()
-
-        repo = Mock()
-        repo.workspace = Mock()
-        repo.workspace.cd = Mock()
-        repo.workspace.cd.return_value = directory
-
-        repositories = Mock()
-        repositories.from_remote = Mock()
-        repositories.from_remote.return_value = repo
-
-        files = Mock()
-        files.search = Mock()
-        files.search.return_value = [Mock()]
-
-        reader = Mock()
-        reader.jobs = Mock()
-        reader.jobs.side_effect = lambda *_: error()
-
-        readers = Mock()
-        readers.from_file = Mock()
-        readers.from_file.return_value = reader
-
-        tools = Mock()
-        tools.repositories = repositories
-        tools.files = files
-        tools.readers = readers
-
-        git = GitBackend.Get(
-            tools=tools
-        )
-
-        result = git.jobs(spec)
-
-        self.assertEqual([], result)

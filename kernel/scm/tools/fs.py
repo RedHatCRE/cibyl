@@ -54,7 +54,7 @@ class WorkspaceFactory:
     """Factory that eases the creation of directories where SCM operations,
     such as cloning, can be performed in.
     """
-    DEFAULT_ROOT = Dir('~/.cre', resolve_home)
+    DEFAULT_ROOT = Dir('~/.cibyl', resolve_home)
     """Default location where the factory will 'mkdir' in."""
 
     @dataclass

@@ -13,26 +13,18 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from cibyl.exceptions.source import SourceException
+from unittest import TestCase
+
+from cibyl.sources.zuuld.frontends.zuul import GitFrontendFactory
 
 
-class ZuulDError(SourceException):
-    """Generic error occurring on the Zuul.d API.
+class TestGitFrontendFactory(TestCase):
+    """Tests for :class:`GitFrontendFactory`.
     """
 
-
-class UnsupportedError(ZuulDError):
-    """Indicates that some requested functionality is not implement by the
-    Zuul.D backends.
-    """
-
-
-class InvalidURL(ZuulDError):
-    """A URL does not conform to its expected structure.
-    """
-
-
-class IllegibleData(ZuulDError):
-    """Some data read by the API does not conform to the structure expected
-    by it.
-    """
+    def test_error_in_from_kwargs_for_no_repos(self):
+        """Checks that if kwargs are missing the 'repos' key, an error is
+        raised.
+        """
+        with self.assertRaises(ValueError):
+            GitFrontendFactory.from_kwargs()
