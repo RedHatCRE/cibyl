@@ -71,6 +71,16 @@ class ZuulDFileFactory:
     """Factory for :class:`ZuulDFile`.
     """
 
+    def __init__(self, validators: Optional[YAMLValidatorFactory] = None):
+        if validators is None:
+            validators = Draft7ValidatorFactory()
+
+        self._validators = validators
+
+    @property
+    def validators(self) -> YAMLValidatorFactory:
+        return self._validators
+
     def from_file(self, file: File) -> ZuulDFile:
         """Builds a new Zuul.D file from a generic one.
 
@@ -78,7 +88,12 @@ class ZuulDFileFactory:
         :return: The given file, this time caster to a Zuul.D one.
         :raises YAMLError: If the file does not meet the Zuul.D criteria.
         """
-        return ZuulDFile(file)
+        return ZuulDFile(
+            file=file,
+            tools=ZuulDFile.Tools(
+                validators=self.validators
+            )
+        )
 
 
 class YAMLReader:

@@ -15,11 +15,13 @@
 """
 import json
 from abc import ABC, abstractmethod
-from typing import Union
+from dataclasses import dataclass, field
+from typing import Optional, Union
 
 from jsonschema.validators import Draft7Validator
 from overrides import overrides
 
+from kernel.tools.cache import CACache, Cache
 from kernel.tools.fs import File
 from kernel.tools.net import download_into_memory
 from kernel.tools.urls import URL
@@ -31,6 +33,25 @@ JSONValidator = Union[Draft7Validator]
 class JSONValidatorFactory(ABC):
     """Base factory for all JSON validators.
     """
+
+    @dataclass
+    class Caches:
+        files: Cache[File, JSONValidator] = field(
+            default_factory=lambda *_: CACache()
+        )
+        remotes: Cache[URL, JSONValidator] = field(
+            default_factory=lambda *_: CACache()
+        )
+
+    def __init__(self, caches: Optional[Caches] = None):
+        if caches is None:
+            caches = JSONValidatorFactory.Caches()
+
+        self._caches = caches
+
+    @property
+    def caches(self) -> Caches:
+        return self._caches
 
     @abstractmethod
     def from_buffer(self, buffer: Union[bytes, str]) -> JSONValidator:
@@ -46,11 +67,25 @@ class JSONValidatorFactory(ABC):
         :raise JSONDecodeError: If the file contents are not a valid JSON.
         :raise SchemaError: If the file contents are not a valid JSON schema.
         """
+        cache = self.caches.files
+
+        if cache.has(file):
+            return cache.get(file)
+
         with open(file, 'r', encoding=encoding) as buffer:
-            return self.from_buffer(buffer.read())
+            validator = self.from_buffer(buffer.read())
+            cache.put(file, validator)
+            return validator
 
     def from_remote(self, url: URL) -> JSONValidator:
-        return self.from_buffer(download_into_memory(url))
+        cache = self.caches.remotes
+
+        if cache.has(url):
+            return cache.get(url)
+
+        validator = self.from_buffer(download_into_memory(url))
+        cache.put(url, validator)
+        return validator
 
 
 class Draft7ValidatorFactory(JSONValidatorFactory):
