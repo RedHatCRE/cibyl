@@ -52,6 +52,12 @@ class _Variant(Generic[T], ZuulVariantAPI):
     def __init__(self, job: '_Job', variant: Dict):
         super().__init__(job, variant)
 
+        self._owner = job
+
+    @property
+    def owner(self) -> '_Job':
+        return self._owner
+
     @overrides
     def close(self):
         return
@@ -79,6 +85,7 @@ class _Job(Generic[T], ZuulJobAPI):
 
         self._session = session
         self._spec = spec
+        self._owner = tenant
 
     @property
     def session(self) -> Session[T]:
@@ -95,6 +102,10 @@ class _Job(Generic[T], ZuulJobAPI):
         return self._spec
 
     @property
+    def owner(self) -> '_Tenant':
+        return self._owner
+
+    @property
     @overrides
     def url(self):
         return self.spec.remote
@@ -103,16 +114,23 @@ class _Job(Generic[T], ZuulJobAPI):
     def variants(self):
         result = []
 
-        for job in self.tenant.jobs():
-            if job.name == self.name:
-                result.append(
-                    _Variant(
-                        job=self,
-                        variant={
-                            'name': job.name
-                        }
-                    )
+        for job in self.owner.cache.get(self.spec):
+            if job.name != self.name:
+                continue
+
+            result.append(
+                _Variant(
+                    job=self,
+                    variant={
+                        'name': job.name,
+                        'parent': job.parent,
+                        'description': '',
+                        'branches': job.branches,
+                        'variables': job.vars,
+                        'source_context': None
+                    }
                 )
+            )
 
         return result
 
