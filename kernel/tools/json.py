@@ -21,6 +21,8 @@ from jsonschema.validators import Draft7Validator
 from overrides import overrides
 
 from kernel.tools.fs import File
+from kernel.tools.net import download_into_memory
+from kernel.tools.urls import URL
 
 JSONValidator = Union[Draft7Validator]
 """Possible validators returned by the factory."""
@@ -31,16 +33,24 @@ class JSONValidatorFactory(ABC):
     """
 
     @abstractmethod
-    def from_file(self, file: File) -> JSONValidator:
+    def from_buffer(self, buffer: Union[bytes, str]) -> JSONValidator:
+        raise NotImplementedError
+
+    def from_file(self, file: File, encoding: str = 'utf-8') -> JSONValidator:
         """Builds a new validator by reading the schema from a file.
 
         :param file: Path to the file to read.
+        :param encoding: Name of the file encoding, like in built-in 'open'.
         :return: New validator instance.
         :raise IOError: If the file could not be opened or read.
         :raise JSONDecodeError: If the file contents are not a valid JSON.
         :raise SchemaError: If the file contents are not a valid JSON schema.
         """
-        raise NotImplementedError
+        with open(file, 'r', encoding=encoding) as buffer:
+            return self.from_buffer(buffer.read())
+
+    def from_remote(self, url: URL) -> JSONValidator:
+        return self.from_buffer(download_into_memory(url))
 
 
 class Draft7ValidatorFactory(JSONValidatorFactory):
@@ -48,10 +58,9 @@ class Draft7ValidatorFactory(JSONValidatorFactory):
     """
 
     @overrides
-    def from_file(self, file: File) -> Draft7Validator:
-        with open(file, 'r') as buffer:
-            schema = json.loads(buffer.read())
+    def from_buffer(self, buffer: Union[bytes, str]) -> Draft7Validator:
+        schema = json.loads(buffer)
 
-            Draft7Validator.check_schema(schema)
+        Draft7Validator.check_schema(schema)
 
-            return Draft7Validator(schema)
+        return Draft7Validator(schema)
