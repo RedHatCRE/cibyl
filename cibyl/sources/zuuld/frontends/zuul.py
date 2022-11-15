@@ -20,7 +20,8 @@ from typing import Dict, Generic, Iterable
 
 from overrides import overrides
 
-from cibyl.sources.zuul.apis import ZuulAPI, ZuulJobAPI, ZuulTenantAPI
+from cibyl.sources.zuul.apis import ZuulAPI, ZuulJobAPI, ZuulTenantAPI, \
+    ZuulVariantAPI
 from cibyl.sources.zuul.apis.factories.abc import ZuulAPIFactory
 from cibyl.sources.zuuld.backends.abc import T, ZuulDBackend
 from cibyl.sources.zuuld.backends.git import GitBackend
@@ -45,6 +46,15 @@ class Session(Generic[T]):
     """API that allows interaction with the specs."""
 
 
+class _Variant(Generic[T], ZuulVariantAPI):
+    def __init__(self, job: '_Job', variant: Dict):
+        super().__init__(job, variant)
+
+    @overrides
+    def close(self):
+        return
+
+
 class _Job(Generic[T], ZuulJobAPI):
     """Side of the frontend meant for job operations.
     """
@@ -54,16 +64,16 @@ class _Job(Generic[T], ZuulJobAPI):
         session: Session[T],
         spec: T,
         tenant: '_Tenant',
-        job: Dict
+        data: Dict
     ):
         """Constructor.
 
         :param session: Description of what the interface interacts with.
         :param spec: Spec this job originated from.
         :param tenant: Tenant this job is below under.
-        :param job: Raw data describing the job this represents.
+        :param data: Raw data describing the job this represents.
         """
-        super().__init__(tenant, job)
+        super().__init__(tenant, data)
 
         self._session = session
         self._spec = spec
@@ -89,7 +99,20 @@ class _Job(Generic[T], ZuulJobAPI):
 
     @overrides
     def variants(self):
-        raise UnsupportedError
+        result = []
+
+        for job in self.tenant.jobs():
+            if job.name == self.name:
+                result.append(
+                    _Variant(
+                        job=self,
+                        variant={
+                            'name': job.name
+                        }
+                    )
+                )
+
+        return result
 
     @overrides
     def builds(self):
@@ -150,7 +173,7 @@ class _Tenant(Generic[T], ZuulTenantAPI):
                         session=self.session,
                         spec=spec,
                         tenant=self,
-                        job={
+                        data={
                             'name': job.name
                         }
                     )
