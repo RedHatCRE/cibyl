@@ -17,10 +17,15 @@ import logging
 from dataclasses import dataclass, field
 from typing import Iterable, Optional
 
+from overrides import overrides
+
 from cibyl.sources.zuuld.models.job import Job
 from kernel.tools.files import FileSearchFactory
 from kernel.tools.fs import Dir, File
-from kernel.tools.yaml import YAMLArray, YAMLError, YAMLFile
+from kernel.tools.json import Draft7ValidatorFactory
+from kernel.tools.urls import URL
+from kernel.tools.yaml import (YAMLArray, YAMLError, YAMLFile,
+                               YAMLValidatorFactory)
 
 LOG = logging.getLogger(__name__)
 
@@ -28,21 +33,38 @@ LOG = logging.getLogger(__name__)
 class ZuulDFile(YAMLFile):
     """Representation of a YAML file that meets the Zuul.D schema.
     """
-    SCHEMA = File('_data/schemas/zuuld.json')
+    SCHEMA = URL('https://json.schemastore.org/zuul.json')
     """Location of the Zuul.D schema."""
 
-    def __init__(self, file: File, tools: Optional[YAMLFile.Tools] = None):
+    @dataclass
+    class Tools(YAMLFile.Tools):
+        """Tools this uses to do its task.
+        """
+        validators: YAMLValidatorFactory = field(
+            default_factory=lambda *_: Draft7ValidatorFactory()
+        )
+        """Used to build the validator that will check the file's integrity."""
+
+    def __init__(self, file: File, tools: Optional[Tools] = None):
         """Constructor.
 
         :param file: File to test against the Zuul.D schema.
         :param tools: Tools this uses to do its task.
         :raises YAMLError: If the file does not meet the schema.
         """
+        if tools is None:
+            tools = ZuulDFile.Tools()
+
         super().__init__(
             file=file,
-            schema=ZuulDFile.SCHEMA,
+            validator=tools.validators.from_remote(ZuulDFile.SCHEMA),
             tools=tools
         )
+
+    @property
+    @overrides
+    def tools(self) -> Tools:
+        return super().tools
 
 
 class ZuulDFileFactory:
