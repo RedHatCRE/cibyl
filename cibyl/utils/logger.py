@@ -19,19 +19,20 @@ import sys
 
 import colorlog
 
-from tripleo.conf import LogOutput
-from tripleo.conf import enable_logging as tripleo_enable_logging
+from kernel.tools.log import LogOutput, enable_logging
 
 FORMAT_STR = '{}%(levelname)-8s %(name)-20s %(message)s'
 FILE_LOGGER_FORMATER = logging.Formatter(fmt=FORMAT_STR.format(""))
 TERMINAL_LOGGER_FORMATTER = colorlog.ColoredFormatter(
-                                '\r' + FORMAT_STR.format("%(log_color)s"),
-                                log_colors=dict(
-                                    DEBUG='blue',
-                                    INFO='green',
-                                    WARNING='yellow',
-                                    ERROR='red',
-                                    CRITICAL='bold_red,bg_white',))
+    '\r' + FORMAT_STR.format("%(log_color)s"),
+    log_colors=dict(
+        DEBUG='blue',
+        INFO='green',
+        WARNING='yellow',
+        ERROR='red',
+        CRITICAL='bold_red,bg_white'
+    )
+)
 
 
 def configure_terminal_logging(level: int) -> None:
@@ -60,9 +61,10 @@ def configure_file_logging(log_file: str, level: int) -> None:
 
 
 def configure_logging(
-        log_mode: str,
-        log_file: str,
-        level: int = logging.INFO) -> None:
+    log_mode: str,
+    log_file: str,
+    level: int = logging.INFO
+) -> None:
     """Configure logging format and level.
 
     :param log_mode: Where to send the logs, file, terminal or both
@@ -77,13 +79,39 @@ def configure_logging(
 
     if log_mode == "terminal":
         configure_terminal_logging(level)
-        tripleo_enable_logging(level, LogOutput.ToStream, stream=sys.stderr)
+
+        for module in ('kernel', 'tripleo'):
+            enable_logging(
+                name=module,
+                level=level,
+                output=LogOutput.TO_STREAM,
+                stream=sys.stderr
+            )
     elif log_mode == "file":
         configure_file_logging(log_file, level)
-        tripleo_enable_logging(level, LogOutput.ToFile, file=log_file)
+
+        for module in ('kernel', 'tripleo'):
+            enable_logging(
+                name=module,
+                level=level,
+                output=LogOutput.TO_FILE,
+                file=log_file
+            )
     else:
         configure_terminal_logging(level)
         configure_file_logging(log_file, level)
 
-        tripleo_enable_logging(level, LogOutput.ToStream, stream=sys.stderr)
-        tripleo_enable_logging(level, LogOutput.ToFile, file=log_file)
+        for module in ('kernel', 'tripleo'):
+            enable_logging(
+                name=module,
+                level=level,
+                output=LogOutput.TO_STREAM,
+                stream=sys.stderr
+            )
+
+            enable_logging(
+                name=module,
+                level=level,
+                output=LogOutput.TO_FILE,
+                file=log_file
+            )
