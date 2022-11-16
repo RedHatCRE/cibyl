@@ -22,8 +22,8 @@ from cached_property import cached_property
 from overrides import overrides
 from yaml import YAMLError as StandardYAMLError
 
-from kernel.tools.fs import File, KnownDirs, cd
-from kernel.tools.json import Draft7ValidatorFactory, JSONValidatorFactory
+from kernel.tools.fs import File
+from kernel.tools.json import JSONValidator, JSONValidatorFactory
 
 YAMLObj = Dict[str, Any]
 """Represents an object on a YAML file."""
@@ -31,6 +31,11 @@ YAMLArray = List[YAMLObj]
 """Represents an array on a YAML file."""
 YAML = Union[YAMLArray, YAMLObj]
 """Represents data originated from a YAML file."""
+
+YAMLValidator = JSONValidator
+"""Checks that data on a YAML file conforms to a certain structure."""
+YAMLValidatorFactory = JSONValidatorFactory
+"""Factory for :class:`YAMLValidator`."""
 
 
 class YAMLError(Exception):
@@ -79,23 +84,19 @@ class YAMLFile:
             default_factory=lambda *_: StandardYAMLParser()
         )
         """Used to translate the data in the file into python-readable."""
-        validators: JSONValidatorFactory = field(
-            default_factory=lambda *_: Draft7ValidatorFactory()
-        )
-        """Used to face the data in the file against an schema."""
 
     def __init__(
         self,
         file: File,
-        schema: Optional[File] = None,
+        validator: Optional[YAMLValidator] = None,
         tools: Optional[Tools] = None
     ):
         """Constructor.
 
         :param file:
             The YAML file to have this class wrap around.
-        :param schema:
-            Schema that the data in the file must meet.
+        :param validator:
+            Validates data in the file against a schema.
             'None' to ignore.
         :param tools:
             Selection of tools this uses to do its task.
@@ -108,7 +109,7 @@ class YAMLFile:
             tools = YAMLFile.Tools()
 
         self._file = file
-        self._schema = schema
+        self._validator = validator
         self._tools = tools
 
         self._validate()
@@ -120,17 +121,14 @@ class YAMLFile:
 
         :raises YAMLError: If the data does not meet the schema.
         """
-        if self.schema is None:
+        if self.validator is None:
             return
 
-        with cd(KnownDirs.CIBYL):
-            validator = self.tools.validators.from_file(self.schema)
-
-            if validator.is_valid(self.data):
-                return
+        if self.validator.is_valid(self.data):
+            return
 
         raise YAMLError(
-            f"File: '{self.file}' does not conform to schema: '{self.schema}'."
+            f"File: '{self.file}' does not conform to schema."
         )
 
     @cached_property
@@ -148,11 +146,13 @@ class YAMLFile:
         return self._file
 
     @property
-    def schema(self) -> Optional[File]:
+    def validator(self) -> Optional[YAMLValidator]:
         """
-        :return: The schema met by the file. 'None' if this was skipped.
+        :return:
+            Validates data in the file against a schema.
+            'None' if no validation is performed.
         """
-        return self._schema
+        return self._validator
 
     @property
     def tools(self) -> Tools:
