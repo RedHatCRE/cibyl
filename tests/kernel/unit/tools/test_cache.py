@@ -16,7 +16,56 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from kernel.tools.cache import CacheError, RTCache
+from kernel.tools.cache import CACache, CacheError, RTCache
+
+
+class TestCACache(TestCase):
+    """Tests for :class:`CACache`.
+    """
+
+    def test_missing_entry(self):
+        """Checks that 'None' is returned for a missing entry.
+        """
+        key = 0
+
+        cache = CACache[int, str]()
+
+        self.assertFalse(cache.has(key))
+        self.assertIsNone(cache.get(key))
+
+    def test_stores_entry(self):
+        """Checks that the cache is capable of storing data within.
+        """
+
+        key = 0
+        value = 'test'
+
+        cache = CACache[int, str]()
+
+        self.assertFalse(cache.has(key))
+
+        cache.put(key, value)
+
+        self.assertTrue(cache.has(key))
+        self.assertEqual(value, cache.get(key))
+
+    def test_deletes_entry(self):
+        """Checks that it is possible to delete data from the cache.
+        """
+        key = 0
+        value = 'test'
+
+        cache = CACache[int, str](
+            storage={
+                key: value
+            }
+        )
+
+        self.assertTrue(cache.has(key))
+
+        cache.delete(key)
+
+        self.assertFalse(cache.has(key))
 
 
 class TestRTCache(TestCase):

@@ -35,7 +35,7 @@ class TestYAMLFile(TestCase):
 
         YAMLFile(
             file=file,
-            schema=None,
+            validator=None,
             tools=tools
         )
 
@@ -51,8 +51,6 @@ class TestYAMLFile(TestCase):
         file.read = Mock()
         file.read.return_value = raw
 
-        schema = Mock()
-
         validator = Mock()
         validator.is_valid = Mock()
         validator.is_valid.return_value = False
@@ -63,18 +61,13 @@ class TestYAMLFile(TestCase):
 
         tools = Mock()
         tools.parser = parser
-        tools.validators = Mock()
-        tools.validators.from_file = Mock()
-        tools.validators.from_file.return_value = validator
 
         with self.assertRaises(YAMLError):
             YAMLFile(
                 file=file,
-                schema=schema,
+                validator=validator,
                 tools=tools
             )
-
-        tools.validators.from_file.assert_called_with(schema)
 
         file.read.assert_called()
         parser.as_yaml.assert_called_with(raw)
@@ -92,8 +85,6 @@ class TestYAMLFile(TestCase):
         file.read = Mock()
         file.read.return_value = raw
 
-        schema = Mock()
-
         validator = Mock()
         validator.is_valid = Mock()
         validator.is_valid.return_value = True
@@ -104,19 +95,14 @@ class TestYAMLFile(TestCase):
 
         tools = Mock()
         tools.parser = parser
-        tools.validators = Mock()
-        tools.validators.from_file = Mock()
-        tools.validators.from_file.return_value = validator
 
         result = YAMLFile(
             file=file,
-            schema=schema,
+            validator=validator,
             tools=tools
         )
 
         self.assertEqual(yaml, result.data)
-
-        tools.validators.from_file.assert_called_with(schema)
 
         file.read.assert_called()
         parser.as_yaml.assert_called_with(raw)

@@ -19,7 +19,8 @@ from typing import Iterable, Optional
 
 from cibyl.sources.zuuld.models.job import Job
 from kernel.tools.files import FileSearchFactory
-from kernel.tools.fs import Dir, File
+from kernel.tools.fs import Dir, File, KnownDirs, cd
+from kernel.tools.json import Draft7ValidatorFactory
 from kernel.tools.yaml import YAMLArray, YAMLError, YAMLFile
 
 LOG = logging.getLogger(__name__)
@@ -38,11 +39,14 @@ class ZuulDFile(YAMLFile):
         :param tools: Tools this uses to do its task.
         :raises YAMLError: If the file does not meet the schema.
         """
-        super().__init__(
-            file=file,
-            schema=ZuulDFile.SCHEMA,
-            tools=tools
-        )
+        with cd(KnownDirs.CIBYL):
+            validators = Draft7ValidatorFactory()
+
+            super().__init__(
+                file=file,
+                validator=validators.from_file(ZuulDFile.SCHEMA),
+                tools=tools
+            )
 
 
 class ZuulDFileFactory:

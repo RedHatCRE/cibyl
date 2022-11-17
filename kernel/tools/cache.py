@@ -83,6 +83,57 @@ class Cache(Generic[K, V], ABC):
         raise NotImplementedError
 
 
+class CACache(Cache[K, V]):
+    """This implementation follows the Cache-Aside approach to caching.
+    This means that the cache is a simple container for others to push to and
+    pull from. It does not have any responsibility regarding the origin of
+    data and how it is retrieved. Those are up to the user to assume.
+    """
+
+    def __init__(
+        self,
+        storage: Optional[MutableMapping[K, V]] = None
+    ):
+        """Constructor.
+
+        :param storage: Container where the cached data is stored. Be sure
+            that the structure follows the specifications of this class.
+            'None' to let this create its own.
+        """
+        if storage is None:
+            storage = {}
+
+        self._storage = storage
+
+    @property
+    def storage(self):
+        """
+        :return: Container where the cached data is stored. Modifications to
+            this structure can lead to a corrupted cache, use under your own
+            responsibility.
+        """
+        return self._storage
+
+    @overrides
+    def has(self, key: K) -> bool:
+        return key in self.storage
+
+    @overrides
+    def get(self, key: K) -> Optional[V]:
+        return self.storage.get(key)
+
+    @overrides
+    def put(self, key: K, value: V) -> None:
+        self.storage[key] = value
+
+    @overrides
+    def delete(self, key: K) -> None:
+        if key not in self.storage:
+            return
+
+        del self.storage[key]
+
+
 class RTCache(Cache[K, V]):
     """Implementation that follows the Read-Through approach to caching.
     This means that the cache takes responsibility of reaching the
