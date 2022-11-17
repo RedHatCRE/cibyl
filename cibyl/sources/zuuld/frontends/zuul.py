@@ -49,13 +49,25 @@ class Session(Generic[T]):
 
 
 class _Variant(Generic[T], ZuulVariantAPI):
-    def __init__(self, job: '_Job', variant: Dict):
-        super().__init__(job, variant)
+    """Side of the frontend meant for variant operations.
+    """
+
+    def __init__(self, job: '_Job', data: Dict):
+        """Constructor.
+
+        :param job: Job this variant belongs to.
+        :param data: Raw data describing the variant this represents.
+        """
+        super().__init__(job, data)
 
         self._owner = job
 
     @property
     def owner(self) -> '_Job':
+        """
+        :return:
+            Job this variant belongs to, cast to Zuul.D's representation of so.
+        """
         return self._owner
 
     @overrides
@@ -78,7 +90,7 @@ class _Job(Generic[T], ZuulJobAPI):
 
         :param session: Description of what the interface interacts with.
         :param spec: Spec this job originated from.
-        :param tenant: Tenant this job is below under.
+        :param tenant: Tenant this job is under.
         :param data: Raw data describing the job this represents.
         """
         super().__init__(tenant, data)
@@ -121,7 +133,7 @@ class _Job(Generic[T], ZuulJobAPI):
             result.append(
                 _Variant(
                     job=self,
-                    variant={
+                    data={
                         'name': job.name,
                         'parent': job.parent,
                         'description': '',

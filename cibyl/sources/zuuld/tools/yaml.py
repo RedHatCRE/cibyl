@@ -48,8 +48,11 @@ class ZuulDFile(YAMLFile):
     def __init__(self, file: File, tools: Optional[Tools] = None):
         """Constructor.
 
-        :param file: File to test against the Zuul.D schema.
-        :param tools: Tools this uses to do its task.
+        :param file:
+            File to test against the Zuul.D schema.
+        :param tools:
+            Tools this uses to do its task.
+            'None' to let this build its own.
         :raises YAMLError: If the file does not meet the schema.
         """
         if tools is None:
@@ -72,6 +75,13 @@ class ZuulDFileFactory:
     """
 
     def __init__(self, validators: Optional[YAMLValidatorFactory] = None):
+        """Constructor.
+
+        :param validators:
+            Factory this will use to build validators that check the
+            integrity of Zuul.D files.
+            'None' to let this build its own.
+        """
         if validators is None:
             validators = Draft7ValidatorFactory()
 
@@ -79,13 +89,16 @@ class ZuulDFileFactory:
 
     @property
     def validators(self) -> YAMLValidatorFactory:
+        """
+        :return: Factory for validators that check Zuul.D file integrity.
+        """
         return self._validators
 
     def from_file(self, file: File) -> ZuulDFile:
         """Builds a new Zuul.D file from a generic one.
 
         :param file: File that will be tested to see if it is a Zuul.D file.
-        :return: The given file, this time caster to a Zuul.D one.
+        :return: The given file, this time cast to a Zuul.D one.
         :raises YAMLError: If the file does not meet the Zuul.D criteria.
         """
         return ZuulDFile(
