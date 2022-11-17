@@ -36,14 +36,25 @@ class JSONValidatorFactory(ABC):
 
     @dataclass
     class Caches:
+        """Storages used by the class to avoid reusing external resources.
+        """
         files: Cache[File, JSONValidator] = field(
             default_factory=lambda *_: CACache()
         )
+        """Storage for validators made from files on the filesystem."""
         remotes: Cache[URL, JSONValidator] = field(
             default_factory=lambda *_: CACache()
         )
+        """Storage for validators made from files on a remote server."""
 
     def __init__(self, caches: Optional[Caches] = None):
+        """Constructor.
+
+        :param caches:
+            Caches used by the class to avoid fetching external resources
+            more than needed.
+            'None' to let this build its own.
+        """
         if caches is None:
             caches = JSONValidatorFactory.Caches()
 
@@ -51,10 +62,22 @@ class JSONValidatorFactory(ABC):
 
     @property
     def caches(self) -> Caches:
+        """
+        :return:
+            Caches used by the class to avoid fetching external resources
+            more than needed.
+        """
         return self._caches
 
     @abstractmethod
     def from_buffer(self, buffer: Union[bytes, str]) -> JSONValidator:
+        """Builds a new validator from a data stream.
+
+        :param buffer: Stream of data from the JSON schema to be parsed.
+        :return: New validator instance.
+        :raise JSONDecodeError: If the file contents are not a valid JSON.
+        :raise SchemaError: If the file contents are not a valid JSON schema.
+        """
         raise NotImplementedError
 
     def from_file(self, file: File, encoding: str = 'utf-8') -> JSONValidator:
@@ -78,6 +101,15 @@ class JSONValidatorFactory(ABC):
             return validator
 
     def from_remote(self, url: URL) -> JSONValidator:
+        """Builds a new validator by reading the schema stored at a remote
+        server.
+
+        :param url: Location of the schema file to download.
+        :return: A new validator instance.
+        :raise JSONDecodeError: If the file contents are not a valid JSON.
+        :raise SchemaError: If the file contents are not a valid JSON schema.
+        :raise DownloadError: If the file could not be fetched from the URL.
+        """
         cache = self.caches.remotes
 
         if cache.has(url):

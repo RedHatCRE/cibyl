@@ -116,32 +116,14 @@ class CACache(Cache[K, V]):
 
     @overrides
     def has(self, key: K) -> bool:
-        """Checks if the cache contains a value for the given key.
-
-        :param key: The key to test.
-        :return: True if it does, False if not.
-        """
         return key in self.storage
 
     @overrides
     def get(self, key: K) -> Optional[V]:
-        """Gets the value for an entry in the cache.
-
-        :param key: The key to get the value for.
-        :return: The value associated to the key if is it present on the
-        cache, 'None' if not.
-        """
         return self.storage.get(key)
 
     @overrides
     def put(self, key: K, value: V) -> None:
-        """Creates a new entry on the cache. If the entry already exists,
-        then it will be overridden.
-
-        :param key: Key for the entry.
-        :param value: Data associated to the key.
-        :return:
-        """
         self.storage[key] = value
 
     @overrides
