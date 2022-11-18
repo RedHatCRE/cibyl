@@ -17,7 +17,62 @@ from unittest import TestCase
 from unittest.mock import MagicMock, Mock, call
 
 from cibyl.sources.zuuld.models.job import Job
-from cibyl.sources.zuuld.tools.yaml import YAMLReader, YAMLSearch
+from cibyl.sources.zuuld.tools.yaml import YAMLReader, YAMLSearch, ZuulDFile
+from kernel.tools.net import DownloadError
+
+
+class TestZuulDFile(TestCase):
+    """Tests for :class:`ZuulDFile`.
+    """
+
+    def test_downloads_schema(self):
+        """Checks that the expected schema file is downloaded for use in
+        data validation.
+        """
+        file = Mock()
+        validator = Mock()
+        validators = Mock()
+
+        validators.from_remote = Mock()
+        validators.from_remote.return_value = validator
+
+        tools = Mock()
+        tools.validators = validators
+
+        zuuld = ZuulDFile(
+            file=file,
+            tools=tools
+        )
+
+        self.assertEqual(validator, zuuld.validator)
+
+        validators.from_remote.assert_called_once_with(ZuulDFile.SCHEMA)
+
+    def test_failed_download(self):
+        """Checks that validation is ignored if the schema could not be
+        downloaded.
+        """
+
+        def error():
+            raise DownloadError
+
+        file = Mock()
+        validators = Mock()
+
+        validators.from_remote = Mock()
+        validators.from_remote.side_effect = lambda *_: error()
+
+        tools = Mock()
+        tools.validators = validators
+
+        zuuld = ZuulDFile(
+            file=file,
+            tools=tools
+        )
+
+        self.assertIsNone(zuuld.validator)
+
+        validators.from_remote.assert_called_once_with(ZuulDFile.SCHEMA)
 
 
 class TestYAMLReader(TestCase):

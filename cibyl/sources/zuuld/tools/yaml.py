@@ -23,9 +23,10 @@ from cibyl.sources.zuuld.models.job import Job
 from kernel.tools.files import FileSearchFactory
 from kernel.tools.fs import Dir, File
 from kernel.tools.json import Draft7ValidatorFactory
+from kernel.tools.net import DownloadError
 from kernel.tools.urls import URL
 from kernel.tools.yaml import (YAMLArray, YAMLError, YAMLFile,
-                               YAMLValidatorFactory)
+                               YAMLValidatorFactory, YAMLValidator)
 
 LOG = logging.getLogger(__name__)
 
@@ -55,12 +56,26 @@ class ZuulDFile(YAMLFile):
             'None' to let this build its own.
         :raises YAMLError: If the file does not meet the schema.
         """
+
+        def validator() -> Optional[YAMLValidator]:
+            url = ZuulDFile.SCHEMA
+
+            try:
+                return tools.validators.from_remote(url)
+            except DownloadError:
+                LOG.error(
+                    "Failed to download schema at: '%s'. "
+                    "Ignoring data validation...",
+                    url
+                )
+                return None
+
         if tools is None:
             tools = ZuulDFile.Tools()
 
         super().__init__(
             file=file,
-            validator=tools.validators.from_remote(ZuulDFile.SCHEMA),
+            validator=validator(),
             tools=tools
         )
 
