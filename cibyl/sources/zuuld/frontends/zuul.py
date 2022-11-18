@@ -16,16 +16,19 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Generic, Iterable
+from typing import Dict, Generic, Iterable, Optional
 
 from overrides import overrides
 
-from cibyl.sources.zuul.apis import ZuulAPI, ZuulJobAPI, ZuulTenantAPI
+from cibyl.sources.zuul.apis import (ZuulAPI, ZuulJobAPI, ZuulTenantAPI,
+                                     ZuulVariantAPI)
 from cibyl.sources.zuul.apis.factories.abc import ZuulAPIFactory
 from cibyl.sources.zuuld.backends.abc import T, ZuulDBackend
 from cibyl.sources.zuuld.backends.git import GitBackend
 from cibyl.sources.zuuld.errors import InvalidURL, UnsupportedError
+from cibyl.sources.zuuld.models.job import Job
 from cibyl.sources.zuuld.specs.git import GitSpec
+from kernel.tools.cache import Cache, RTCache
 from kernel.tools.urls import URL
 
 LOG = logging.getLogger(__name__)
@@ -45,6 +48,33 @@ class Session(Generic[T]):
     """API that allows interaction with the specs."""
 
 
+class _Variant(Generic[T], ZuulVariantAPI):
+    """Side of the frontend meant for variant operations.
+    """
+
+    def __init__(self, job: '_Job', data: Dict):
+        """Constructor.
+
+        :param job: Job this variant belongs to.
+        :param data: Raw data describing the variant this represents.
+        """
+        super().__init__(job, data)
+
+        self._owner = job
+
+    @property
+    def owner(self) -> '_Job':
+        """
+        :return:
+            Job this variant belongs to, cast to Zuul.D's representation of so.
+        """
+        return self._owner
+
+    @overrides
+    def close(self):
+        return
+
+
 class _Job(Generic[T], ZuulJobAPI):
     """Side of the frontend meant for job operations.
     """
@@ -54,19 +84,20 @@ class _Job(Generic[T], ZuulJobAPI):
         session: Session[T],
         spec: T,
         tenant: '_Tenant',
-        job: Dict
+        data: Dict
     ):
         """Constructor.
 
         :param session: Description of what the interface interacts with.
         :param spec: Spec this job originated from.
-        :param tenant: Tenant this job is below under.
-        :param job: Raw data describing the job this represents.
+        :param tenant: Tenant this job is under.
+        :param data: Raw data describing the job this represents.
         """
-        super().__init__(tenant, job)
+        super().__init__(tenant, data)
 
         self._session = session
         self._spec = spec
+        self._owner = tenant
 
     @property
     def session(self) -> Session[T]:
@@ -83,13 +114,37 @@ class _Job(Generic[T], ZuulJobAPI):
         return self._spec
 
     @property
+    def owner(self) -> '_Tenant':
+        return self._owner
+
+    @property
     @overrides
     def url(self):
         return self.spec.remote
 
     @overrides
     def variants(self):
-        raise UnsupportedError
+        result = []
+
+        for job in self.owner.cache.get(self.spec):
+            if job.name != self.name:
+                continue
+
+            result.append(
+                _Variant(
+                    job=self,
+                    data={
+                        'name': job.name,
+                        'parent': job.parent,
+                        'description': '',
+                        'branches': job.branches,
+                        'variables': job.vars,
+                        'source_context': None
+                    }
+                )
+            )
+
+        return result
 
     @overrides
     def builds(self):
@@ -104,15 +159,26 @@ class _Tenant(Generic[T], ZuulTenantAPI):
     """Side of the frontend meant for tenant operations.
     """
 
-    def __init__(self, session: Session[T], data: Dict):
+    def __init__(
+        self,
+        session: Session[T],
+        data: Dict,
+        cache: Optional[Cache[T, Iterable[Job]]] = None
+    ):
         """Constructor.
 
         :param session: Description of what the interface interacts with.
         :param data: Raw data describing the tenant this represents.
         """
+        if cache is None:
+            cache = RTCache(
+                loader=lambda spec: self.session.backend.get.jobs(spec)
+            )
+
         super().__init__(data)
 
         self._session = session
+        self._cache = cache
 
     @property
     def session(self) -> Session[T]:
@@ -122,18 +188,8 @@ class _Tenant(Generic[T], ZuulTenantAPI):
         return self._session
 
     @property
-    def _specs(self) -> Iterable[T]:
-        """
-        :return: Shortcut to the session's specs.
-        """
-        return self._session.specs
-
-    @property
-    def _backend(self) -> ZuulDBackend[T]:
-        """
-        :return: Shortcut to the session's backend.
-        """
-        return self._session.backend
+    def cache(self) -> Cache[T, Iterable[Job]]:
+        return self._cache
 
     @overrides
     def projects(self):
@@ -143,14 +199,14 @@ class _Tenant(Generic[T], ZuulTenantAPI):
     def jobs(self):
         result = []
 
-        for spec in self._specs:
-            for job in self._backend.get.jobs(spec):
+        for spec in self.session.specs:
+            for job in self.cache.get(spec):
                 result.append(
                     _Job(
                         session=self.session,
                         spec=spec,
                         tenant=self,
-                        job={
+                        data={
                             'name': job.name
                         }
                     )

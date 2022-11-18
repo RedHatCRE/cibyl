@@ -17,11 +17,16 @@ import logging
 from dataclasses import dataclass, field
 from typing import Iterable, Optional
 
+from overrides import overrides
+
 from cibyl.sources.zuuld.models.job import Job
 from kernel.tools.files import FileSearchFactory
-from kernel.tools.fs import Dir, File, KnownDirs, cd
+from kernel.tools.fs import Dir, File
 from kernel.tools.json import Draft7ValidatorFactory
-from kernel.tools.yaml import YAMLArray, YAMLError, YAMLFile
+from kernel.tools.net import DownloadError
+from kernel.tools.urls import URL
+from kernel.tools.yaml import (YAMLArray, YAMLError, YAMLFile, YAMLValidator,
+                               YAMLValidatorFactory)
 
 LOG = logging.getLogger(__name__)
 
@@ -29,38 +34,94 @@ LOG = logging.getLogger(__name__)
 class ZuulDFile(YAMLFile):
     """Representation of a YAML file that meets the Zuul.D schema.
     """
-    SCHEMA = File('_data/schemas/zuuld.json')
+    SCHEMA = URL('https://json.schemastore.org/zuul.json')
     """Location of the Zuul.D schema."""
 
-    def __init__(self, file: File, tools: Optional[YAMLFile.Tools] = None):
+    @dataclass
+    class Tools(YAMLFile.Tools):
+        """Tools this uses to do its task.
+        """
+        validators: YAMLValidatorFactory = field(
+            default_factory=lambda *_: Draft7ValidatorFactory()
+        )
+        """Used to build the validator that will check the file's integrity."""
+
+    def __init__(self, file: File, tools: Optional[Tools] = None):
         """Constructor.
 
-        :param file: File to test against the Zuul.D schema.
-        :param tools: Tools this uses to do its task.
+        :param file:
+            File to test against the Zuul.D schema.
+        :param tools:
+            Tools this uses to do its task.
+            'None' to let this build its own.
         :raises YAMLError: If the file does not meet the schema.
         """
-        with cd(KnownDirs.CIBYL):
-            validators = Draft7ValidatorFactory()
 
-            super().__init__(
-                file=file,
-                validator=validators.from_file(ZuulDFile.SCHEMA),
-                tools=tools
-            )
+        def validator() -> Optional[YAMLValidator]:
+            url = ZuulDFile.SCHEMA
+
+            try:
+                return tools.validators.from_remote(url)
+            except DownloadError:
+                LOG.error(
+                    "Failed to download schema at: '%s'. "
+                    "Ignoring data validation...",
+                    url
+                )
+                return None
+
+        if tools is None:
+            tools = ZuulDFile.Tools()
+
+        super().__init__(
+            file=file,
+            validator=validator(),
+            tools=tools
+        )
+
+    @property
+    @overrides
+    def tools(self) -> Tools:
+        return super().tools
 
 
 class ZuulDFileFactory:
     """Factory for :class:`ZuulDFile`.
     """
 
+    def __init__(self, validators: Optional[YAMLValidatorFactory] = None):
+        """Constructor.
+
+        :param validators:
+            Factory this will use to build validators that check the
+            integrity of Zuul.D files.
+            'None' to let this build its own.
+        """
+        if validators is None:
+            validators = Draft7ValidatorFactory()
+
+        self._validators = validators
+
+    @property
+    def validators(self) -> YAMLValidatorFactory:
+        """
+        :return: Factory for validators that check Zuul.D file integrity.
+        """
+        return self._validators
+
     def from_file(self, file: File) -> ZuulDFile:
         """Builds a new Zuul.D file from a generic one.
 
         :param file: File that will be tested to see if it is a Zuul.D file.
-        :return: The given file, this time caster to a Zuul.D one.
+        :return: The given file, this time cast to a Zuul.D one.
         :raises YAMLError: If the file does not meet the Zuul.D criteria.
         """
-        return ZuulDFile(file)
+        return ZuulDFile(
+            file=file,
+            tools=ZuulDFile.Tools(
+                validators=self.validators
+            )
+        )
 
 
 class YAMLReader:

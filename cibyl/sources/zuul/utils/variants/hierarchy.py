@@ -49,6 +49,13 @@ class JobFinder:
             """
             self._job = job
 
+        @property
+        def job(self) -> str:
+            """
+            :return: Name of the job this targets.
+            """
+            return self._job
+
         def within(self, tenant: Tenant) -> Job:
             """Searches for the job throughout the given tenant.
 
@@ -60,30 +67,23 @@ class JobFinder:
                 never happen.
             """
             request = tenant.jobs()
-            request.with_name(f'^{self._job}$')
+            request.with_name(f'^{self.job}$')
 
             result = request.get()
 
             if len(result) == 0:
                 raise SearchError(
-                    f"No job with name: '{self._job}' "
+                    f"No job with name: '{self.job}' "
                     f"found in tenant: '{tenant.name}'."
                 )
 
             if len(result) > 1:
                 raise SearchError(
-                    f"More than one job with name: '{self._job} "
+                    f"More than one job with name: '{self.job} "
                     f"found in tenant: '{tenant.name}'."
                 )
 
             return result[0]
-
-        @property
-        def job(self) -> str:
-            """
-            :return: Name of the job this targets.
-            """
-            return self._job
 
     def find(self, job: str) -> Search:
         """Open up a new search action for the given job.
@@ -156,7 +156,7 @@ class VariantFinder:
         """Tools this uses to do its job.
         """
         jobs: JobFinder = field(
-            default_factory=lambda: JobFinder()
+            default_factory=lambda *_: JobFinder()
         )
         """Used to search for the parent job of a variant."""
 
@@ -258,7 +258,7 @@ class HierarchyCrawler:
         """Tools this uses to do its job.
         """
         variants: VariantFinder = field(
-            default_factory=lambda: VariantFinder()
+            default_factory=lambda *_: VariantFinder()
         )
         """Used to find the parent variant of another variant."""
 
@@ -358,7 +358,7 @@ class HierarchyBuilder:
         """Tools this uses to do its job.
         """
         crawlers: HierarchyCrawlerFactory = field(
-            default_factory=lambda: HierarchyCrawlerFactory()
+            default_factory=lambda *_: HierarchyCrawlerFactory()
         )
         """Used to go through the hierarchy of jobs of a variant."""
 
@@ -401,7 +401,7 @@ class RecursiveVariableSearch:
         """Tools this uses to do its job.
         """
         hierarchy: HierarchyBuilder = field(
-            default_factory=lambda: HierarchyBuilder()
+            default_factory=lambda *_: HierarchyBuilder()
         )
         """Used to get the hierarchy of jobs of a variant."""
 

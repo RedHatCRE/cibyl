@@ -19,7 +19,7 @@ from pathlib import Path
 from kernel.tools.urls import URL
 
 
-@dataclass
+@dataclass(frozen=True)
 class SCMSpec:
     """Defines location of Zuul.D files for a generic SCM.
     """

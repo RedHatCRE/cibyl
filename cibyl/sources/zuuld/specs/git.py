@@ -20,7 +20,7 @@ from cibyl.sources.zuuld.specs.abc import SCMSpec
 from kernel.tools.urls import is_git
 
 
-@dataclass
+@dataclass(frozen=True)
 class GitSpec(SCMSpec):
     """Defines location of Zuul.D files inside a Git repository.
 
