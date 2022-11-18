@@ -25,8 +25,8 @@ from kernel.tools.fs import Dir, File
 from kernel.tools.json import Draft7ValidatorFactory
 from kernel.tools.net import DownloadError
 from kernel.tools.urls import URL
-from kernel.tools.yaml import (YAMLArray, YAMLError, YAMLFile,
-                               YAMLValidatorFactory, YAMLValidator)
+from kernel.tools.yaml import (YAMLArray, YAMLError, YAMLFile, YAMLValidator,
+                               YAMLValidatorFactory)
 
 LOG = logging.getLogger(__name__)
 
