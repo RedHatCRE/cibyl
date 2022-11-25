@@ -798,3 +798,97 @@ class TestScenarioInterpreter(TestCase):
 
         with self.assertRaises(IllegibleData):
             scenario.get_cinder_backend()
+
+    def test_get_manila_backend(self):
+        """Checks that this figures out the Manila backend from the scenario.
+        """
+        keys = ScenarioInterpreter.Keys()
+        mappings = ScenarioInterpreter.Mappings(keys)
+
+        data = {
+            keys.resources: {
+                keys.manila.backends.cephfs: '../../path/to/file.yaml'
+            }
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        scenario = ScenarioInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        self.assertEqual(
+            mappings.manila_backends[keys.manila.backends.cephfs],
+            scenario.get_manila_backend()
+        )
+
+    def test_default_manila_backend(self):
+        """Checks that the default value is chosen in case no backend is
+        defined for Manila on the scenario.
+        """
+        defaults = ScenarioInterpreter.Defaults()
+
+        data = {}
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        scenario = ScenarioInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        self.assertEqual(
+            defaults.manila_backend,
+            scenario.get_manila_backend()
+        )
+
+    def test_error_if_multiple_manila_backends(self):
+        """Checks that if more than one backend is defined for Manila,
+        an error is raised.
+        """
+        keys = ScenarioInterpreter.Keys()
+
+        data = {
+            keys.resources: {
+                keys.manila.backends.netapp: '../../path/to/file.yaml',
+                keys.manila.backends.cephfs: '../../path/to/file.yaml'
+            }
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        scenario = ScenarioInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        with self.assertRaises(IllegibleData):
+            scenario.get_manila_backend()

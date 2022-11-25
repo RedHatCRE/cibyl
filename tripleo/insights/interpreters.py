@@ -361,6 +361,24 @@ class ScenarioInterpreter(FileInterpreter):
     """Takes care of making sense out of the contents of a scenario file.
     """
 
+    class Defaults(NamedTuple):
+        """Defines the values returned by the interpreter when it cannot
+        find the data on the scenario file.
+
+        These values are set to be the same as in the heat templates
+        repository.
+        """
+        cinder_backend: str = 'iscsi'
+        """Default backend supporting cinder."""
+        glance_backend: str = 'swift'
+        """Default backend supporting glance."""
+        manila_backend: str = 'none'
+        """Default backend supporting manila."""
+        neutron_backend: str = 'geneve'
+        """Default backend supporting neutron."""
+        ml2_driver: str = 'ovn'
+        """Default ml2 driver."""
+
     class Keys(NamedTuple):
         """Defines the fields of interest in the scenario.
         """
@@ -394,6 +412,25 @@ class ScenarioInterpreter(FileInterpreter):
             backend: str = 'GlanceBackend'
             """Key pointing to the backend supporting glance."""
 
+        class Manila(NamedTuple):
+            """Defines all the fields related to the manila component.
+            """
+
+            class Backends(NamedTuple):
+                """Defines all the fields related to the manila backend.
+                """
+                cephfs: str = 'OS::TripleO::Services::ManilaBackendCephFs'
+                flashb: str = 'OS::TripleO::Services::ManilaBackendFlashBlade'
+                isilon: str = 'OS::TripleO::Services::ManilaBackendIsilon'
+                netapp: str = 'OS::TripleO::Services::ManilaBackendNetapp'
+                powermax: str = 'OS::TripleO::Services::ManilaBackendPowerMax'
+                unity: str = 'OS::TripleO::Services::ManilaBackendUnity'
+                vnx: str = 'OS::TripleO::Services::ManilaBackendVNX'
+                vmax: str = 'OS::TripleO::Services::ManilaBackendVMAX'
+
+            backends = Backends()
+            """Keys pointing to the component's backend."""
+
         class Neutron(NamedTuple):
             """Defines all the fields related to the neutron component.
             """
@@ -402,6 +439,8 @@ class ScenarioInterpreter(FileInterpreter):
             ml2_driver: str = 'NeutronMechanismDrivers'
             """Key pointing to the mechanism drivers for the tenant network."""
 
+        resources: str = 'resource_registry'
+        """Level at which parameters definitions are declared."""
         parameters: str = 'parameter_defaults'
         """Level at which the parameters are defined."""
 
@@ -409,6 +448,8 @@ class ScenarioInterpreter(FileInterpreter):
         """Keys related to the cinder component."""
         glance: Glance = Glance()
         """Keys related to the glance component."""
+        manila: Manila = Manila()
+        """Keys related to the manila component."""
         neutron: Neutron = Neutron()
         """Keys related to the neutron component."""
 
@@ -453,21 +494,36 @@ class ScenarioInterpreter(FileInterpreter):
                 self.keys.cinder.backends.rbd: 'rbd'
             }
 
-    class Defaults(NamedTuple):
-        """Defines the values returned by the interpreter when it cannot
-        find the data on the scenario file.
+        @property
+        def manila_backends(self) -> Dict[str, str]:
+            """
+            :return: A map that matches each of the manila backend keys to
+                simple representation of the backend. For example:
+                'ManilaBackendCephFs' -> 'cephfs'.
+            """
+            return {
+                self.keys.manila.backends.cephfs: 'cephfs',
+                self.keys.manila.backends.flashb: 'flashb',
+                self.keys.manila.backends.isilon: 'isilon',
+                self.keys.manila.backends.netapp: 'netapp',
+                self.keys.manila.backends.powermax: 'powermax',
+                self.keys.manila.backends.unity: 'unity',
+                self.keys.manila.backends.vnx: 'vnx',
+                self.keys.manila.backends.vmax: 'vmax'
+            }
 
-        These values are set to be the same as in the heat templates
-        repository.
+    class Values(NamedTuple):
+        """Defines knows values for some keys in the interpreter.
         """
-        cinder_backend: str = 'iscsi'
-        """Default backend supporting cinder."""
-        glance_backend: str = 'swift'
-        """Default backend supporting glance."""
-        neutron_backend: str = 'geneve'
-        """Default backend supporting neutron."""
-        ml2_driver: str = 'ovn'
-        """Default ml2 driver."""
+
+        class Resources(NamedTuple):
+            """Values for keys on the resources section.
+            """
+            none: str = 'OS::Heat::None'
+            """No definition for this resource."""
+
+        resources: Resources = Resources()
+        """Values for keys on the resources section."""
 
     def __init__(
         self,
@@ -477,6 +533,14 @@ class ScenarioInterpreter(FileInterpreter):
         validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
     ):
         super().__init__(data, schema, overrides, validator_factory)
+
+    @property
+    def defaults(self) -> 'ScenarioInterpreter.Defaults':
+        """
+        :return: Values returned by the interpreter when wanted data
+            is not present.
+        """
+        return self.Defaults()
 
     @property
     def keys(self) -> 'ScenarioInterpreter.Keys':
@@ -493,12 +557,19 @@ class ScenarioInterpreter(FileInterpreter):
         return self.Mappings(self.keys)
 
     @property
-    def defaults(self) -> 'ScenarioInterpreter.Defaults':
+    def values(self) -> 'ScenarioInterpreter.Values':
         """
-        :return: Values returned by the interpreter when wanted data
+        :return: Known values on each of the keys.
+        """
+        return self.Values()
+
+    @property
+    def _resources(self) -> dict:
+        """
+        :return: Contents of the 'resource_registry' section. Empty is if it
             is not present.
         """
-        return self.Defaults()
+        return self.data.get(self.keys.resources, {})
 
     @property
     def _parameters(self) -> dict:
@@ -567,6 +638,54 @@ class ScenarioInterpreter(FileInterpreter):
             return default
 
         return self._parameters[key]
+
+    def get_manila_backend(self) -> str:
+        """
+        :return: Name of the backend behind Manila.
+        :raises IllegibleData:
+            If more than one backend is defined on the scenario.
+        """
+
+        def get_backends() -> Sequence[str]:
+            """
+            :return:
+                Keys to all the backends that are not set to 'None' on the
+                scenario.
+            """
+            result = []
+
+            # Iterate over all known backends
+            for key in self.keys.manila.backends:
+                # Is the backend present on the file?
+                if key not in self._resources:
+                    continue
+
+                # Is it set to true then?
+                if self._resources[key] == self.values.resources.none:
+                    continue
+
+                result.append(key)
+
+            return result
+
+        mapping = self.mappings.manila_backends
+        default = self.defaults.manila_backend
+
+        backends = get_backends()
+
+        if len(backends) == 0:
+            # No backends are defined on the file
+            return default
+
+        if len(backends) != 1:
+            raise IllegibleData(
+                'More than one Manila backend available. '
+                'Cannot determine which one to pick.'
+            )
+
+        backend = backends[0]
+
+        return mapping[backend]
 
     def get_neutron_backend(self) -> str:
         """
