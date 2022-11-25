@@ -163,10 +163,17 @@ class VariantDeployment:
 
     def get_glance_backend(self) -> Optional[str]:
         """
-        :return: Name of the backend that support the Glance component.
+        :return: Name of the backend that supports the Glance component.
             'None' if it is not defined.
         """
         return self._summary.components.glance.backend
+
+    def get_manila_backend(self) -> Optional[str]:
+        """
+        :return: Name of the backend that supports the Manila component.
+            'None' if it is not defined.
+        """
+        return self._summary.components.manila.backend
 
 
 class VariantDeploymentFactory:
