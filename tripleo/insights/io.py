@@ -83,6 +83,13 @@ class DeploymentSummary:
             """Name of the backend supporting glance."""
 
         @dataclass
+        class Manila:
+            """Information on the Manila component.
+            """
+            backend: Optional[str] = None
+            """Name of the backend supporting manila."""
+
+        @dataclass
         class Neutron:
             """Information on the Neutron component.
             """
@@ -103,6 +110,10 @@ class DeploymentSummary:
             default_factory=lambda *_: DeploymentSummary.Components.Glance()
         )
         """Section for the Glance component."""
+        manila: Manila = field(
+            default_factory=lambda *_: DeploymentSummary.Components.Manila()
+        )
+        """Section for the Manila component."""
         neutron: Neutron = field(
             default_factory=lambda *_: DeploymentSummary.Components.Neutron()
         )
