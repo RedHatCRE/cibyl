@@ -25,5 +25,3 @@ jobs:
           pip install tox
       - name: "Run tox"
         run: tox
-      - name: "Run e2e tests"
-        run: tox -e e2e
