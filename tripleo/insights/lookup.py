@@ -107,7 +107,7 @@ class ScenarioFactory:
         if not scenario:
             raise ValueError(
                 'Featureset has no scenario. '
-                'One is required for the interpreter to be build.'
+                'One is required for the interpreter to be built.'
             )
 
         return ScenarioInterpreter(
