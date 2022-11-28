@@ -36,7 +36,6 @@ repos:
         types: [python]
         require_serial: true
         args: [
-          "-j 4",
           "--reports=n", # Simple report -> Just the problems
           "--fail-under=9",
           "--output=pylint.report.txt", # Does not get printed on console anymore
