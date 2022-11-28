@@ -1,5 +1,5 @@
 ---
-name: "Cibyl CI"
+name: "Cibyl CI - Check"
 on:
   push:
     branches:
@@ -7,16 +7,16 @@ on:
   pull_request:
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: ['3.6', '3.9']
     steps:
       - name: "Checkout repo"
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
       - name: "Setup Python"
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: "Install dependencies"
@@ -24,4 +24,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install tox
       - name: "Run tox"
-        run: tox
+        run: PYTHONWARNINGS="ignore" TOX_PARALLEL_NO_SPINNER=1 tox -p
