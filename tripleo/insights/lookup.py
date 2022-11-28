@@ -283,6 +283,7 @@ class DeploymentLookUp:
 
             result.components.cinder.backend = scenario.get_cinder_backend()
             result.components.glance.backend = scenario.get_glance_backend()
+            result.components.manila.backend = scenario.get_manila_backend()
             result.components.neutron.backend = scenario.get_neutron_backend()
             result.components.neutron.ml2_driver = scenario.get_ml2_driver()
 
