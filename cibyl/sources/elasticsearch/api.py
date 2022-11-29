@@ -104,7 +104,7 @@ class ElasticSearch(ServerSource):
             self.es_client.disconnect()
 
     @speed_index({'base': 1})
-    def get_jobs(self: object, **kwargs: Argument) -> AttributeDictValue:
+    def get_jobs(self, **kwargs: Argument) -> AttributeDictValue:
         """Get jobs from elasticsearch
 
             :returns: Job objects queried from elasticsearch
@@ -121,7 +121,7 @@ class ElasticSearch(ServerSource):
 
         hits = self.__query_get_hits(
             query=query_body,
-            index='logstash_jenkins_jobs'
+            index='logstash_jenkins_jobs_cibyl'
         )
 
         # make the hits list a flat list of dicts with the job information for
