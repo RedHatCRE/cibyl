@@ -21,11 +21,12 @@ from cibyl.models.ci.base.job import Job
 from cibyl.models.ci.zuul.project import Project
 from cibyl.models.ci.zuul.tenant import Tenant
 from kernel.tools.dicts import (chunk_dictionary_into_lists, intersect_models,
-                                nsubset, subset)
+                                merge, nsubset, subset)
 
 
 class TestSubset(TestCase):
     """Test subset function of utils.dicts module."""
+
     def test_subset_is_generated(self):
         """Checks that this is capable of creating a dictionary from another.
         """
@@ -66,6 +67,92 @@ class TestNSubset(TestCase):
         )
 
 
+class TestMerge(TestCase):
+    """Tests for :func:'merge'.
+    """
+
+    def test_simple_dicts(self):
+        """Checks that it can merge two dictionaries without sublevels.
+        """
+        dict1 = {
+            'A': 1
+        }
+
+        dict2 = {
+            'B': 2
+        }
+
+        result = merge(dict1, dict2)
+
+        self.assertEqual(
+            {
+                'A': 1,
+                'B': 2
+            },
+            result
+        )
+
+    def test_complex_dicts(self):
+        """Checks that it is able to merge dictionaries with sublevel.
+        """
+        dict1 = {
+            'A': {
+                'a': 1
+            }
+        }
+
+        dict2 = {
+            'B': 2
+        }
+
+        result = merge(dict1, dict2)
+
+        self.assertEqual(
+            {
+                'A': {
+                    'a': 1
+                },
+                'B': 2
+            },
+            result
+        )
+
+    def test_later_overwrites_former(self):
+        """Checks that if the two dictionaries have the same key, the second
+        overwrites the first.
+        """
+        dict1 = {
+            'A': {
+                'a': 1
+            },
+            'B': 1,
+            'C': 1
+        }
+
+        dict2 = {
+            'A': {
+                'a': 2
+            }
+        }
+
+        dict3 = {
+            'B': 2
+        }
+
+        result = merge(dict1, dict2, dict3)
+
+        self.assertEqual(
+            {
+                'A': {
+                    'a': 2
+                },
+                'B': 2,
+                'C': 1
+            },
+            result
+        )
+
+
 class TestChunkDictionaryResult(TestCase):
     def test_chunk_dictionary_result(self):
         """Checks that this is able to create a list with sub lists
@@ -90,6 +177,7 @@ class TestChunkDictionaryResult(TestCase):
 
 class TestIntersectModels(TestCase):
     """Test intersect_models function of utils.dicts module."""
+
     def test_intersect_jobs(self):
         """Test that intersect_models filters correctly the models."""
         jobs1 = {"job1": Job("job1", url="url"), "jobs2": Job("job2")}
