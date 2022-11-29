@@ -143,6 +143,7 @@ class FeatureSetInterpreter(FileInterpreter):
         scenario: str = 'composable_scenario'
         """Indicates the scenario of this deployment."""
         overrides: str = 'featureset_override'
+        """Indicates the section where featureset overrides are defined."""
         environments: str = 'standalone_environment_files'
         """Indicates the environments that create the deployment's scenario."""
         tls_everywhere: str = 'enable_tls_everywhere'
@@ -150,11 +151,12 @@ class FeatureSetInterpreter(FileInterpreter):
 
     @dataclass
     class Tools:
-        """Collection of tools used by this class to perform its task."""
+        """Collection of tools used by this class to perform its task.
+        """
         path_creator: THTPathCreator = field(
             default_factory=lambda *_: THTPathCreator()
         )
-        """Used to generate path to the scenario file."""
+        """Used to generate the path to the scenario file."""
 
     def __init__(
         self,
@@ -218,17 +220,29 @@ class FeatureSetInterpreter(FileInterpreter):
         return False
 
     def get_environments(self) -> Iterable[str]:
+        """
+        :return:
+            Paths relative to the repository's root leading to the environment
+            files that define the scenario for this featureset. Ordered top
+            to bottom following their order of apparition on the featureset's
+            definition.
+        """
+
         def fetch_scenario() -> None:
+            """Adds the environment file defined at the
+            'composable_scenario' key to the result.
+            """
             scenario = self._get_scenario()
 
             if not scenario:
                 return
 
-            result.append(
-                self.tools.path_creator.create_scenario_path(scenario)
-            )
+            result.append(scenario)
 
         def fetch_environments() -> None:
+            """Adds the environment files defined under the featureset
+            overrides to the result.
+            """
             environments = self._get_environments()
 
             if not environments:
@@ -245,26 +259,44 @@ class FeatureSetInterpreter(FileInterpreter):
 
     def _get_scenario(self) -> Optional[str]:
         """
-        :return: Name of the scenario file that complements this featureset.
+        :return:
+            Path, relative to the repository's root, leading to the scenario
+            file explicitly defined for this featureset.
             'None' if it is not defined.
         """
         key = self.keys.scenario
 
+        # Prefer overrides over default data
         for provider in (self.overrides, self.data):
             if key in provider:
-                return provider[key]
+                return self.tools.path_creator.create_scenario_path(
+                    file=provider[key]
+                )
 
         return None
 
     def _get_environments(self) -> Iterable[str]:
+        """
+        :return:
+            Paths, relative to the repository's root, to the environment files
+            that define the featureset's scenario in aggregation. Ordered
+            from top to bottom in order of appearance.
+        """
+
         def providers() -> Iterable[YAML]:
+            """
+            :return: Sets of data where the environments may be defined.
+            """
             result = []
 
+            # Try to add the featureset overrides dictionary
+            #   -> Prefer overrides to defaults
             overrides = self.overrides.get(self.keys.overrides)
 
             if overrides:
                 result.append(overrides)
 
+            # Add the featureset defaults
             result.append(self.data)
 
             return result
@@ -272,9 +304,11 @@ class FeatureSetInterpreter(FileInterpreter):
         for provider in providers():
             value = provider.get(self.keys.environments)
 
+            # Check if environments are defined on this provider
             if not value:
                 continue
 
+            # First provider to have the data is used
             return value
 
         return []
