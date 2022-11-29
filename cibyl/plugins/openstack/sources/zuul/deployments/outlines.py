@@ -40,13 +40,14 @@ class OverridesCollector:
     class Tools:
         """Tools the factory will use to do its task.
         """
+        fs_overrides_search: FeatureSetOverridesSearch = field(
+            default_factory=lambda *_: FeatureSetOverridesSearch()
+        )
+        """Checks whether there are overrides to the featureset."""
         infra_type_search: InfraTypeSearch = field(
             default_factory=lambda *_: InfraTypeSearch()
         )
         """Checks whether there is an override for 'infra_type'."""
-        fs_overrides_search: FeatureSetOverridesSearch = field(
-            default_factory=lambda *_: FeatureSetOverridesSearch()
-        )
 
     def __init__(
         self,
@@ -104,6 +105,12 @@ class OverridesCollector:
         return result
 
     def _handle_fs_overrides(self, variant: Variant, overrides: dict) -> None:
+        """Updates 'overrides' with any overrides defined for the featureset
+        the variant may have. Leaves 'override' as is if there are none.
+
+        :param variant: The variant to fetch data from.
+        :param overrides: The dictionary to modify.
+        """
         fs_overrides = self.tools.fs_overrides_search.search(variant)
 
         if not fs_overrides:
@@ -116,7 +123,7 @@ class OverridesCollector:
         variant may have. Leaves 'overrides' as is if there is none.
 
         :param variant: The variant to fetch data from.
-        :param overrides: The dictionary containing the overrides.
+        :param overrides: The dictionary to modify.
         """
         infra_type = self.tools.infra_type_search.search(variant)
 
