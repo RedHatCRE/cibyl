@@ -142,6 +142,8 @@ class FeatureSetInterpreter(FileInterpreter):
         """Indicates IP version of deployment."""
         scenario: str = 'composable_scenario'
         """Indicates the scenario of this deployment."""
+        environments: str = 'standalone_environment_files'
+        """Indicates the environments that create the deployment's scenario."""
         tls_everywhere: str = 'enable_tls_everywhere'
         """Indicates whether TLS everywhere is enabled."""
 
@@ -226,7 +228,12 @@ class FeatureSetInterpreter(FileInterpreter):
             )
 
         def fetch_environments() -> None:
-            pass
+            environments = self._get_environments()
+
+            if not environments:
+                return
+
+            result.extend(environments)
 
         result = []
 
@@ -247,6 +254,17 @@ class FeatureSetInterpreter(FileInterpreter):
                 return provider[key]
 
         return None
+
+    def _get_environments(self) -> Iterable[str]:
+        key = self.keys.environments
+
+        for provider in (self.overrides, self.data):
+            if key not in provider:
+                continue
+
+            return provider[key]
+
+        return []
 
 
 class NodesInterpreter(FileInterpreter):
