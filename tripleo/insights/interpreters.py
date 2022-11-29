@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import ABC
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, Iterable, NamedTuple, Optional, Sequence
 
@@ -24,6 +25,7 @@ from tripleo import __path__ as tripleo_package_path
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
 from tripleo.insights.topology import Node
+from tripleo.insights.tripleo import THTPathCreator
 
 
 class FileInterpreter(ABC):
@@ -143,14 +145,34 @@ class FeatureSetInterpreter(FileInterpreter):
         tls_everywhere: str = 'enable_tls_everywhere'
         """Indicates whether TLS everywhere is enabled."""
 
+    @dataclass
+    class Tools:
+        """Collection of tools used by this class to perform its task."""
+        path_creator: THTPathCreator = field(
+            default_factory=lambda *_: THTPathCreator()
+        )
+        """Used to generate path to the scenario file."""
+
     def __init__(
         self,
         data: YAML,
         schema: File = File('_data/schemas/featureset.json'),
         overrides: Optional[Dict] = None,
-        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
+        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory(),
+        tools: Optional[Tools] = None
     ):
+        """See parent for more information.
+
+        :param tools:
+            Collection of tools used by this class to perform its task.
+            'None' to let it build its own.
+        """
         super().__init__(data, schema, overrides, validator_factory)
+
+        if tools is None:
+            tools = FeatureSetInterpreter.Tools()
+
+        self._tools = tools
 
     @property
     def keys(self) -> 'FeatureSetInterpreter.Keys':
@@ -158,6 +180,13 @@ class FeatureSetInterpreter(FileInterpreter):
         :return: Knowledge that this has about the featureset file's contents.
         """
         return self.Keys()
+
+    @property
+    def tools(self) -> Tools:
+        """
+        :return: Tools used by this to perform its task.
+        """
+        return self._tools
 
     def is_ipv6(self) -> bool:
         """
@@ -185,7 +214,28 @@ class FeatureSetInterpreter(FileInterpreter):
 
         return False
 
-    def get_scenario(self) -> Optional[str]:
+    def get_environments(self) -> Iterable[str]:
+        def fetch_scenario() -> None:
+            scenario = self._get_scenario()
+
+            if not scenario:
+                return
+
+            result.append(
+                self.tools.path_creator.create_scenario_path(scenario)
+            )
+
+        def fetch_environments() -> None:
+            pass
+
+        result = []
+
+        fetch_scenario()
+        fetch_environments()
+
+        return result
+
+    def _get_scenario(self) -> Optional[str]:
         """
         :return: Name of the scenario file that complements this featureset.
             'None' if it is not defined.

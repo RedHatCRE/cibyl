@@ -27,7 +27,7 @@ from tripleo.insights.interpreters import (EnvironmentInterpreter,
                                            ReleaseInterpreter,
                                            ScenarioInterpreter)
 from tripleo.insights.io import DeploymentOutline, DeploymentSummary
-from tripleo.insights.tripleo import THTBranchCreator, THTPathCreator
+from tripleo.insights.tripleo import THTBranchCreator
 from tripleo.insights.validation import OutlineValidator
 
 LOG = logging.getLogger(__name__)
@@ -54,8 +54,6 @@ class ScenarioFactory:
         """
         branch_creator = THTBranchCreator()
         """Used to generate the branch name for a certain release."""
-        path_creator = THTPathCreator()
-        """Used to generate path to the scenario file."""
 
     def __init__(
         self,
@@ -95,30 +93,54 @@ class ScenarioFactory:
         :param outline: Outline shared by the interpreters.
         :param featureset: Gets data from the featureset file.
         :param release: Gets data from the release file.
-        :return: An interpreter for the scenario indicated by the featureset.
-        :raises ValueError: If the featureset points to no scenario file.
+        :return: An interpreter for the environment defined by the featureset.
+        :raises ValueError: If the featureset points to no environment file.
         """
-        branch_creator = self.tools.branch_creator
-        path_creator = self.tools.path_creator
+        environment = self._get_env_from(outline, featureset, release)
 
-        release = release.get_release_name()
-        scenario = featureset.get_scenario()
-
-        if not scenario:
+        if environment is None:
             raise ValueError(
-                'Featureset has no scenario. '
-                'One is required for the interpreter to be built.'
+                'Featureset has no environments. '
+                'At least one is required for the interpreter to be built.'
             )
 
         return ScenarioInterpreter(
-            self.cache.get(
+            data=environment,
+            overrides=outline.overrides
+        )
+
+    def _get_env_from(
+        self,
+        outline: DeploymentOutline,
+        featureset: FeatureSetInterpreter,
+        release: ReleaseInterpreter
+    ) -> Optional[YAML]:
+        envs = featureset.get_environments()
+
+        if not envs:
+            return None
+
+        result = {}
+
+        for env in envs:
+            yaml = self.cache.get(
                 Resource(
                     repo=outline.heat,
-                    file=path_creator.create_scenario_path(scenario),
-                    branch=branch_creator.create_release_branch(release)
+                    file=env,
+                    branch=self._get_branch_from(release)
                 )
-            ),
-            overrides=outline.overrides
+            )
+
+            result = {**result, **yaml}
+
+        return result
+
+    def _get_branch_from(
+        self,
+        release: ReleaseInterpreter
+    ) -> str:
+        return self.tools.branch_creator.create_release_branch(
+            release.get_release_name()
         )
 
 
@@ -276,7 +298,7 @@ class DeploymentLookUp:
             result.components.neutron.tls_everywhere = 'On'
 
         # Take care of the scenario file too
-        if featureset.get_scenario():
+        if featureset.get_environments():
             scenario = self.scenarios.from_interpreters(
                 outline, featureset, release
             )
