@@ -223,39 +223,23 @@ class FeatureSetInterpreter(FileInterpreter):
         """
         :return:
             Paths relative to the repository's root leading to the environment
-            files that define the scenario for this featureset. Ordered top
-            to bottom following their order of apparition on the featureset's
-            definition.
+            files that define the scenario for this featureset. Ordered
+            following their order of appearance.
         """
+        # Check for overrides first
+        environments = self._get_environments()
 
-        def fetch_scenario() -> None:
-            """Adds the environment file defined at the
-            'composable_scenario' key to the result.
-            """
-            scenario = self._get_scenario()
+        if environments:
+            return environments
 
-            if not scenario:
-                return
+        # If not, see if the scenario is defined explicitly by the featureset
+        scenario = self._get_scenario()
 
-            result.append(scenario)
+        if scenario:
+            return [scenario]
 
-        def fetch_environments() -> None:
-            """Adds the environment files defined under the featureset
-            overrides to the result.
-            """
-            environments = self._get_environments()
-
-            if not environments:
-                return
-
-            result.extend(environments)
-
-        result = []
-
-        fetch_scenario()
-        fetch_environments()
-
-        return result
+        # The featureset has no environment data
+        return []
 
     def _get_scenario(self) -> Optional[str]:
         """
@@ -280,7 +264,7 @@ class FeatureSetInterpreter(FileInterpreter):
         :return:
             Paths, relative to the repository's root, to the environment files
             that define the featureset's scenario in aggregation. Ordered
-            from top to bottom in order of appearance.
+            following their order of appearance.
         """
 
         def providers() -> Iterable[YAML]:
