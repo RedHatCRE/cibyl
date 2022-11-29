@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from typing import NamedTuple, Optional
 
 from kernel.tools.cache import Cache, RTCache
+from kernel.tools.dicts import merge
 from kernel.tools.urls import URL
 from kernel.tools.yaml import YAML
 from tripleo.insights.git import GitDownload
@@ -131,7 +132,7 @@ class ScenarioFactory:
                 )
             )
 
-            result = {**result, **yaml}
+            result = merge(result, yaml)
 
         return result
 

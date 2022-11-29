@@ -142,6 +142,7 @@ class FeatureSetInterpreter(FileInterpreter):
         """Indicates IP version of deployment."""
         scenario: str = 'composable_scenario'
         """Indicates the scenario of this deployment."""
+        overrides: str = 'featureset_override'
         environments: str = 'standalone_environment_files'
         """Indicates the environments that create the deployment's scenario."""
         tls_everywhere: str = 'enable_tls_everywhere'
@@ -256,13 +257,25 @@ class FeatureSetInterpreter(FileInterpreter):
         return None
 
     def _get_environments(self) -> Iterable[str]:
-        key = self.keys.environments
+        def providers() -> Iterable[YAML]:
+            result = []
 
-        for provider in (self.overrides, self.data):
-            if key not in provider:
+            overrides = self.overrides.get(self.keys.overrides)
+
+            if overrides:
+                result.append(overrides)
+
+            result.append(self.data)
+
+            return result
+
+        for provider in providers():
+            value = provider.get(self.keys.environments)
+
+            if not value:
                 continue
 
-            return provider[key]
+            return value
 
         return []
 

@@ -66,6 +66,20 @@ def nsubset(dictionary: dict, keys: list) -> dict:
     return result
 
 
+def merge(source: dict, *targets: dict) -> dict:
+    result = {}
+
+    for addend in (source, *targets):
+        for key, value in addend.items():
+            if isinstance(value, dict):
+                node = result.setdefault(key, {})
+                value = merge(value, node)
+
+            result[key] = value
+
+    return result
+
+
 def chunk_dictionary_into_lists(dictionary: dict, size: int = 300) -> list:
     """It returns a list of sub lists. Each one with the size indicated
     in the 'size' parameter where every element is the key of the dictionary
@@ -74,9 +88,9 @@ def chunk_dictionary_into_lists(dictionary: dict, size: int = 300) -> list:
     """
     chunked_list = []
     for chunk_max_value in range(
-            0,
-            len(list(dictionary.keys())),
-            size
+        0,
+        len(list(dictionary.keys())),
+        size
     ):
         chunked_list.append(
             list(

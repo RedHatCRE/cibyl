@@ -13,15 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Tuple
 
 from cibyl.plugins.openstack.sources.zuul.tripleo import (
     QuickStartFileCreator, QuickStartPathCreator)
-from cibyl.plugins.openstack.sources.zuul.variants import (FeatureSetSearch,
-                                                           InfraTypeSearch,
-                                                           NodesSearch,
-                                                           ReleaseNameSearch)
+from cibyl.plugins.openstack.sources.zuul.variants import (
+    FeatureSetOverridesSearch, FeatureSetSearch, InfraTypeSearch, NodesSearch,
+    ReleaseNameSearch)
 from cibyl.sources.zuul.transactions import VariantResponse as Variant
 from tripleo.insights import DeploymentOutline
 
@@ -41,8 +40,13 @@ class OverridesCollector:
     class Tools:
         """Tools the factory will use to do its task.
         """
-        infra_type_search = InfraTypeSearch()
+        infra_type_search: InfraTypeSearch = field(
+            default_factory=lambda *_: InfraTypeSearch()
+        )
         """Checks whether there is an override for 'infra_type'."""
+        fs_overrides_search: FeatureSetOverridesSearch = field(
+            default_factory=lambda *_: FeatureSetOverridesSearch()
+        )
 
     def __init__(
         self,
@@ -84,6 +88,7 @@ class OverridesCollector:
         """
         result = self._default_overrides()
 
+        self._handle_fs_overrides(variant, result)
         self._handle_infra_type(variant, result)
 
         return result
@@ -97,6 +102,14 @@ class OverridesCollector:
         self._insert_tuple(result, self.defaults.infra_type)
 
         return result
+
+    def _handle_fs_overrides(self, variant: Variant, overrides: dict) -> None:
+        fs_overrides = self.tools.fs_overrides_search.search(variant)
+
+        if not fs_overrides:
+            return
+
+        self._insert_tuple(overrides, fs_overrides)
 
     def _handle_infra_type(self, variant: Variant, overrides: dict) -> None:
         """Updates 'overrides' with any custom 'infra_type' override the
