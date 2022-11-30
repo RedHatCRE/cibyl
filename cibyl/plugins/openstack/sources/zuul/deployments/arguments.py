@@ -72,6 +72,14 @@ class ArgumentReview:
         """
         return any(arg in kwargs for arg in ('spec', 'glance_backend'))
 
+    def is_manila_backend_requested(self, **kwargs: Any) -> bool:
+        """
+        :param kwargs: Arguments coming from the CLI.
+        :return: True if the user requested the manila backend to be part
+            of the deployment, False if not.
+        """
+        return any(arg in kwargs for arg in ('spec', 'manila_backend'))
+
     def is_network_backend_requested(self, **kwargs: Any) -> bool:
         """
         :param kwargs: Arguments coming from the CLI.

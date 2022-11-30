@@ -99,7 +99,8 @@ class DeploymentFiltering:
 
         storage_args = (
             'cinder_backend',
-            'glance_backend'
+            'glance_backend',
+            'manila_backend'
         )
 
         for arg in storage_args:

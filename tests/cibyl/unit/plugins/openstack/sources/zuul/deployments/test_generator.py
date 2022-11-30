@@ -125,6 +125,42 @@ class TestDeploymentGenerator(TestCase):
         self.arguments.is_cinder_backend_requested \
             .assert_called_once_with(**kwargs)
 
+    def test_no_glance_backend(self):
+        """Checks that the glance backend is ignored if it is not requested.
+        """
+        kwargs = {'key': 'val'}
+        variant = Mock()
+
+        self.arguments.is_glance_backend_requested = Mock()
+        self.arguments.is_glance_backend_requested.return_value = False
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant, **kwargs)
+
+        self.assertEqual(None, result.storage.value.glance_backend.value)
+
+        self.arguments.is_glance_backend_requested \
+            .assert_called_once_with(**kwargs)
+
+    def test_no_manila_backend(self):
+        """Checks that the manila backend is ignored if it is not requested.
+        """
+        kwargs = {'key': 'val'}
+        variant = Mock()
+
+        self.arguments.is_manila_backend_requested = Mock()
+        self.arguments.is_manila_backend_requested.return_value = False
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant, **kwargs)
+
+        self.assertEqual(None, result.storage.value.manila_backend.value)
+
+        self.arguments.is_manila_backend_requested \
+            .assert_called_once_with(**kwargs)
+
     def test_no_ip_version(self):
         """Checks that the ip version is ignored if it is not requested.
         """
@@ -259,6 +295,50 @@ class TestDeploymentGenerator(TestCase):
 
         self.summaries.create_for.assert_called_once_with(variant)
         self.summary.get_cinder_backend.assert_called_once()
+
+    def test_glance_backend(self):
+        """Checks that the glance backend is returned if requested.
+        """
+        value = 'glance_backend'
+
+        variant = Mock()
+
+        self.arguments.is_glance_backend_requested = Mock()
+        self.arguments.is_glance_backend_requested.return_value = True
+
+        self.summary.get_glance_backend = Mock()
+        self.summary.get_glance_backend.return_value = value
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant)
+
+        self.assertEqual(value, result.storage.value.glance_backend.value)
+
+        self.summaries.create_for.assert_called_once_with(variant)
+        self.summary.get_glance_backend.assert_called_once()
+
+    def test_manila_backend(self):
+        """Checks that the manila backend is returned if requested.
+        """
+        value = 'manila_backend'
+
+        variant = Mock()
+
+        self.arguments.is_manila_backend_requested = Mock()
+        self.arguments.is_manila_backend_requested.return_value = True
+
+        self.summary.get_manila_backend = Mock()
+        self.summary.get_manila_backend.return_value = value
+
+        generator = DeploymentGenerator(tools=self.tools)
+
+        result = generator.generate_deployment_for(variant)
+
+        self.assertEqual(value, result.storage.value.manila_backend.value)
+
+        self.summaries.create_for.assert_called_once_with(variant)
+        self.summary.get_manila_backend.assert_called_once()
 
     def test_ip_version(self):
         """Checks that the ip version is returned if requested.

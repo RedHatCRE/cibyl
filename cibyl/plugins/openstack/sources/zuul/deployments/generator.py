@@ -79,7 +79,8 @@ class DeploymentGenerator:
             ),
             storage=Storage(
                 cinder_backend=self._get_cinder_backend(summary, **kwargs),
-                glance_backend=self._get_glance_backend(summary, **kwargs)
+                glance_backend=self._get_glance_backend(summary, **kwargs),
+                manila_backend=self._get_manila_backend(summary, **kwargs)
             )
         )
 
@@ -212,3 +213,15 @@ class DeploymentGenerator:
             return None
 
         return summary.get_glance_backend()
+
+    def _get_manila_backend(
+        self,
+        summary: VariantDeployment,
+        **kwargs: Any
+    ) -> Optional[str]:
+        arguments = self.tools.argument_review
+
+        if not arguments.is_manila_backend_requested(**kwargs):
+            return None
+
+        return summary.get_manila_backend()
