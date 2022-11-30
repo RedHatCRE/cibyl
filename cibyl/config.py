@@ -157,10 +157,8 @@ class AppConfig(Config):
             validators = Draft7ValidatorFactory()
             validator = validators.from_file(self._schema)
 
-            try:
-                validator.validate(self.data)
-            except ValidationError as ex:
-                raise SchemaError(error=ex.message)
+            if not validator.is_valid(self.data):
+                raise SchemaError(error="Invalid configuration file.")
 
 
 class ConfigFactory:
