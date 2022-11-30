@@ -109,3 +109,8 @@ class GitBackend(ZuulDBackend[GitSpec]):
         """Constructor.
         """
         super().__init__(get=GitBackend.Get())
+
+    @property
+    @overrides
+    def get(self) -> Get:
+        return super().get()
