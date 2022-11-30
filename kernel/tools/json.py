@@ -16,7 +16,7 @@
 import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from jsonschema.validators import Draft7Validator
 from overrides import overrides
@@ -25,6 +25,10 @@ from kernel.tools.cache import CACache, Cache
 from kernel.tools.fs import File
 from kernel.tools.net import download_into_memory
 from kernel.tools.urls import URL
+
+JSONObj = Dict[str, Any]
+JSONArray = List[JSONObj]
+JSON = Union[JSONArray, JSONObj]
 
 JSONValidator = Union[Draft7Validator]
 """Possible validators returned by the factory."""
