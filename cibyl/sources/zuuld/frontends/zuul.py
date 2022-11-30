@@ -29,6 +29,7 @@ from cibyl.sources.zuuld.errors import InvalidURL, UnsupportedError
 from cibyl.sources.zuuld.models.job import Job
 from cibyl.sources.zuuld.specs.git import GitSpec
 from kernel.tools.cache import Cache, RTCache
+from kernel.tools.json import NullValidatorFactory
 from kernel.tools.urls import URL
 
 LOG = logging.getLogger(__name__)
@@ -301,43 +302,47 @@ class GitFrontendFactory(ZuulAPIFactory):
                 "Missing key: 'repos' from keyword arguments."
             )
 
-        def specs() -> Iterable[GitSpec]:
-            """
-            :return: Specs read from the keyword arguments.
-            """
-            result = []
-
-            for repo in kwargs['repos']:
-                url = repo['url']
-                path = 'zuul.d/'
-
-                try:
-                    result.append(
-                        GitSpec(
-                            remote=URL(url),
-                            directory=Path(path)
-                        )
-                    )
-                except InvalidURL:
-                    LOG.debug(
-                        "Ignoring url: '%s' during git backend creation as it "
-                        "is not a valid git url.",
-                        url
-                    )
-                    continue
-
-            return result
-
-        def backend() -> ZuulDBackend[GitSpec]:
-            """
-            :return: The backend that supports the session.
-            """
-            return GitBackend()
-
         return GitFrontendFactory(
-            specs=specs(),
-            backend=backend()
+            specs=GitFrontendFactory._get_specs_from(**kwargs),
+            backend=GitFrontendFactory._get_backend_from(**kwargs)
         )
+
+    @staticmethod
+    def _get_specs_from(**kwargs) -> Iterable[GitSpec]:
+        result = []
+
+        for repo in kwargs['repos']:
+            url = repo['url']
+            path = 'zuul.d/'
+
+            try:
+                result.append(
+                    GitSpec(
+                        remote=URL(url),
+                        directory=Path(path)
+                    )
+                )
+            except InvalidURL:
+                LOG.debug(
+                    "Ignoring url: '%s' during git backend creation as it "
+                    "is not a valid git url.",
+                    url
+                )
+                continue
+
+        return result
+
+    @staticmethod
+    def _get_backend_from(**kwargs) -> ZuulDBackend[GitSpec]:
+        backend = GitBackend()
+
+        if kwargs.get('unsafe', False):
+            get = backend.get
+            yamls = get.tools.files
+            zuulds = yamls.tools.files
+            zuulds.tools.validators = NullValidatorFactory()
+
+        return GitBackend()
 
     @property
     def specs(self) -> Iterable[GitSpec]:
