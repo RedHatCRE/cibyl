@@ -14,7 +14,7 @@
 #    under the License.
 """
 from unittest import TestCase
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
 
 from cibyl.plugins.openstack.sources.zuul.deployments.outlines import (
     FilesFetcher, OutlineCreator, OverridesCollector)

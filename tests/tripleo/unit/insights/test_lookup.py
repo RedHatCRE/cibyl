@@ -23,14 +23,15 @@ class TestScenarioFactory(TestCase):
     """Tests for :class:`ScenarioFactory`.
     """
 
-    def test_error_if_no_scenario(self):
-        """Checks that an error is thrown if the featureset has no scenario.
+    def test_error_if_no_environments(self):
+        """Checks that an error is thrown if the featureset has no
+        environments.
         """
         cache = Mock()
 
         featureset = Mock()
-        featureset.get_scenario = Mock()
-        featureset.get_scenario.return_value = None
+        featureset.get_environments = Mock()
+        featureset.get_environments.return_value = []
 
         factory = ScenarioFactory(cache=cache)
 

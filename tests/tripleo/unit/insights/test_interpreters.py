@@ -333,16 +333,16 @@ class TestFeatureSetInterpreter(TestCase):
 
         self.assertTrue(featureset.is_tls_everywhere_enabled())
 
-    def test_get_scenario(self):
-        """Checks that it is possible to get the scenario from the
+    def test_get_environments(self):
+        """Checks that it is possible to get the environmnet files from the
         featureset file.
         """
-        scenario = 'scenario001'
-
         keys = FeatureSetInterpreter.Keys()
 
+        expected = ['A', 'B', 'C']
+
         data = {
-            keys.scenario: scenario
+            keys.environments: expected
         }
 
         schema = Mock()
@@ -361,18 +361,20 @@ class TestFeatureSetInterpreter(TestCase):
             validator_factory=factory
         )
 
-        self.assertEqual(scenario, featureset.get_scenario())
+        self.assertEqual(expected, featureset.get_environments())
 
-    def test_overrides_get_scenario(self):
-        """Checks that it is possible to override the scenario file.
+    def test_get_environments_override(self):
+        """Checks that it is possible to override the environment files.
         """
-        scenario = 'scenario001'
-
         keys = FeatureSetInterpreter.Keys()
+
+        expected = ['A', 'B', 'C']
 
         data = {}
         overrides = {
-            keys.scenario: scenario
+            keys.overrides: {
+                keys.environments: expected
+            }
         }
 
         schema = Mock()
@@ -392,7 +394,113 @@ class TestFeatureSetInterpreter(TestCase):
             validator_factory=factory
         )
 
-        self.assertEqual(scenario, featureset.get_scenario())
+        self.assertEqual(expected, featureset.get_environments())
+
+    def test_get_scenario(self):
+        """Checks that it is possible to get the scenario from the
+        featureset file.
+        """
+        scenario = 'scenario001'
+        expected = f'ci/environments/{scenario}'
+
+        keys = FeatureSetInterpreter.Keys()
+
+        data = {
+            keys.scenario: scenario
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        tools = Mock()
+        tools.path_creator = Mock()
+        tools.path_creator.create_scenario_path = Mock()
+        tools.path_creator.create_scenario_path.return_value = expected
+
+        featureset = FeatureSetInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory,
+            tools=tools
+        )
+
+        self.assertEqual([expected], featureset.get_environments())
+
+    def test_get_scenario_override(self):
+        """Checks that it is possible to override the scenario file.
+        """
+        scenario = 'scenario001'
+        expected = f'ci/environments/{scenario}'
+
+        keys = FeatureSetInterpreter.Keys()
+
+        data = {}
+        overrides = {
+            keys.scenario: scenario
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        tools = Mock()
+        tools.path_creator = Mock()
+        tools.path_creator.create_scenario_path = Mock()
+        tools.path_creator.create_scenario_path.return_value = expected
+
+        featureset = FeatureSetInterpreter(
+            data,
+            schema=schema,
+            overrides=overrides,
+            validator_factory=factory,
+            tools=tools
+        )
+
+        self.assertEqual([expected], featureset.get_environments())
+
+    def test_get_environments_return_order(self):
+        """Checks that environment files are preferred over the scenario one.
+        """
+        keys = FeatureSetInterpreter.Keys()
+
+        envs = ['A', 'B', 'C']
+        scenario = 'D'
+
+        data = {
+            keys.environments: envs,
+            keys.scenario: scenario
+        }
+
+        schema = Mock()
+
+        validator = Mock()
+        validator.is_valid = Mock()
+        validator.is_valid.return_value = True
+
+        factory = Mock()
+        factory.from_file = Mock()
+        factory.from_file.return_value = validator
+
+        featureset = FeatureSetInterpreter(
+            data,
+            schema=schema,
+            validator_factory=factory
+        )
+
+        self.assertEqual(envs, featureset.get_environments())
 
 
 class TestNodesInterpreter(TestCase):
