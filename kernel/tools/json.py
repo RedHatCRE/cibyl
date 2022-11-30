@@ -18,7 +18,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
-from jsonschema.validators import Draft7Validator
+from jsonschema.exceptions import SchemaError as JSSchemaError
+from jsonschema.validators import Draft7Validator as JSDraft7Validator
 from overrides import overrides
 
 from kernel.tools.cache import CACache, Cache
@@ -29,9 +30,47 @@ from kernel.tools.urls import URL
 JSONObj = Dict[str, Any]
 JSONArray = List[JSONObj]
 JSON = Union[JSONArray, JSONObj]
+JSONSchema = JSON
 
-JSONValidator = Union[Draft7Validator]
-"""Possible validators returned by the factory."""
+
+class JSONError(Exception):
+    pass
+
+
+class SchemaError(JSONError):
+    pass
+
+
+class JSONValidator(ABC):
+    def __init__(self, schema: JSONSchema):
+        self._schema = schema
+
+    @property
+    def schema(self) -> JSONSchema:
+        return self._schema
+
+    @abstractmethod
+    def is_valid(self, data: JSON) -> bool:
+        raise NotImplementedError
+
+
+class Draft7Validator(JSONValidator):
+
+    def __init__(self, schema: JSONSchema):
+        super().__init__(schema)
+
+        self._check_schema(schema)
+        self._validator = JSDraft7Validator(schema)
+
+    def _check_schema(self, schema: JSONSchema):
+        try:
+            JSDraft7Validator.check_schema(schema)
+        except JSSchemaError as ex:
+            raise SchemaError("Not a valid Draft7 schema.") from ex
+
+    @overrides
+    def is_valid(self, data: JSON) -> bool:
+        return self._validator.is_valid(data)
 
 
 class JSONValidatorFactory(ABC):
@@ -130,8 +169,4 @@ class Draft7ValidatorFactory(JSONValidatorFactory):
 
     @overrides
     def from_buffer(self, buffer: Union[bytes, str]) -> Draft7Validator:
-        schema = json.loads(buffer)
-
-        Draft7Validator.check_schema(schema)
-
-        return Draft7Validator(schema)
+        return Draft7Validator(schema=json.loads(buffer))
