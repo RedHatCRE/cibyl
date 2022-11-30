@@ -267,3 +267,55 @@ class TestDeploymentFiltering(TestCase):
 
         self.assertTrue(filtering.is_valid_deployment(deployment1))
         self.assertFalse(filtering.is_valid_deployment(deployment2))
+
+    def test_applies_glance_backend_filter(self):
+        """Checks that the filter for glance backend is generated and
+        applied.
+        """
+        glance_backend1 = 'iscsi'
+        glance_backend2 = 'rbd'
+
+        glance_backend_arg = Mock()
+        glance_backend_arg.value = [glance_backend1]
+
+        kwargs = {
+            'glance_backend': glance_backend_arg
+        }
+
+        deployment1 = Mock()
+        deployment1.storage.value.glance_backend.value = glance_backend1
+
+        deployment2 = Mock()
+        deployment2.storage.value.glance_backend.value = glance_backend2
+
+        filtering = DeploymentFiltering()
+        filtering.add_filters_from(**kwargs)
+
+        self.assertTrue(filtering.is_valid_deployment(deployment1))
+        self.assertFalse(filtering.is_valid_deployment(deployment2))
+
+    def test_applies_manila_backend_filter(self):
+        """Checks that the filter for manila backend is generated and
+        applied.
+        """
+        manila_backend1 = 'iscsi'
+        manila_backend2 = 'rbd'
+
+        manila_backend_arg = Mock()
+        manila_backend_arg.value = [manila_backend1]
+
+        kwargs = {
+            'manila_backend': manila_backend_arg
+        }
+
+        deployment1 = Mock()
+        deployment1.storage.value.manila_backend.value = manila_backend1
+
+        deployment2 = Mock()
+        deployment2.storage.value.manila_backend.value = manila_backend2
+
+        filtering = DeploymentFiltering()
+        filtering.add_filters_from(**kwargs)
+
+        self.assertTrue(filtering.is_valid_deployment(deployment1))
+        self.assertFalse(filtering.is_valid_deployment(deployment2))

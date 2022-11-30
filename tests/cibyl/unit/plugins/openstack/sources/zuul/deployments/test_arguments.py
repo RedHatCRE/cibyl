@@ -83,6 +83,42 @@ class TestArgumentReview(TestCase):
             review.is_cinder_backend_requested(**{'spec': None})
         )
 
+    def test_is_glance_backend_requested(self):
+        """Checks the conditions required for the glance backend to be
+        requested.
+        """
+        review = ArgumentReview()
+
+        self.assertFalse(
+            review.is_glance_backend_requested(**{})
+        )
+
+        self.assertTrue(
+            review.is_glance_backend_requested(**{'glance_backend': None})
+        )
+
+        self.assertTrue(
+            review.is_glance_backend_requested(**{'spec': None})
+        )
+
+    def test_is_manila_backend_requested(self):
+        """Checks the conditions required for the manila backend to be
+        requested.
+        """
+        review = ArgumentReview()
+
+        self.assertFalse(
+            review.is_manila_backend_requested(**{})
+        )
+
+        self.assertTrue(
+            review.is_manila_backend_requested(**{'manila_backend': None})
+        )
+
+        self.assertTrue(
+            review.is_manila_backend_requested(**{'spec': None})
+        )
+
     def test_is_network_backend_requested(self):
         """Checks the conditions required for the network backend to be
         requested.
