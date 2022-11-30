@@ -19,7 +19,6 @@ from collections import UserDict
 from typing import Callable, Optional
 
 import rfc3987
-from jsonschema.exceptions import ValidationError
 
 import cibyl.exceptions.config as conf_exc
 from cibyl import __path__ as pwd
