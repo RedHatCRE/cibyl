@@ -54,6 +54,12 @@ class JSONValidator(ABC):
         raise NotImplementedError
 
 
+class NullValidator(JSONValidator):
+    @overrides
+    def is_valid(self, data: JSON) -> bool:
+        return True
+
+
 class Draft7Validator(JSONValidator):
 
     def __init__(self, schema: JSONSchema):
@@ -161,6 +167,12 @@ class JSONValidatorFactory(ABC):
         validator = self.from_buffer(download_into_memory(url))
         cache.put(url, validator)
         return validator
+
+
+class NullValidatorFactory(JSONValidatorFactory):
+    @overrides
+    def from_buffer(self, buffer: Union[bytes, str]) -> JSONValidator:
+        return NullValidator(schema=json.loads(buffer))
 
 
 class Draft7ValidatorFactory(JSONValidatorFactory):
