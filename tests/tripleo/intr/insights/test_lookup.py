@@ -17,7 +17,7 @@ from unittest import TestCase
 
 from kernel.tools.cache import CACache
 from kernel.tools.urls import URL
-from tripleo.insights import DeploymentLookUp, DeploymentOutline
+from tripleo.insights import DeploymentOutline
 from tripleo.insights.interpreters import (FeatureSetInterpreter,
                                            ReleaseInterpreter)
 from tripleo.insights.lookup import Resource, ScenarioFactory
