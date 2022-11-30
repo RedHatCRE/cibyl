@@ -27,6 +27,36 @@ class TestOverridesCollector(TestCase):
     """Tests for :class:`OverridesCollector`.
     """
 
+    def test_fs_overrides(self):
+        """Checks that overrides for the featureset are found.
+        """
+        fs_overrides_var = 'featureset_overrides_...'
+        fs_overrides_val = {'override1': 'val1'}
+
+        variant = Mock()
+
+        null = Mock()
+        null.search = Mock()
+        null.search.return_value = None
+
+        search = Mock()
+        search.search = Mock()
+        search.search.return_value = (fs_overrides_var, fs_overrides_val)
+
+        tools = Mock()
+        tools.fs_overrides_search = search
+        tools.infra_type_search = null
+
+        collector = OverridesCollector(
+            tools=tools
+        )
+
+        result = collector.collect_overrides_for(variant)
+
+        self.assertEqual(fs_overrides_val, result[fs_overrides_var])
+
+        search.search.assert_called_once_with(variant)
+
     def test_no_infra_type(self):
         """Checks that the default override for 'infra_type' is returned in
         case the variant does not have a custom one for it.
@@ -39,11 +69,16 @@ class TestOverridesCollector(TestCase):
 
         variant = Mock()
 
+        null = Mock()
+        null.search = Mock()
+        null.search.return_value = None
+
         search = Mock()
         search.search = Mock()
         search.search.return_value = None
 
         tools = Mock()
+        tools.fs_overrides_search = null
         tools.infra_type_search = search
 
         collector = OverridesCollector(
@@ -68,11 +103,16 @@ class TestOverridesCollector(TestCase):
 
         variant = Mock()
 
+        null = Mock()
+        null.search = Mock()
+        null.search.return_value = None
+
         search = Mock()
         search.search = Mock()
         search.search.return_value = (infra_type_var, infra_type_val)
 
         tools = Mock()
+        tools.fs_overrides_search = null
         tools.infra_type_search = search
 
         collector = OverridesCollector(

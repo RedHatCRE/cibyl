@@ -14,6 +14,7 @@
 #    under the License.
 """
 from abc import ABC
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, Iterable, NamedTuple, Optional, Sequence
 
@@ -24,6 +25,7 @@ from tripleo import __path__ as tripleo_package_path
 from tripleo.insights.exceptions import IllegibleData
 from tripleo.insights.io import Topology
 from tripleo.insights.topology import Node
+from tripleo.insights.tripleo import THTPathCreator
 
 
 class FileInterpreter(ABC):
@@ -140,17 +142,42 @@ class FeatureSetInterpreter(FileInterpreter):
         """Indicates IP version of deployment."""
         scenario: str = 'composable_scenario'
         """Indicates the scenario of this deployment."""
+        overrides: str = 'featureset_override'
+        """Indicates the section where featureset overrides are defined."""
+        environments: str = 'standalone_environment_files'
+        """Indicates the environments that create the deployment's scenario."""
         tls_everywhere: str = 'enable_tls_everywhere'
         """Indicates whether TLS everywhere is enabled."""
+
+    @dataclass
+    class Tools:
+        """Collection of tools used by this class to perform its task.
+        """
+        path_creator: THTPathCreator = field(
+            default_factory=lambda *_: THTPathCreator()
+        )
+        """Used to generate the path to the scenario file."""
 
     def __init__(
         self,
         data: YAML,
         schema: File = File('_data/schemas/featureset.json'),
         overrides: Optional[Dict] = None,
-        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory()
+        validator_factory: JSONValidatorFactory = Draft7ValidatorFactory(),
+        tools: Optional[Tools] = None
     ):
+        """See parent for more information.
+
+        :param tools:
+            Collection of tools used by this class to perform its task.
+            'None' to let it build its own.
+        """
         super().__init__(data, schema, overrides, validator_factory)
+
+        if tools is None:
+            tools = FeatureSetInterpreter.Tools()
+
+        self._tools = tools
 
     @property
     def keys(self) -> 'FeatureSetInterpreter.Keys':
@@ -158,6 +185,13 @@ class FeatureSetInterpreter(FileInterpreter):
         :return: Knowledge that this has about the featureset file's contents.
         """
         return self.Keys()
+
+    @property
+    def tools(self) -> Tools:
+        """
+        :return: Tools used by this to perform its task.
+        """
+        return self._tools
 
     def is_ipv6(self) -> bool:
         """
@@ -185,18 +219,83 @@ class FeatureSetInterpreter(FileInterpreter):
 
         return False
 
-    def get_scenario(self) -> Optional[str]:
+    def get_environments(self) -> Iterable[str]:
         """
-        :return: Name of the scenario file that complements this featureset.
+        :return:
+            Paths relative to the repository's root leading to the environment
+            files that define the scenario for this featureset. Ordered
+            following their order of appearance.
+        """
+        # Check for overrides first
+        environments = self._get_environments()
+
+        if environments:
+            return environments
+
+        # If not, see if the scenario is defined explicitly by the featureset
+        scenario = self._get_scenario()
+
+        if scenario:
+            return [scenario]
+
+        # The featureset has no environment data
+        return []
+
+    def _get_scenario(self) -> Optional[str]:
+        """
+        :return:
+            Path, relative to the repository's root, leading to the scenario
+            file explicitly defined for this featureset.
             'None' if it is not defined.
         """
         key = self.keys.scenario
 
+        # Prefer overrides over default data
         for provider in (self.overrides, self.data):
             if key in provider:
-                return provider[key]
+                return self.tools.path_creator.create_scenario_path(
+                    file=provider[key]
+                )
 
         return None
+
+    def _get_environments(self) -> Iterable[str]:
+        """
+        :return:
+            Paths, relative to the repository's root, to the environment files
+            that define the featureset's scenario in aggregation. Ordered
+            following their order of appearance.
+        """
+
+        def providers() -> Iterable[YAML]:
+            """
+            :return: Sets of data where the environments may be defined.
+            """
+            result = []
+
+            # Try to add the featureset overrides dictionary
+            #   -> Prefer overrides to defaults
+            overrides = self.overrides.get(self.keys.overrides)
+
+            if overrides:
+                result.append(overrides)
+
+            # Add the featureset defaults
+            result.append(self.data)
+
+            return result
+
+        for provider in providers():
+            value = provider.get(self.keys.environments)
+
+            # Check if environments are defined on this provider
+            if not value:
+                continue
+
+            # First provider to have the data is used
+            return value
+
+        return []
 
 
 class NodesInterpreter(FileInterpreter):
