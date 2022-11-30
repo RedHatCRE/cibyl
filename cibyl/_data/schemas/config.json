@@ -209,6 +209,9 @@
         "enabled": {
           "type": "boolean"
         },
+        "unsafe": {
+          "type": "boolean"
+        },
         "repos": {
           "type": "array",
           "additionalItems": false,
