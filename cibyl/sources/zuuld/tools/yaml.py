@@ -89,25 +89,31 @@ class ZuulDFileFactory:
     """Factory for :class:`ZuulDFile`.
     """
 
-    def __init__(self, validators: Optional[YAMLValidatorFactory] = None):
+    @dataclass
+    class Tools:
+        validators: YAMLValidatorFactory = field(
+            default_factory=lambda *_: Draft7ValidatorFactory()
+        )
+        """Factory this will use to create validators for th Zuul.D files."""
+
+    def __init__(self, tools: Optional[Tools] = None):
         """Constructor.
 
-        :param validators:
-            Factory this will use to build validators that check the
-            integrity of Zuul.D files.
-            'None' to let this build its own.
+        :param tools:
+            Tools this uses to do its task.
+            'None' to let it build its own.
         """
-        if validators is None:
-            validators = Draft7ValidatorFactory()
+        if tools is None:
+            tools = ZuulDFileFactory.Tools()
 
-        self._validators = validators
+        self._tools = tools
 
     @property
-    def validators(self) -> YAMLValidatorFactory:
+    def tools(self) -> Tools:
         """
-        :return: Factory for validators that check Zuul.D file integrity.
+        :return: Tools this uses to do its task.
         """
-        return self._validators
+        return self._tools
 
     def from_file(self, file: File) -> ZuulDFile:
         """Builds a new Zuul.D file from a generic one.
@@ -119,7 +125,7 @@ class ZuulDFileFactory:
         return ZuulDFile(
             file=file,
             tools=ZuulDFile.Tools(
-                validators=self.validators
+                validators=self.tools.validators
             )
         )
 
