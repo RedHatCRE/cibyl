@@ -113,4 +113,4 @@ class GitBackend(ZuulDBackend[GitSpec]):
     @property
     @overrides
     def get(self) -> Get:
-        return super().get()
+        return super().get

@@ -337,12 +337,18 @@ class GitFrontendFactory(ZuulAPIFactory):
         backend = GitBackend()
 
         if kwargs.get('unsafe', False):
+            LOG.info(
+                "Unsafe mode turned on! "
+                "Disabling YAML validation on Git backend..."
+            )
+
+            # Inject 'bypass' validator on Zuul.D file interpreters
             get = backend.get
             yamls = get.tools.files
             zuulds = yamls.tools.files
             zuulds.tools.validators = NullValidatorFactory()
 
-        return GitBackend()
+        return backend
 
     @property
     def specs(self) -> Iterable[GitSpec]:
