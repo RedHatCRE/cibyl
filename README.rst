@@ -1,7 +1,8 @@
 CIbyl
 =====
 
-.. image:: https://github.com/rhos-infra/cibyl/actions/workflows/pipeline.yaml/badge.svg
+.. image:: https://github.com/rhos-infra/cibyl/actions/workflows/check.yaml/badge.svg
+.. image:: https://github.com/rhos-infra/cibyl/actions/workflows/gate.yaml/badge.svg
    :target: https://github.com/rhos-infra/cibyl/actions/workflows/pipeline.yaml
    :alt: Build Status
 
