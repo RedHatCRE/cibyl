@@ -17,7 +17,7 @@ import logging
 import sys
 from io import StringIO
 from tempfile import NamedTemporaryFile
-from unittest import TestCase, skip
+from unittest import TestCase
 from unittest.mock import patch
 
 from cibyl.cli.main import main
@@ -244,7 +244,6 @@ class TestOrchestrator(TestCase):
         jenkins_tests.assert_called_once()
         jenkins_setup_mock.assert_called_once()
 
-    @skip("Should be skipped until get_tests is implemented in Zuul")
     @patch.object(Zuul, 'setup', return_value="")
     @patch('cibyl.orchestrator.get_source_instance_from_method')
     @patch('cibyl.orchestrator.source_information_from_method',
@@ -259,8 +258,17 @@ class TestOrchestrator(TestCase):
                                                   zuul_setup_mock):
         """Test that the args level is correctly considered and the correct
         number of source queries are done."""
-        source_instance_mock.return_value = Zuul(url="url", name="zuul",
-                                                 driver="zuul")
+
+        spec = Zuul.SourceSpec(name="url", driver='zuul', enabled=True)
+
+        fallbacks = Zuul.Fallbacks.from_kwargs(keys=['tenants'])
+        source_instance_mock.return_value = Zuul(
+                provider=ZuulRESTClientFactory.from_kwargs(url="url",
+                                                           name="zuul",
+                                                           driver="zuul"),
+                spec=spec,
+                fallbacks=fallbacks
+            )
         with NamedTemporaryFile() as config_file:
             config_file.write(b"environments:\n")
             config_file.write(b"  env:\n")
