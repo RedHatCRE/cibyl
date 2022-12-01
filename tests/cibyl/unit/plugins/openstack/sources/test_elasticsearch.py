@@ -100,52 +100,25 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
             {
                 '_source': {
                     'job_name': 'test',
-                    'job_url': 'http://domain.tld/test/'
-                },
-                'key': 'test',
-                'last_build': {
-                    'hits': {
-                        'hits': [
-                            {
-
-                                '_source': {
-                                    'job_name': 'test',
-                                    'job_url': 'http://domain.tld/test/',
-                                    'test_setup': 'rpm',
-                                    'ip_version': 'ipv4',
-                                    'test_suites': 'designate,neutron,octavia',
-                                    'overcloud_templates':
-                                        'designate,neutron,none'
-                                }
-                            }
-                        ]
-                    }
+                    'job_url': 'http://domain.tld/test/',
+                    'test_setup': 'rpm',
+                    'ip_version': 'ipv4',
+                    'test_suites': 'designate,neutron,octavia',
+                    'overcloud_templates':
+                        'designate,neutron,none'
                 }
             },
             {
                 '_source': {
                     'job_name': 'test2',
-                    'job_url': 'http://domain.tld/test2/'
-                },
-                'key': 'test2',
-                'last_build': {
-                    'hits': {
-                        'hits': [
-                            {
-                                '_source': {
-                                    'job_name': 'test2',
-                                    'job_url': 'http://domain.tld/test2/',
-                                    'ip_version': 'ipv4',
-                                }
-                            }
-                        ]
-                    }
+                    'job_url': 'http://domain.tld/test2/',
+                    'ip_version': 'ipv4'
                 }
             }
         ]
 
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
-    def test_get_deployment(self: object, mock_query_hits: object) -> None:
+    def test_get_deployment(self, mock_query_hits: object) -> None:
         """Tests that the internal logic from
         :meth:`ElasticSearch.get_deployment` is correct.
         """
@@ -164,16 +137,19 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
         self.assertEqual(network.ip_version.value, '4')
         self.assertEqual(deployment.topology.value, '')
 
-    def test_spec_deployment(self: object):
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
+    def test_spec_deployment(self,
+                             mock_query_hits):
         self.es_api.get_jobs = Mock(side_effect=self.job_hits)
         spec = Mock()
         spec.value = []
+        mock_query_hits.return_value = []
 
         with self.assertRaises(InvalidArgument):
             self.es_api.get_deployment(spec=spec)
 
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
-    def test_deployment_filtering(self: object,
+    def test_deployment_filtering(self,
                                   mock_query_hits: object) -> None:
         """Tests that the internal logic from
         :meth:`ElasticSearch.get_deployment`
@@ -189,10 +165,10 @@ class TestElasticSearchOpenstackPlugin(OpenstackPluginWithJobSystem):
         ip_address_kwargs = Mock()
         ip_address_kwargs.value = ['4']
 
-        builds = self.es_api.get_deployment(jobs=jobs_argument,
-                                            ip_version=ip_address_kwargs)
+        jobs = self.es_api.get_deployment(jobs=jobs_argument,
+                                          ip_version=ip_address_kwargs)
 
-        deployment = builds['test'].deployment.value
+        deployment = jobs['test'].deployment.value
         network = deployment.network.value
         self.assertEqual(network.ip_version.value, '4')
         self.assertEqual(deployment.topology.value, '')
