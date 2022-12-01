@@ -103,12 +103,14 @@ class TestElasticSearch(TestCase):
                     'job_name': 'test',
                     'job_url': 'http://domain.tld/test/',
                     'build_result': 'SUCCESS',
-                    'build_id': '1',
                     'build_num': '1',
-                    'test_name': 'it_is_just_a_test',
-                    'time_duration': '720',
-                    'test_status': 'SUCCESS',
-                    'test_time': '720',
+                    'test_results_mock': """<testsuite errors="0" failures="1" name="barbican" tests="5" time="63.107">
+                    <testcase classname="" name="testing" time="0.000">
+                    <skipped>not supported</skipped>
+                    </testcase>
+                    <testcase classname="" name="it_is_just_a_test" time="720.000">
+                    </testcase>
+                    </testsuite>""",  # noqa: E501
                 }
             },
             {
@@ -120,8 +122,11 @@ class TestElasticSearch(TestCase):
                     'build_num': '2',
                     'test_name': 'it_is_just_a_test2',
                     'time_duration': '0.0001_bad_parsed',
-                    'test_status': 'FAIL',
-                    'test_time': '0.0001_bad_parsed',
+                    'test_results_mock': """<testsuite errors="0" failures="0" name="barbican" tests="1" time="63.107">
+                    <testcase classname="" name="it_is_just_a_test2" time="0.000">
+                    <failure>FAILED</failure>
+                    </testcase>
+                    </testsuite>""",  # noqa: E501
                 }
             }
         ]
@@ -220,7 +225,7 @@ class TestElasticSearch(TestCase):
             is correct and that if no jobs satisfy the criteria, no jobs are
             returned.
         """
-        mock_query_hits.side_effect = [self.job_hits, self.build_hits]
+        mock_query_hits.side_effect = [self.build_hits]
 
         status_argument = Mock(spec=Argument)
         status_argument.value = ['non-existing']
@@ -260,12 +265,12 @@ class TestElasticSearch(TestCase):
            :meth:`ElasticSearch.get_builds` is correct and that if filtering by
            builds, no job is found to match the criteria, return no jobs.
         """
-        mock_query_hits.side_effect = [self.job_hits, self.build_hits]
+        mock_query_hits.side_effect = [self.build_hits]
 
         builds_kwargs = Mock(spec=Argument)
         builds_kwargs.value = []
         build_status_kwargs = Mock(spec=Argument)
-        build_status_kwargs.value = []
+        build_status_kwargs.value = ["non-existing"]
 
         builds = self.es_api.get_builds(last_build=builds_kwargs,
                                         build_status=build_status_kwargs)
@@ -292,10 +297,8 @@ class TestElasticSearch(TestCase):
 
         self.assertTrue('it_is_just_a_test' in
                         tests['test'].builds['1'].tests)
-        self.assertTrue(
-            tests['test'].builds['1'].tests['it_is_just_a_test'].duration,
-            1.000
-        )
+        d = tests['test'].builds['1'].tests['it_is_just_a_test'].duration.value
+        self.assertEqual(d, 720000.0)
 
         # Test Filtering by test_result
         builds_kwargs = Mock(spec=Argument)
