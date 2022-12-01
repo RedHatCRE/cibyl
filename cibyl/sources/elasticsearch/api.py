@@ -35,7 +35,6 @@ from cibyl.sources.source import speed_index
 from cibyl.utils.filtering import (apply_filters, matches_regex,
                                    satisfy_exact_match, satisfy_regex_match)
 from cibyl.utils.models import has_builds_job, has_tests_job
-from kernel.tools.dicts import chunk_dictionary_into_lists
 
 LOG = logging.getLogger(__name__)
 
@@ -148,8 +147,8 @@ class ElasticSearch(ServerSource):
         :return: List of hits.
         """
         try:
-            LOG.debug("Using the following query: {}"
-                      .format(str(query).replace("'", '"')))
+            LOG.debug("Using the following query: %s",
+                      str(query).replace("'", '"'))
             # https://github.com/elastic/elasticsearch-py/issues/91
             # For aggregations we should use the search method of the client
             if 'aggs' in query:
@@ -182,47 +181,19 @@ class ElasticSearch(ServerSource):
             :returns: container of jobs with build information from
             elasticsearch server
         """
-        jobs_found = self.get_jobs(**kwargs)
-
+        # Empty query for all hits or elements
         query_body = {
             "query": {
-              "bool": {
-                "should": []
-              }
-            }
+                "match_all": {}
+            },
+            "_source": ["job_name", "job_url", "build_num", "build_result",
+                        "build_duration"]
         }
 
-        def append_job_match_to_query(job_name: str):
-            query_body['query']['bool']['should'].append(
-                {
-                  "match": {
-                    "job_name": f"{job_name}"
-                  }
-                }
-            )
-
-        chunked_list_of_jobs = []
-        for _, job in jobs_found.items():
-
-            chunked_list_of_jobs = chunk_dictionary_into_lists(
-                jobs_found,
-                400
-            )
-
-        builds = []
-        for jobs_list in chunked_list_of_jobs:
-            for job in jobs_list:
-                append_job_match_to_query(job)
-
-            builds_results = self.__query_get_hits(
-                query=query_body,
-                index='jenkins_builds'
-            )
-            if builds_results:
-                for build in builds_results:
-                    builds.append(build)
-
-            query_body['query']['bool']['should'].clear()
+        hits = self.__query_get_hits(
+            query=query_body,
+            index='logstash_jenkins_jobs_cibyl'
+        )
 
         # keep track if there is any flag that would
         # cause builds to be filtered, to remove later jobs that are empty due
@@ -240,28 +211,36 @@ class ElasticSearch(ServerSource):
             build_id_argument = kwargs.get('builds').value
             filtering_builds |= bool(build_id_argument)
 
-        for build in builds:
-            build_result = None
-            if not build['_source']['build_result'] and \
-                    build['_source']['current_build_result']:
-                build_result = build['_source']['current_build_result']
-            else:
-                build_result = build["_source"]['build_result']
+        # make the hits list a flat list of dicts with the job information for
+        # easier filtering
+        hits = [hit['_source'] for hit in hits]
+        hits = filter_jobs(hits, **kwargs)
+        jobs_found = {}
+        for build in hits:
+            job_name = build['job_name']
+            url = build['job_url']
+            if job_name not in jobs_found:
+                # ensure that job is created
+                jobs_found[job_name] = Job(name=job_name, url=url)
+
+            build_result = build.get('build_result')
 
             if 'build_status' in kwargs and \
-                    build['_source']['build_result'] not in build_statuses:
+                    build_result not in build_statuses:
                 continue
 
-            build_id = str(build['_source']['build_id'])
+            build_id = str(build['build_num'])
+            build_duration = build.get('build_duration')
+            if build_duration is not None:
+                build_duration = int(build_duration)
             if build_id_argument and \
                     build_id not in build_id_argument:
                 continue
-            job_name = build['_source']['job_name']
             jobs_found[job_name].add_build(Build(build_id,
-                                           build_result,
-                                           build['_source']['time_duration']))
+                                                 build_result,
+                                                 build_duration))
 
-        final_jobs = jobs_found.value
+        final_jobs = jobs_found
         if filtering_builds:
             # if there was some argument that leads to filtering out tests,
             # make sure that the output jobs have at least one test
@@ -285,6 +264,7 @@ class ElasticSearch(ServerSource):
         """
         job_object = {}
         for job_name, build_info in builds_jobs.items():
+            job_url = builds_jobs[job_name].url.value
             builds = build_info.builds
 
             if not builds:
@@ -292,12 +272,8 @@ class ElasticSearch(ServerSource):
 
             last_build_number = sorted(builds.keys(), key=int)[-1]
             last_build_info = builds[last_build_number]
-            # Now we need to construct the Job object
-            # with the last build object in this one
-            build_object = Build(str(last_build_info.build_id),
-                                 str(last_build_info.status))
-            job_object[job_name] = Job(name=job_name)
-            job_object[job_name].add_build(build_object)
+            job_object[job_name] = Job(name=job_name, url=job_url)
+            job_object[job_name].add_build(last_build_info)
 
         return AttributeDictValue("jobs", attr_type=Job, value=job_object)
 
