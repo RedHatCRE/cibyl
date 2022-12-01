@@ -18,12 +18,98 @@ from json import JSONDecodeError
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
 
-from jsonschema.exceptions import SchemaError
-from jsonschema.validators import Draft7Validator
-
 from kernel.tools.fs import File
-from kernel.tools.json import Draft7ValidatorFactory
+from kernel.tools.json import (Draft7Validator, Draft7ValidatorFactory,
+                               NullValidatorFactory, SchemaError)
 from kernel.tools.urls import URL
+
+
+class TestNullValidatorFactory(TestCase):
+    """Tests for :class:`NullValidatorFactory`.
+    """
+
+    class TestDraft7ValidatorFactory(TestCase):
+        """Tests for :class:`Draft7ValidatorFactory`.
+        """
+
+        def test_json_error(self):
+            """Checks that an error is thrown if the file is not formatted as a
+            JSON.
+            """
+            with NamedTemporaryFile('w') as file:
+                file.write('some-text')
+
+                factory = NullValidatorFactory()
+
+                with self.assertRaises(JSONDecodeError):
+                    factory.from_file(File(file.name))
+
+        def test_schema_error(self):
+            """Checks that an error is thrown if the file is a JSON, but not a
+            schema.
+            """
+            data = {
+                'type': 'some-type'
+            }
+
+            with NamedTemporaryFile(mode='w') as file:
+                file.write(json.dumps(data))
+                file.flush()
+
+                factory = NullValidatorFactory()
+
+                with self.assertRaises(SchemaError):
+                    factory.from_file(File(file.name))
+
+        def test_validator_is_built(self):
+            """Checks that if all conditions meet, the validator is built.
+            """
+            data = {
+                '$schema': 'some-url',
+                'type': 'string'
+            }
+
+            with NamedTemporaryFile(mode='w') as file:
+                file.write(json.dumps(data))
+                file.flush()
+
+                factory = NullValidatorFactory()
+
+                result = factory.from_file(File(file.name))
+
+                self.assertIsInstance(result, Draft7Validator)
+                self.assertEqual(result.schema, data)
+
+        def test_validator_is_cached_on_from_file(self):
+            """Checks that the validator built for a file is cached for it.
+            """
+            data = {
+                '$schema': 'some-url',
+                'type': 'string'
+            }
+
+            with NamedTemporaryFile(mode='w') as file:
+                file.write(json.dumps(data))
+                file.flush()
+
+                factory = NullValidatorFactory()
+
+                result1 = factory.from_file(File(file.name))
+                result2 = factory.from_file(File(file.name))
+
+                self.assertEqual(result2, result1)
+
+        def test_validator_is_cached_on_from_remote(self):
+            """Checks that the validator built for a URL is cached for it.
+            """
+            url = URL('https://json.schemastore.org/zuul.json')
+
+            factory = NullValidatorFactory()
+
+            result1 = factory.from_remote(url)
+            result2 = factory.from_remote(url)
+
+            self.assertEqual(result2, result1)
 
 
 class TestDraft7ValidatorFactory(TestCase):
