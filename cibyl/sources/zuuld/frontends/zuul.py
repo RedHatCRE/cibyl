@@ -309,6 +309,13 @@ class GitFrontendFactory(ZuulAPIFactory):
 
     @staticmethod
     def _get_specs_from(**kwargs) -> Iterable[GitSpec]:
+        """
+        :param kwargs:
+            Arguments coming from the configuration file.
+        :return:
+            Location of Zuul.D files on the Git repositories defined
+            there.
+        """
         result = []
 
         for repo in kwargs['repos']:
@@ -334,6 +341,10 @@ class GitFrontendFactory(ZuulAPIFactory):
 
     @staticmethod
     def _get_backend_from(**kwargs) -> ZuulDBackend[GitSpec]:
+        """
+        :param kwargs: Arguments coming from the configuration file.
+        :return: A backend capable of supporting the specs in there.
+        """
         backend = GitBackend()
 
         if kwargs.get('unsafe', False):

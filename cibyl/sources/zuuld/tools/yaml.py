@@ -91,6 +91,8 @@ class ZuulDFileFactory:
 
     @dataclass
     class Tools:
+        """Tools this uses to do its task.
+        """
         validators: YAMLValidatorFactory = field(
             default_factory=lambda *_: Draft7ValidatorFactory()
         )
