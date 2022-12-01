@@ -141,7 +141,8 @@ class VariantFinder:
                             return candidate
 
             raise SearchError(
-                f"Could not find parent variant for: '{variant.name}'."
+                f"Could not find parent: '{variant.parent}' "
+                f"for variant: '{variant.name}'."
             )
 
         @property
@@ -233,7 +234,7 @@ class HierarchyCrawler:
             except SearchError as ex:
                 LOG.warning(
                     "Prematurely finished iterating over hierarchy for: '%s'. "
-                    "Reason: '%s'. "
+                    "Reason: \"%s\". "
                     "Results may be incomplete as a consequence.",
                     self._start.name, ex
                 )
