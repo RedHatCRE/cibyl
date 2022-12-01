@@ -689,6 +689,9 @@ class VariantResponse:
             if context:
                 result = [context.branch]
 
+        if not result:
+            result = ['master']
+
         return result
 
     @property
