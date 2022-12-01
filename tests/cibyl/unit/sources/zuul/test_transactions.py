@@ -202,6 +202,18 @@ class TestVariantResponse(TestCase):
 
         self.assertEqual([context.branch], variant.branches)
 
+    def test_default_branches(self):
+        """Checks that defaults branches are returned if they cannot be
+        retrieved neither explicitly nor implicitly.
+        """
+        api = Mock()
+        api.branches = []
+        api.context = None
+
+        variant = VariantResponse(variant=api)
+
+        self.assertEqual(variant.defaults.branches, variant.branches)
+
 
 class TestTestResponse(TestCase):
     """Tests for :class:`TestResponse`.

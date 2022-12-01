@@ -22,6 +22,7 @@ License:
 """
 import re
 from abc import ABC
+from dataclasses import dataclass
 from typing import Iterable
 
 from cibyl.cli.ranged_argument import RANGE_OPERATORS, Range
@@ -633,13 +634,37 @@ class VariantResponse:
     """Response for a :class:`VariantsRequest`.
     """
 
-    def __init__(self, variant):
+    @dataclass
+    class Defaults:
+        """Defines all values used by the variant in case some fields are
+        not defined for it.
+        """
+        branches: Iterable[str] = ('master',)
+        """Default branches the variant works on."""
+
+    def __init__(self, variant, defaults=None):
         """Constructor.
 
         :param variant: Low-Level API to access the variant's data.
         :type variant: :class:`cibyl.sources.zuul.apis.ZuulVariantAPI`
+        :param defaults:
+            Default values that cover gaps on the variant's data.
+            'None' to let this define its own.
+        :type defaults: None or :class:`VariantResponse.Defaults`
         """
+        if defaults is None:
+            defaults = VariantResponse.Defaults()
+
+        self._defaults = defaults
         self._variant = variant
+
+    @property
+    def defaults(self):
+        """
+        :return: Default values used to cover gaps on the variant's data.
+        :type: :class:`VariantResponse.Defaults`
+        """
+        return self._defaults
 
     @property
     def job(self):
@@ -690,7 +715,7 @@ class VariantResponse:
                 result = [context.branch]
 
         if not result:
-            result = ['master']
+            result = self.defaults.branches
 
         return result
 
