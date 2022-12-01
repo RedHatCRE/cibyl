@@ -18,11 +18,9 @@ from json import JSONDecodeError
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
 
-from jsonschema.exceptions import SchemaError
-from jsonschema.validators import Draft7Validator
-
 from kernel.tools.fs import File
-from kernel.tools.json import Draft7ValidatorFactory
+from kernel.tools.json import (Draft7Validator, Draft7ValidatorFactory,
+                               SchemaError)
 from kernel.tools.urls import URL
 
 

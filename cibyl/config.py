@@ -19,7 +19,6 @@ from collections import UserDict
 from typing import Callable, Optional
 
 import rfc3987
-from jsonschema.exceptions import ValidationError
 
 import cibyl.exceptions.config as conf_exc
 from cibyl import __path__ as pwd
@@ -157,10 +156,8 @@ class AppConfig(Config):
             validators = Draft7ValidatorFactory()
             validator = validators.from_file(self._schema)
 
-            try:
-                validator.validate(self.data)
-            except ValidationError as ex:
-                raise SchemaError(error=ex.message)
+            if not validator.is_valid(self.data):
+                raise SchemaError(error="Invalid configuration file.")
 
 
 class ConfigFactory:

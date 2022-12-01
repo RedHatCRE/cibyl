@@ -15,7 +15,7 @@
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from typing import Optional
 
 import yaml
 from cached_property import cached_property
@@ -23,13 +23,14 @@ from overrides import overrides
 from yaml import YAMLError as StandardYAMLError
 
 from kernel.tools.fs import File
-from kernel.tools.json import JSONValidator, JSONValidatorFactory
+from kernel.tools.json import (JSON, JSONArray, JSONObj, JSONValidator,
+                               JSONValidatorFactory)
 
-YAMLObj = Dict[str, Any]
+YAMLObj = JSONObj
 """Represents an object on a YAML file."""
-YAMLArray = List[YAMLObj]
+YAMLArray = JSONArray
 """Represents an array on a YAML file."""
-YAML = Union[YAMLArray, YAMLObj]
+YAML = JSON
 """Represents data originated from a YAML file."""
 
 YAMLValidator = JSONValidator
