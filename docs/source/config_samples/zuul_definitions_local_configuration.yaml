@@ -6,6 +6,7 @@ environments:                 # List of CI/CD environments
         zuul_api:             # The name of the source which belongs to "production_zuul" system
           driver: zuul.d      # The driver the source will be using
           remote: False       # Optional as this is the default
+          unsafe: True        # Disable YAML validation before parsing
           repos:              # The repos to clone and query when running Cibyl query commands
             - url: 'http://zuul_defitions_repo.git'
             - url: 'http://zuul_defitions_repo1.git'
