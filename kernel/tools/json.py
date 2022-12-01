@@ -28,47 +28,93 @@ from kernel.tools.net import download_into_memory
 from kernel.tools.urls import URL
 
 JSONObj = Dict[str, Any]
+"""Represents an object on a JSON file."""
 JSONArray = List[JSONObj]
+"""Represents an array on a JSON file."""
 JSON = Union[JSONArray, JSONObj]
+"""Represents data originated from a JSON file."""
 JSONSchema = JSON
+"""Represents a schema for a JSON file."""
 
 
 class JSONError(Exception):
-    pass
+    """Describes any error that happened while parsing a stream in JSON
+    format.
+    """
 
 
 class SchemaError(JSONError):
-    pass
+    """Describes any errors related to the parsing or usage of JSON schemas.
+    """
 
 
 class JSONValidator(ABC):
+    """Base class for all tools that take care of facing a JSON file against a
+     schema.
+    """
+
     def __init__(self, schema: JSONSchema):
+        """Constructor.
+
+        :param schema: Schema this will validate data against.
+        """
         self._schema = schema
 
     @property
     def schema(self) -> JSONSchema:
+        """
+        :return: Schema this will validate data against.
+        """
         return self._schema
 
     @abstractmethod
     def is_valid(self, data: JSON) -> bool:
+        """Checks whether some data conforms to the JSON schema represented
+        by this validator.
+
+        :param data: The data to validate.
+        :return: True if it does, False if not.
+        """
         raise NotImplementedError
 
 
 class NullValidator(JSONValidator):
+    """Implementation of a JSON validator that does nothing, just
+    considers all data to be valid. Useful for disabling validation on
+    classes that use it.
+    """
+
     @overrides
     def is_valid(self, data: JSON) -> bool:
         return True
 
 
 class Draft7Validator(JSONValidator):
+    """Implementation of a JSON validator that works with schemas following
+    the draft 7 specification:
+    https://json-schema.org/draft-07/json-schema-release-notes.html.
+    """
 
     def __init__(self, schema: JSONSchema):
+        """Constructor.
+
+        :param schema: Data representing a draft 7 schema.
+        :raises SchemaError:
+            If the schema does not follow the specified draft.
+        """
         super().__init__(schema)
 
         self._check_schema(schema)
         self._validator = JSDraft7Validator(schema)
 
-    def _check_schema(self, schema: JSONSchema):
+    def _check_schema(self, schema: JSONSchema) -> None:
+        """Verifies whether the schema follows the draft required by this
+        class.
+
+        :param schema: The schema to check.
+        :raises SchemaError:
+            If the schema does not follow the draft7 specification.
+        """
         try:
             JSDraft7Validator.check_schema(schema)
         except JSSchemaError as ex:
@@ -170,6 +216,9 @@ class JSONValidatorFactory(ABC):
 
 
 class NullValidatorFactory(JSONValidatorFactory):
+    """Factory for :class:`NullValidator`.
+    """
+
     @overrides
     def from_buffer(self, buffer: Union[bytes, str]) -> JSONValidator:
         return NullValidator(schema=json.loads(buffer))

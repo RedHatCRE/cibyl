@@ -71,7 +71,7 @@ class TestElasticSearch(TestCase):
                             'job_name': 'test',
                             'job_url': 'http://domain.tld/test/',
                             'build_result': 'SUCCESS',
-                            'build_id': '1',
+                            'build_num': '1',
                             'time_duration': 20,
                             'build_url': 'http://domain.tld/test/7',
                             'ip_version': 'ipv4',
@@ -86,7 +86,7 @@ class TestElasticSearch(TestCase):
                             'job_name': 'test2',
                             'job_url': 'http://domain.tld/test2/',
                             'build_result': 'FAIL',
-                            'build_id': '2',
+                            'build_num': '2',
                             'time_duration': 10,
                             'build_url': 'http://domain.tld/test2/8',
                             'ip_version': 'ipv6',
@@ -197,7 +197,7 @@ class TestElasticSearch(TestCase):
             is correct.
         """
 
-        mock_query_hits.side_effect = [self.job_hits, self.build_hits]
+        mock_query_hits.side_effect = [self.build_hits]
 
         # We need to mock the Argument kwargs passed. In this case
         # build_status
@@ -233,7 +233,7 @@ class TestElasticSearch(TestCase):
         """Tests that the internal logic from
            :meth:`ElasticSearch.get_builds` is correct.
         """
-        mock_query_hits.side_effect = [self.job_hits, self.build_hits]
+        mock_query_hits.side_effect = [self.build_hits]
 
         builds_kwargs = Mock(spec=Argument)
         builds_kwargs.value = []
