@@ -43,10 +43,11 @@ class XMLTempestFailure:
     type: str = field(
         metadata={
             'type': 'Attribute'
-        }
+        },
+        default=""  # in elasticsearch the failure type is often missing
     )
     """The type of error that made the test case fail."""
-    value: str = field()
+    value: str = field(default="")
     """An explanation on why the error happened."""
 
 

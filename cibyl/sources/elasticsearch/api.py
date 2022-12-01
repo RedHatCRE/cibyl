@@ -17,10 +17,11 @@
 import logging
 import re
 from functools import partial
-from typing import Dict, List, Union
+from typing import Callable, Dict, List, Union
 from urllib.parse import urlsplit
 
 from elasticsearch.helpers import scan
+from xsdata.formats.dataclass.parsers import XmlParser
 
 from cibyl.cli.argument import Argument
 from cibyl.cli.ranged_argument import RANGE_OPERATORS
@@ -32,7 +33,9 @@ from cibyl.models.ci.base.test import Test
 from cibyl.sources.elasticsearch.client import ElasticSearchClient
 from cibyl.sources.server import ServerSource
 from cibyl.sources.source import speed_index
+from cibyl.sources.zuul.utils.tests.tempest.parser import XMLTempestTestSuite
 from cibyl.utils.filtering import (apply_filters, matches_regex,
+                                   satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
 from cibyl.utils.models import has_builds_job, has_tests_job
 
@@ -41,6 +44,24 @@ LOG = logging.getLogger(__name__)
 
 # shorthand type for the representation returned by elasticsearch
 ElkJob = Dict[str, Union[str, dict]]
+
+
+def get_build_filters(**kwargs: Argument) -> List[Callable]:
+    """Get a list of functions that should be used to filter the builds,
+    according to user input."""
+    checks_to_apply = []
+    builds_arg = kwargs.get('builds')
+    if builds_arg and builds_arg.value:
+        checks_to_apply.append(partial(satisfy_exact_match,
+                                       user_input=builds_arg,
+                                       field_to_check="build_num"))
+
+    build_status = kwargs.get('build_status')
+    if build_status and build_status.value:
+        checks_to_apply.append(partial(satisfy_case_insensitive_match,
+                                       user_input=build_status,
+                                       field_to_check="build_result"))
+    return checks_to_apply
 
 
 def filter_jobs(jobs_found: List[ElkJob], **kwargs) -> List[ElkJob]:
@@ -66,6 +87,24 @@ def filter_jobs(jobs_found: List[ElkJob], **kwargs) -> List[ElkJob]:
                                        field_to_check="job_name"))
 
     return apply_filters(jobs_found, *checks_to_apply)
+
+
+def filter_builds(builds_found: List[Dict],
+                  checks_to_apply: List[Callable]) -> List[Dict]:
+
+    """Filter the result from ElasticSearch according to user input
+    :param builds_found: Collection of builds to filter
+    :param: checks_to_apply: List of function that the builds should satisfy
+    :returns: The builds that satisfy all the conditions included in the checks
+    functions
+    """
+
+    for build in builds_found:
+        # ensure that the build number is passed as a string, Jenkins usually
+        # sends it as an int
+        build["build_num"] = str(build["build_num"])
+
+    return apply_filters(builds_found, *checks_to_apply)
 
 
 class ElasticSearch(ServerSource):
@@ -199,22 +238,14 @@ class ElasticSearch(ServerSource):
         # cause builds to be filtered, to remove later jobs that are empty due
         # to this filtering
         filtering_builds = False
-        build_statuses = []
-        if 'build_status' in kwargs:
-            build_statuses = [status.upper()
-                              for status in
-                              kwargs.get('build_status').value]
-            filtering_builds |= bool(build_statuses)
-
-        build_id_argument = None
-        if 'builds' in kwargs:
-            build_id_argument = kwargs.get('builds').value
-            filtering_builds |= bool(build_id_argument)
+        build_filters = get_build_filters(**kwargs)
+        filtering_builds = bool(build_filters)
 
         # make the hits list a flat list of dicts with the job information for
         # easier filtering
         hits = [hit['_source'] for hit in hits]
         hits = filter_jobs(hits, **kwargs)
+        hits = filter_builds(hits, build_filters)
         jobs_found = {}
         for build in hits:
             job_name = build['job_name']
@@ -224,18 +255,10 @@ class ElasticSearch(ServerSource):
                 jobs_found[job_name] = Job(name=job_name, url=url)
 
             build_result = build.get('build_result')
-
-            if 'build_status' in kwargs and \
-                    build_result not in build_statuses:
-                continue
-
             build_id = str(build['build_num'])
             build_duration = build.get('build_duration')
             if build_duration is not None:
                 build_duration = int(build_duration)
-            if build_id_argument and \
-                    build_id not in build_id_argument:
-                continue
             jobs_found[job_name].add_build(Build(build_id,
                                                  build_result,
                                                  build_duration))
@@ -287,34 +310,24 @@ class ElasticSearch(ServerSource):
         """
         self.check_builds_for_test(**kwargs)
 
-        job_builds_found = self.get_builds(**kwargs)
+        # Empty query for all hits or elements
         query_body = {
             "query": {
-                "bool": {
-                    "must": [
-                        {},
-                        {
-                            "bool": {
-                              "should": [
-                                {}
-                              ]
-                            }
-                        },
-                        {
-                            "exists": {
-                                "field": "test_status"
-                            }
-                        },
-                        {
-                            "exists": {
-                                "field": "test_name"
-                            }
-                        }
-                    ]
-                }
+                "match_all": {}
             },
-            "sort": [{"timestamp.keyword": {"order": "desc"}}]
+            "_source": ["job_name", "job_url", "build_num", "build_result",
+                        "build_duration", "test_results_*"]
         }
+        hits = self.__query_get_hits(
+            query=query_body,
+            index='logstash_jenkins_jobs_cibyl'
+        )
+        # make the hits list a flat list of dicts with the job information for
+        # easier filtering
+        hits = [hit['_source'] for hit in hits]
+        build_filters = get_build_filters(**kwargs)
+        hits = filter_jobs(hits, **kwargs)
+        hits = filter_builds(hits, build_filters)
 
         # keep track if there is any flag that would
         # cause tests to be filtered, to remove later jobs that are empty due
@@ -336,95 +349,84 @@ class ElasticSearch(ServerSource):
         if 'test_duration' in kwargs:
             test_duration_arguments = kwargs.get('test_duration').value
             tests_filtering |= bool(test_duration_arguments)
+        jobs_found = {}
+        for build in hits:
+            job_name = build['job_name']
+            url = build['job_url']
+            if job_name not in jobs_found:
+                # ensure that job is created
+                jobs_found[job_name] = Job(name=job_name, url=url)
+            build_result = build.get('build_result')
+            build_id = str(build['build_num'])
+            build_duration = build.get('build_duration')
+            if build_duration is not None:
+                build_duration = int(build_duration)
+            # try adding the build, if it's already there, the information will
+            # simply be merged in add_build
+            jobs_found[job_name].add_build(Build(build_id,
+                                                 build_result,
+                                                 build_duration))
+            test_suites = [key for key in build if
+                           key.startswith("test_results_")]
+            xml_parser = XmlParser()
+            for test_suite in test_suites:
+                tests = xml_parser.from_string(build[test_suite],
+                                               XMLTempestTestSuite)
 
-        hits = []
-        for job in job_builds_found:
-            query_body['query']['bool']['must'][0] = {
-                "match": {
-                    "job_name.keyword": f"{job}"
-                }
-            }
-            builds = job_builds_found[job].builds
-            for build_number in builds:
-                query_body['query']['bool']['must'][1]['bool']['should'] = {
-                    "match": {
-                        "build_num": build_number
-                    }
-                }
-                results = self.__query_get_hits(
-                    query=query_body,
-                    index='logstash_jenkins'
-                )
+                for test in tests.testcase:
+                    test_name = test.name
+                    test_status = "SUCCESS"
+                    if test.skipped:
+                        test_status = "SKIPPED"
+                    if test.failure:
+                        test_status = "FAILURE"
+                    class_name = test.classname
+                    test_duration = test.time
+                    # check if necessary to filter by test name or by
+                    # test class name:
+                    if tests_pattern:
+                        matches_test_name = matches_regex(tests_pattern,
+                                                          test_name)
+                        matches_test_class = (class_name is not None and
+                                              matches_regex(tests_pattern,
+                                                            class_name))
+                        if not (matches_test_class or matches_test_name):
+                            continue
+                    # Check if necessary filter by Test Status:
+                    if test_result_argument and \
+                            test_status not in test_result_argument:
+                        continue
 
-                # We need to process all the results because
-                # in the same build we can have different tests
-                # So we can't use '"size": 1' in the query
-                if results:
-                    for result in results:
-                        hits.append(result)
+                    if test_duration_arguments and \
+                       not self.match_filter_test_by_duration(
+                           test_duration,
+                           test_duration_arguments):
+                        continue
 
-        for hit in hits:
-            job_name = hit['_source']['job_name']
-            build_number = str(hit['_source']['build_num'])
-            test_name = hit['_source']['test_name']
-            test_status = hit['_source']['test_status'].upper()
-            class_name = hit['_source'].get(
-                'test_class_name',
-                None
-            )
-            # check if necessary to filter by test name or by test class name:
-            if tests_pattern:
-                matches_test_name = matches_regex(tests_pattern, test_name)
-                matches_test_class = (class_name is not None and
-                                      matches_regex(tests_pattern, class_name))
-                if not (matches_test_class or matches_test_name):
-                    continue
-            # Check if necessary filter by Test Status:
-            if test_result_argument and \
-                    test_status not in test_result_argument:
-                continue
-            # Some build is not parsed good and contains
-            # More info than a time in the field
-            try:
-                test_duration = hit['_source'].get(
-                    'test_time',
-                    None
-                )
-                if test_duration:
-                    test_duration = float(test_duration)
-            except ValueError:
-                LOG.debug("'test_time' field is not well parsed in "
-                          "elasticsearch for job: %s and build ID: %s",
-                          job_name,
-                          build_number
-                          )
-                continue
+                    # Duration comes in seconds. Convert to ms:
+                    if test_duration:
+                        test_duration *= 1000
 
-            if test_duration_arguments and \
-               not self.match_filter_test_by_duration(
-                   test_duration,
-                   test_duration_arguments):
-                continue
+                    jobs_found[job_name].builds[build_id].add_test(
+                        Test(
+                            name=test_name,
+                            result=test_status,
+                            duration=test_duration,
+                            class_name=class_name
+                        )
+                    )
 
-            # Duration comes in seconds. Convert to ms:
-            if test_duration:
-                test_duration *= 1000
-
-            job_builds_found[job_name].builds[build_number].add_test(
-                Test(
-                    name=test_name,
-                    result=test_status,
-                    duration=test_duration,
-                    class_name=class_name
-                )
-            )
-
-        final_jobs = job_builds_found
+        final_jobs = jobs_found
         if tests_filtering:
             # if there was some argument that leads to filtering out tests,
             # make sure that the output jobs have at least one test
             final_jobs = {job_name: job for job_name, job in
-                          job_builds_found.items() if has_tests_job(job)}
+                          jobs_found.items() if has_tests_job(job)}
+
+        if 'last_build' in kwargs:
+            # if user requested last_build, make sure we only send that
+            return self.get_last_build(final_jobs)
+
         return AttributeDictValue("jobs", attr_type=Job, value=final_jobs)
 
     def match_filter_test_by_duration(self,
