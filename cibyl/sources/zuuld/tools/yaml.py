@@ -22,7 +22,7 @@ from overrides import overrides
 from cibyl.sources.zuuld.models.job import Job
 from kernel.tools.files import FileSearchFactory
 from kernel.tools.fs import Dir, File
-from kernel.tools.json import Draft7ValidatorFactory
+from kernel.tools.json import Draft7ValidatorFactory, SchemaError
 from kernel.tools.net import DownloadError
 from kernel.tools.urls import URL
 from kernel.tools.yaml import (YAMLArray, YAMLError, YAMLFile, YAMLValidator,
@@ -122,7 +122,8 @@ class ZuulDFileFactory:
 
         :param file: File that will be tested to see if it is a Zuul.D file.
         :return: The given file, this time cast to a Zuul.D one.
-        :raises YAMLError: If the file does not meet the Zuul.D criteria.
+        :raises SchemaError: If the file does not meet the Zuul.D criteria.
+        :raises YAMLError: If the file could not be read for an unknown reason.
         """
         return ZuulDFile(
             file=file,
@@ -297,10 +298,17 @@ class YAMLSearch:
             try:
                 zuuld = self.tools.files.from_file(file=find)
                 result.append(zuuld)
-            except YAMLError:
+            except SchemaError:
                 LOG.debug(
                     "Ignoring YAML file at '%(find)s' as it does not satisfy "
                     "the Zuul.D file schema.",
+                    {'find': find}
+                )
+                continue
+            except YAMLError:
+                LOG.debug(
+                    "Ignoring YAML file at '%(find)s' for it failed to be "
+                    "parsed.",
                     {'find': find}
                 )
                 continue
