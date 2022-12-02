@@ -23,8 +23,8 @@ from overrides import overrides
 from yaml import YAMLError as StandardYAMLError
 
 from kernel.tools.fs import File
-from kernel.tools.json import (JSON, JSONArray, JSONObj, JSONValidator,
-                               JSONValidatorFactory)
+from kernel.tools.json import (JSON, JSONArray, JSONObj, JSONSchema,
+                               JSONValidator, JSONValidatorFactory)
 
 YAMLObj = JSONObj
 """Represents an object on a YAML file."""
@@ -32,6 +32,8 @@ YAMLArray = JSONArray
 """Represents an array on a YAML file."""
 YAML = JSON
 """Represents data originated from a YAML file."""
+YAMLSchema = JSONSchema
+"""Represents a schema for a YAML file."""
 
 YAMLValidator = JSONValidator
 """Checks that data on a YAML file conforms to a certain structure."""
@@ -42,6 +44,11 @@ YAMLValidatorFactory = JSONValidatorFactory
 class YAMLError(Exception):
     """Describes any errors that happened while parsing a stream in YAML
     format.
+    """
+
+
+class SchemaError(Exception):
+    """Describes any errors related to the parsing or usage of YAML schemas.
     """
 
 
@@ -120,7 +127,7 @@ class YAMLFile:
         does not, returns if it does. In case no schema was provided, this does
         nothing.
 
-        :raises YAMLError: If the data does not meet the schema.
+        :raises SchemaError: If the data does not meet the schema.
         """
         if self.validator is None:
             return
@@ -128,7 +135,7 @@ class YAMLFile:
         if self.validator.is_valid(self.data):
             return
 
-        raise YAMLError(
+        raise SchemaError(
             f"File: '{self.file}' does not conform to schema."
         )
 

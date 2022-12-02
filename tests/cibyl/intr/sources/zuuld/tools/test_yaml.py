@@ -18,7 +18,7 @@ from unittest import TestCase
 
 from cibyl.sources.zuuld.tools.yaml import YAMLSearch, ZuulDFile
 from kernel.tools.fs import Dir, File
-from kernel.tools.yaml import YAMLError
+from kernel.tools.yaml import SchemaError
 
 
 class TestZuulDFile(TestCase):
@@ -35,7 +35,7 @@ class TestZuulDFile(TestCase):
             file.write(contents)
             file.flush()
 
-            with self.assertRaises(YAMLError):
+            with self.assertRaises(SchemaError):
                 ZuulDFile(file=File(file.name))
 
 
