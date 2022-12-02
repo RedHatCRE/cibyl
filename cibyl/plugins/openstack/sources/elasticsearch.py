@@ -14,6 +14,8 @@
 #    under the License.
 """
 
+from typing import Dict, Iterable
+
 from cibyl.models.attribute import AttributeDictValue
 from cibyl.models.ci.base.job import Job
 from cibyl.plugins.openstack.deployment import Deployment
@@ -21,10 +23,30 @@ from cibyl.plugins.openstack.ironic import Ironic
 from cibyl.plugins.openstack.network import Network
 from cibyl.plugins.openstack.storage import Storage
 from cibyl.plugins.openstack.test_collection import TestCollection
+from cibyl.sources.elasticsearch.api import filter_jobs
 from cibyl.sources.plugins import SourceExtension
 from cibyl.sources.source import speed_index
 from cibyl.utils.filtering import IP_PATTERN
-from kernel.tools.dicts import chunk_dictionary_into_lists
+
+
+def keep_only_last_build_hit(hits: Iterable[dict]) -> Dict[str, dict]:
+    """
+        Filter the hits obtained from an elasticsearch query so that we only
+        keep the latest build for each job. The documents are returned in
+        a dictionary with job_name: document structure.
+        :returns: The document corresponding to the latest build for each job
+    """
+    final_hits = {}
+    for hit in hits:
+        job_name = hit["job_name"]
+        if job_name not in final_hits:
+            final_hits[job_name] = hit
+        else:
+            max_build = final_hits[job_name]["build_num"]
+            current_build = hit["build_num"]
+            if current_build > max_build:
+                final_hits[job_name] = hit
+    return final_hits
 
 
 class ElasticSearch(SourceExtension):
@@ -38,88 +60,6 @@ class ElasticSearch(SourceExtension):
         elasticsearch server
         :rtype: :class:`AttributeDictValue`
         """
-        jobs_found = self.get_jobs(**kwargs)
-        self.check_jobs_for_spec(jobs_found, **kwargs)
-
-        query_body = {
-            # We don't want results in the main hits
-            # size 0 don't show it. We will have the results
-            # in the aggregations side
-            "size": 0,
-            "from": 0,
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "bool": {
-                                "should": []
-                            }
-                        },
-                        {
-                            "bool": {
-                                "should": []
-                            }
-                        }
-                    ]
-                }
-            },
-            # We should GROUP BY job names
-            "aggs": {
-                "group_by_job_name": {
-                    "terms": {
-                        "field": "job_name.keyword",
-                        "size": 10000
-                    },
-                    "aggs": {
-                        "last_build": {
-                            # And take the first coincidence
-                            "top_hits": {
-                                "size": 1,
-                                # Sorted by build_num to get the last info
-                                "sort": [
-                                        {
-                                            "build_num": {
-                                                "order": "desc"
-                                            }
-                                        }
-                                ],
-                                "_source": ['build_url']
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        # We can't send a giant query in the request to the elasticsearch
-        # for asking to all the jobs information. Instead of doing one
-        # query for job we create a list of jobs sublists and do calls
-        # divided by chunks. chunk_size_for_search quantity will be
-        # the size of every sublist. If we have 2000 jobs we will have
-        # the following calls: 2000 / 600 = 3.33 -> 4 calls.
-        chunked_list_of_jobs = chunk_dictionary_into_lists(
-            jobs_found,
-            400
-        )
-
-        # We will filter depending of the field we receive
-        # in the kwargs
-        def append_exists_field_to_query(field: str):
-            query_body['query']['bool']['must'][1]['bool']['should'].append(
-                {
-                    "exists": {
-                        "field": field
-                    }
-                }
-            )
-
-        # We will select just the field we receive
-        # in the kwargs
-        def append_get_specific_field(field: str):
-            (query_body['aggs']['group_by_job_name']['aggs']
-             ['last_build']['top_hits']['_source'].append(
-                 f"{field}"
-             ))
 
         available_spec_fields = [
             'topology',
@@ -133,82 +73,75 @@ class ElasticSearch(SourceExtension):
             'test_suites'
         ]
 
+        fields_to_request = set()
         if 'spec' in kwargs:
-            for spec_field in available_spec_fields:
-                append_exists_field_to_query(spec_field)
-                append_get_specific_field(spec_field)
+            fields_to_request = set(available_spec_fields)
 
         if 'topology' in kwargs:
-            append_exists_field_to_query('topology')
-            append_get_specific_field('topology')
+            fields_to_request.add('topology')
+
         ip_version_argument = None
         if 'ip_version' in kwargs:
             ip_version_argument = kwargs.get('ip_version').value
-            append_exists_field_to_query('ip_version')
-            append_get_specific_field('ip_version')
+            fields_to_request.add('ip_version')
+
         dvr_argument = None
         if 'dvr' in kwargs:
             dvr_argument = kwargs.get('dvr').value
-            append_exists_field_to_query('dvr')
-            append_get_specific_field('dvr')
+            fields_to_request.add('dvr')
+
         release_argument = None
         if 'release' in kwargs:
             release_argument = kwargs.get('release').value
-            append_exists_field_to_query('osp_release')
-            append_get_specific_field('osp_release')
+            fields_to_request.add('osp_release')
+
         network_argument = None
         if 'network_backend' in kwargs:
             network_argument = kwargs.get('network_backend').value
-            append_exists_field_to_query('network_backend')
-            append_get_specific_field('network_backend')
+            fields_to_request.add('network_backend')
+
         cinder_backend_argument = None
         if 'cinder_backend' in kwargs:
             cinder_backend_argument = kwargs.get('cinder_backend').value
-            append_exists_field_to_query('storage_backend')
-            append_get_specific_field('storage_backend')
+            fields_to_request.add('storage_backend')
+
         test_setup_argument = None
         if 'test_setup' in kwargs:
             test_setup_argument = kwargs.get('test_setup').value
-            append_exists_field_to_query('test_setup')
-            append_get_specific_field('test_setup')
+            fields_to_request.add('test_setup')
+
         overcloud_templates_argument = None
         if 'overcloud_templates' in kwargs:
             user_overcloud_templates = kwargs.get('overcloud_templates')
             overcloud_templates_argument = user_overcloud_templates.value
             overcloud_templates_argument = set(overcloud_templates_argument)
-            append_exists_field_to_query('overcloud_templates')
-            append_get_specific_field('overcloud_templates')
+            fields_to_request.add('overcloud_templates')
 
-        hits_info = {}
-        for jobs_list in chunked_list_of_jobs:
-            for job in jobs_list:
-                query_body['query']['bool']['must'][0]['bool']['should'] \
-                    .append(
-                        {
-                            "match": {
-                                "job_name.keyword": f"{job}"
-                            }
-                        }
-                    )
+        # Empty query for all hits or elements
+        query_body = {
+            "query": {
+                "match_all": {}
+                },
+            "_source": ["job_name", "job_url",
+                        "build_num"]+list(fields_to_request)
+        }
 
-            results = self.__query_get_hits(
-                query=query_body,
-                index='logstash_jenkins_jobs_cibyl'
-            )
-            for result in results:
-                hits_info[
-                    result['key']
-                ] = result['last_build']['hits']['hits'][0]
-            query_body['query']['bool']['must'][0]['bool']['should'].clear()
+        hits = self.__query_get_hits(
+            query=query_body,
+            index='logstash_jenkins_jobs_cibyl'
+        )
+        # make the hits list a flat list of dicts with the job information for
+        # easier filtering
+        hits = [hit['_source'] for hit in hits]
+        hits = filter_jobs(hits, **kwargs)
+        hits = keep_only_last_build_hit(hits)
+        self.check_jobs_for_spec(hits, **kwargs)
 
         job_objects = {}
-        for job_name in jobs_found.keys():
+        for job_name, job_source_data in hits.items():
 
-            job_source_data = {}
-            if job_name in hits_info:
-                job_source_data = hits_info[job_name]['_source']
+            job_url = job_source_data['job_url']
 
-            job_url = jobs_found[job_name].url
             # If data does not exist in the source we
             # don't wanna display it
             topology = job_source_data.get(
