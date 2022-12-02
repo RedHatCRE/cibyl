@@ -16,7 +16,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from kernel.tools.yaml import YAMLError, YAMLFile
+from kernel.tools.yaml import SchemaError, YAMLFile
 
 
 class TestYAMLFile(TestCase):
@@ -62,7 +62,7 @@ class TestYAMLFile(TestCase):
         tools = Mock()
         tools.parser = parser
 
-        with self.assertRaises(YAMLError):
+        with self.assertRaises(SchemaError):
             YAMLFile(
                 file=file,
                 validator=validator,
