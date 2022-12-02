@@ -1670,9 +1670,9 @@ tripleo_ironic_conductor.service loaded    active     running
         self.jenkins.send_request = Mock(side_effect=[response])
 
         spec = Argument("spec", str, "", value=[])
-        msg = "No job was found, please pass --spec job-name with an "
-        msg += " exact match or --jobs job-name with a valid job name "
-        msg += "or pattern."
+        msg = "No job was found, please pass 'spec job-name' with an "
+        msg += "exact match or 'query --jobs job-name' "
+        msg += "with a valid job name or pattern."
         self.assertRaises(InvalidArgument, self.jenkins.get_deployment,
                           spec=spec, msg=msg)
 

@@ -37,9 +37,9 @@ class ServerSource(SourceExtension):
             # argument, we have not enough information to pull the spec
             spec_missing_input = not bool(spec_value) and (jobs_args is None)
             if len(jobs_found) == 0 or spec_missing_input:
-                msg = "No job was found, please pass --spec job-name with an "
-                msg += " exact match or --jobs job-name with a valid job name "
-                msg += "or pattern."
+                msg = "No job was found, please pass 'spec job-name' with an "
+                msg += "exact match or 'query --jobs job-name' "
+                msg += "with a valid job name or pattern."
                 raise InvalidArgument(msg)
 
             if len(jobs_found) > 1:
