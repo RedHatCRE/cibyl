@@ -259,6 +259,25 @@ class TestElasticSearch(TestCase):
         self.assertEqual(build.status.value, "FAIL")
 
     @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
+    def test_get_builds_with_last_completed_build(self,
+                                                  mock_query_hits) -> None:
+        """Tests that the internal logic from
+           :meth:`ElasticSearch.get_builds` is correct.
+        """
+        mock_query_hits.side_effect = [self.build_hits]
+
+        builds_kwargs = Mock(spec=Argument)
+        builds_kwargs.value = []
+        builds = self.es_api.get_builds(last_completed_build=builds_kwargs)
+
+        test_builds = builds['test'].builds
+        self.assertEqual(len(test_builds), 1)
+
+        build = test_builds['1']
+        self.assertEqual(build.build_id.value, '1')
+        self.assertEqual(build.status.value, "SUCCESS")
+
+    @patch.object(ElasticSearch, '_ElasticSearch__query_get_hits')
     def test_last_build_filter_no_builds(self,
                                          mock_query_hits: object) -> None:
         """Tests that the internal logic from

@@ -37,7 +37,7 @@ from cibyl.sources.zuul.utils.tests.tempest.parser import XMLTempestTestSuite
 from cibyl.utils.filtering import (apply_filters, matches_regex,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_regex_match)
-from cibyl.utils.models import has_builds_job, has_tests_job
+from cibyl.utils.models import LastBuildEnum, has_builds_job, has_tests_job
 
 LOG = logging.getLogger(__name__)
 
@@ -274,14 +274,23 @@ class ElasticSearch(ServerSource):
 
         if 'last_build' in kwargs:
             return self.get_last_build(jobs_found)
+        if 'last_completed_build' in kwargs:
+            return self.get_last_build(jobs_found,
+                                       kind=LastBuildEnum.lastCompletedBuild)
 
         return jobs_found
 
     def get_last_build(self,
-                       builds_jobs: AttributeDictValue) -> AttributeDictValue:
+                       builds_jobs: AttributeDictValue,
+                       kind: LastBuildEnum =
+                       LastBuildEnum.lastBuild) -> AttributeDictValue:
         """
             Get last build from builds. It's determined
             by the build_id
+            :param kind: category of last build according to user input,
+            default is 'lastBuild' which will return the last build that ran,
+            others are lastSuccessfulBuild, which will return the last build
+            that did not fail
 
             :returns: container of jobs with last build information
         """
@@ -293,7 +302,18 @@ class ElasticSearch(ServerSource):
             if not builds:
                 continue
 
-            last_build_number = sorted(builds.keys(), key=int)[-1]
+            sorted_builds = sorted(builds.keys(), key=int, reverse=True)
+            last_build_number = sorted_builds[0]
+            if kind == LastBuildEnum.lastCompletedBuild:
+                for build in sorted_builds:
+                    build_status = builds[build].status.value
+                    if build_status in ("SUCCESS", "UNSTABLE"):
+                        last_build_number = build
+                        break
+                else:
+                    # if we have reached the end of the builds without any
+                    # non-failed build, skip the job
+                    continue
             last_build_info = builds[last_build_number]
             job_object[job_name] = Job(name=job_name, url=job_url)
             job_object[job_name].add_build(last_build_info)
