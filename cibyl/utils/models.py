@@ -13,8 +13,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """
+from enum import Enum
 
 from cibyl.models.ci.base.job import Job
+
+
+class LastBuildEnum(str, Enum):
+    lastBuild = "lastBuild"
+    # Jenkins meaning of lastCompletedBuild is slightly different from what we
+    # have used, lastCompletedBuild will return also builds that failed,
+    # lastSuccessfulBuild is what we want
+    lastCompletedBuild = "lastSuccessfulBuild"
 
 
 def has_tests_job(job: Job) -> bool:

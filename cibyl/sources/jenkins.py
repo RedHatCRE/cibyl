@@ -18,7 +18,6 @@ import json
 import logging
 import re
 from datetime import datetime, timezone
-from enum import Enum
 from functools import partial
 from typing import Callable, Dict, List
 from urllib.parse import urlparse
@@ -39,7 +38,7 @@ from cibyl.utils.filtering import (apply_filters,
                                    satisfy_case_insensitive_match,
                                    satisfy_exact_match, satisfy_range_match,
                                    satisfy_regex_match)
-from cibyl.utils.models import has_builds_job, has_tests_job
+from cibyl.utils.models import LastBuildEnum, has_builds_job, has_tests_job
 
 LOG = logging.getLogger(__name__)
 
@@ -209,14 +208,6 @@ def get_start_time_from_epoch(epoch_time: str) -> str:
     # remove timezone info from string representation
     start_time = start_time.replace(tzinfo=None)
     return str(start_time.isoformat(sep=" ", timespec="seconds"))
-
-
-class LastBuildEnum(str, Enum):
-    lastBuild = "lastBuild"
-    # Jenkins meaning of lastCompletedBuild is slightly different from what we
-    # have used, lastCompletedBuild will return also builds that failed,
-    # lastSuccessfulBuild is what we want
-    lastCompletedBuild = "lastSuccessfulBuild"
 
 
 # pylint: disable=no-member
